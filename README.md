@@ -1,6 +1,7 @@
 # The DAFNI CLI
-​
+
 ## Use Cases
+
 * Upload new datasets and dataset versions
 * Download datasets
 * Upload new models
@@ -27,7 +28,6 @@
 ## Functions
 * Will have to login to DAFNI with a `POST` to the login app with a username and password
 * When Keycloak comes in, there will be an OAuth flow to be able to do this in a better way
-*  
 ​
 ## Syntax
  * `dafni get datasets` vs `dafni datasets get`
@@ -35,7 +35,6 @@
  * `dafni post dataset -metadata def.yaml -files`
 ​
 ## Other requirements
-​
  - Must be also able to be used as a client library (eg. `import dafni`)
  - Must be installable as an exe (through `pyinstaller` or `py2exe`)
 ​
@@ -44,6 +43,5 @@
 * Need to keep in mind that the APIs are currently not fixed (we're making best efforts to not change them too much but they are liable to change) The CLI does need to be fixed so it probably needs to send a UserAgent API header to let us know which version of the API they're using so that in future we can know not to break stuff that's going to affect a lot of people.
 ​
 ## Tasks
-​
  - Bethan to firm up use cases and prioritise these
  - James to think about syntax of the CLI and make a decision for us to fight about
