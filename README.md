@@ -78,7 +78,9 @@ From the use cases described above, the following list of features is defined. T
 
 Admin #1:
 * Log in (Log out should be automatic)
-* See own user details
+* See own user details 
+    + User Name
+    + User UUID
 
 Models:
 * List all models available to user
