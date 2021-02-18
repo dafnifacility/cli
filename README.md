@@ -1,57 +1,111 @@
 # The DAFNI CLI
 
 ## Use Cases
-The DAFNI CLI has been identified as requirement for the following users/use cases:
+The DAFNI CLI has been identified as requirement for in the following cases:
 ### 1. CERAF project
-#### Applicable bid text
-_(NOTE: this is not the final submitted version. Update needed - Bethan)_
+#### Applicable bid text:
+
+The applicable text of this bid is as follows (note: this is from a pre-submission draft, so may differ from the final version):
+
 > "This environment will be deployed using a combination of JASMIN unmanaged cloud available to the project with a pipeline allowing containerisation and deployment onto the DAFNI platform."
 
 > "We will collect community standards already in use from existing partners in the FS area, as well as through our expertise in data management services suggest those not yet in use but that could dramatically simplify service & pipeline creation.  DAFNI will incorporate appropriate data standards within its information integration framework, to support a catalogue of FAIR compliant standards"
 
 > "To achieve this we will; ...
-3) define standard operating procedures to allow import and utilisation in secure manner of externally provided data in a non-persistent manner;
-4) build, execute, share, reuse and export flagship pipelines within a secure environment, accessible to the non-developer community; and
-4) ensure data storage system utilising shared capabilities with other platforms of relevance (e.g. JASMIN, DAFNI).
-5) Deploy a custom user management interface to allow the concurrent utilisation by potentially competing user communities whilst ensuring sandboxing of applications, service and all user activities"
+> * define standard operating procedures to allow import and utilisation in secure manner of externally provided data in a non-persistent manner;
+> * build, execute, share, reuse and export flagship pipelines within a secure environment, accessible to the non-developer community; and
+> * ensure data storage system utilising shared capabilities with other platforms of relevance (e.g. JASMIN, DAFNI).
+> * Deploy a custom user management interface to allow the concurrent utilisation by potentially competing user communities whilst ensuring sandboxing of applications, service and all user activities"
 
-The verbal agreement made between DAFNI and David Wallom was that this work would support users in using JASMIN as a model development environemnt, and then seamlessly link this through to DAFNI using CLI commands.
+The agreement made between DAFNI and Oxford OERC in planning for this bid, was that the CLI would support CERAF users working on JASMIN  - as a model development environment - to seamlessly port their work through to DAFNI for execution.
 
-#### Priorities
 
-There is still uncertainty about the form of the CERAF work and how this interfaces with the working practices of David Walloms team. Bearing in mind that uncertainty, the priorities in this use case are reasonably assumed to be the ability to:
+##### Key priorities in this case
+
+As a project which has not yet kicked off, there is still some uncertainty about the specifics of the CERAF work. Bearing in mind that uncertainty, the priorities in this particular use case can be reasonably assumed to be as follows:
 1. Download data (for model development and results analysis)
 2. Upload models to DAFNI
 3. Share DAFNI models and data with collaborators through DAFNI groups
 4. Update workflows with these new models
 5. Execute the workflows
-As well as all associated discovery and rollback capabilities
+As well as all associated asset discovery and removal capabilities
+
+_For more information contact Bethan Perkins / James Hannah / Brian Matthews_
+
+### 2. DAFNI modellers forum
+
+In November 2019 a forum was held with DAFNI pilot modellers in order to ascertain their priority features for the DAFNI platform. A DAFNI CLI was seen as a very valuable asset by the group. The following summarise the [notes taken during the forum](https://wiki.dafni.rl.ac.uk/display/DAFNIDEV/Observations+and+Conclusions).
+
+* THE CLI was consistenly prioritised above other features by all modellers
+* Modellers want to use a CLI for smoothly transitioning models from their local development environments to runtime/compute environments.
+* A CLI is seen as more "trustworthy" than a github
+* Modellers would use a CLI for the following:
+    + Uploading models and data
+    + Downloading data
+    + Running models and/or workflows
+
+##### Key priorities in this case
+1. Uploading models and data
+2. Downloading data
+3. Running models and/or workflows
+
+_For more information contact Bethan Perkins / Rose Dickinson_
+
+### 3. Feature requests on github
+
+Searches of the requests provided on the [DAFNI User Feedback GitHub Issue Tracker](https://github.com/dafnifacility/user-feedback) provide the following specific user request relating to CLI / remote access:
+
+[Issue 45](https://github.com/dafnifacility/user-feedback/issues/45)
+> It would be great to have access to some DAFNI functionalities through an API (e.g. http or webdav), in particular for model upload (for local connexion speed or local disk space reasons, I often manage my models and images on a remote server - it would be useful to be able to directly upload from there with the command line).
+
+##### Key priority in this case
+1. Model upload
+
+_For more information, see link_
+
+### 4. Food Network users
+
+A food network group are currently onboarding to DAFNI would like to use the platform as an area to host large datasets to support their work. The aspect which relates to a CLI is that of being able to autmoatically download latest results into a local web-app. 
 
 
+##### Key priority in this case
+1. Dataset download
 
-## Priority Features
-Procedures for current and future DAFNI users, in priority order:
+_For more information, contact Tom Gowland / Marion Samler_
+
+## Feature Priority
+From the use cases described above, the following list of features is defined. These are placed in priority order, taking in to account the use cases above as well as the work required to develop each feature. 
+
 Admin #1:
 * Log in (Log out should be automatic)
 * See own user details
 
 Models:
-* List available models
+* List all models available to user
+* Filter list of models available to user
 * View specific model metadata (model definition file..?)
 * Upload a new model
+* Delete a model
 
 Datasets:
-* List available datasets
+* List all datasets available to user
+* Filter list of datasets available to user.
 * View specific dataset metadata
 * Download dataset data and metadata
 * Upload a new dataset
 * Update dataset metadata
 * Update dataset data files to create new version
+* Delete a dataset
+* Delete a dataset version
 
-Workflows #1:
-* List available workflows
+Workflows:
+* List all workflows available to user
+* Filter list of available workflows
 * View specific workflow metadata
 * Execute a workflow (without changing any properties of the workflow)
+* Create workflow (using workflow definition file)
+* Edit workflow env params and create new workflow
+* Edit workflow data slots and create new workflow
 
 Groups: 
 * List available groups
@@ -75,20 +129,15 @@ Public:
 Admin #2:
 * Search for another users' details
 
-Workflows #2:
-* Edit workflow env params and create new workflow
-* Edit workflow data slots and create new workflow
-* Create a new workflow 
-* Save new workflow
-* Create a new workflow model step in new/existing workflow
-* Create a new workflow iterator step in new/existing workflow
-* Create a new workflow visualisation step in new/existing workflow 
-* Create a new workflow publish step in existing new/workflow
-
 Future:
+* Visualsiation features (more thought needed here on what to pass back to the user - templates perhaps?)
 * Download models (not currently implemented)
 * Request a DAFNI account (not currently implemented)
 * Admin functions
+    + (e.g adding users? or confirming accounts?)
+    + managing assets - removing/changing asset visibility?
+    + service/outage message management?
+    + (far far future) billing/accounting
 ​
 ## Functions
 * Will have to login to DAFNI with a `POST` to the login app with a username and password
