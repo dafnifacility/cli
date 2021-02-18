@@ -104,9 +104,12 @@ Workflows:
 * List all workflows available to user
 * Filter list of available workflows
 * View specific workflow metadata
-* Execute a workflow (without changing any properties of the workflow)
+* List all workflow instances available to user
+* Filter list of available workflow instances
+* View specific workflow instance metadata
+* Execute a workflow (without changing any properties of the workflow) to create a new instance
 * Create workflow (using workflow definition file)
-* Edit workflow env params and create new workflow
+* Edit workflow env params and create new workflow 
 * Edit workflow data slots and create new workflow
 
 Groups: 
