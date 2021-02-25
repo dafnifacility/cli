@@ -154,8 +154,11 @@ Future:
  * `dafni post dataset -metadata def.yaml -files`
 ​
 ## Other requirements
- - Must be also able to be used as a client library (eg. `import dafni`)
+ - Must be also able to be used as a client library (eg. `import dafni`) with a user-friendly API
  - Must be installable as an exe (through `pyinstaller` or `py2exe`)
+ - Must be open to the world on Github and visible to users
+ - Should accept feature requests/bug reports via Github issues (referencing the user-feedback repository as necessary)
+ - Where possible, differences/errors discovered in the available Swagger docs should be noted
 ​
 ## Notes
 * Probably think we should use [Click](https://github.com/pallets/click)
