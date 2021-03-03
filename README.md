@@ -163,7 +163,19 @@ Future:
 ## Notes
 * Probably think we should use [Click](https://github.com/pallets/click)
 * Need to keep in mind that the APIs are currently not fixed (we're making best efforts to not change them too much but they are liable to change) The CLI does need to be fixed so it probably needs to send a UserAgent API header to let us know which version of the API they're using so that in future we can know not to break stuff that's going to affect a lot of people.
-​
+
+## DAFNI Endpoint Information
+The Swagger documents for the DAFNI components are available at the following links:
+* [DSS](https://app.swaggerhub.com/apis/tg137/DSS-API/1.0.0)
+* [NIMS](https://app.swaggerhub.com/apis/tg137/NIMS-API/1.0.0)
+* [Search and Discovery](https://app.swaggerhub.com/apis/tg137/S-AND-D-API/1.0.0)
+* [NIVS](https://app.swaggerhub.com/apis/tg137/nivs-api/1.0.0)
+
+Unfortunately, due to a lack of understanding about Swagger auto-generation early in the project, there are known mistakes and omissions in the Swagger documents where the auto-generation has been mis-configured or not overridden in the correct way. However, the DAFNI web app makes all of the same calls that the CLI will need to and can be used as the true source of information about the endpoints.
+
+The web app code (in VueJS) is available [here](https://github.com/dafnifacility/web-app-mirror) and the front end itself can be accessed (with a DAFNI account) [here](https://facility.secure.dafni.rl.ac.uk/).
+
+​Finally, a start has already been made to implementing a client library to allow for automatic upload to the NIMS as part of a GitHub action. This codebase can be used in order to get an idea of how some of the calls to login are made ([specific login code here](https://github.com/dafnifacility/command-line-interface/blob/main/dafni_cli/login.py)) as well as also having some of the [NIMS calls](https://github.com/dafnifacility/command-line-interface/blob/main/dafni_cli/nims.py) that will be required in this CLI.
 ## Tasks
  - Bethan to firm up use cases and prioritise these
  - James to think about syntax of the CLI and make a decision for us to fight about
