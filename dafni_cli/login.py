@@ -11,7 +11,7 @@ from dafni_cli.consts import JWT_FILENAME, JWT_COOKIE
 
 DATE_TIME_FORMAT = "%m/%d/%Y %H:%M:%S"
 
-def get_new_jwt(user_name: str, password: str) -> str:
+def get_new_jwt(user_name: str, password: str) -> dict:
     """Function to get a JWT for the given user for DAFNI access
 
     Args:
@@ -56,7 +56,7 @@ def process_jwt(jwt: str, user_name: str) -> dict:
     message = message_bytes.decode('utf-8')
     json_dict = json.loads(message)
 
-    user_jwt= {
+    user_jwt = {
         'expiry': dt.fromtimestamp(json_dict['exp']).strftime(DATE_TIME_FORMAT),
         'user_id': json_dict['sub'],
         'user_name': user_name,
@@ -84,6 +84,20 @@ def read_jwt_file() -> Optional[dict]:
         
     return jwt_dict
 
+def request_login_details() -> dict:
+    """Function to prompt the user for their username and password
+    with the feedback that login has been completed and the username and UUID.
+
+    :return: jwt_dict (dict): user_jwt returned by PROCESS_JWT
+    """
+    user_name = click.prompt("User name")
+    password = click.prompt("Password", hide_input=True)
+    jwt_dict = get_new_jwt(user_name, password)
+    click.echo('Login Complete')
+    click.echo('user name: {0}, user id: {1}'.format(jwt_dict['user_name'], jwt_dict['user_id']))
+    return jwt_dict
+
+
 @click.command()
 def login() -> str:
     """Function to handle DAFNI authentication
@@ -98,20 +112,12 @@ def login() -> str:
     """
     jwt_dict = read_jwt_file()
     if not jwt_dict:
-        user_name = click.prompt("User name")
-        password = click.prompt("Password", hide_input=True)
-        jwt_dict = get_new_jwt(user_name, password)
+        jwt_dict = request_login_details()
     else:
         # Ensure the existing JWT has not expired
         expiry_date = dt.strptime(jwt_dict['expiry'], DATE_TIME_FORMAT)
         if expiry_date < dt.now():
-            user_name = click.prompt("User name")
-            password = click.prompt("Password", hide_input=True)
-            jwt_dict = get_new_jwt(user_name, password)
-
-    click.echo('Login Complete')
-    click.echo('user name: {0}, user id: {1}'.format(jwt_dict['user_name'], jwt_dict['user_id']))
-
+            jwt_dict = request_login_details()
     return jwt_dict['jwt']
 
 if __name__ == '__main__':
