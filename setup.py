@@ -14,5 +14,6 @@ setup(
     entry_points='''
         [console_scripts]
         login=dafni_cli.login:login
+        get=dafni_cli.get:get
     ''',
 )
