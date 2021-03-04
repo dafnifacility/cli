@@ -29,7 +29,7 @@ def models(ctx, summary, descr, creation_date, publication_date):
         more details to be listed as well.
 
         Args:
-            ctx: context containing the JWT
+            ctx (context): contains JWT for authentication
             summary (bool): whether summary should be displayed
             descr (bool): whether description should be displayed
             creation_date (str): for filtering by creation date. Format: DD/MM/YYYY

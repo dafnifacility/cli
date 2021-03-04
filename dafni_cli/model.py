@@ -28,6 +28,15 @@ def get_models_dicts(jwt_dict: dict) -> list:
 
 
 def filter_by_date(model_dict: dict, key: str, date: str) -> bool:
+    """Filters models based on the date given as an option.
+    Args:
+        model_dict (dict): Dictionary returned by API for a single model
+        key (str): Key for MODEL_DICT in which date is contained
+        date (str): Date for which models are to be filtered on
+
+    Returns:
+        bool: Whether to display the model based on the filter
+    """
     day,month,year = date.split("/")
     date = dt.date(int(year), int(month), int(day))
     iso_date = model_dict[key]
@@ -36,6 +45,15 @@ def filter_by_date(model_dict: dict, key: str, date: str) -> bool:
 
 
 def list_groups(ctx, summary, descr, creation_date, publication_date):
+    """Lists requested information about non-filtered models.
+    Args:
+        ctx (context): contains JWT for authentication
+        summary (bool): whether summary should be displayed
+        descr (bool): whether description should be displayed
+        creation_date (str): for filtering by creation date. Format: DD/MM/YYYY
+        publication_date (str): for filtering by publication date. Format: DD/MM/YYYY
+    """
+
     models_dicts = get_models_dicts(ctx.obj['jwt'])
     for model_dict in models_dicts:
         date_filter = True
