@@ -17,6 +17,7 @@ def request_response_fixture() -> MagicMock:
     # setup response mock object
     mock_response = MagicMock()
     mock_response.raise_for_status.return_value = None
+    mock_response.json.return_value = {"key": "value"}
     # setup cookies
     cookies_mock = PropertyMock(return_value={JWT_COOKIE: JWT})
     type(mock_response).cookies = cookies_mock
