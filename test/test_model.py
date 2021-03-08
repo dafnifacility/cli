@@ -73,4 +73,5 @@ class TestFilterByDate(unittest.TestCase):
         self.assertRaises(Exception, self.test_model.filter_by_date, "not_a_key", "01/03/2020")
 
     def test_raises_exception_when_date_string_in_wrong_format(self):
+        # Act and Assert
         self.assertRaises(ValueError, self.test_model.filter_by_date, "creation", "2020/03/20")

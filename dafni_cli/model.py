@@ -80,9 +80,9 @@ class Model:
 def create_model_list(model_dict_list: list) -> list:
     model_list = []
     for model_dict in model_dict_list:
-        model = Model()
-        model.get_details_from_dict(model_dict)
-        model_list.append(model)
+        single_model = Model()
+        single_model.get_details_from_dict(model_dict)
+        model_list.append(single_model)
     return model_list
 
 
