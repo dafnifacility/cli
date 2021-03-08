@@ -85,14 +85,18 @@ Admin #1:
 Models:
 * List all models available to user
 * Filter list of models available to user
-* View specific model metadata (model definition file..?)
+* View specific model latest metadata (model definition file..?)
+* View version history for specific model (format as models available list)
+* View specific historical model version metadata (format as specific model latest metadata)
 * Upload a new model
 * Delete a model
 
 Datasets:
 * List all datasets available to user
 * Filter list of datasets available to user.
-* View specific dataset metadata
+* View specific dataset latest metadata
+* View version history for specific dataset (format as datasets available list)
+* View specific historical dataset version metadata (format as specific datasets latest metadata)
 * Download dataset data and metadata
 * Upload a new dataset
 * Update dataset metadata
