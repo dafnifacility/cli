@@ -84,11 +84,3 @@ def create_model_list(model_dict_list: list) -> list:
         single_model.get_details_from_dict(model_dict)
         model_list.append(single_model)
     return model_list
-
-
-if __name__ == "__main__":
-    jwt = "JWT eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJsb2dpbi1hcHAtand0IiwiZXhwIjoxNjE0OTY3ODQ4LCJzdWIiOiI4ZDg1N2FjZi0yNjRmLTQ5Y2QtOWU3Zi0xZTlmZmQzY2U2N2EifQ.UxB_67FpglFaJR2pBlVw_mIJY2zQ5y6cNEG5ZRmW8WA"
-    version_id = "0b4b0d0a-5b05-4e14-b382-9a5c9082315b"
-    model = Model()
-    model.get_details_from_id(jwt, version_id)
-    model.output_model_details()
