@@ -1,6 +1,6 @@
 import click
 
-from dafni_cli.login import login
+from dafni_cli.login import check_for_jwt_file
 from dafni_cli.API_requests import get_models_dicts
 from dafni_cli.model import create_model_list
 
@@ -11,8 +11,8 @@ def get(ctx):
     """Lists entities available to the user from
     models, datasets, workflows, groups, depending on command."""
     ctx.ensure_object(dict)
-    jwt = ctx.invoke(login)
-    ctx.obj['jwt'] = jwt
+    jwt_dict, jwt_flag = check_for_jwt_file()
+    ctx.obj['jwt'] = jwt_dict['jwt']
 
 
 @get.command(help="List and filter models")

@@ -98,8 +98,23 @@ def request_login_details() -> dict:
     return jwt_dict
 
 
+def check_for_jwt_file() -> (Optional[dict], bool):
+    new_jwt = False
+    jwt_dict = read_jwt_file()
+    if not jwt_dict:
+        jwt_dict = request_login_details()
+        new_jwt = True
+    else:
+        # Ensure the existing JWT has not expired
+        expiry_date = dt.strptime(jwt_dict['expiry'], DATE_TIME_FORMAT)
+        if expiry_date < dt.now():
+            jwt_dict = request_login_details()
+            new_jwt = True
+    return jwt_dict, new_jwt
+
+
 @click.command()
-def login() -> str:
+def login():
     """Function to handle DAFNI authentication
     The function will request a new JWT with the users
     usersname and password if either there is no cached JWT
@@ -110,15 +125,10 @@ def login() -> str:
     Returns:
         str: Base64 encoded JWT string
     """
-    jwt_dict = read_jwt_file()
-    if not jwt_dict:
-        jwt_dict = request_login_details()
-    else:
-        # Ensure the existing JWT has not expired
-        expiry_date = dt.strptime(jwt_dict['expiry'], DATE_TIME_FORMAT)
-        if expiry_date < dt.now():
-            jwt_dict = request_login_details()
-    return jwt_dict['jwt']
+    jwt_dict, jwt_flag = check_for_jwt_file()
+    if not jwt_flag:
+        click.echo('Already logged in as: ')
+        click.echo('user name: {0}, user id: {1}'.format(jwt_dict['user_name'], jwt_dict['user_id']))
 
 if __name__ == '__main__':
     login()
