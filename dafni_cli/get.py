@@ -43,8 +43,9 @@ def models(ctx, creation_date, publication_date):
 
 
 @get.command()
+@click.argument('--version_id', nargs=-1)
 @click.pass_context
-def metadata(ctx):
+def model(ctx):
     pass
 
 
