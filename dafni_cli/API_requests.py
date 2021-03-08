@@ -51,5 +51,5 @@ def get_model_metadata_dicts(jwt: str, model_version_id: str) -> dict:
         Returns:
             dict: dictionary for the metadata of selected model
         """
-    url = MODELS_API_URL + '/models/' + model_version_id + "/definition/",
+    url = MODELS_API_URL + '/models/' + model_version_id + "/definition/"
     return dafni_get_request(url, jwt)
