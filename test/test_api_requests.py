@@ -4,7 +4,7 @@ from requests.exceptions import HTTPError
 
 from dafni_cli.urls import MODELS_API_URL
 from dafni_cli import API_requests
-from test.fixtures import request_response_fixture, JWT
+from test.fixtures.jwt_fixtures import request_response_fixture, JWT
 
 
 @patch("dafni_cli.API_requests.requests")

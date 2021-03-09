@@ -8,9 +8,13 @@ from click.testing import CliRunner
 
 from dafni_cli import login
 from dafni_cli.urls import LOGIN_API_URL
-from dafni_cli.consts import JWT_FILENAME, JWT_COOKIE
+from dafni_cli.consts import JWT_FILENAME, JWT_COOKIE, DATE_TIME_FORMAT
 
-from test.fixtures import request_response_fixture, processed_jwt_fixture, JWT
+from test.fixtures.jwt_fixtures import (
+    request_response_fixture,
+    processed_jwt_fixture,
+    JWT,
+)
 
 
 @patch("dafni_cli.login.process_jwt")
@@ -264,9 +268,7 @@ class TestCheckForJwtFile:
         mock_dt.strptime.return_value = expiry_date
 
         # simulate JWT file found
-        mock_read.return_value = {
-            "expiry": expiry_date.strftime(login.DATE_TIME_FORMAT)
-        }
+        mock_read.return_value = {"expiry": expiry_date.strftime(DATE_TIME_FORMAT)}
         # setup request_login_details return
         mock_login.return_value = processed_jwt_fixture
 
@@ -278,7 +280,7 @@ class TestCheckForJwtFile:
         assert new_jwt is True
 
         mock_dt.strptime.assert_called_once_with(
-            expiry_date.strftime(login.DATE_TIME_FORMAT), login.DATE_TIME_FORMAT
+            expiry_date.strftime(DATE_TIME_FORMAT), DATE_TIME_FORMAT
         )
 
     def test_existing_jwt_returned_if_existing_jwt_has_not_expired(
@@ -292,9 +294,7 @@ class TestCheckForJwtFile:
         mock_dt.strptime.return_value = expiry_date
 
         # simulate JWT file found
-        mock_read.return_value = {
-            "expiry": expiry_date.strftime(login.DATE_TIME_FORMAT)
-        }
+        mock_read.return_value = {"expiry": expiry_date.strftime(DATE_TIME_FORMAT)}
         # setup request_login_details return
         mock_login.return_value = processed_jwt_fixture
 
@@ -302,14 +302,14 @@ class TestCheckForJwtFile:
         jwt_dict, new_jwt = login.check_for_jwt_file()
 
         # ASSERT
-        assert jwt_dict == {"expiry": expiry_date.strftime(login.DATE_TIME_FORMAT)}
+        assert jwt_dict == {"expiry": expiry_date.strftime(DATE_TIME_FORMAT)}
         assert new_jwt is False
+
 
 @patch("dafni_cli.login.check_for_jwt_file")
 class TestLogin:
     """Test class to test the login functionality"""
 
-    
     def test_echo_not_called_if_new_jwt_created(self, mock_jwt, processed_jwt_fixture):
 
         # SETUP
@@ -320,7 +320,7 @@ class TestLogin:
         result = runner.invoke(login.login)
 
         # ASSERT
-        assert result.stdout == ''
+        assert result.stdout == ""
 
     def test_echo_called_if_existing_jwt_valid(self, mock_jwt, processed_jwt_fixture):
 
@@ -332,6 +332,9 @@ class TestLogin:
         result = runner.invoke(login.login)
 
         # ASSERT
-        assert result.stdout == 'Already logged in as: \nuser name: {0}, user id: {1}\n'.format(
-            processed_jwt_fixture['user_name'], processed_jwt_fixture['user_id']
+        assert (
+            result.stdout
+            == "Already logged in as: \nuser name: {0}, user id: {1}\n".format(
+                processed_jwt_fixture["user_name"], processed_jwt_fixture["user_id"]
+            )
         )
