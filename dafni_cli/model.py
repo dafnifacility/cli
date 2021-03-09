@@ -42,7 +42,7 @@ def optional_column(dictionary: dict, key: str, column_width: int = 0, alignment
         elif column_width == 0:
             entry = f"{dictionary[key]}"
         else:
-            raise Exception("Column width for optional column must be positive or zero")
+            raise ValueError("Column width for optional column must be positive or zero")
     else:
         entry = f" " * column_width
     return entry

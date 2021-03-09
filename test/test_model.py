@@ -3,6 +3,81 @@ from dafni_cli.model import *
 from datetime import datetime
 
 
+class TestOptionalColumn(unittest.TestCase):
+
+    def test_if_key_exists_value_is_returned_with_correct_width(self):
+        # SETUP
+        key = 'key'
+        value = 'value'
+        dictionary = {key: value}
+        column_width = 10
+
+        # CALL
+        entry = optional_column(dictionary, key, column_width)
+
+        # ASSERT
+        self.assertEqual(entry, 'value     ')
+
+    def test_if_key_exists_value_is_returned_with_correct_width_and_alignment(self):
+        # SETUP
+        key = 'key'
+        value = 'value'
+        dictionary = {key: value}
+        column_width = 10
+        alignment = ">"
+
+        # CALL
+        entry = optional_column(dictionary, key, column_width, alignment)
+
+        # ASSERT
+        self.assertEqual(entry, '     value')
+
+    def test_if_key_exists_and_no_column_width_specified(self):
+        # SETUP
+        key = 'key'
+        value = 'value'
+        dictionary = {key: value}
+
+        # CALL
+        entry = optional_column(dictionary, key)
+
+        # ASSERT
+        self.assertEqual(entry, 'value')
+
+    def test_if_key_does_not_exist_but_column_width_specified(self):
+        # SETUP
+        key = 'key'
+        dictionary = {'other_key': 'value'}
+        column_width = 8
+
+        # CALL
+        entry = optional_column(dictionary, key, column_width)
+
+        # ASSERT
+        self.assertEqual(entry, ' ' * 8)
+
+    def test_if_key_does_not_exist_but_column_width_not_specified(self):
+        # SETUP
+        key = 'key'
+        dictionary = {'other_key': 'value'}
+
+        # CALL
+        entry = optional_column(dictionary, key)
+
+        # ASSERT
+        self.assertEqual(entry, '')
+
+    def test_exception_raised_when_column_width_negative(self):
+        # SETUP
+        key = 'key'
+        value = 'value'
+        dictionary = {key: value}
+
+        # CALL
+        # ASSERT
+        self.assertRaises(ValueError, optional_column, dictionary, key, -1)
+
+
 class TestFromDict(unittest.TestCase):
     test_dictionary = {"name": "test model name",
                        "summary": "this model is for use in tests for the Model class",
@@ -14,13 +89,13 @@ class TestFromDict(unittest.TestCase):
                        "container": "reg.dafni.rl.ac.uk/pilots/models/mobile-model/nims"}
 
     def test_ISO_dates_are_converted_to_datetime(self):
-        # Arrange
+        # SETUP
         test_model = Model()
 
-        # Act
+        # CALL
         test_model.get_details_from_dict(self.test_dictionary)
 
-        # Assert
+        # ASSERT
         self.assertIsNotNone(test_model.creation_time)
         self.assertIsNotNone(test_model.publication_time)
         self.assertIsInstance(test_model.creation_time, datetime)
@@ -28,7 +103,7 @@ class TestFromDict(unittest.TestCase):
 
 
 class TestFilterByDate(unittest.TestCase):
-    # Arrange
+    # SETUP
     test_dictionary = {"name": "test model name",
                        "summary": "this model is for use in tests for the Model class",
                        "description": "This is a terribly long description of the test dictionary",
@@ -41,37 +116,39 @@ class TestFilterByDate(unittest.TestCase):
     test_model.get_details_from_dict(test_dictionary)
 
     def test_gives_false_when_creation_date_after_given_date(self):
-        # Act
+        # CALL
         creation_date_filter = self.test_model.filter_by_date("creation", "01/03/2021")
 
-        # Assert
+        # ASSERT
         self.assertFalse(creation_date_filter)
 
     def test_gives_false_when_publication_date_after_given_date(self):
-        # Act
+        # CALL
         publication_date_filter = self.test_model.filter_by_date("publication", "01/03/2021")
 
-        # Assert
+        # ASSERT
         self.assertFalse(publication_date_filter)
 
     def test_gives_true_when_creation_date_before_given_date(self):
-        # Act
+        # CALL
         creation_date_filter = self.test_model.filter_by_date("creation", "01/03/2020")
 
-        # Assert
+        # ASSERT
         self.assertTrue(creation_date_filter)
 
     def test_gives_true_when_publication_date_before_given_date(self):
-        # Act
+        # CALL
         publication_date_filter = self.test_model.filter_by_date("publication", "01/03/2020")
 
-        # Assert
+        # ASSERT
         self.assertTrue(publication_date_filter)
 
     def test_raises_exception_when_key_is_not_creation_or_publication(self):
-        # Act and Assert
+        # CALL
+        # ASSERT
         self.assertRaises(Exception, self.test_model.filter_by_date, "not_a_key", "01/03/2020")
 
     def test_raises_exception_when_date_string_in_wrong_format(self):
-        # Act and Assert
+        # CALL
+        # ASSERT
         self.assertRaises(ValueError, self.test_model.filter_by_date, "creation", "2020/03/20")
