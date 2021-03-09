@@ -47,7 +47,7 @@ class Model:
         self.version_tags = None
         pass
 
-    def get_details_from_dict(self, model_dict: dict):
+    def set_details_from_dict(self, model_dict: dict):
         """Take model details straight from the dictionary returned from the DAFNI API.
         Args:
             model_dict (dict): Dictionary returned from DAFNI API at /models endpoints
@@ -68,7 +68,7 @@ class Model:
                 version_id_string (str): Version ID of the model
         """
         model_dict = get_single_model_dict(jwt_string, version_id_string)
-        self.get_details_from_dict(model_dict)
+        self.set_details_from_dict(model_dict)
 
     def get_metadata(self, jwt_string: str):
         """Retrieve metadata for the model using the model details and the /models/<version-id>/description/ endpoint.
@@ -128,6 +128,6 @@ def create_model_list(model_dict_list: list) -> list:
     model_list = []
     for model_dict in model_dict_list:
         single_model = Model()
-        single_model.get_details_from_dict(model_dict)
+        single_model.set_details_from_dict(model_dict)
         model_list.append(single_model)
     return model_list
