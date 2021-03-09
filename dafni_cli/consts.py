@@ -1,5 +1,5 @@
-JWT_FILENAME = 'dafni_jwt.txt'
-JWT_COOKIE = '__Secure-dafnijwt'
+JWT_FILENAME = "dafni_jwt.txt"
+JWT_COOKIE = "__Secure-dafnijwt"
 
 INPUT_TITLE_HEADER = "Title"
 INPUT_TYPE_HEADER = "Type"

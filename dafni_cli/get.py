@@ -12,14 +12,20 @@ def get(ctx):
     models, datasets, workflows, groups, depending on command."""
     ctx.ensure_object(dict)
     jwt_dict, jwt_flag = check_for_jwt_file()
-    ctx.obj['jwt'] = jwt_dict['jwt']
+    ctx.obj["jwt"] = jwt_dict["jwt"]
 
 
 @get.command(help="List and filter models")
-@click.option('--creation-date', default=None,
-              help="Filter for models created since given date. Format: DD/MM/YYYY")
-@click.option('--publication-date', default=None,
-              help="Filter for models published since given date. Format: DD/MM/YYYY")
+@click.option(
+    "--creation-date",
+    default=None,
+    help="Filter for models created since given date. Format: DD/MM/YYYY",
+)
+@click.option(
+    "--publication-date",
+    default=None,
+    help="Filter for models published since given date. Format: DD/MM/YYYY",
+)
 @click.pass_context
 def models(ctx, creation_date, publication_date):
     """Displays list of model names with other options allowing
@@ -30,7 +36,7 @@ def models(ctx, creation_date, publication_date):
             creation_date (str): for filtering by creation date. Format: DD/MM/YYYY
             publication_date (str): for filtering by publication date. Format: DD/MM/YYYY
         """
-    model_dict_list = get_models_dicts(ctx.obj['jwt'])
+    model_dict_list = get_models_dicts(ctx.obj["jwt"])
     model_list = create_model_list(model_dict_list)
     for model in model_list:
         date_filter = True
@@ -43,7 +49,7 @@ def models(ctx, creation_date, publication_date):
 
 
 @get.command()
-@click.argument('version-id', nargs=-1)
+@click.argument("version-id", nargs=-1)
 @click.pass_context
 def model(ctx, version_id):
     """Displays the metadata for one or more models
@@ -54,8 +60,8 @@ def model(ctx, version_id):
     """
     for vid in version_id:
         model = Model()
-        model.get_details_from_id(ctx.obj['jwt'], vid)
-        model.get_metadata(ctx.obj['jwt'])
+        model.get_details_from_id(ctx.obj["jwt"], vid)
+        model.get_metadata(ctx.obj["jwt"])
         model.output_model_metadata()
 
 
