@@ -2,7 +2,7 @@ import click
 
 from dafni_cli.login import check_for_jwt_file
 from dafni_cli.API_requests import get_models_dicts
-from dafni_cli.model import create_model_list
+from dafni_cli.model import Model, create_model_list
 
 
 @click.group()
@@ -43,10 +43,20 @@ def models(ctx, creation_date, publication_date):
 
 
 @get.command()
-@click.argument('--version_id', nargs=-1)
+@click.argument('version-id', nargs=-1)
 @click.pass_context
-def model(ctx):
-    pass
+def model(ctx, version_id):
+    """Displays the metadata for one or more models
+
+    Args:
+         ctx (context): contains JWT for authentication
+         version_id (list[str]): List of version ids of the models to be displayed
+    """
+    for vid in version_id:
+        model = Model()
+        model.get_details_from_id(ctx.obj['jwt'], vid)
+        model.get_metadata(ctx.obj['jwt'])
+        model.output_model_metadata()
 
 
 @get.command()
