@@ -5,19 +5,14 @@ from setuptools import setup, find_packages
 # For more information, see https://packaging.python.org/tutorials/packaging-projects/
 
 setup(
-    name='dafni',
-    version='0.1',
+    name="dafni",
+    version="0.1",
     packages=find_packages(),
     include_package_data=True,
-    install_requires=[
-        'Click',
-        'requests',
-        'typing',
-        'datetime'
-    ],
-    entry_points='''
+    install_requires=["Click", "requests", "typing", "datetime"],
+    entry_points="""
         [console_scripts]
         login=dafni_cli.login:login
         get=dafni_cli.get:get
-    ''',
+    """,
 )

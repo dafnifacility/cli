@@ -12,14 +12,20 @@ def get(ctx):
     models, datasets, workflows, groups, depending on command."""
     ctx.ensure_object(dict)
     jwt_dict, jwt_flag = check_for_jwt_file()
-    ctx.obj['jwt'] = jwt_dict['jwt']
+    ctx.obj["jwt"] = jwt_dict["jwt"]
 
 
 @get.command(help="List and filter models")
-@click.option('--creation-date', default=None,
-              help="Filter for models created since given date. Format: DD/MM/YYYY")
-@click.option('--publication-date', default=None,
-              help="Filter for models published since given date. Format: DD/MM/YYYY")
+@click.option(
+    "--creation-date",
+    default=None,
+    help="Filter for models created since given date. Format: DD/MM/YYYY",
+)
+@click.option(
+    "--publication-date",
+    default=None,
+    help="Filter for models published since given date. Format: DD/MM/YYYY",
+)
 @click.pass_context
 def models(ctx, creation_date, publication_date):
     """Displays list of model names with other options allowing
@@ -30,7 +36,7 @@ def models(ctx, creation_date, publication_date):
             creation_date (str): for filtering by creation date. Format: DD/MM/YYYY
             publication_date (str): for filtering by publication date. Format: DD/MM/YYYY
         """
-    model_dict_list = get_models_dicts(ctx.obj['jwt'])
+    model_dict_list = get_models_dicts(ctx.obj["jwt"])
     model_list = create_model_list(model_dict_list)
     for model in model_list:
         date_filter = True

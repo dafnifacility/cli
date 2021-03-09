@@ -6,5 +6,5 @@ DISCOVERY_API_URL = "https://dafni-search-and-discovery-api.secure.dafni.rl.ac.u
 DSS_API_URL = "https://dafni-dss-dssauth.secure.dafni.rl.ac.uk"
 
 # Authentication
-JWT_FILENAME = 'dafni_jwt.txt'
-JWT_COOKIE = '__Secure-dafnijwt'
+JWT_FILENAME = "dafni_jwt.txt"
+JWT_COOKIE = "__Secure-dafnijwt"
