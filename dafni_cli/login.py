@@ -143,7 +143,3 @@ def login():
                 jwt_dict["user_name"], jwt_dict["user_id"]
             )
         )
-
-
-if __name__ == "__main__":
-    login()
