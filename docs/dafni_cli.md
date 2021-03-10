@@ -23,3 +23,9 @@ Lists the models available to the user.\
 Options:
 - **--creation-date**: Filter to only show the models created since a given date with format DD/MM/YYYY.
 - **--publication-date**:  Filter to only show the models created since a given date with format DD/MM/YYYY.
+
+
+**Deployment**
+Run the following command in a venv environment using the requirements.txt file. The dafni_cli.py is the file where the code will run from. So in this case the command is being run from within the dafni_cli folder.
+
+`pyinstaller --onefile dafni_cli.py --hiddenimport=python-dateutil`
