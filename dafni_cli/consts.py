@@ -9,6 +9,9 @@ DSS_API_URL = "https://dafni-dss-dssauth.secure.dafni.rl.ac.uk"
 JWT_FILENAME = "dafni_jwt.txt"
 JWT_COOKIE = "__Secure-dafnijwt"
 
+# Formatting
+DATE_TIME_FORMAT = "%m/%d/%Y %H:%M:%S"
+
 # Model Input/Output Table Formatting
 INPUT_TITLE_HEADER = "Title"
 INPUT_TYPE_HEADER = "Type"

@@ -1,15 +1,12 @@
 import requests
-from typing import Optional
+from typing import Optional, Tuple
 from datetime import datetime as dt
 import base64
 import os
 import click
 import json
 
-from dafni_cli.consts import LOGIN_API_URL
-from dafni_cli.consts import JWT_FILENAME, JWT_COOKIE
-
-DATE_TIME_FORMAT = "%m/%d/%Y %H:%M:%S"
+from dafni_cli.consts import LOGIN_API_URL, JWT_FILENAME, JWT_COOKIE, DATE_TIME_FORMAT
 
 
 def get_new_jwt(user_name: str, password: str) -> dict:
@@ -25,7 +22,7 @@ def get_new_jwt(user_name: str, password: str) -> dict:
     response = requests.post(
         LOGIN_API_URL + "/login/",
         json={"username": user_name, "password": password},
-        headers={"Content-Type": "application/json",},
+        headers={"Content-Type": "application/json"},
         allow_redirects=False,
     )
     # Raise an exception if not successful
@@ -104,7 +101,14 @@ def request_login_details() -> dict:
     return jwt_dict
 
 
-def check_for_jwt_file() -> (Optional[dict], bool):
+def check_for_jwt_file() -> Tuple[dict, bool]:
+    """Function to read a DAFNI jwt file, if available
+    otherwise starts a fresh login process with associated
+    prompts
+
+    Returns:
+        Tuple[dict, bool]: processed JWT, flag to indicate if new
+    """
     new_jwt = False
     jwt_dict = read_jwt_file()
     if not jwt_dict:
@@ -139,7 +143,3 @@ def login():
                 jwt_dict["user_name"], jwt_dict["user_id"]
             )
         )
-
-
-if __name__ == "__main__":
-    login()
