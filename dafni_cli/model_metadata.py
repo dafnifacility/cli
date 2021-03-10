@@ -47,12 +47,13 @@ def optional_column(
 
 class ModelMetadata:
     def __init__(self, metadata_dict: dict):
-        self.name = metadata_dict["metadata"]["name"]
-        self.owner = metadata_dict["metadata"]["owner"]
+        self.json = metadata_dict
         if "inputs" in metadata_dict["spec"]:
             self.inputs = metadata_dict["spec"]["inputs"]
         if "outputs" in metadata_dict["spec"]:
             self.outputs = metadata_dict["spec"]["outputs"]
+        self.owner = metadata_dict["metadata"]["owner"]
+        self.name = metadata_dict["metadata"]["name"]
 
     def format_parameters(self) -> str:
         """Formats input parameters for the model into a string which prints as a table"""

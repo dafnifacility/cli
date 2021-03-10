@@ -43,6 +43,7 @@ class Model:
         self.creation_time = None
         self.description = None
         self.display_name = None
+        self.json = None
         self.metadata = None
         self.publication_time = None
         self.summary = None
@@ -55,14 +56,15 @@ class Model:
         Args:
             model_dict (dict): Dictionary returned from DAFNI API at /models endpoints
         """
-        self.display_name = model_dict["name"]
-        self.summary = model_dict["summary"]
-        self.description = model_dict["description"]
         self.creation_time = parser.isoparse(model_dict["creation_date"])
+        self.container = model_dict["container"]
+        self.description = model_dict["description"]
+        self.display_name = model_dict["name"]
+        self.json = model_dict
         self.publication_time = parser.isoparse(model_dict["publication_date"])
+        self.summary = model_dict["summary"]
         self.version_id = model_dict["id"]
         self.version_tags = model_dict["version_tags"]
-        self.container = model_dict["container"]
 
     def get_details_from_id(self, jwt_string: str, version_id_string: str):
         """Retrieve model details from the DAFNI API by calling /models/<version-id> endpoint.
