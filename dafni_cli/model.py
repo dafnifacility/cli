@@ -1,9 +1,15 @@
 import click
 import datetime as dt
 from dateutil import parser
+from typing import List
 
-from dafni_cli.API_requests import get_single_model_dict, get_model_metadata_dicts
-from dafni_cli.login import DATE_TIME_FORMAT
+from dafni_cli.API_requests import (
+    get_models_dicts,
+    get_single_model_dict,
+    get_model_metadata_dicts,
+)
+from dafni_cli.login import login
+from dafni_cli.consts import DATE_TIME_FORMAT
 
 
 class Model:
@@ -64,17 +70,17 @@ class Model:
 
     def get_details_from_id(self, jwt_string: str, version_id_string: str):
         """Retrieve model details from the DAFNI API by calling /models/<version-id> endpoint.
-            Args:
-                jwt_string (str): JWT for login purposes
-                version_id_string (str): Version ID of the model
+        Args:
+            jwt_string (str): JWT for login purposes
+            version_id_string (str): Version ID of the model
         """
         model_dict = get_single_model_dict(jwt_string, version_id_string)
         self.set_details_from_dict(model_dict)
 
     def get_metadata(self, jwt_string: str):
         """Retrieve metadata for the model using the model details and the /models/<version-id>/description/ endpoint.
-            Args:
-                jwt_string (str): JWT for login purposes
+        Args:
+            jwt_string (str): JWT for login purposes
         """
         metadata_dict = get_model_metadata_dicts(jwt_string, self.version_id)
         self.name = metadata_dict["metadata"]["name"]
@@ -83,21 +89,21 @@ class Model:
 
     def filter_by_date(self, key: str, date: str) -> bool:
         """Filters models based on the date given as an option.
-            Args:
-                key (str): Key for MODEL_DICT in which date is contained
-                date (str): Date for which models are to be filtered on: format DD/MM/YYYY
+        Args:
+            key (str): Key for MODEL_DICT in which date is contained
+            date (str): Date for which models are to be filtered on: format DD/MM/YYYY
 
-            Returns:
-                bool: Whether to display the model based on the filter
+        Returns:
+            bool: Whether to display the model based on the filter
         """
         day, month, year = date.split("/")
         date = dt.date(int(year), int(month), int(day))
-        if key == "creation":
+        if key.lower() == "creation":
             return self.creation_time.date() >= date
-        elif key == "publication":
+        elif key.lower() == "publication":
             return self.publication_time.date() >= date
         else:
-            raise Exception("Key should be CREATION or PUBLICATION")
+            raise KeyError("Key should be CREATION or PUBLICATION")
 
     def output_model_details(self):
         """Prints relevant model attributes to command line"""
@@ -122,7 +128,7 @@ class Model:
         pass
 
 
-def create_model_list(model_dict_list: list) -> list:
+def create_model_list(model_dict_list: List[dict]) -> List[Model]:
     """
     Produces a list of Model objects from a list of model dictionaries obtained from the /models/ DAFNI API endpoint.
     Args:
