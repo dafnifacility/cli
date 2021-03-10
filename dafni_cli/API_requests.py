@@ -1,10 +1,21 @@
 import requests
+from typing import Union
 
-from dafni_cli.urls import MODELS_API_URL
+from dafni_cli.consts import MODELS_API_URL
 
 
-def dafni_get_request(url, jwt):
+def dafni_get_request(url: str, jwt: str) -> Union[list, dict]:
+    """Performs a GET request from the DAFNI API.
+    If a status other than 200 is returned, an exception will be raised.
 
+    Args:
+        url (str): The url endpoint that is being queried
+        jwt (str): JWT
+
+    Returns:
+        list: For an endpoint returning several objects, a list is returned (e.g. /models/).
+        dict: For an endpoint returning one object, this will be a dictionary (e.g. /models/<version_id>).
+    """
     response = requests.get(
         url,
         headers={"Content-Type": "application/json", "authorization": jwt},

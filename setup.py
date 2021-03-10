@@ -1,5 +1,9 @@
 from setuptools import setup, find_packages
 
+# The dynamic metadata for the python pip distributable.
+# This is used as the build script for setuptools, telling it about the package and which files to include.
+# For more information, see https://packaging.python.org/tutorials/packaging-projects/
+
 setup(
     name="dafni",
     version="0.1",

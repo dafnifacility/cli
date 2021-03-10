@@ -6,7 +6,7 @@ import os
 import click
 import json
 
-from dafni_cli.urls import LOGIN_API_URL
+from dafni_cli.consts import LOGIN_API_URL
 from dafni_cli.consts import JWT_FILENAME, JWT_COOKIE
 
 DATE_TIME_FORMAT = "%m/%d/%Y %H:%M:%S"
