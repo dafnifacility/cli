@@ -1,5 +1,5 @@
 import requests
-from typing import Union
+from typing import Union, List
 
 from dafni_cli.consts import MODELS_API_URL
 
@@ -25,7 +25,7 @@ def dafni_get_request(url: str, jwt: str) -> Union[list, dict]:
     return response.json()
 
 
-def get_models_dicts(jwt: str) -> list:
+def get_models_dicts(jwt: str) -> List[dict]:
     """Function to call the list models endpoint and return the resulting list of dictionaries.
 
     Args:
@@ -47,7 +47,7 @@ def get_single_model_dict(jwt: str, model_version_id: str) -> dict:
 
         Returns:
             dict: dictionary for the details of selected model
-        """
+    """
     url = MODELS_API_URL + "/models/" + model_version_id + "/"
     return dafni_get_request(url, jwt)
 
@@ -61,6 +61,6 @@ def get_model_metadata_dicts(jwt: str, model_version_id: str) -> dict:
 
         Returns:
             dict: dictionary for the metadata of selected model
-        """
+    """
     url = MODELS_API_URL + "/models/" + model_version_id + "/definition/"
     return dafni_get_request(url, jwt)
