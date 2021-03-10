@@ -216,7 +216,7 @@ class TestCreateModelList:
 
     @patch.object(model.Model, "set_details_from_dict")
     def test_model_created_and_details_from_dict_called_for_each_model(
-        self, mock_get, get_models_list_fixture
+        self, mock_set, get_models_list_fixture
     ):
         # SETUP
         models = get_models_list_fixture
@@ -225,7 +225,7 @@ class TestCreateModelList:
         result = model.create_model_list(models)
 
         # ASSERT
-        assert mock_get.call_args_list == [call(models[0]), call(models[1])]
+        assert mock_set.call_args_list == [call(models[0]), call(models[1])]
         assert len(result) == 2
         assert all(isinstance(instance, model.Model) for instance in result)
 

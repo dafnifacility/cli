@@ -28,7 +28,6 @@ class TestGetNewJwt:
         request_response_fixture,
         processed_jwt_fixture,
     ):
-
         # SETUP
         # setup return value for requests call
         mock_request.post.return_value = request_response_fixture
@@ -61,7 +60,6 @@ class TestGetNewJwt:
         request_response_fixture,
         processed_jwt_fixture,
     ):
-
         # SETUP
         # setup return value for requests call
         mock_request.post.return_value = request_response_fixture
@@ -87,7 +85,6 @@ class TestGetNewJwt:
         request_response_fixture,
         processed_jwt_fixture,
     ):
-
         # SETUP
         # setup return value for requests call
         request_response_fixture.raise_for_status.side_effect = HTTPError(
@@ -108,11 +105,10 @@ class TestGetNewJwt:
 
 
 @patch("builtins.open", new_callable=mock_open)
-class TestProcess_JWT:
-    """[summary]"""
+class TestProcessJwt:
+    """Test class to test the ProcessJwt functionality"""
 
     def test_jwt_processed_correctly(self, open_mock):
-
         # SETUP
         jwt = JWT
         user_name = "john-doe"
@@ -129,7 +125,6 @@ class TestProcess_JWT:
         }
 
     def test_open_called_to_write_jwt_to_file(self, open_mock):
-
         # SETUP
         jwt = JWT
         user_name = "john-doe"
@@ -170,7 +165,6 @@ class TestReadJwtFile:
         mock_os.assert_called_once_with(os.path.join(os.getcwd(), JWT_FILENAME))
 
     def test_jwt_dict_loaded_correctly(self, open_mock, mock_os):
-
         # SETUP
         mock_os.return_value = True
 
@@ -190,7 +184,6 @@ class TestRequestLoginDetails:
     def test_the_correct_prompts_and_echos_occur_with_click(
         self, mock_click, mock_jwt, processed_jwt_fixture
     ):
-
         # SETUP
         # setup click.prompt return
         mock_click.prompt.side_effect = ("user_name", "pwd")
@@ -215,10 +208,9 @@ class TestRequestLoginDetails:
             ),
         ]
 
-    def test_the_correct_jwt_dick_returned(
+    def test_the_correct_jwt_dict_returned(
         self, mock_click, mock_jwt, processed_jwt_fixture
     ):
-
         # SETUP
         # setup click.prompt return
         mock_click.prompt.side_effect = ("user_name", "pwd")
@@ -259,7 +251,6 @@ class TestCheckForJwtFile:
     def test_new_jwt_returned_if_existing_jwt_has_expired(
         self, mock_dt, mock_read, mock_login, processed_jwt_fixture
     ):
-
         # SETUP
         # setup return for dt so token has expired
         mock_dt.now.return_value = dt(2021, 3, 3, 2)
@@ -285,7 +276,6 @@ class TestCheckForJwtFile:
     def test_existing_jwt_returned_if_existing_jwt_has_not_expired(
         self, mock_dt, mock_read, mock_login, processed_jwt_fixture
     ):
-
         # SETUP
         # setup return for dt so token has not expired
         mock_dt.now.return_value = dt(2021, 3, 3, 2)
@@ -310,7 +300,6 @@ class TestLogin:
     """Test class to test the login functionality"""
 
     def test_echo_not_called_if_new_jwt_created(self, mock_jwt, processed_jwt_fixture):
-
         # SETUP
         runner = CliRunner()
         mock_jwt.return_value = processed_jwt_fixture, True
@@ -322,7 +311,6 @@ class TestLogin:
         assert result.stdout == ""
 
     def test_echo_called_if_existing_jwt_valid(self, mock_jwt, processed_jwt_fixture):
-
         # SETUP
         runner = CliRunner()
         mock_jwt.return_value = processed_jwt_fixture, False

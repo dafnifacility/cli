@@ -1,7 +1,6 @@
 import pytest
 from mock import patch, call
 from click.testing import CliRunner
-import click
 
 from dafni_cli import get, model
 from test.fixtures.jwt_fixtures import processed_jwt_fixture
@@ -18,7 +17,7 @@ class TestGet:
         JWT
         """
 
-        def test_jwt_retrived_and_set_on_context(
+        def test_jwt_retrieved_and_set_on_context(
             self, mock_jwt, mock_models, processed_jwt_fixture
         ):
             # SETUP
