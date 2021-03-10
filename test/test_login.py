@@ -7,8 +7,7 @@ from datetime import datetime as dt
 from click.testing import CliRunner
 
 from dafni_cli import login
-from dafni_cli.urls import LOGIN_API_URL
-from dafni_cli.consts import JWT_FILENAME, JWT_COOKIE, DATE_TIME_FORMAT
+from dafni_cli.consts import LOGIN_API_URL, JWT_FILENAME, JWT_COOKIE, DATE_TIME_FORMAT
 
 from test.fixtures.jwt_fixtures import (
     request_response_fixture,

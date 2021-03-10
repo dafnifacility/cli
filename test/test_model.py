@@ -50,7 +50,7 @@ class TestModel:
             # ASSERT
             assert instance.version_id == version_id
 
-    class TestGetDetailsFromDict:
+    class TestSetDetailsFromDict:
         """Test class to test the Model.get_details_from_dict() functionality"""
 
         def test_non_date_fields_set_correctly(self, get_models_list_fixture):
@@ -59,7 +59,7 @@ class TestModel:
             model_dict = get_models_list_fixture[0]
 
             # CALL
-            instance.get_details_from_dict(model_dict)
+            instance.set_details_from_dict(model_dict)
 
             # ASSERT
             assert instance.display_name == model_dict["name"]
@@ -75,14 +75,14 @@ class TestModel:
             model_dict = get_models_list_fixture[0]
 
             # CALL
-            instance.get_details_from_dict(model_dict)
+            instance.set_details_from_dict(model_dict)
 
             # ASSERT
             assert instance.creation_time == dt(2021, 1, 1, tzinfo=tzutc())
             assert instance.publication_time == dt(2021, 1, 2, tzinfo=tzutc())
 
     @patch("dafni_cli.model.get_single_model_dict")
-    @patch.object(model.Model, "get_details_from_dict")
+    @patch.object(model.Model, "set_details_from_dict")
     class TestGetDetailsFromId:
         """Test class to test the Model.get_details_from_id() functionality"""
 
@@ -214,7 +214,7 @@ class TestModel:
 class TestCreateModelList:
     """Test class to test the create_model_list() functionality"""
 
-    @patch.object(model.Model, "get_details_from_dict")
+    @patch.object(model.Model, "set_details_from_dict")
     def test_model_created_and_details_from_dict_called_for_each_model(
         self, mock_get, get_models_list_fixture
     ):
