@@ -47,7 +47,7 @@ def optional_column(
 
 class ModelMetadata:
     def __init__(self, metadata_dict: dict):
-        self.json = metadata_dict
+        self.dictionary = metadata_dict
         if "inputs" in metadata_dict["spec"]:
             self.inputs = metadata_dict["spec"]["inputs"]
         if "outputs" in metadata_dict["spec"]:

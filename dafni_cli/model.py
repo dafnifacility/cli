@@ -42,8 +42,8 @@ class Model:
         self.container = None
         self.creation_time = None
         self.description = None
+        self.dictionary = None
         self.display_name = None
-        self.json = None
         self.metadata = None
         self.publication_time = None
         self.summary = None
@@ -59,8 +59,8 @@ class Model:
         self.creation_time = parser.isoparse(model_dict["creation_date"])
         self.container = model_dict["container"]
         self.description = model_dict["description"]
+        self.dictionary = model_dict
         self.display_name = model_dict["name"]
-        self.json = model_dict
         self.publication_time = parser.isoparse(model_dict["publication_date"])
         self.summary = model_dict["summary"]
         self.version_id = model_dict["id"]
