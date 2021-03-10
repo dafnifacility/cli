@@ -29,7 +29,7 @@ def get(ctx):
 @click.pass_context
 def models(ctx, creation_date, publication_date):
     """Displays list of model names with other options allowing
-    more details to be listed as well.
+        more details to be listed as well.
 
     Args:
         ctx (context): contains JWT for authentication

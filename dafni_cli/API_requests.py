@@ -1,19 +1,20 @@
 import requests
-from requests import Response
-from typing import Union, List
-from dafni_cli.urls import MODELS_API_URL
+from typing import Union
+
+from dafni_cli.consts import MODELS_API_URL
 
 
-def dafni_get_request(url: str, jwt: str) -> Union[dict, List]:
-    """Helper function to make get requests with a JWT
-    to the DAFNI API's
+def dafni_get_request(url: str, jwt: str) -> Union[list, dict]:
+    """Performs a GET request from the DAFNI API.
+    If a status other than 200 is returned, an exception will be raised.
 
     Args:
-        url (str): url of API end point
-        jwt (str): Authentication JWT for the user
+        url (str): The url endpoint that is being queried
+        jwt (str): JWT
 
     Returns:
-        Union[dict, List]: processed request response
+        list: For an endpoint returning several objects, a list is returned (e.g. /models/).
+        dict: For an endpoint returning one object, this will be a dictionary (e.g. /models/<version_id>).
     """
     response = requests.get(
         url,
@@ -24,7 +25,7 @@ def dafni_get_request(url: str, jwt: str) -> Union[dict, List]:
     return response.json()
 
 
-def get_models_dicts(jwt: str) -> List[dict]:
+def get_models_dicts(jwt: str) -> list:
     """Function to call the list models endpoint and return the resulting list of dictionaries.
 
     Args:
@@ -44,9 +45,9 @@ def get_single_model_dict(jwt: str, model_version_id: str) -> dict:
         jwt (str): JWT
         model_version_id (str): model version ID for selected model
 
-    Returns:
-        dict: dictionary for the details of selected model
-    """
+        Returns:
+            dict: dictionary for the details of selected model
+        """
     url = MODELS_API_URL + "/models/" + model_version_id + "/"
     return dafni_get_request(url, jwt)
 
@@ -58,8 +59,8 @@ def get_model_metadata_dicts(jwt: str, model_version_id: str) -> dict:
         jwt (str): JWT
         model_version_id (str): model version ID for selected model
 
-    Returns:
-        dict: dictionary for the metadata of selected model
-    """
+        Returns:
+            dict: dictionary for the metadata of selected model
+        """
     url = MODELS_API_URL + "/models/" + model_version_id + "/definition/"
     return dafni_get_request(url, jwt)

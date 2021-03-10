@@ -10,6 +10,7 @@ from dafni_cli.urls import LOGIN_API_URL
 from dafni_cli.consts import JWT_FILENAME, JWT_COOKIE, DATE_TIME_FORMAT
 
 
+
 def get_new_jwt(user_name: str, password: str) -> dict:
     """Function to get a JWT for the given user for DAFNI access
 
@@ -23,9 +24,7 @@ def get_new_jwt(user_name: str, password: str) -> dict:
     response = requests.post(
         LOGIN_API_URL + "/login/",
         json={"username": user_name, "password": password},
-        headers={
-            "Content-Type": "application/json",
-        },
+        headers={"Content-Type": "application/json"},
         allow_redirects=False,
     )
     # Raise an exception if not successful
