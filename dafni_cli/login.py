@@ -143,3 +143,22 @@ def login():
                 jwt_dict["user_name"], jwt_dict["user_id"]
             )
         )
+
+@click.command()
+def logout():
+    """Function to handle logging out of the DAFNI
+    CLI. This will involve removing the cached JWT
+    generated during the login process.
+    """
+    existing_jwt = read_jwt_file()
+    if existing_jwt:
+        path = os.path.join(os.getcwd(), JWT_FILENAME)
+        os.remove(path)
+        click.echo("Logout Complete")
+        click.echo(
+            "user name: {0}, user id: {1}".format(
+                existing_jwt["user_name"], existing_jwt["user_id"]
+            )
+        )
+    else:
+        click.echo("Already logged out")
