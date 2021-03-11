@@ -102,7 +102,7 @@ class Model:
         else:
             raise KeyError("Key should be CREATION or PUBLICATION")
 
-    def output_model_details(self, full=False):
+    def output_model_details(self, long=False):
         """Prints relevant model attributes to command line"""
         click.echo(
             "Name: "
@@ -115,7 +115,7 @@ class Model:
             + self.creation_time.date().strftime("%B %d %Y")
         )
         click.echo("Summary: " + self.summary)
-        if full:
+        if long:
             click.echo("Description: ")
             prose_print(self.description, CONSOLE_WIDTH)
             click.echo("")

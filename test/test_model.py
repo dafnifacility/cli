@@ -225,7 +225,7 @@ class TestModel:
             instance.description = "description"
 
             # CALL
-            instance.output_model_details(full=True)
+            instance.output_model_details(long=True)
 
             # ASSERT
             assert mock_click.echo.call_args_list == [

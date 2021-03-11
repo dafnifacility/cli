@@ -18,11 +18,13 @@ If there is no valid JWT, the user will be prompted to login before the command 
 
 **get models** - 
 Lists the models available to the user.\
-`get models [--creation-date] [--publication-date]`
+`get models [--creation-date] [--publication-date] [--long/--short]`
 
 Options:
 - **--creation-date**: Filter to only show the models created since a given date with format DD/MM/YYYY.
 - **--publication-date**:  Filter to only show the models created since a given date with format DD/MM/YYYY.
+- **--long/--short**: If `--long` added as an option, the description of each model will be returned as well as the regular information.
+If `--short` is chosen, only the name, version ID, creation date and summary will be displayed. Default: `--short`. 
 
 Example output:
 <pre>

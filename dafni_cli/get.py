@@ -18,7 +18,7 @@ def get(ctx: Context):
 
 @get.command(help="List and filter models")
 @click.option(
-    "--full/--short",
+    "--long/--short",
     default=False,
     help="Also displays the full description of each model.",
 )
@@ -33,13 +33,13 @@ def get(ctx: Context):
     help="Filter for models published since given date. Format: DD/MM/YYYY",
 )
 @click.pass_context
-def models(ctx: Context, full: bool, creation_date: str, publication_date: str):
+def models(ctx: Context, long: bool, creation_date: str, publication_date: str):
     """Displays list of model names with other options allowing
         more details to be listed as well.
 
     Args:
         ctx (context): contains JWT for authentication
-        full (bool): whether to print the description of each model as well
+        long (bool): whether to print the description of each model as well
         creation_date (str): for filtering by creation date. Format: DD/MM/YYYY
         publication_date (str): for filtering by publication date. Format: DD/MM/YYYY
     """
@@ -52,7 +52,7 @@ def models(ctx: Context, full: bool, creation_date: str, publication_date: str):
         if publication_date:
             date_filter = model.filter_by_date("publication", publication_date)
         if date_filter:
-            model.output_model_details(full)
+            model.output_model_details(long)
 
 
 @get.command()
