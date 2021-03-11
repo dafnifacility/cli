@@ -1,6 +1,6 @@
 import click
 from dafni_cli.get import get
-from dafni_cli.login import login
+from dafni_cli.login import login, logout
 
 
 @click.group()
@@ -10,6 +10,7 @@ def dafni():
 
 
 dafni.add_command(login)
+dafni.add_command(logout)
 dafni.add_command(get)
 
 if __name__ == "__main__":
