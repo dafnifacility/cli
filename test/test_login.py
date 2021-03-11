@@ -47,9 +47,7 @@ class TestGetNewJwt:
         mock_request.post.assert_called_once_with(
             LOGIN_API_URL + "/login/",
             json={"username": user_name, "password": password},
-            headers={
-                "Content-Type": "application/json",
-            },
+            headers={"Content-Type": "application/json",},
             allow_redirects=False,
         )
 

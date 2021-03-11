@@ -66,7 +66,27 @@ def get_model_metadata_fixture() -> dict:
                         "min": 0.1,
                         "max": 2.0,
                     },
-                ]
+                    {
+                        "name": "setting",
+                        "title": "Setting",
+                        "desc": "Mode to run the model in",
+                        "type": "string",
+                        "default": "long_default_name",
+                    },
+                ],
+                "dataslots": [
+                    {
+                        "default": [
+                            {
+                                "uid": "11111a1a-a111-11aa-a111-11aa11111aaa",
+                                "versionUid": "21111a1a-a111-11aa-a111-11aa11111aaa",
+                            }
+                        ],
+                        "path": "inputs/",
+                        "required": True,
+                        "name": "Inputs",
+                    }
+                ],
             },
             "outputs": {
                 "datasets": [
