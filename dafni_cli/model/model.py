@@ -1,10 +1,11 @@
 import click
 import datetime as dt
+
 from dateutil import parser
 import textwrap
 from typing import List
 
-from dafni_cli.model_metadata import ModelMetadata
+from dafni_cli.model.model_metadata import ModelMetadata
 from dafni_cli.consts import CONSOLE_WIDTH, TAB_SPACE
 from dafni_cli.API_requests import (
     get_single_model_dict,
@@ -49,6 +50,7 @@ class Model:
         self.publication_time = None
         self.summary = None
         self.version_id = identifier
+        self.version_history_dict = None
         self.version_tags = None
         pass
 
@@ -64,6 +66,7 @@ class Model:
         self.display_name = model_dict["name"]
         self.publication_time = parser.isoparse(model_dict["publication_date"])
         self.summary = model_dict["summary"]
+        self.version_history_dict = model_dict["version_history"]
         self.version_id = model_dict["id"]
         self.version_tags = model_dict["version_tags"]
 

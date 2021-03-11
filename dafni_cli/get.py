@@ -3,7 +3,7 @@ from click import Context
 
 from dafni_cli.login import check_for_jwt_file
 from dafni_cli.API_requests import get_models_dicts
-from dafni_cli.model import Model, create_model_list
+from dafni_cli.model.model import Model, create_model_list
 
 
 @click.group()
@@ -55,21 +55,34 @@ def models(ctx: Context, long: bool, creation_date: str, publication_date: str):
             model.output_model_details(long)
 
 
-@get.command()
+@get.group(invoke_without_command=True)
 @click.argument("version-id", nargs=-1)
 @click.pass_context
-def model(ctx, version_id):
+def model(ctx: Context, version_id: str):
     """Displays the metadata for one or more models
 
     Args:
-         ctx (context): contains JWT for authentication
-         version_id (list[str]): List of version ids of the models to be displayed
+        ctx (Context): contains JWT for authentication
+        version_id (list[str]): List of version IDs of the models to be displayed
     """
     for vid in version_id:
         model = Model()
         model.get_details_from_id(ctx.obj["jwt"], vid)
         model.get_metadata(ctx.obj["jwt"])
         model.output_model_metadata()
+
+
+@model.command()
+@click.argument("version-id", nargs=1)
+@click.pass_context
+def version_history(ctx: Context, version_id: str):
+    """Displays the version history for a model
+
+    Args:
+        ctx (Context): contains JWT for authentication
+        version_id (str): Version ID of the model whose version history is to be displayed
+    """
+
 
 
 @get.command()
