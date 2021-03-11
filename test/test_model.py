@@ -238,6 +238,7 @@ class TestModel:
                 ),
                 call("Summary: summary"),
                 call("Description: "),
+                call("")
             ]
             assert mock_prose.called_once_with("description", CONSOLE_WIDTH)
 

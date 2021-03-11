@@ -118,6 +118,7 @@ class Model:
         if full:
             click.echo("Description: ")
             prose_print(self.description, CONSOLE_WIDTH)
+            click.echo("")
 
     def output_model_metadata(self):
         """Prints the metadata for the model to command line."""
