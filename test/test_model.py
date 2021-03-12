@@ -1,5 +1,5 @@
 import pytest
-from mock import patch, call
+from mock import patch, call, MagicMock, PropertyMock, Mock
 from datetime import datetime as dt
 from dateutil import parser
 from dateutil.tz import tzutc
@@ -10,7 +10,7 @@ from test.fixtures.model_fixtures import (
     get_model_metadata_fixture,
 )
 from dafni_cli import model
-from dafni_cli.consts import DATE_TIME_FORMAT
+from dafni_cli.consts import DATE_TIME_FORMAT, CONSOLE_WIDTH, TAB_SPACE
 
 
 class TestModel:
@@ -22,17 +22,16 @@ class TestModel:
         def test_expected_attributes_found_on_class(self):
             # SETUP
             expected_attributes = [
-                "version_id",
-                "display_name",
-                "summary",
-                "description",
-                "creation_time",
-                "publication_time",
-                "version_tags",
                 "container",
-                "name",
-                "inputs",
-                "outputs",
+                "creation_time",
+                "description",
+                "dictionary",
+                "display_name",
+                "metadata",
+                "publication_time",
+                "summary",
+                "version_id",
+                "version_tags",
             ]
             # CALL
             instance = model.Model()
@@ -62,6 +61,7 @@ class TestModel:
             instance.set_details_from_dict(model_dict)
 
             # ASSERT
+            assert instance.dictionary == model_dict
             assert instance.display_name == model_dict["name"]
             assert instance.summary == model_dict["summary"]
             assert instance.description == model_dict["description"]
@@ -123,10 +123,7 @@ class TestModel:
 
             # ASSERT
             mock_get.assert_called_once_with(jwt_string, instance.version_id)
-
-            assert instance.name == get_model_metadata_fixture["metadata"]["name"]
-            assert instance.inputs == get_model_metadata_fixture["spec"]["inputs"]
-            assert instance.outputs == get_model_metadata_fixture["spec"]["outputs"]
+            assert isinstance(instance.metadata, model.ModelMetadata)
 
     class TestFilterByDate:
         """Test class to test the Model.filter_by_date() functionality"""
@@ -205,10 +202,262 @@ class TestModel:
             # ASSERT
             assert mock_click.echo.call_args_list == [
                 call(
-                    "Name: display name     ID: version id     Date: 03/03/2021 00:00:00"
+                    "Name: display name"
+                    + TAB_SPACE
+                    + "ID: version id"
+                    + TAB_SPACE
+                    + "Date: March 03 2021"
                 ),
                 call("Summary: summary"),
             ]
+
+        @patch("dafni_cli.model.prose_print")
+        def test_model_details_outputted_correctly_with_description(
+            self, mock_prose, mock_click
+        ):
+            # SETUP
+            instance = model.Model()
+            date_time = dt(2021, 3, 3, 0, 0, 0, tzinfo=tzutc())
+            instance.creation_time = date_time
+            instance.display_name = "display name"
+            instance.version_id = "version id"
+            instance.summary = "summary"
+            instance.description = "description"
+
+            # CALL
+            instance.output_model_details(long=True)
+
+            # ASSERT
+            assert mock_click.echo.call_args_list == [
+                call(
+                    "Name: display name"
+                    + TAB_SPACE
+                    + "ID: version id"
+                    + TAB_SPACE
+                    + "Date: March 03 2021"
+                ),
+                call("Summary: summary"),
+                call("Description: "),
+                call("")
+            ]
+            assert mock_prose.called_once_with("description", CONSOLE_WIDTH)
+
+    @patch("dafni_cli.model.click")
+    @patch("dafni_cli.model.prose_print")
+    class TestOutputModelMetadataDetails:
+        """Test class to test the Model.output_model_metadata() functionality"""
+
+        def test_output_correct_when_all_keys_present(self, mock_prose, mock_click):
+            # SETUP
+            # mock outputs from metadata
+            metadata = MagicMock()
+            mock_inputs = PropertyMock(return_value=True)
+            mock_outputs = PropertyMock(return_value=True)
+            mock_param_table = Mock(return_value="params")
+            mock_dataslots = Mock(return_value="dataslots")
+            mock_output_table = Mock(return_value="outputs")
+            type(metadata).inputs = mock_inputs
+            type(metadata).outputs = mock_outputs
+            type(metadata).format_parameters = mock_param_table
+            type(metadata).format_dataslots = mock_dataslots
+            type(metadata).format_outputs = mock_output_table
+            # mock model
+            instance = model.Model()
+            date_time = dt(2021, 3, 3, 0, 0, 0, tzinfo=tzutc())
+            instance.creation_time = date_time
+            instance.display_name = "display name"
+            instance.summary = "summary"
+            instance.description = "description"
+            instance.metadata = metadata
+
+            # CALL
+            instance.output_model_metadata()
+
+            # ASSERT
+            assert mock_click.echo.call_args_list == [
+                call("Name: display name"),
+                call("Date: March 03 2021"),
+                call("Summary: "),
+                call("summary"),
+                call("Description: "),
+                call(""),
+                call("Input Parameters: "),
+                call("params"),
+                call("Input Data Slots: "),
+                call("dataslots"),
+                call("Outputs: "),
+                call("outputs"),
+            ]
+            assert mock_prose.called_once_with("description", CONSOLE_WIDTH)
+
+        def test_output_correct_when_inputs_present_but_not_outputs(
+            self, mock_prose, mock_click
+        ):
+            # SETUP
+            # mock outputs from metadata
+            metadata = MagicMock()
+            mock_inputs = PropertyMock(return_value=True)
+            mock_outputs = PropertyMock(return_value=False)
+            mock_param_table = Mock(return_value="params")
+            mock_dataslots = Mock(return_value="dataslots")
+            mock_output_table = Mock(return_value="outputs")
+            type(metadata).inputs = mock_inputs
+            type(metadata).outputs = mock_outputs
+            type(metadata).format_parameters = mock_param_table
+            type(metadata).format_dataslots = mock_dataslots
+            type(metadata).format_outputs = mock_output_table
+            # mock model
+            instance = model.Model()
+            date_time = dt(2021, 3, 3, 0, 0, 0, tzinfo=tzutc())
+            instance.creation_time = date_time
+            instance.display_name = "display name"
+            instance.summary = "summary"
+            instance.description = "description"
+            instance.metadata = metadata
+
+            # CALL
+            instance.output_model_metadata()
+
+            # ASSERT
+            assert mock_click.echo.call_args_list == [
+                call("Name: display name"),
+                call("Date: March 03 2021"),
+                call("Summary: "),
+                call("summary"),
+                call("Description: "),
+                call(""),
+                call("Input Parameters: "),
+                call("params"),
+                call("Input Data Slots: "),
+                call("dataslots"),
+            ]
+            assert mock_prose.called_once_with("description", CONSOLE_WIDTH)
+
+        def test_output_correct_when_outputs_present_but_not_inputs(
+            self, mock_prose, mock_click
+        ):
+            # SETUP
+            # mock outputs from metadata
+            metadata = MagicMock()
+            mock_inputs = PropertyMock(return_value=False)
+            mock_outputs = PropertyMock(return_value=True)
+            mock_param_table = Mock(return_value="params")
+            mock_dataslots = Mock(return_value="dataslots")
+            mock_output_table = Mock(return_value="outputs")
+            type(metadata).inputs = mock_inputs
+            type(metadata).outputs = mock_outputs
+            type(metadata).format_parameters = mock_param_table
+            type(metadata).format_dataslots = mock_dataslots
+            type(metadata).format_outputs = mock_output_table
+            # mock model
+            instance = model.Model()
+            date_time = dt(2021, 3, 3, 0, 0, 0, tzinfo=tzutc())
+            instance.creation_time = date_time
+            instance.display_name = "display name"
+            instance.summary = "summary"
+            instance.description = "description"
+            instance.metadata = metadata
+
+            # CALL
+            instance.output_model_metadata()
+
+            # ASSERT
+            assert mock_click.echo.call_args_list == [
+                call("Name: display name"),
+                call("Date: March 03 2021"),
+                call("Summary: "),
+                call("summary"),
+                call("Description: "),
+                call(""),
+                call("Outputs: "),
+                call("outputs"),
+            ]
+            assert mock_prose.called_once_with("description", CONSOLE_WIDTH)
+
+        def test_output_correct_when_neither_inputs_nor_outputs_are_present(
+            self, mock_prose, mock_click
+        ):
+            # SETUP
+            # mock outputs from metadata
+            metadata = MagicMock()
+            mock_inputs = PropertyMock(return_value=False)
+            mock_outputs = PropertyMock(return_value=False)
+            mock_param_table = Mock(return_value="params")
+            mock_dataslots = Mock(return_value="dataslots")
+            mock_output_table = Mock(return_value="outputs")
+            type(metadata).inputs = mock_inputs
+            type(metadata).outputs = mock_outputs
+            type(metadata).format_parameters = mock_param_table
+            type(metadata).format_dataslots = mock_dataslots
+            type(metadata).format_outputs = mock_output_table
+            # mock model
+            instance = model.Model()
+            date_time = dt(2021, 3, 3, 0, 0, 0, tzinfo=tzutc())
+            instance.creation_time = date_time
+            instance.display_name = "display name"
+            instance.summary = "summary"
+            instance.description = "description"
+            instance.metadata = metadata
+
+            # CALL
+            instance.output_model_metadata()
+
+            # ASSERT
+            assert mock_click.echo.call_args_list == [
+                call("Name: display name"),
+                call("Date: March 03 2021"),
+                call("Summary: "),
+                call("summary"),
+                call("Description: "),
+                call(""),
+            ]
+            assert mock_prose.called_once_with("description", CONSOLE_WIDTH)
+
+
+@patch("dafni_cli.model.click")
+class TestProsePrint:
+    """Test class to test the prose_print() functionality"""
+
+    def test_single_paragraph_outputs_correctly(self, mock_click):
+        # SETUP
+        string = "123456"
+
+        # CALL
+        model.prose_print(string, 2)
+
+        # ASSERT
+        assert mock_click.echo.call_args_list == [
+            call("12"),
+            call("34"),
+            call("56"),
+        ]
+
+    def test_single_paragraph_with_spaces_outputs_correctly(self, mock_click):
+        # SETUP
+        string = "12 3456"
+
+        # CALL
+        model.prose_print(string, 4)
+
+        # ASSERT
+        assert mock_click.echo.call_args_list == [
+            call("12"),
+            call("3456"),
+        ]
+
+    def test_multiple_paragraphs_output_correctly(self, mock_click):
+        # SETUP
+        string = "123456\n78"
+
+        # CALL
+        model.prose_print(string, 3)
+
+        # ASSERT
+        assert mock_click.echo.call_args_list == [
+            call("123"),
+            call("456"),
+            call("78"),
+        ]
 
 
 class TestCreateModelList:

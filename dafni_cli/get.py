@@ -3,7 +3,7 @@ from click import Context
 
 from dafni_cli.login import check_for_jwt_file
 from dafni_cli.API_requests import get_models_dicts
-from dafni_cli.model import create_model_list
+from dafni_cli.model import Model, create_model_list
 
 
 @click.group()
@@ -18,6 +18,11 @@ def get(ctx: Context):
 
 @get.command(help="List and filter models")
 @click.option(
+    "--long/--short",
+    default=False,
+    help="Also displays the full description of each model.",
+)
+@click.option(
     "--creation-date",
     default=None,
     help="Filter for models created since given date. Format: DD/MM/YYYY",
@@ -28,12 +33,13 @@ def get(ctx: Context):
     help="Filter for models published since given date. Format: DD/MM/YYYY",
 )
 @click.pass_context
-def models(ctx: Context, creation_date: str, publication_date: str):
+def models(ctx: Context, long: bool, creation_date: str, publication_date: str):
     """Displays list of model names with other options allowing
         more details to be listed as well.
 
     Args:
         ctx (context): contains JWT for authentication
+        long (bool): whether to print the description of each model as well
         creation_date (str): for filtering by creation date. Format: DD/MM/YYYY
         publication_date (str): for filtering by publication date. Format: DD/MM/YYYY
     """
@@ -46,13 +52,24 @@ def models(ctx: Context, creation_date: str, publication_date: str):
         if publication_date:
             date_filter = model.filter_by_date("publication", publication_date)
         if date_filter:
-            model.output_model_details()
+            model.output_model_details(long)
 
 
 @get.command()
+@click.argument("version-id", nargs=-1)
 @click.pass_context
-def metadata(ctx):
-    pass
+def model(ctx, version_id):
+    """Displays the metadata for one or more models
+
+    Args:
+         ctx (context): contains JWT for authentication
+         version_id (list[str]): List of version ids of the models to be displayed
+    """
+    for vid in version_id:
+        model = Model()
+        model.get_details_from_id(ctx.obj["jwt"], vid)
+        model.get_metadata(ctx.obj["jwt"])
+        model.output_model_metadata()
 
 
 @get.command()
