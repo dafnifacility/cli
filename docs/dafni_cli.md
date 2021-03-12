@@ -33,58 +33,58 @@ If there is no valid JWT, the user will be prompted to login before the command 
 
 **Sub-Commands:**
 - Models:
-    >*Command: `dafni(.exe) get models [options]`*
+  >*Command: `dafni(.exe) get models [options]`*
 
-    Lists the models available to the user. 
+  Lists the models available to the user. 
 
-    *Options*:
-    - **--creation-date**: Filter to only show the models created since a given date with format DD/MM/YYYY.
-    - **--publication-date**:  Filter to only show the models created since a given date with format DD/MM/YYYY.
-    - **--long/--short**: If `--long` added as an option, the description of each model will be returned as well as the regular information.
-      If `--short` is chosen, only the name, version ID, creation date and summary will be displayed. Default: `--short`. 
-
-    Example output:
-    <pre>
-    Name: Model 1     ID: abc10-ab20-3abc-12345678a1b2      Date: January 1st 2020
-    Summary: This is a summary of the model.
-    Name: Model 2     ID: xyz10-xy20-3xyz-12345678x1y2      Date: January 1st 2020
-    Summary: This is a summary of another model.
-    </pre>
+  *Options*:
+  - **--creation-date**: Filter to only show the models created since a given date with format DD/MM/YYYY.
+  - **--publication-date**:  Filter to only show the models created since a given date with format DD/MM/YYYY.
+  - **--long/--short**: If `--long` added as an option, the description of each model will be returned as well as the regular information.
+    If `--short` is chosen, only the name, version ID, creation date and summary will be displayed. Default: `--short`.
+  
+  Example output:
+  <pre>
+  Name: Model 1     ID: abc10-ab20-3abc-12345678a1b2      Date: January 1st 2020
+  Summary: This is a summary of the model.
+  Name: Model 2     ID: xyz10-xy20-3xyz-12345678x1y2      Date: January 1st 2020
+  Summary: This is a summary of another model.
+  </pre>
 
 - Model:
-    >*Command: `dafni(.exe) get model [version_id]`*
-    
-    Displays the metadata for the model.
-    
-    Arguments:
-    - **version_id**: Version of the model to display the metadata of.
-    Multiple version IDs can be specified and the metadata of each model will be displayed in sequence.
-    
-    Example output:
-    <pre>
-    Name: Model 1
-    Date: January 1st 2020
-    Summary:
-    This is a summary of the model.
-    Description:
-    This is a longer description of the model, perhaps touching on more details 
-    and other things. It uses text wrapping to be more readable.
-    
-    Input Parameters:
-    Title       Type       Min    Max    Default  Description
-    --------------------------------------------------------------------
-    param1      integer    1      10     1        A fancy parameter
-    param2      string                   normal   A fancy setting
-    
-    Input Data Slots:
-    Name: Input file
-    Path in container: inputs/
-    Required: True
-    Default Datasets:
-    Name: Dataset 1    ID: xyz09-xy09-8xyz-87654321x9y8   Version ID: xyz09-xy09-8xyz-56843975x9y8
-    
-    Outputs:
-    Name                                     Format    Summary
-    a_very_big_table_of_results.csv          CSV       The results you care about
-    another_very_big_table_of_results.csv    CSV       Some extra results you may find useful
-    </pre>
+  >*Command: `dafni(.exe) get model [version_id]`*
+  
+  Displays the metadata for the model.
+  
+  Arguments:
+  - **version_id**: Version of the model to display the metadata of.
+  Multiple version IDs can be specified and the metadata of each model will be displayed in sequence.
+  
+  Example output:
+  <pre>
+  Name: Model 1
+  Date: January 1st 2020
+  Summary:
+  This is a summary of the model.
+  Description:
+  This is a longer description of the model, perhaps touching on more details 
+  and other things. It uses text wrapping to be more readable.
+  
+  Input Parameters:
+  Title       Type       Min    Max    Default  Description
+  --------------------------------------------------------------------
+  param1      integer    1      10     1        A fancy parameter
+  param2      string                   normal   A fancy setting
+  
+  Input Data Slots:
+  Name: Input file
+  Path in container: inputs/
+  Required: True
+  Default Datasets:
+  Name: Dataset 1    ID: xyz09-xy09-8xyz-87654321x9y8   Version ID: xyz09-xy09-8xyz-56843975x9y8
+  
+  Outputs:
+  Name                                     Format    Summary
+  a_very_big_table_of_results.csv          CSV       The results you care about
+  another_very_big_table_of_results.csv    CSV       Some extra results you may find useful
+  </pre>
