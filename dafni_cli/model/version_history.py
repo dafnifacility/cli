@@ -35,5 +35,21 @@ class VersionHistory:
 
     def output_version_history(self):
         """Prints the version history for the model to the command line."""
-        for version in self.model_history:
-            pass
+        for i in range(len(self.model_history)):
+            click.echo(
+                "Name: "
+                + self.model_history[i].display_name
+                + TAB_SPACE
+                + "ID: "
+                + self.model_history[i].version_id
+                + TAB_SPACE
+                + "Date: "
+                + self.version_publication_dates[i]
+            )
+            click.echo("Version message: " + self.version_messages[i])
+            tags_string = ""
+            for tag in self.version_tags:
+                tags_string += tag + ", "
+            click.echo("Version tags: " + tags_string)
+            click.echo("")
+
