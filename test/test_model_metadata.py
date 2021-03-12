@@ -233,6 +233,18 @@ class TestModelMetadata:
                 # ASSERT
                 assert dataslot_string == expected
 
+            def test_none_returned_if_there_are_no_dataslots(self, get_model_metadata_fixture):
+                # SETUP
+                metadata_dict = get_model_metadata_fixture
+                del metadata_dict["spec"]["inputs"]["dataslots"]
+                metadata = model_metadata.ModelMetadata(metadata_dict)
+
+                # CALL
+                dataslot_string = metadata.format_dataslots()
+
+                # ASSERT
+                assert dataslot_string is None
+
         @patch("dafni_cli.model_metadata.outputs_table_header")
         @patch("dafni_cli.model_metadata.optional_column")
         class TestFormatOutputs:
