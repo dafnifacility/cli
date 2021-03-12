@@ -58,8 +58,8 @@ def models(ctx: Context, long: bool, creation_date: str, publication_date: str):
 @get.command()
 @click.argument("version-id", nargs=-1)
 @click.pass_context
-def model(ctx, version_id):
-    """Displays the metadata for one or more models
+def model(ctx: Context, version_id: str):
+    """Displays the metadata for one or more model versions
 
     Args:
          ctx (context): contains JWT for authentication
