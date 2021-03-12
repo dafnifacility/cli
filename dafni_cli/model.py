@@ -102,7 +102,7 @@ class Model:
         else:
             raise KeyError("Key should be CREATION or PUBLICATION")
 
-    def output_model_details(self, long=False):
+    def output_model_details(self, long: bool = False):
         """Prints relevant model attributes to command line"""
         click.echo(
             "Name: "
@@ -118,7 +118,7 @@ class Model:
         if long:
             click.echo("Description: ")
             prose_print(self.description, CONSOLE_WIDTH)
-            click.echo("")
+        click.echo("")
 
     def output_model_metadata(self):
         """Prints the metadata for the model to command line."""
