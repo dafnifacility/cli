@@ -28,8 +28,22 @@ def dafni_get_request(
     return response.json()
 
 
-def dafni_post_request(url: str, jwt: str, data: dict, allow_redirect: bool = False):
+def dafni_post_request(
+    url: str, jwt: str, data: dict, allow_redirect: bool = False
+) -> Union[list, dict]:
+    """Performs a POST request from the DAFNI API.
+    If a status other than 200 is returned, an exception will be raised.
 
+    Args:
+        url (str): The url endpoint that is being queried
+        jwt (str): JWT
+        data (dict): The data to be POSTed in JSON format
+        allow_redirect (bool): Flag to allow redirects during API call. Defaults to False.
+
+    Returns:
+        list: For an endpoint returning several objects, a list is returned (e.g. /models/).
+        dict: For an endpoint returning one object, this will be a dictionary (e.g. /models/<version_id>).
+    """
     response = requests.post(
         url,
         headers={"Content-Type": "application/json", "authorization": jwt},

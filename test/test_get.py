@@ -43,7 +43,7 @@ class TestGet:
     class TestModels:
         """Test class to test the get.models command"""
 
-        @patch("dafni_cli.get.create_model_list")
+        @patch("dafni_cli.get.process_response_to_class_list")
         def test_get_models_dict_called_with_jwt_from_context(
             self,
             mock_create,
@@ -70,7 +70,7 @@ class TestGet:
 
             # ASSERT
             mock_get.assert_called_once_with(processed_jwt_fixture["jwt"])
-            mock_create.assert_called_once_with(models)
+            mock_create.assert_called_once_with(models, model.Model)
 
             assert result.exit_code == 0
 
