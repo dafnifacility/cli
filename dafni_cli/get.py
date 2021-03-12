@@ -4,6 +4,7 @@ from click import Context
 from dafni_cli.login import check_for_jwt_file
 from dafni_cli.API_requests import get_models_dicts
 from dafni_cli.model.model import Model
+from dafni_cli.model.version_history import VersionHistory
 from dafni_cli.utils import process_response_to_class_list
 
 
@@ -83,7 +84,10 @@ def version_history(ctx: Context, version_id: str):
         ctx (Context): contains JWT for authentication
         version_id (str): Version ID of the model whose version history is to be displayed
     """
-
+    model = Model()
+    model.get_details_from_id(ctx.obj["jwt"], version_id)
+    model.get_version_history(ctx.obj["jwt"])
+    model.version_history.output_version_history()
 
 
 @get.command()
