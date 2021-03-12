@@ -6,25 +6,6 @@ from dafni_cli.consts import TAB_SPACE, CONSOLE_WIDTH
 from dafni_cli.model import prose_print
 
 
-class Permissions:
-    """Class to contain the auth section of the
-    datasets metadata
-    """
-
-    def __init__(self, permissions: dict):
-        """Constructor for the Permissions class
-
-        Args:
-            permissions (dict): dict of Permissions
-        """
-        self.name = permissions["name"]
-        self.view = permissions["view"]
-        self.read = permissions["read"]
-        self.update = permissions["update"]
-        self.destroy = permissions["destroy"]
-        self.reason = permissions["reason"]
-
-
 class Dataset:
     """Class to represent the DAFNI Dataset
     client model
@@ -32,18 +13,18 @@ class Dataset:
 
     def __init__(self):
         """Dataset constructor"""
-        self.id = None
-        self.version_id = None
-        self.metadata_id = None
         self.asset_id = None
-        self.title = None
-        self.description = None
-        self.subject = None
-        self.source = None
-        self.date_range_start = None
         self.date_range_end = None
-        self.modified = None
+        self.date_range_start = None
+        self.description = None
         self.formats = None
+        self.id = None
+        self.metadata_id = None
+        self.modified = None
+        self.source = None
+        self.subject = None
+        self.title = None
+        self.version_id = None
 
     def set_details_from_dict(self, dataset: dict):
         """Helper function to populate the Dataset details
@@ -52,21 +33,21 @@ class Dataset:
         Args:
             dataset (dict): DAFNI Dataset client model
         """
-        self.id = dataset["id"]["dataset_uuid"]
-        self.version_id = dataset["id"]["version_uuid"]
-        self.metadata_id = dataset["id"]["metadata_uuid"]
         self.asset_id = dataset["id"]["asset_id"]
-        self.title = dataset["title"]
         self.description = dataset["description"]
-        self.subject = dataset["subject"]
+        self.formats = dataset["formats"]
+        self.id = dataset["id"]["dataset_uuid"]
+        self.metadata_id = dataset["id"]["metadata_uuid"]
+        self.modified = dataset["modified_date"]
         self.source = dataset["source"]
+        self.subject = dataset["subject"]
+        self.title = dataset["title"]
+        self.version_id = dataset["id"]["version_uuid"]
+        # DateRanges
         if dataset["date_range"]["begin"]:
             self.date_range_start = parser.isoparse(dataset["date_range"]["begin"])
         if dataset["date_range"]["end"]:
             self.date_range_end = parser.isoparse(dataset["date_range"]["end"])
-        self.modified = dataset["modified_date"]
-        self.formats = dataset["formats"]
-        self.permissions = Permissions(dataset["auth"])
 
     def output_dataset_details(self):
         """Prints relevant dataset attributes to command line"""

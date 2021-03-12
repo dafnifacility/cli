@@ -5,7 +5,7 @@ from dafni_cli.api.datasets_api import get_all_datasets
 from dafni_cli.api.models_api import get_models_dicts
 from dafni_cli.datasets.dataset import Dataset
 from dafni_cli.login import check_for_jwt_file
-from dafni_cli.API_requests import get_models_dicts
+from dafni_cli.api.models_api import get_models_dicts
 from dafni_cli.model import Model
 from dafni_cli.utils import process_response_to_class_list
 
