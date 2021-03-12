@@ -209,7 +209,7 @@ class TestModelMetadata:
         class TestFormatDataslots:
             """Test class to test the ModelMetadata.format_dataslots() functionality"""
 
-            def test_dataslots_is_formatted_properly(self, get_model_metadata_fixture):
+            def test_dataslots_string_is_formatted_properly_if_it_exists(self, get_model_metadata_fixture):
                 # SETUP
                 metadata_dict = get_model_metadata_fixture
                 metadata = model_metadata.ModelMetadata(metadata_dict)
@@ -232,6 +232,18 @@ class TestModelMetadata:
 
                 # ASSERT
                 assert dataslot_string == expected
+
+            def test_none_returned_if_there_are_no_dataslots(self, get_model_metadata_fixture):
+                # SETUP
+                metadata_dict = get_model_metadata_fixture
+                del metadata_dict["spec"]["inputs"]["dataslots"]
+                metadata = model_metadata.ModelMetadata(metadata_dict)
+
+                # CALL
+                dataslot_string = metadata.format_dataslots()
+
+                # ASSERT
+                assert dataslot_string is None
 
         @patch("dafni_cli.model_metadata.outputs_table_header")
         @patch("dafni_cli.model_metadata.optional_column")
