@@ -51,6 +51,8 @@ class Dataset:
     def output_dataset_details(self):
         """Prints relevant dataset attributes to command line"""
         click.echo("Title: " + self.title)
+        click.echo("ID: " + self.id)
+        click.echo("Latest Version: " + self.version_id)
         click.echo("Publisher: " + self.source)
         start = (
             self.date_range_start.date().strftime("%B %d %Y")
