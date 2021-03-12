@@ -138,7 +138,7 @@ class ModelMetadata:
         Formats input data slots to print in a clear way
 
         Returns:
-            str: Formatted string that will present the dataslots clearly when printed.
+            Optional[str]: Formatted string that will present the dataslots clearly when printed.
         """
         if "dataslots" in self.inputs:
             dataslots = self.inputs["dataslots"]
