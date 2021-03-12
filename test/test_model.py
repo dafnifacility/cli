@@ -211,7 +211,7 @@ class TestModel:
             ]
 
         @patch("dafni_cli.model.prose_print")
-        def test_model_details_outputted_correctly_with_description(
+        def test_model_details_outputted_correctly_with_description_when_long_option_used(
             self, mock_prose, mock_click
         ):
             # SETUP
