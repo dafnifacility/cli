@@ -323,3 +323,53 @@ class TestLogin:
                 processed_jwt_fixture["user_name"], processed_jwt_fixture["user_id"]
             )
         )
+
+
+@patch("dafni_cli.login.os.remove")
+@patch("dafni_cli.login.os.getcwd")
+@patch("dafni_cli.login.read_jwt_file")
+class TestLogout:
+    """Test class to test the logout command"""
+
+    def test_user_informed_already_logged_out_if_no_cached_jwt_found(
+        self, mock_jwt, mock_getcwd, mock_remove
+    ):
+        # SETUP
+        runner = CliRunner()
+        mock_jwt.return_value = None
+
+        # CALL
+        result = runner.invoke(login.logout)
+
+        # ASSERT
+        assert result.stdout == "Already logged out\n"
+
+    def test_cached_jwt_file_removed_if_jwt_file_found(
+        self, mock_jwt, mock_getcwd, mock_remove, processed_jwt_fixture
+    ):
+        # SETUP
+        runner = CliRunner()
+        mock_jwt.return_value = processed_jwt_fixture
+        mock_getcwd.return_value = "\\path\\to\\file"
+
+        # CALL
+        runner.invoke(login.logout)
+
+        # ASSERT
+        mock_remove.assert_called_once_with("\\path\\to\\file\\" + JWT_FILENAME)
+
+    def test_cached_jwt_details_printed_after_file_removed(
+        self, mock_jwt, mock_getcwd, mock_remove, processed_jwt_fixture
+    ):
+        # SETUP
+        runner = CliRunner()
+        mock_jwt.return_value = processed_jwt_fixture
+        mock_getcwd.return_value = "\\path\\to\\file"
+
+        # CALL
+        result = runner.invoke(login.logout)
+
+        # ASSERT
+        assert result.stdout == (
+            "Logout Complete\nuser name: john-doe, user id: e1092c3e-be04-4c19-957f-cd884e53447e\n"
+        )

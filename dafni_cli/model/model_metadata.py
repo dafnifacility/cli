@@ -17,31 +17,7 @@ from dafni_cli.consts import (
     OUTPUT_SUMMARY_COLUMN_WIDTH,
     TAB_SPACE,
 )
-
-
-def optional_column(
-    dictionary: dict, key: str, column_width: int = 0, alignment: str = "<"
-):
-    """Adds a value to a column, if the key exists in the dictionary
-    and adds spaces of the appropriate width if not.
-    Args:
-         dictionary (dict): Dictionary with data inside
-         key (str): Key of the data that is to be checked and added if present
-         column_width (int): Number of spaces to be returned instead if the key is not present
-         alignment (str): Specified alignment of column
-    Returns:
-        entry (str): Either the value of the entry to be put into the table, column_width number of spaces
-    """
-    if key in dictionary:
-        if column_width > 0:
-            entry = f"{dictionary[key]:{alignment}{column_width}}"
-        elif column_width == 0:
-            entry = f"{dictionary[key]}"
-        else:
-            raise ValueError("Column width for optional column must be non-negative")
-    else:
-        entry = f" " * column_width
-    return entry
+from dafni_cli.utils import optional_column
 
 
 def params_table_header(title_column_width: int, default_column_width: int) -> str:

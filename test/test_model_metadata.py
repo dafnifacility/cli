@@ -1,6 +1,5 @@
 from dafni_cli import model_metadata
-from mock import patch, call
-import pytest
+from mock import patch
 
 from test.fixtures.model_fixtures import get_model_metadata_fixture
 from dafni_cli.consts import (
@@ -20,85 +19,6 @@ from dafni_cli.consts import (
     OUTPUT_SUMMARY_HEADER,
     TAB_SPACE,
 )
-
-
-class TestOptionalColumn:
-    """Test class to test the optional_column() functionality"""
-
-    def test_if_key_exists_value_is_returned_with_correct_width(self):
-        # SETUP
-        key = "key"
-        value = "value"
-        dictionary = {key: value}
-        column_width = 10
-
-        # CALL
-        entry = model_metadata.optional_column(dictionary, key, column_width)
-
-        # ASSERT
-        assert entry == "value     "
-
-    def test_if_key_exists_value_is_returned_with_correct_width_and_alignment(self):
-        # SETUP
-        key = "key"
-        value = "value"
-        dictionary = {key: value}
-        column_width = 10
-        alignment = ">"
-
-        # CALL
-        entry = model_metadata.optional_column(dictionary, key, column_width, alignment)
-
-        # ASSERT
-        assert entry == "     value"
-
-    def test_if_key_exists_and_no_column_width_specified(self):
-        # SETUP
-        key = "key"
-        value = "value"
-        dictionary = {key: value}
-
-        # CALL
-        entry = model_metadata.optional_column(dictionary, key)
-
-        # ASSERT
-        assert entry == "value"
-
-    def test_if_key_does_not_exist_but_column_width_specified(self):
-        # SETUP
-        key = "key"
-        dictionary = {"other_key": "value"}
-        column_width = 8
-
-        # CALL
-        entry = model_metadata.optional_column(dictionary, key, column_width)
-
-        # ASSERT
-        assert entry == " " * 8
-
-    def test_if_key_does_not_exist_but_column_width_not_specified(self):
-        # SETUP
-        key = "key"
-        dictionary = {"other_key": "value"}
-
-        # CALL
-        entry = model_metadata.optional_column(dictionary, key)
-
-        # ASSERT
-        assert entry == ""
-
-    def test_exception_raised_when_column_width_negative(self):
-        # SETUP
-        key = "key"
-        value = "value"
-        dictionary = {key: value}
-
-        # CALL
-        # ASSERT
-        with pytest.raises(
-            ValueError, match="Column width for optional column must be non-negative"
-        ):
-            model_metadata.optional_column(dictionary, key, -1)
 
 
 class TestParamsTableHeader:

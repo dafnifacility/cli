@@ -17,14 +17,14 @@ Then run the following to add all of the required development dependencies:
 `python -m pip install -r path\to\requirements.txt`
 
 The requirements.txt file can be located within the docs folder of this repository, and contains all dependencies for both development and deployment.
-
+___
 ## Running the tests
 Whilst running the activated venv created locally for the dafni-cli, ensure you are in the current root directory of the git repository, and run the following to run all tests:
 
 `python -m pytest -vv`
 
 The `-vv` argument is to make pytest output information on any failing tests in a verbose manner.
-
+___
 ## Deployment 
 
 ### Executable Deployment

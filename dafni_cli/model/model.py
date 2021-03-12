@@ -2,14 +2,16 @@ import click
 import datetime as dt
 
 from dateutil import parser
-import textwrap
-from typing import List
 
 from dafni_cli.model.model_metadata import ModelMetadata
 from dafni_cli.consts import CONSOLE_WIDTH, TAB_SPACE
 from dafni_cli.API_requests import (
     get_single_model_dict,
     get_model_metadata_dicts,
+)
+from dafni_cli.utils import (
+    prose_print,
+
 )
 
 
@@ -105,7 +107,7 @@ class Model:
         else:
             raise KeyError("Key should be CREATION or PUBLICATION")
 
-    def output_model_details(self, long=False):
+    def output_model_details(self, long: bool = False):
         """Prints relevant model attributes to command line"""
         click.echo(
             "Name: "
@@ -121,7 +123,7 @@ class Model:
         if long:
             click.echo("Description: ")
             prose_print(self.description, CONSOLE_WIDTH)
-            click.echo("")
+        click.echo("")
 
     def output_model_metadata(self):
         """Prints the metadata for the model to command line."""
@@ -140,32 +142,3 @@ class Model:
         if self.metadata.outputs:
             click.echo("Outputs: ")
             click.echo(self.metadata.format_outputs())
-
-
-def prose_print(prose: str, width: int):
-    """
-    Prints string as separate paragraphs with appropriate line breaks at specified line lengths
-    Args:
-        prose (str): string to print as prose
-        width (int): width of the lines before a new line
-    """
-    for paragraph in prose.split("\n"):
-        for line in textwrap.wrap(paragraph, width=width):
-            click.echo(line)
-
-
-def create_model_list(model_dict_list: List[dict]) -> List[Model]:
-    """
-    Produces a list of Model objects from a list of model dictionaries obtained from the /models/ DAFNI API endpoint.
-    Args:
-        model_dict_list (list[dict]): List of dictionaries for several models.
-
-    Returns:
-        model_list (list[Model]): List of Model objects with the attributes populated from the dictionaries.
-    """
-    model_list = []
-    for model_dict in model_dict_list:
-        single_model = Model()
-        single_model.set_details_from_dict(model_dict)
-        model_list.append(single_model)
-    return model_list
