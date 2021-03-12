@@ -1,15 +1,17 @@
 import click
 import datetime as dt
 from dateutil import parser
-from typing import List
 
+from dafni_cli.model_metadata import ModelMetadata
+from dafni_cli.consts import CONSOLE_WIDTH, TAB_SPACE
 from dafni_cli.API_requests import (
-    get_models_dicts,
     get_single_model_dict,
     get_model_metadata_dicts,
 )
-from dafni_cli.login import login
-from dafni_cli.consts import DATE_TIME_FORMAT
+from dafni_cli.utils import (
+    prose_print,
+
+)
 
 
 class Model:
@@ -29,10 +31,9 @@ class Model:
         container: Location of the docker image the model should be run in
         creation_time: Time the model was created
         description: More-detailed information of the model
+        dictionary: Dictionary of full model information
         display_name: Name of the model shown in the web app
-        inputs: Dictionary describing the inputs for a model
-        name: Name used to identify the model
-        outputs: Dictionary describing the outputs for a model
+        metadata: ModelMetadata object containing metadata for the model
         publication_time: Time the model was published
         summary: One-line summary of what the model does
         version_id: ID used to identify the specific version and model
@@ -44,10 +45,9 @@ class Model:
         self.container = None
         self.creation_time = None
         self.description = None
+        self.dictionary = None
         self.display_name = None
-        self.inputs = None
-        self.name = None
-        self.outputs = None
+        self.metadata = None
         self.publication_time = None
         self.summary = None
         self.version_id = identifier
@@ -59,14 +59,15 @@ class Model:
         Args:
             model_dict (dict): Dictionary returned from DAFNI API at /models endpoints
         """
-        self.display_name = model_dict["name"]
-        self.summary = model_dict["summary"]
-        self.description = model_dict["description"]
         self.creation_time = parser.isoparse(model_dict["creation_date"])
+        self.container = model_dict["container"]
+        self.description = model_dict["description"]
+        self.dictionary = model_dict
+        self.display_name = model_dict["name"]
         self.publication_time = parser.isoparse(model_dict["publication_date"])
+        self.summary = model_dict["summary"]
         self.version_id = model_dict["id"]
         self.version_tags = model_dict["version_tags"]
-        self.container = model_dict["container"]
 
     def get_details_from_id(self, jwt_string: str, version_id_string: str):
         """Retrieve model details from the DAFNI API by calling /models/<version-id> endpoint.
@@ -83,9 +84,7 @@ class Model:
             jwt_string (str): JWT for login purposes
         """
         metadata_dict = get_model_metadata_dicts(jwt_string, self.version_id)
-        self.name = metadata_dict["metadata"]["name"]
-        self.inputs = metadata_dict["spec"]["inputs"]
-        self.outputs = metadata_dict["spec"]["outputs"]
+        self.metadata = ModelMetadata(metadata_dict)
 
     def filter_by_date(self, key: str, date: str) -> bool:
         """Filters models based on the date given as an option.
@@ -105,41 +104,38 @@ class Model:
         else:
             raise KeyError("Key should be CREATION or PUBLICATION")
 
-    def output_model_details(self):
+    def output_model_details(self, long: bool = False):
         """Prints relevant model attributes to command line"""
         click.echo(
             "Name: "
             + self.display_name
-            + "     ID: "
+            + TAB_SPACE
+            + "ID: "
             + self.version_id
-            + "     Date: "
-            + self.creation_time.date().strftime(DATE_TIME_FORMAT)
+            + TAB_SPACE
+            + "Date: "
+            + self.creation_time.date().strftime("%B %d %Y")
         )
         click.echo("Summary: " + self.summary)
+        if long:
+            click.echo("Description: ")
+            prose_print(self.description, CONSOLE_WIDTH)
+        click.echo("")
 
     def output_model_metadata(self):
-        """Displays the metadata for the model.
-
-        Args:
-            ctx (context): contains JWT for authentication
-            model_version_id (str): Version ID for the model to display the metadata of
-        """
-        # TODO Implement this
-        pass
-
-
-def create_model_list(model_dict_list: List[dict]) -> List[Model]:
-    """
-    Produces a list of Model objects from a list of model dictionaries obtained from the /models/ DAFNI API endpoint.
-    Args:
-        model_dict_list (list[dict]): List of dictionaries for several models.
-
-    Returns:
-        model_list (list[Model]): List of Model objects with the attributes populated from the dictionaries.
-    """
-    model_list = []
-    for model_dict in model_dict_list:
-        single_model = Model()
-        single_model.set_details_from_dict(model_dict)
-        model_list.append(single_model)
-    return model_list
+        """Prints the metadata for the model to command line."""
+        click.echo("Name: " + self.display_name)
+        click.echo("Date: " + self.creation_time.strftime("%B %d %Y"))
+        click.echo("Summary: ")
+        click.echo(self.summary)
+        click.echo("Description: ")
+        prose_print(self.description, CONSOLE_WIDTH)
+        click.echo("")
+        if self.metadata.inputs:
+            click.echo("Input Parameters: ")
+            click.echo(self.metadata.format_parameters())
+            click.echo("Input Data Slots: ")
+            click.echo(self.metadata.format_dataslots())
+        if self.metadata.outputs:
+            click.echo("Outputs: ")
+            click.echo(self.metadata.format_outputs())
