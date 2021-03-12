@@ -5,6 +5,7 @@ from click.testing import CliRunner
 from dafni_cli import get, model
 from test.fixtures.jwt_fixtures import processed_jwt_fixture
 from test.fixtures.model_fixtures import get_models_list_fixture
+from test.fixtures.model_fixtures import get_model_metadata_fixture
 
 
 class TestGet:
@@ -46,7 +47,7 @@ class TestGet:
         @patch("dafni_cli.get.process_response_to_class_list")
         def test_get_models_dict_called_with_jwt_from_context(
             self,
-            mock_create,
+            mock_list,
             mock_jwt,
             mock_get,
             mock_output,
@@ -61,7 +62,7 @@ class TestGet:
             models = get_models_list_fixture
             mock_get.return_value = models
             # setup create_model_list call
-            mock_create.return_value = []
+            mock_list.return_value = []
             # Setup click
             runner = CliRunner()
 
@@ -70,7 +71,7 @@ class TestGet:
 
             # ASSERT
             mock_get.assert_called_once_with(processed_jwt_fixture["jwt"])
-            mock_create.assert_called_once_with(models, model.Model)
+            mock_list.assert_called_once_with(models, model.Model)
 
             assert result.exit_code == 0
 
@@ -170,3 +171,113 @@ class TestGet:
             assert mock_output.call_count == 1
             assert mock_filter.call_args_list == [call(value, date), call(value, date)]
             assert result.exit_code == 0
+
+    @patch.object(model.Model, "get_details_from_id")
+    @patch.object(model.Model, "get_metadata")
+    @patch.object(model.Model, "output_model_metadata")
+    @patch("dafni_cli.model.get_model_metadata_dict")
+    @patch("dafni_cli.model.get_single_model_dict")
+    @patch("dafni_cli.get.check_for_jwt_file")
+    class TestModel:
+        """Test class to test the get.models command"""
+
+        def test_model_methods_each_called_once_when_one_version_id_given(
+            self,
+            mock_jwt,
+            mock_get,
+            mock_set_metadata,
+            mock_output,
+            mock_get_metadata,
+            mock_details,
+            processed_jwt_fixture,
+            get_models_list_fixture,
+            get_model_metadata_fixture,
+        ):
+            # SETUP
+            # setup get jwt
+            mock_jwt.return_value = processed_jwt_fixture, False
+            # setup retrieving
+            mock_get.return_value = get_models_list_fixture[0]
+            version_id = get_models_list_fixture[0]["id"]
+            # setup setting metadata
+            mock_set_metadata.return_value = get_model_metadata_fixture
+            # Setup click
+            runner = CliRunner()
+
+            # CALL
+            result = runner.invoke(get.get, ["model", version_id])
+
+            # ASSERT
+            mock_details.assert_called_once_with(
+                processed_jwt_fixture["jwt"], version_id
+            )
+            mock_get_metadata.assert_called_once_with(processed_jwt_fixture["jwt"])
+            mock_output.assert_called_once()
+            assert result.exit_code == 0
+
+        def test_model_methods_each_called_twice_when_two_version_ids_given(
+            self,
+            mock_jwt,
+            mock_get,
+            mock_set_metadata,
+            mock_output,
+            mock_get_metadata,
+            mock_details,
+            processed_jwt_fixture,
+            get_models_list_fixture,
+            get_model_metadata_fixture,
+        ):
+            # SETUP
+            # setup get jwt
+            mock_jwt.return_value = processed_jwt_fixture, False
+            # setup retrieving
+            mock_get.side_effect = [
+                get_models_list_fixture[0],
+                get_models_list_fixture[1],
+            ]
+            version_id_1 = get_models_list_fixture[0]["id"]
+            version_id_2 = get_models_list_fixture[1]["id"]
+            # setup setting metadata
+            mock_set_metadata.return_value = get_model_metadata_fixture
+            # Setup click
+            runner = CliRunner()
+
+            # CALL
+            result = runner.invoke(get.get, ["model", version_id_1, version_id_2])
+
+            # ASSERT
+            assert mock_details.call_args_list == [
+                call(processed_jwt_fixture["jwt"], version_id_1),
+                call(processed_jwt_fixture["jwt"], version_id_2),
+            ]
+            assert mock_get_metadata.call_args_list == [
+                call(processed_jwt_fixture["jwt"]),
+                call(processed_jwt_fixture["jwt"]),
+            ]
+            assert mock_output.call_args_list == [call(), call()]
+            assert result.exit_code == 0
+
+        @patch("dafni_cli.get.click")
+        def test_message_printed_when_no_id_provided(
+            self,
+            mock_click,
+            mock_jwt,
+            mock_get,
+            mock_set_metadata,
+            mock_output,
+            mock_get_metadata,
+            mock_details,
+        ):
+            # SETUP
+            # Setup click
+            runner = CliRunner()
+
+            # CALL
+            result = runner.invoke(get.get, ["model"])
+
+            # ASSERT
+            mock_details.assert_not_called()
+            mock_get_metadata.assert_not_called()
+            mock_output.assert_not_called()
+            assert result.exception
+            assert result.exit_code == 1

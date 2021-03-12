@@ -144,6 +144,7 @@ def login():
             )
         )
 
+
 @click.command()
 def logout():
     """Function to handle logging out of the DAFNI

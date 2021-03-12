@@ -92,7 +92,7 @@ class TestGetSingleModelDict:
 
 @patch("dafni_cli.API_requests.dafni_get_request")
 class TestModelMetaDataDicts:
-    """Test class to test the get_model_metadata_dicts functionality"""
+    """Test class to test the get_model_metadata_dict functionality"""
 
     def test_dafni_get_request_called_correctly(self, mock_get):
 
@@ -102,7 +102,7 @@ class TestModelMetaDataDicts:
         model_version = "version_1"
 
         # CALL
-        result = API_requests.get_model_metadata_dicts(JWT, model_version)
+        result = API_requests.get_model_metadata_dict(JWT, model_version)
 
         # ASSERT
         assert result == {"key": "value"}
