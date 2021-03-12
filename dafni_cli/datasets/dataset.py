@@ -7,7 +7,16 @@ from dafni_cli.model import prose_print
 
 
 class Permissions:
+    """Class to contain the auth section of the
+    datasets metadata
+    """
+
     def __init__(self, permissions: dict):
+        """Constructor for the Permissions class
+
+        Args:
+            permissions (dict): dict of Permissions
+        """
         self.name = permissions["name"]
         self.view = permissions["view"]
         self.read = permissions["read"]
@@ -17,7 +26,12 @@ class Permissions:
 
 
 class Dataset:
+    """Class to represent the DAFNI Dataset
+    client model
+    """
+
     def __init__(self):
+        """Dataset constructor"""
         self.id = None
         self.version_id = None
         self.metadata_id = None
@@ -32,6 +46,12 @@ class Dataset:
         self.formats = None
 
     def set_details_from_dict(self, dataset: dict):
+        """Helper function to populate the Dataset details
+        based on a given DAFNI Dataset client model
+
+        Args:
+            dataset (dict): DAFNI Dataset client model
+        """
         self.id = dataset["id"]["dataset_uuid"]
         self.version_id = dataset["id"]["version_uuid"]
         self.metadata_id = dataset["id"]["metadata_uuid"]
