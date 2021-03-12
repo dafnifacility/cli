@@ -1,4 +1,4 @@
-from dafni_cli import model_metadata
+from dafni_cli.model import model_metadata
 from mock import patch
 
 from test.fixtures.model_fixtures import get_model_metadata_fixture
