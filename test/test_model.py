@@ -208,6 +208,7 @@ class TestModel:
                     + "Date: March 03 2021"
                 ),
                 call("Summary: summary"),
+                call(""),
             ]
 
         @patch("dafni_cli.model.prose_print")

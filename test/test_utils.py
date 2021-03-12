@@ -4,9 +4,10 @@ from dateutil import parser
 
 from dafni_cli import utils
 from dafni_cli.model import Model
+from test.fixtures.model_fixtures import get_models_list_fixture
 
 
-@patch("dafni_cli.model.click")
+@patch("dafni_cli.utils.click")
 class TestProsePrint:
     """Test class to test the prose_print() functionality"""
 
