@@ -3,7 +3,8 @@ from click import Context
 
 from dafni_cli.login import check_for_jwt_file
 from dafni_cli.API_requests import get_models_dicts
-from dafni_cli.model import Model, create_model_list
+from dafni_cli.model import Model
+from dafni_cli.utils import process_response_to_class_list
 
 
 @click.group()
@@ -44,7 +45,7 @@ def models(ctx: Context, long: bool, creation_date: str, publication_date: str):
         publication_date (str): for filtering by publication date. Format: DD/MM/YYYY
     """
     model_dict_list = get_models_dicts(ctx.obj["jwt"])
-    model_list = create_model_list(model_dict_list)
+    model_list = process_response_to_class_list(model_dict_list, Model)
     for model in model_list:
         date_filter = True
         if creation_date:
