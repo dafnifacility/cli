@@ -53,7 +53,7 @@ def models(ctx: Context, long: bool, creation_date: str, publication_date: str):
         if publication_date:
             date_filter = model.filter_by_date("publication", publication_date)
         if date_filter:
-            model.output_model_details(long)
+            model.output_details(long)
 
 
 @get.group(invoke_without_command=True)
@@ -70,7 +70,7 @@ def model(ctx: Context, version_id: str):
         model = Model()
         model.get_details_from_id(ctx.obj["jwt"], vid)
         model.get_metadata(ctx.obj["jwt"])
-        model.output_model_metadata()
+        model.output_metadata()
 
 
 @model.command()

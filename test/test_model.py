@@ -184,7 +184,7 @@ class TestModel:
 
     @patch("dafni_cli.model.click")
     class TestOutputModelDetails:
-        """Test class to test the Model.output_model_details() functionality"""
+        """Test class to test the Model.output_details() functionality"""
 
         def test_model_details_outputted_correctly(self, mock_click):
             # SETUP
@@ -196,7 +196,7 @@ class TestModel:
             instance.summary = "summary"
 
             # CALL
-            instance.output_model_details()
+            instance.output_details()
 
             # ASSERT
             assert mock_click.echo.call_args_list == [
@@ -224,7 +224,7 @@ class TestModel:
             instance.description = "description"
 
             # CALL
-            instance.output_model_details(long=True)
+            instance.output_details(long=True)
 
             # ASSERT
             assert mock_click.echo.call_args_list == [
@@ -244,7 +244,7 @@ class TestModel:
     @patch("dafni_cli.model.click")
     @patch("dafni_cli.model.prose_print")
     class TestOutputModelMetadataDetails:
-        """Test class to test the Model.output_model_metadata() functionality"""
+        """Test class to test the Model.output_metadata() functionality"""
 
         def test_output_correct_when_all_keys_present(self, mock_prose, mock_click):
             # SETUP
@@ -270,7 +270,7 @@ class TestModel:
             instance.metadata = metadata
 
             # CALL
-            instance.output_model_metadata()
+            instance.output_metadata()
 
             # ASSERT
             assert mock_click.echo.call_args_list == [
@@ -315,7 +315,7 @@ class TestModel:
             instance.metadata = metadata
 
             # CALL
-            instance.output_model_metadata()
+            instance.output_metadata()
 
             # ASSERT
             assert mock_click.echo.call_args_list == [
@@ -358,7 +358,7 @@ class TestModel:
             instance.metadata = metadata
 
             # CALL
-            instance.output_model_metadata()
+            instance.output_metadata()
 
             # ASSERT
             assert mock_click.echo.call_args_list == [
@@ -399,7 +399,7 @@ class TestModel:
             instance.metadata = metadata
 
             # CALL
-            instance.output_model_metadata()
+            instance.output_metadata()
 
             # ASSERT
             assert mock_click.echo.call_args_list == [

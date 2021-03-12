@@ -25,8 +25,8 @@ class Model:
         get_details_from_id(jwt (str), id (str)): populates attributes from the model version ID by calling DAFNI API.
         get_metadata(jwt (str)): After details have been obtained, populate metadata attributes by calling API.
         filter_by_date(key (str), date (str)): calculates whether the model was created/published before a date.
-        output_model_details(): Prints key information of model to console.
-        output_model_metadata(): Prints key information of model metadata to console.
+        output_details(): Prints key information of model to console.
+        output_metadata(): Prints key information of model metadata to console.
 
     Attributes:
         container: Location of the docker image the model should be run in
@@ -107,7 +107,7 @@ class Model:
         else:
             raise KeyError("Key should be CREATION or PUBLICATION")
 
-    def output_model_details(self, long: bool = False):
+    def output_details(self, long: bool = False):
         """Prints relevant model attributes to command line"""
         click.echo(
             "Name: "
@@ -125,7 +125,7 @@ class Model:
             prose_print(self.description, CONSOLE_WIDTH)
         click.echo("")
 
-    def output_model_metadata(self):
+    def output_metadata(self):
         """Prints the metadata for the model to command line."""
         click.echo("Name: " + self.display_name)
         click.echo("Date: " + self.creation_time.strftime("%B %d %Y"))
@@ -142,3 +142,4 @@ class Model:
         if self.metadata.outputs:
             click.echo("Outputs: ")
             click.echo(self.metadata.format_outputs())
+

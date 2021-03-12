@@ -37,7 +37,7 @@ class TestGet:
             assert result.exit_code == 0
 
     @patch.object(model.Model, "filter_by_date")
-    @patch.object(model.Model, "output_model_details")
+    @patch.object(model.Model, "output_details")
     @patch("dafni_cli.get.get_models_dicts")
     @patch("dafni_cli.get.check_for_jwt_file")
     class TestModels:
