@@ -1,3 +1,9 @@
+from dateutil import parser
+import click
+
+from dafni_cli.consts import TAB_SPACE, CONSOLE_WIDTH
+
+
 class Permissions:
     def __init__(self, permissions: dict):
         self.name = permissions["name"]
@@ -32,8 +38,23 @@ class Dataset:
         self.description = dataset["description"]
         self.subject = dataset["subject"]
         self.source = dataset["source"]
-        self.date_range_start = dataset["date_range"]["begin"]
-        self.date_range_end = dataset["date_range"]["end"]
+        self.date_range_start = parser.isoparse(dataset["date_range"]["begin"])
+        self.date_range_end = parser.isoparse(dataset["date_range"]["end"])
         self.modified = dataset["modified_date"]
         self.formats = dataset["formats"]
         self.permissions = Permissions(dataset["auth"])
+
+    def output_dataset_details(self):
+        """Prints relevant dataset attributes to command line"""
+        click.echo("Title: " + self.title)
+        click.echo("Publisher: " + self.source)
+        click.echo(
+            "From: "
+            + self.date_range_start.date().strftime("%B %d %Y")
+            + TAB_SPACE
+            + "To: "
+            + self.date_range_end.date().strftime("%B %d %Y")
+        )
+        click.echo("Description: ")
+        prose_print(self.description, CONSOLE_WIDTH)
+        click.echo("")
