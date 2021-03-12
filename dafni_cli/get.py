@@ -2,8 +2,11 @@ import click
 from click import Context
 
 from dafni_cli.login import check_for_jwt_file
-from dafni_cli.API_requests import get_models_dicts
+from dafni_cli.api.models_api import get_models_dicts
+from dafni_cli.api.datasets_api import get_all_datasets
 from dafni_cli.model import Model, create_model_list
+from dafni_cli.datasets.dataset import Dataset
+from dafni_cli.utils import process_response_to_class_list
 
 
 @click.group()
@@ -43,7 +46,7 @@ def models(ctx: Context, long: bool, creation_date: str, publication_date: str):
         creation_date (str): for filtering by creation date. Format: DD/MM/YYYY
         publication_date (str): for filtering by publication date. Format: DD/MM/YYYY
     """
-    model_dict_list = get_models_dicts(ctx.obj["jwt"])
+    model_dict_list = get(ctx.obj["jwt"])
     model_list = create_model_list(model_dict_list)
     for model in model_list:
         date_filter = True
@@ -73,8 +76,18 @@ def model(ctx, version_id):
 
 
 @get.command()
-def datasets():
-    pass
+@click.pass_context
+def datasets(ctx: Context):
+    """Displays list of model names with other options allowing
+        more details to be listed as well.
+
+    Args:
+        ctx (context): contains JWT for authentication
+    """
+    datasets_response = get_all_datasets(ctx.obj["jwt"])
+    datasets = process_response_to_class_list(datasets_response["metadata"], Dataset)
+    for dataset in datasets:
+        dataset.output_dataset_details()
 
 
 @get.command()

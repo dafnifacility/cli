@@ -1,7 +1,9 @@
 from dateutil import parser
 import click
+from typing import List
 
 from dafni_cli.consts import TAB_SPACE, CONSOLE_WIDTH
+from dafni_cli.model import prose_print
 
 
 class Permissions:
@@ -29,7 +31,7 @@ class Dataset:
         self.modified = None
         self.formats = None
 
-    def set_from_dict(self, dataset: dict):
+    def set_details_from_dict(self, dataset: dict):
         self.id = dataset["id"]["dataset_uuid"]
         self.version_id = dataset["id"]["version_uuid"]
         self.metadata_id = dataset["id"]["metadata_uuid"]
@@ -38,8 +40,10 @@ class Dataset:
         self.description = dataset["description"]
         self.subject = dataset["subject"]
         self.source = dataset["source"]
-        self.date_range_start = parser.isoparse(dataset["date_range"]["begin"])
-        self.date_range_end = parser.isoparse(dataset["date_range"]["end"])
+        if dataset["date_range"]["begin"]:
+            self.date_range_start = parser.isoparse(dataset["date_range"]["begin"])
+        if dataset["date_range"]["end"]:
+            self.date_range_end = parser.isoparse(dataset["date_range"]["end"])
         self.modified = dataset["modified_date"]
         self.formats = dataset["formats"]
         self.permissions = Permissions(dataset["auth"])
@@ -48,13 +52,18 @@ class Dataset:
         """Prints relevant dataset attributes to command line"""
         click.echo("Title: " + self.title)
         click.echo("Publisher: " + self.source)
-        click.echo(
-            "From: "
-            + self.date_range_start.date().strftime("%B %d %Y")
-            + TAB_SPACE
-            + "To: "
-            + self.date_range_end.date().strftime("%B %d %Y")
+        start = (
+            self.date_range_start.date().strftime("%B %d %Y")
+            if self.date_range_start
+            else TAB_SPACE
         )
+        end = (
+            self.date_range_end.date().strftime("%B %d %Y")
+            if self.date_range_end
+            else TAB_SPACE
+        )
+        date_range_str = "From: {0}{1}To: {2}".format(start, TAB_SPACE, end)
+        click.echo(date_range_str)
         click.echo("Description: ")
         prose_print(self.description, CONSOLE_WIDTH)
         click.echo("")

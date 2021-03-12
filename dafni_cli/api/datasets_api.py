@@ -16,6 +16,6 @@ def get_all_datasets(jwt: str) -> List[dict]:
         List[dict]: List of available datasets
     """
     url = DISCOVERY_API_URL + "/catalogue/"
-    data = {"sort_by": "recent"}
+    data = {"offset": {"start": 0, "size": 1000}, "sort_by": "recent"}
 
-    return dafni_post_request(url, jwt, data)
+    return dafni_post_request(url, jwt, data, allow_redirect=True)

@@ -6,7 +6,7 @@ from typing import List
 
 from dafni_cli.model_metadata import ModelMetadata
 from dafni_cli.consts import CONSOLE_WIDTH, TAB_SPACE
-from dafni_cli.API_requests import (
+from dafni_cli.api.models_api import (
     get_single_model_dict,
     get_model_metadata_dicts,
 )
