@@ -8,8 +8,7 @@ ___
 
 ## Commands
 
-The syntax for these will change as per the requirements i.e.  
-`dafni get model` instead of `dafni model get`.
+There are several commands implemented for the dafni CLI, these are listed below with there associated sub-commands and options.
 ___
 ### Login
 
