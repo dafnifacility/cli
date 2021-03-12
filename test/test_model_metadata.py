@@ -209,7 +209,7 @@ class TestModelMetadata:
         class TestFormatDataslots:
             """Test class to test the ModelMetadata.format_dataslots() functionality"""
 
-            def test_dataslots_is_formatted_properly(self, get_model_metadata_fixture):
+            def test_dataslots_string_is_formatted_properly_if_it_exists(self, get_model_metadata_fixture):
                 # SETUP
                 metadata_dict = get_model_metadata_fixture
                 metadata = model_metadata.ModelMetadata(metadata_dict)
