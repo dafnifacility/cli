@@ -5,7 +5,8 @@ from dafni_cli.api.datasets_api import get_all_datasets
 from dafni_cli.api.models_api import get_models_dicts
 from dafni_cli.datasets.dataset import Dataset
 from dafni_cli.login import check_for_jwt_file
-from dafni_cli.model import Model, create_model_list
+from dafni_cli.API_requests import get_models_dicts
+from dafni_cli.model import Model
 from dafni_cli.utils import process_response_to_class_list
 
 
@@ -61,8 +62,8 @@ def models(ctx: Context, long: bool, creation_date: str, publication_date: str):
 @get.command()
 @click.argument("version-id", nargs=-1)
 @click.pass_context
-def model(ctx, version_id):
-    """Displays the metadata for one or more models
+def model(ctx: Context, version_id: str):
+    """Displays the metadata for one or more model versions
 
     Args:
          ctx (context): contains JWT for authentication

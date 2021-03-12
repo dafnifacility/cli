@@ -1,7 +1,6 @@
 import pytest
 from mock import patch, call, MagicMock, PropertyMock, Mock
 from datetime import datetime as dt
-from dateutil import parser
 from dateutil.tz import tzutc
 
 from test.fixtures.jwt_fixtures import JWT
@@ -212,7 +211,7 @@ class TestModel:
             ]
 
         @patch("dafni_cli.model.prose_print")
-        def test_model_details_outputted_correctly_with_description(
+        def test_model_details_outputted_correctly_with_description_when_long_option_used(
             self, mock_prose, mock_click
         ):
             # SETUP
@@ -412,90 +411,3 @@ class TestModel:
                 call(""),
             ]
             assert mock_prose.called_once_with("description", CONSOLE_WIDTH)
-
-
-@patch("dafni_cli.model.click")
-class TestProsePrint:
-    """Test class to test the prose_print() functionality"""
-
-    def test_single_paragraph_outputs_correctly(self, mock_click):
-        # SETUP
-        string = "123456"
-
-        # CALL
-        model.prose_print(string, 2)
-
-        # ASSERT
-        assert mock_click.echo.call_args_list == [
-            call("12"),
-            call("34"),
-            call("56"),
-        ]
-
-    def test_single_paragraph_with_spaces_outputs_correctly(self, mock_click):
-        # SETUP
-        string = "12 3456"
-
-        # CALL
-        model.prose_print(string, 4)
-
-        # ASSERT
-        assert mock_click.echo.call_args_list == [
-            call("12"),
-            call("3456"),
-        ]
-
-    def test_multiple_paragraphs_output_correctly(self, mock_click):
-        # SETUP
-        string = "123456\n78"
-
-        # CALL
-        model.prose_print(string, 3)
-
-        # ASSERT
-        assert mock_click.echo.call_args_list == [
-            call("123"),
-            call("456"),
-            call("78"),
-        ]
-
-
-class TestCreateModelList:
-    """Test class to test the create_model_list() functionality"""
-
-    @patch.object(model.Model, "set_details_from_dict")
-    def test_model_created_and_details_from_dict_called_for_each_model(
-        self, mock_set, get_models_list_fixture
-    ):
-        # SETUP
-        models = get_models_list_fixture
-
-        # CALL
-        result = model.create_model_list(models)
-
-        # ASSERT
-        assert mock_set.call_args_list == [call(models[0]), call(models[1])]
-        assert len(result) == 2
-        assert all(isinstance(instance, model.Model) for instance in result)
-
-    def test_a_models_dict_list_is_processed_correctly(self, get_models_list_fixture):
-        # SETUP
-        models = get_models_list_fixture
-
-        # CALL
-        result = model.create_model_list(models)
-
-        # ASSERT
-        for idx, instance in enumerate(result):
-            assert instance.display_name == models[idx]["name"]
-            assert instance.summary == models[idx]["summary"]
-            assert instance.description == models[idx]["description"]
-            assert instance.creation_time == parser.isoparse(
-                models[idx]["creation_date"]
-            )
-            assert instance.publication_time == parser.isoparse(
-                models[idx]["publication_date"]
-            )
-            assert instance.version_id == models[idx]["id"]
-            assert instance.version_tags == models[idx]["version_tags"]
-            assert instance.container == models[idx]["container"]
