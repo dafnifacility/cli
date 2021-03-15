@@ -177,9 +177,9 @@ class TestGet:
 
     @patch.object(model.Model, "get_details_from_id")
     @patch.object(model.Model, "get_metadata")
-    @patch.object(model.Model, "output_model_metadata")
-    @patch("dafni_cli.model.get_model_metadata_dict")
-    @patch("dafni_cli.model.get_single_model_dict")
+    @patch.object(model.Model, "output_metadata")
+    @patch("dafni_cli.model.model.get_model_metadata_dict")
+    @patch("dafni_cli.model.model.get_single_model_dict")
     @patch("dafni_cli.get.check_for_jwt_file")
     class TestModel:
         """Test class to test the get.models command"""

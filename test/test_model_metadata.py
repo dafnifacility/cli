@@ -158,65 +158,65 @@ class TestModelMetadata:
             assert instance.outputs is None
             assert instance.owner == metadata_dict["metadata"]["owner"]
 
-        @patch("dafni_cli.model_metadata.params_table_header")
-        @patch("dafni_cli.model_metadata.optional_column")
-        class TestFormatParameters:
-            """Test class to test the ModelMetadata.format_parameters() functionality"""
+    @patch("dafni_cli.model.model_metadata.params_table_header")
+    @patch("dafni_cli.model.model_metadata.optional_column")
+    class TestFormatParameters:
+        """Test class to test the ModelMetadata.format_parameters() functionality"""
 
-            def test_paramaters_table_is_formatted_properly(
-                self, mock_column, mock_header, get_model_metadata_fixture
-            ):
-                # SETUP
-                metadata_dict = get_model_metadata_fixture
-                metadata = model_metadata.ModelMetadata(metadata_dict)
-                # Ignore table header
-                mock_header.return_value = ""
-                # Setup optional column return values
-                optional_column_outputs = [
-                    f"0.1" + " " * (INPUT_MIN_MAX_COLUMN_WIDTH - 3),
-                    f"2.0" + " " * (INPUT_MIN_MAX_COLUMN_WIDTH - 3),
-                    f"1.5" + " " * 16,
-                    " " * INPUT_MIN_MAX_COLUMN_WIDTH,
-                    " " * INPUT_MIN_MAX_COLUMN_WIDTH,
-                    "long_default_name" + " " * 2,
-                ]
-                mock_column.side_effect = optional_column_outputs
-                # Expected table
-                expected_table = (
-                    f"R Number"
-                    + " " * 2
-                    + f"number"
-                    + " " * (INPUT_TYPE_COLUMN_WIDTH - 6)
-                    + optional_column_outputs[0]
-                    + optional_column_outputs[1]
-                    + optional_column_outputs[2]
-                    + f"The reproduction number\n"
-                    + f"Setting"
-                    + " " * 3
-                    + f"string"
-                    + " " * (INPUT_TYPE_COLUMN_WIDTH - 6)
-                    + optional_column_outputs[3]
-                    + optional_column_outputs[4]
-                    + optional_column_outputs[5]
-                    + "Mode to run the model in\n"
-                )
-                # CALL
-                table_string = metadata.format_parameters()
+        def test_paramaters_table_is_formatted_properly(
+            self, mock_column, mock_header, get_model_metadata_fixture
+        ):
+            # SETUP
+            metadata_dict = get_model_metadata_fixture
+            metadata = model_metadata.ModelMetadata(metadata_dict)
+            # Ignore table header
+            mock_header.return_value = ""
+            # Setup optional column return values
+            optional_column_outputs = [
+                f"0.1" + " " * (INPUT_MIN_MAX_COLUMN_WIDTH - 3),
+                f"2.0" + " " * (INPUT_MIN_MAX_COLUMN_WIDTH - 3),
+                f"1.5" + " " * 16,
+                " " * INPUT_MIN_MAX_COLUMN_WIDTH,
+                " " * INPUT_MIN_MAX_COLUMN_WIDTH,
+                "long_default_name" + " " * 2,
+            ]
+            mock_column.side_effect = optional_column_outputs
+            # Expected table
+            expected_table = (
+                f"R Number"
+                + " " * 2
+                + f"number"
+                + " " * (INPUT_TYPE_COLUMN_WIDTH - 6)
+                + optional_column_outputs[0]
+                + optional_column_outputs[1]
+                + optional_column_outputs[2]
+                + f"The reproduction number\n"
+                + f"Setting"
+                + " " * 3
+                + f"string"
+                + " " * (INPUT_TYPE_COLUMN_WIDTH - 6)
+                + optional_column_outputs[3]
+                + optional_column_outputs[4]
+                + optional_column_outputs[5]
+                + "Mode to run the model in\n"
+            )
+            # CALL
+            table_string = metadata.format_parameters()
 
-                # ASSERT
-                assert expected_table == table_string
+            # ASSERT
+            assert expected_table == table_string
 
-        class TestFormatDataslots:
-            """Test class to test the ModelMetadata.format_dataslots() functionality"""
+    class TestFormatDataslots:
+        """Test class to test the ModelMetadata.format_dataslots() functionality"""
 
-            def test_dataslots_string_is_formatted_properly_if_it_exists(
+        def test_dataslots_string_is_formatted_properly_if_it_exists(
                 self, get_model_metadata_fixture
-            ):
-                # SETUP
-                metadata_dict = get_model_metadata_fixture
-                metadata = model_metadata.ModelMetadata(metadata_dict)
-                # Expected output
-                expected = (
+        ):
+            # SETUP
+            metadata_dict = get_model_metadata_fixture
+            metadata = model_metadata.ModelMetadata(metadata_dict)
+            # Expected output
+            expected = (
                     f"Name: Inputs\n"
                     + f"Path in container: inputs/\n"
                     + f"Required: True\n"
@@ -227,49 +227,49 @@ class TestModelMetadata:
                     + f"Version ID: 21111a1a-a111-11aa-a111-11aa11111aaa"
                     + TAB_SPACE
                     + "\n"
-                )
+            )
 
-                # CALL
-                dataslot_string = metadata.format_dataslots()
+            # CALL
+            dataslot_string = metadata.format_dataslots()
 
-                # ASSERT
-                assert dataslot_string == expected
+            # ASSERT
+            assert dataslot_string == expected
 
-            def test_none_returned_if_there_are_no_dataslots(
+        def test_none_returned_if_there_are_no_dataslots(
                 self, get_model_metadata_fixture
-            ):
-                # SETUP
-                metadata_dict = get_model_metadata_fixture
-                del metadata_dict["spec"]["inputs"]["dataslots"]
-                metadata = model_metadata.ModelMetadata(metadata_dict)
+        ):
+            # SETUP
+            metadata_dict = get_model_metadata_fixture
+            del metadata_dict["spec"]["inputs"]["dataslots"]
+            metadata = model_metadata.ModelMetadata(metadata_dict)
 
-                # CALL
-                dataslot_string = metadata.format_dataslots()
+            # CALL
+            dataslot_string = metadata.format_dataslots()
 
-                # ASSERT
-                assert dataslot_string is None
+            # ASSERT
+            assert dataslot_string is None
 
-        @patch("dafni_cli.model_metadata.outputs_table_header")
-        @patch("dafni_cli.model_metadata.optional_column")
-        class TestFormatOutputs:
-            """Test class to test the ModelMetadata.format_outputs() functionality"""
+    @patch("dafni_cli.model.model_metadata.outputs_table_header")
+    @patch("dafni_cli.model.model_metadata.optional_column")
+    class TestFormatOutputs:
+        """Test class to test the ModelMetadata.format_outputs() functionality"""
 
-            def test_outputs_table_is_formatted_properly(
+        def test_outputs_table_is_formatted_properly(
                 self, mock_column, mock_header, get_model_metadata_fixture
-            ):
-                # SETUP
-                metadata_dict = get_model_metadata_fixture
-                metadata = model_metadata.ModelMetadata(metadata_dict)
-                # Ignore table header
-                mock_header.return_value = ""
-                # Setup optional column return values
-                optional_column_outputs = [
-                    "Dataset 1 description",
-                    "Dataset 2 description",
-                ]
-                mock_column.side_effect = optional_column_outputs
-                # Expected table
-                expected_table = (
+        ):
+            # SETUP
+            metadata_dict = get_model_metadata_fixture
+            metadata = model_metadata.ModelMetadata(metadata_dict)
+            # Ignore table header
+            mock_header.return_value = ""
+            # Setup optional column return values
+            optional_column_outputs = [
+                "Dataset 1 description",
+                "Dataset 2 description",
+            ]
+            mock_column.side_effect = optional_column_outputs
+            # Expected table
+            expected_table = (
                     f"dataset_1.xls"
                     + " " * 2
                     + f"xls"
@@ -282,9 +282,9 @@ class TestModelMetadata:
                     + " " * (INPUT_TYPE_COLUMN_WIDTH - 3)
                     + optional_column_outputs[1]
                     + "\n"
-                )
-                # CALL
-                table_string = metadata.format_outputs()
+            )
+            # CALL
+            table_string = metadata.format_outputs()
 
-                # ASSERT
-                assert expected_table == table_string
+            # ASSERT
+            assert expected_table == table_string

@@ -7,7 +7,7 @@ from dafni_cli.api.models_api import get_models_dicts
 from dafni_cli.datasets.dataset import Dataset
 from dafni_cli.login import check_for_jwt_file
 from dafni_cli.model.model import Model
-from dafni_cli.model.version_history import VersionHistory
+from dafni_cli.model.version_history import ModelVersionHistory
 from dafni_cli.api.models_api import get_models_dicts
 from dafni_cli.utils import process_response_to_class_list
 
@@ -90,7 +90,7 @@ def version_history(ctx: Context, version_id: str):
     """
     model = Model()
     model.get_details_from_id(ctx.obj["jwt"], version_id)
-    version_history = VersionHistory(ctx.obj["jwt"], model)
+    version_history = ModelVersionHistory(ctx.obj["jwt"], model)
     version_history.output_version_history()
 
 

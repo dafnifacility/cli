@@ -3,7 +3,7 @@ import click
 from typing import List
 
 from dafni_cli.consts import TAB_SPACE, CONSOLE_WIDTH
-from dafni_cli.model import prose_print
+from dafni_cli.utils import prose_print
 
 
 class Dataset:

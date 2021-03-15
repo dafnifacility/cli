@@ -5,7 +5,7 @@ from dafni_cli.model.model import Model
 from dafni_cli.consts import TAB_SPACE
 
 
-class VersionHistory:
+class ModelVersionHistory:
     """Contains the version history of a model.
 
     Methods:
@@ -13,20 +13,20 @@ class VersionHistory:
 
     Attributes:
         dictionary: Dictionary returned from version_history key from model dictionary
-        model_history: list of model instances of the different versions of the model in reverse chronological order
+        history: list of model instances of the different versions of the model in reverse chronological order
         version_messages: List of version_messages in reverse chronological order
         version_publication_dates: List of dates each version was published in reverse chronological order
         version_tags: List of lists containing the version tags of each version in reverse chronological order
     """
 
-    def __init__(self, jwt_string: str, latest_model_version: Model):
-        self.dictionary = latest_model_version.dictionary["version_history"]
-        self.model_history = [latest_model_version]
+    def __init__(self, jwt_string: str, latest_version: Model):
+        self.dictionary = latest_version.dictionary["version_history"]
+        self.history = [latest_version]
         if len(self.dictionary) > 1:
             for version_dict in self.dictionary[1:]:
-                model_version = Model()
-                model_version.get_details_from_id(jwt_string, version_dict["id"])
-                self.model_history.append(model_version)
+                version = Model()
+                version.get_details_from_id(jwt_string, version_dict["id"])
+                self.history.append(version)
         self.version_messages = []
         self.version_publication_dates = []
         self.version_tags = []
@@ -37,13 +37,13 @@ class VersionHistory:
 
     def output_version_history(self):
         """Prints the version history for the model to the command line."""
-        for i in range(len(self.model_history)):
+        for i in range(len(self.history)):
             click.echo(
                 "Name: "
-                + self.model_history[i].display_name
+                + self.history[i].display_name
                 + TAB_SPACE
                 + "ID: "
-                + self.model_history[i].version_id
+                + self.history[i].version_id
                 + TAB_SPACE
                 + "Date: "
                 + self.version_publication_dates[i].strftime("%B %d %Y")
@@ -70,10 +70,10 @@ if __name__ == "__main__":
     for id in version_id:
         model = Model()
         model.get_details_from_id(jwt, id)
-        version_history = VersionHistory(jwt, model)
+        version_history = ModelVersionHistory(jwt, model)
         version_history.output_version_history()
 
-        initial_fibonacci = version_history.model_history[1]
+        initial_fibonacci = version_history.history[1]
         initial_fibonacci.get_metadata(jwt)
         initial_fibonacci.output_metadata()
 
