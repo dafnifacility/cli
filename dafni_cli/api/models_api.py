@@ -44,17 +44,3 @@ def get_model_metadata_dict(jwt: str, model_version_id: str) -> dict:
     """
     url = MODELS_API_URL + "/models/" + model_version_id + "/definition/"
     return dafni_get_request(url, jwt)
-
-
-def get_all_datasets(jwt: str) -> List[dict]:
-    """Function to retrieve all datasets available to the
-    given user
-
-    Args:
-        jwt (str): Users JWT
-
-    Returns:
-        List[dict]: List of available datasets
-    """
-    url = DISCOVERY_API_URL + "/catalogue/"
-    return dafni_get_request(url, jwt, allow_redirect=True)
