@@ -8,7 +8,7 @@ from test.fixtures.model_fixtures import (
     get_models_list_fixture,
     get_model_metadata_fixture,
 )
-from dafni_cli import model
+from dafni_cli.model import model
 from dafni_cli.consts import DATE_TIME_FORMAT, CONSOLE_WIDTH, TAB_SPACE
 
 
@@ -80,7 +80,7 @@ class TestModel:
             assert instance.creation_time == dt(2021, 1, 1, tzinfo=tzutc())
             assert instance.publication_time == dt(2021, 1, 2, tzinfo=tzutc())
 
-    @patch("dafni_cli.model.get_single_model_dict")
+    @patch("dafni_cli.model.model.get_single_model_dict")
     @patch.object(model.Model, "set_details_from_dict")
     class TestGetDetailsFromId:
         """Test class to test the Model.get_details_from_id() functionality"""
@@ -103,7 +103,7 @@ class TestModel:
             mock_get.assert_called_once_with(jwt_string, version_id)
             mock_details.assert_called_once_with(model_dict)
 
-    @patch("dafni_cli.model.get_model_metadata_dicts")
+    @patch("dafni_cli.model.model.get_model_metadata_dicts")
     class TestGetMetadata:
         """Test class to test the Model.get_metadata() functionality"""
 
@@ -182,7 +182,7 @@ class TestModel:
             with pytest.raises(ValueError):
                 instance.filter_by_date(key, date)
 
-    @patch("dafni_cli.model.click")
+    @patch("dafni_cli.model.model.click")
     class TestOutputModelDetails:
         """Test class to test the Model.output_details() functionality"""
 
@@ -210,7 +210,7 @@ class TestModel:
                 call("Summary: summary"),
             ]
 
-        @patch("dafni_cli.model.prose_print")
+        @patch("dafni_cli.model.model.prose_print")
         def test_model_details_outputted_correctly_with_description_when_long_option_used(
             self, mock_prose, mock_click
         ):

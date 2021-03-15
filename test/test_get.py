@@ -2,7 +2,8 @@ import pytest
 from mock import patch, call
 from click.testing import CliRunner
 
-from dafni_cli import get, model
+from dafni_cli import get
+from dafni_cli.model import model
 from test.fixtures.jwt_fixtures import processed_jwt_fixture
 from test.fixtures.model_fixtures import get_models_list_fixture
 

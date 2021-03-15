@@ -57,7 +57,7 @@ class VersionHistory:
 
 
 if __name__ == "__main__":
-    jwt = "JWT eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJsb2dpbi1hcHAtand0IiwiZXhwIjoxNjE1ODEzNTgzLCJzdWIiOiI4ZDg1N2FjZi0yNjRmLTQ5Y2QtOWU3Zi0xZTlmZmQzY2U2N2EifQ.pdC8py7YTu-KhVCn2_A3MCJjnhE13JKkXFUqvzBAPQA"
+    jwt = "JWT eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJsb2dpbi1hcHAtand0IiwiZXhwIjoxNjE1ODMxNjU1LCJzdWIiOiI4ZDg1N2FjZi0yNjRmLTQ5Y2QtOWU3Zi0xZTlmZmQzY2U2N2EifQ.KJI1JlS1hsVRIFOUaF4tRBJKt2sHriEZp9mp28qTTA4"
     version_id = []
     #version_id.append("0b4b0d0a-5b05-4e14-b382-9a5c9082315b")  # COVID
     #version_id.append("a2dc91ea-c243-4232-8d2e-f951fc5f8248")  # Transform
