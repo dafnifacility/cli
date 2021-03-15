@@ -111,10 +111,20 @@ class TestProcessResponseToClassList:
 class TestOptionalColumn:
     """Test class to test the optional_column() functionality"""
 
-    def test_if_key_exists_value_is_returned_with_correct_width(self):
+    @pytest.mark.parametrize(
+        "value, result",
+        [
+            ("value", "value     "),
+            (1, "1         "),
+            (1.0, "1.0       "),
+            ({'sub_key': 'value'}, "{'sub_key': 'value'}"),
+            ({}, "{}        "),
+            (True, "True      "),
+        ],
+    )
+    def test_if_key_exists_value_is_returned_with_correct_width(self, value, result):
         # SETUP
         key = "key"
-        value = "value"
         dictionary = {key: value}
         column_width = 10
 
@@ -122,12 +132,22 @@ class TestOptionalColumn:
         entry = utils.optional_column(dictionary, key, column_width)
 
         # ASSERT
-        assert entry == "value     "
+        assert entry == result
 
-    def test_if_key_exists_value_is_returned_with_correct_width_and_alignment(self):
+    @pytest.mark.parametrize(
+        "value, result",
+        [
+            ("value", "     value"),
+            (1, "         1"),
+            (1.0, "       1.0"),
+            ({'sub_key': 'value'}, "{'sub_key': 'value'}"),
+            ({}, "        {}"),
+            (True, "      True"),
+        ],
+    )
+    def test_if_key_exists_value_is_returned_with_correct_width_and_alignment(self, value, result):
         # SETUP
         key = "key"
-        value = "value"
         dictionary = {key: value}
         column_width = 10
         alignment = ">"
@@ -136,21 +156,33 @@ class TestOptionalColumn:
         entry = utils.optional_column(dictionary, key, column_width, alignment)
 
         # ASSERT
-        assert entry == "     value"
+        assert entry == result
 
+    @pytest.mark.parametrize(
+        "value, result",
+        [
+            ("value", "value"),
+            (1, "1"),
+            (1.0, "1.0"),
+            ({'sub_key': 'value'}, "{'sub_key': 'value'}"),
+            ({}, "{}"),
+            (True, "True"),
+        ],
+    )
     def test_if_key_exists_and_no_column_width_specified_string_with_no_extra_spaces_is_returned(
         self,
+        value,
+        result
     ):
         # SETUP
         key = "key"
-        value = "value"
         dictionary = {key: value}
 
         # CALL
         entry = utils.optional_column(dictionary, key)
 
         # ASSERT
-        assert entry == "value"
+        assert entry == result
 
     def test_if_key_does_not_exist_but_column_width_specified_then_blank_space_of_specified_length_is_returned(
         self,
