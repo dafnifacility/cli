@@ -1,28 +1,8 @@
 import requests
 from typing import Union, List
 
-from dafni_cli.consts import MODELS_API_URL
-
-
-def dafni_get_request(url: str, jwt: str) -> Union[list, dict]:
-    """Performs a GET request from the DAFNI API.
-    If a status other than 200 is returned, an exception will be raised.
-
-    Args:
-        url (str): The url endpoint that is being queried
-        jwt (str): JWT
-
-    Returns:
-        list: For an endpoint returning several objects, a list is returned (e.g. /models/).
-        dict: For an endpoint returning one object, this will be a dictionary (e.g. /models/<version_id>).
-    """
-    response = requests.get(
-        url,
-        headers={"Content-Type": "application/json", "authorization": jwt},
-        allow_redirects=False,
-    )
-    response.raise_for_status()
-    return response.json()
+from dafni_cli.consts import MODELS_API_URL, DISCOVERY_API_URL
+from dafni_cli.api.dafni_api import dafni_get_request
 
 
 def get_models_dicts(jwt: str) -> List[dict]:
@@ -52,7 +32,7 @@ def get_single_model_dict(jwt: str, model_version_id: str) -> dict:
     return dafni_get_request(url, jwt)
 
 
-def get_model_metadata_dicts(jwt: str, model_version_id: str) -> dict:
+def get_model_metadata_dict(jwt: str, model_version_id: str) -> dict:
     """Function to call the get model metadata endpoint and return the resulting dictionary.
 
     Args:

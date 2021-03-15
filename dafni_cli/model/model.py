@@ -5,14 +5,11 @@ from dateutil import parser
 
 from dafni_cli.model.model_metadata import ModelMetadata
 from dafni_cli.consts import CONSOLE_WIDTH, TAB_SPACE
-from dafni_cli.API_requests import (
+from dafni_cli.api.models_api import (
     get_single_model_dict,
-    get_model_metadata_dicts,
+    get_model_metadata_dict,
 )
-from dafni_cli.utils import (
-    prose_print,
-
-)
+from dafni_cli.utils import prose_print
 
 
 class Model:
@@ -84,7 +81,7 @@ class Model:
         Args:
             jwt_string (str): JWT for login purposes
         """
-        metadata_dict = get_model_metadata_dicts(jwt_string, self.version_id)
+        metadata_dict = get_model_metadata_dict(jwt_string, self.version_id)
         self.metadata = ModelMetadata(metadata_dict)
 
     def filter_by_date(self, key: str, date: str) -> bool:

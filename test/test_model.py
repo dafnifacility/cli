@@ -208,6 +208,7 @@ class TestModel:
                     + "Date: March 03 2021"
                 ),
                 call("Summary: summary"),
+                call(""),
             ]
 
         @patch("dafni_cli.model.model.prose_print")
@@ -237,7 +238,7 @@ class TestModel:
                 ),
                 call("Summary: summary"),
                 call("Description: "),
-                call("")
+                call(""),
             ]
             assert mock_prose.called_once_with("description", CONSOLE_WIDTH)
 

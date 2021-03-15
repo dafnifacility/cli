@@ -4,13 +4,26 @@ from dateutil import parser
 
 from dafni_cli import utils
 from dafni_cli.model.model import Model
+from test.fixtures.model_fixtures import get_models_list_fixture
 
 
-@patch("dafni_cli.model.click")
+@patch("dafni_cli.utils.click")
 class TestProsePrint:
     """Test class to test the prose_print() functionality"""
 
-    def test_single_paragraph_outputs_correctly(self, mock_click):
+    def test_string_shorter_than_width_prints_as_one_string(self, mock_click):
+        # SETUP
+        string = "123456"
+
+        # CALL
+        utils.prose_print(string, 10)
+
+        # ASSERT
+        assert mock_click.echo.call_args_list == [call(string)]
+
+    def test_string_without_line_breaks_or_spaces_is_split_correctly_and_printed_sequentially(
+        self, mock_click
+    ):
         # SETUP
         string = "123456"
 
@@ -24,7 +37,9 @@ class TestProsePrint:
             call("56"),
         ]
 
-    def test_single_paragraph_with_spaces_outputs_correctly(self, mock_click):
+    def test_string_with_space_before_width_but_no_line_break_splits_at_space(
+        self, mock_click
+    ):
         # SETUP
         string = "12 3456"
 
@@ -37,17 +52,17 @@ class TestProsePrint:
             call("3456"),
         ]
 
-    def test_multiple_paragraphs_output_correctly(self, mock_click):
+    def test_string_with_line_break_splits_at_line_break(self, mock_click):
         # SETUP
         string = "123456\n78"
 
         # CALL
-        utils.prose_print(string, 3)
+        utils.prose_print(string, 4)
 
         # ASSERT
         assert mock_click.echo.call_args_list == [
-            call("123"),
-            call("456"),
+            call("1234"),
+            call("56"),
             call("78"),
         ]
 
@@ -123,7 +138,9 @@ class TestOptionalColumn:
         # ASSERT
         assert entry == "     value"
 
-    def test_if_key_exists_and_no_column_width_specified(self):
+    def test_if_key_exists_and_no_column_width_specified_string_with_no_extra_spaces_is_returned(
+        self,
+    ):
         # SETUP
         key = "key"
         value = "value"
@@ -135,7 +152,9 @@ class TestOptionalColumn:
         # ASSERT
         assert entry == "value"
 
-    def test_if_key_does_not_exist_but_column_width_specified(self):
+    def test_if_key_does_not_exist_but_column_width_specified_then_blank_space_of_specified_length_is_returned(
+        self,
+    ):
         # SETUP
         key = "key"
         dictionary = {"other_key": "value"}
@@ -147,7 +166,9 @@ class TestOptionalColumn:
         # ASSERT
         assert entry == " " * 8
 
-    def test_if_key_does_not_exist_but_column_width_not_specified(self):
+    def test_if_key_does_not_exist_and_column_width_not_specified_then_empty_string_returned(
+        self,
+    ):
         # SETUP
         key = "key"
         dictionary = {"other_key": "value"}
