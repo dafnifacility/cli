@@ -88,3 +88,19 @@ If there is no valid JWT, the user will be prompted to login before the command 
   a_very_big_table_of_results.csv          CSV       The results you care about
   another_very_big_table_of_results.csv    CSV       Some extra results you may find useful
   </pre>
+
+- Datasets:
+  >*Command: `dafni(.exe) get datasets`*
+
+  Lists the datasets available to the user. 
+  
+  Example output:
+  <pre>
+  Title: Example Dataset
+  ID: xyz09-xy09-8xyz-87654321x9y8
+  Latest Version: xyz09-xy09-8xyz-56843975x9y8
+  Publisher: DAFNI
+  From: March 27 2011    To: March 27 2021
+  Description:
+  Verbose description of the dataset
+  </pre>

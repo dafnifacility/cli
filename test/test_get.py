@@ -3,8 +3,10 @@ from mock import patch, call
 from click.testing import CliRunner
 
 from dafni_cli import get, model
+from dafni_cli.datasets import dataset
 from test.fixtures.jwt_fixtures import processed_jwt_fixture
 from test.fixtures.model_fixtures import get_models_list_fixture
+from test.fixtures.dataset_fixtures import get_dataset_list_fixture
 from test.fixtures.model_fixtures import get_model_metadata_fixture
 
 
@@ -281,3 +283,64 @@ class TestGet:
             mock_output.assert_not_called()
             assert result.exception
             assert result.exit_code == 1
+
+    @patch.object(dataset.Dataset, "output_dataset_details")
+    @patch("dafni_cli.get.get_all_datasets")
+    @patch("dafni_cli.get.check_for_jwt_file")
+    class TestDatasets:
+        """Test class to test the get group datasets command"""
+
+        @patch("dafni_cli.get.process_response_to_class_list")
+        def test_get_all_datasets_called_with_jwt_from_context(
+            self,
+            mock_create,
+            mock_jwt,
+            mock_get,
+            mock_output,
+            processed_jwt_fixture,
+            get_dataset_list_fixture,
+        ):
+            # SETUP
+            # setup get group command to set the context containing a JWT
+            mock_jwt.return_value = processed_jwt_fixture, False
+            # setup get_all_datasets call
+            response = get_dataset_list_fixture
+            mock_get.return_value = response
+            # setup process_response_to_class_list
+            mock_create.return_value = []
+            # Setup click
+            runner = CliRunner()
+
+            # CALL
+            result = runner.invoke(get.get, ["datasets"])
+
+            # ASSERT
+            mock_get.assert_called_once_with(processed_jwt_fixture["jwt"])
+            mock_create.assert_called_once_with(response["metadata"], dataset.Dataset)
+
+            assert result.exit_code == 0
+
+        def test_output_dataset_details_called_for_each_dataset(
+            self,
+            mock_jwt,
+            mock_get,
+            mock_output,
+            processed_jwt_fixture,
+            get_dataset_list_fixture,
+        ):
+            # SETUP
+            # setup get group command to set the context containing a JWT
+            mock_jwt.return_value = processed_jwt_fixture, False
+            # setup get_all_datasets call
+            response = get_dataset_list_fixture
+            mock_get.return_value = response
+            # Setup click
+            runner = CliRunner()
+
+            # CALL
+            result = runner.invoke(get.get, ["datasets"])
+
+            # ASSERT
+            assert mock_output.call_count == len(response["metadata"])
+
+            assert result.exit_code == 0
