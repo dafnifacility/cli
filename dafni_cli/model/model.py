@@ -4,7 +4,6 @@ import datetime as dt
 from dateutil import parser
 
 from dafni_cli.model.model_metadata import ModelMetadata
-from dafni_cli.model.version_history import VersionHistory
 from dafni_cli.consts import CONSOLE_WIDTH, TAB_SPACE
 from dafni_cli.API_requests import (
     get_single_model_dict,
@@ -53,7 +52,6 @@ class Model:
         self.publication_time = None
         self.summary = None
         self.version_id = identifier
-        self.version_history = None
         self.version_tags = None
         pass
 
@@ -88,13 +86,6 @@ class Model:
         """
         metadata_dict = get_model_metadata_dicts(jwt_string, self.version_id)
         self.metadata = ModelMetadata(metadata_dict)
-
-    def get_version_history(self, jwt_string: str):
-        """Populates version_history property with version history object.
-        Args:
-            jwt_string (str): JWT for login purposes
-        """
-        self.version_history = VersionHistory(jwt_string, self)
 
     def filter_by_date(self, key: str, date: str) -> bool:
         """Filters models based on the date given as an option.
@@ -149,19 +140,3 @@ class Model:
         if self.metadata.outputs:
             click.echo("Outputs: ")
             click.echo(self.metadata.format_outputs())
-
-
-if __name__ == "__main__":
-    jwt = "JWT eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJsb2dpbi1hcHAtand0IiwiZXhwIjoxNjE1MzA5OTE2LCJzdWIiOiI4ZDg1N2FjZi0yNjRmLTQ5Y2QtOWU3Zi0xZTlmZmQzY2U2N2EifQ.QyniuWaDD0unfS9ydwvz9e0l_SamDLRg8a8fftooyl0"
-    version_id = []
-    #version_id.append("0b4b0d0a-5b05-4e14-b382-9a5c9082315b") # COVID
-    #version_id.append("a2dc91ea-c243-4232-8d2e-f951fc5f8248") # Transform
-    #version_id.append("d0942631-158c-4cd2-a75f-ec7ec5798381") # SIMIM
-    #version_id.append("399cdaac-aab6-494d-870a-66de8a4217bb") # Spatial Housing
-    #version_id.append("ef4b22c8-63be-4b53-ba7c-c1cf301774b2") # Non-spatial Housing
-    version_id.append("9de4ad50-fd98-4def-9bfc-39378854e6a1") # 5G
-    for id in version_id:
-        model = Model()
-        model.get_details_from_id(jwt, id)
-        model.get_version_history(jwt)
-        model.version_history.output_version_history()
