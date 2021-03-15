@@ -55,7 +55,7 @@ class TestDafniGetRequest:
 
 
 @patch("dafni_cli.api.dafni_api.requests")
-class TestDafniGPostRequest:
+class TestDafniPostRequest:
     """Test class to test the dafni_post_request functionality"""
 
     def test_requests_response_processed_correctly_when_allow_redirect_not_set(
