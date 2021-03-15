@@ -70,4 +70,4 @@ def process_date_filter(date_str: str) -> str:
     Returns:
         str: Processed date str tp YYYY-MM-DDT00:00:00
     """
-    return dt.strptime(date_str, "%d/%m/%Y").strftime("%Y-%m-%dT%H-%M-%S")
+    return dt.strptime(date_str, "%d/%m/%Y").strftime("%Y-%m-%dT%H:%M:%S")
