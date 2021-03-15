@@ -52,3 +52,77 @@ class TestDafniGetRequest:
         # ASSERT
         with pytest.raises(HTTPError, match="404 client model"):
             dafni_api.dafni_get_request(url, jwt)
+
+
+@patch("dafni_cli.api.dafni_api.requests")
+class TestDafniPostRequest:
+    """Test class to test the dafni_post_request functionality"""
+
+    def test_requests_response_processed_correctly_when_allow_redirect_not_set(
+        self, mock_request, request_response_fixture
+    ):
+        # SETUP
+        # setup return value for requests call
+        mock_request.post.return_value = request_response_fixture
+        # setup data for call
+        url = "dafni/discovery/url"
+        jwt = JWT
+        data = {"key_1": "value_1"}
+
+        # CALL
+        result = dafni_api.dafni_post_request(url, jwt, data)
+
+        # ASSERT
+        assert result == {"key": "value"}
+        mock_request.post.assert_called_once_with(
+            url,
+            headers={"Content-Type": "application/json", "authorization": jwt},
+            allow_redirects=False,
+            json=data,
+        )
+
+    @pytest.mark.parametrize("allow_redirects", [True, False])
+    def test_requests_response_processed_correctly_when_allow_redirect_set(
+        self, mock_request, allow_redirects, request_response_fixture
+    ):
+        # SETUP
+        # setup return value for requests call
+        mock_request.post.return_value = request_response_fixture
+        # setup data for call
+        url = "dafni/discovery/url"
+        jwt = JWT
+        data = {"key_1": "value_1"}
+
+        # CALL
+        result = dafni_api.dafni_post_request(
+            url, jwt, data, allow_redirect=allow_redirects
+        )
+
+        # ASSERT
+        assert result == {"key": "value"}
+        mock_request.post.assert_called_once_with(
+            url,
+            headers={"Content-Type": "application/json", "authorization": jwt},
+            allow_redirects=allow_redirects,
+            json=data,
+        )
+
+    def test_exception_raised_for_failed_call(
+        self, mock_request, request_response_fixture
+    ):
+        # SETUP
+        # setup return value for requests call
+        request_response_fixture.raise_for_status.side_effect = HTTPError(
+            "404 client model"
+        )
+        mock_request.post.return_value = request_response_fixture
+
+        # setup data for call
+        url = "dafni/discovery/url"
+        jwt = JWT
+        data = {"key_1": "value_1"}
+
+        # CALL
+        # ASSERT
+        with pytest.raises(HTTPError, match="404 client model"):
+            dafni_api.dafni_post_request(url, jwt, data)

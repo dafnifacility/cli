@@ -9,6 +9,25 @@ from dafni_cli.model import prose_print
 class Dataset:
     """Class to represent the DAFNI Dataset
     client model
+
+    Methods:
+        __init__(): Dataset constructor
+        set_details_from_dict(jwt (str), dataset (dict)): Sets the dataset attributes from given client model dict
+        output_dataset_details(): Prints key information of the dataset to console.
+
+    Attributes:
+        asset_id: Asset identifier
+        date_range_end: End of date range
+        date_range_start: Start of date range
+        description: Description of the dataset
+        formats: The file formats related to the dataset
+        id: Dataset identifier
+        metadata_id: Meta data identifier
+        modified: Date for when the dataset was last modified
+        source: Publisher of the dataset e.g. DAFNI
+        subject: Subject relating to the dataset e.g. Transportation
+        title: Title of the dataset
+        version_id: Version identifier for the latest version of the dataset
     """
 
     def __init__(self):
