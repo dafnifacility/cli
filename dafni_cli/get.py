@@ -103,8 +103,7 @@ def datasets(
     start_date: Optional[str],
     end_date: Optional[str],
 ):
-    """Displays list of model names with other options allowing
-        more details to be listed as well.
+    """Displays a list of all available datasets
 
     Args:
         ctx (context): contains JWT for authentication
