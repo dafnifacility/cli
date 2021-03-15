@@ -119,6 +119,8 @@ class TestOptionalColumn:
             (1.0, "1.0       "),
             ({'sub_key': 'value'}, "{'sub_key': 'value'}"),
             ({}, "{}        "),
+            ([], "[]        "),
+            ([1, 2], "[1, 2]    "),
             (True, "True      "),
         ],
     )
@@ -142,6 +144,8 @@ class TestOptionalColumn:
             (1.0, "       1.0"),
             ({'sub_key': 'value'}, "{'sub_key': 'value'}"),
             ({}, "        {}"),
+            ([], "        []"),
+            ([1, 2], "    [1, 2]"),
             (True, "      True"),
         ],
     )
@@ -166,6 +170,8 @@ class TestOptionalColumn:
             (1.0, "1.0"),
             ({'sub_key': 'value'}, "{'sub_key': 'value'}"),
             ({}, "{}"),
+            ([], "[]"),
+            ([1, 2], "[1, 2]"),
             (True, "True"),
         ],
     )
