@@ -15,15 +15,16 @@ class TestGetAllDatasets:
 
         # SETUP
         mock_post.return_value = [{"key": "value"}]
+        filters = {"filter": "value"}
 
         # CALL
-        result = datasets_api.get_all_datasets(JWT)
+        result = datasets_api.get_all_datasets(JWT, filters)
 
         # ASSERT
         assert result == [{"key": "value"}]
         mock_post.assert_called_once_with(
             DISCOVERY_API_URL + "/catalogue/",
             JWT,
-            {"offset": {"start": 0, "size": 1000}, "sort_by": "recent"},
+            {"offset": {"start": 0, "size": 1000}, "sort_by": "recent", **filters},
             allow_redirect=True,
         )

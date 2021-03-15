@@ -23,6 +23,7 @@ def process_datasets_filters(
         filters["search_text"] = search_terms
 
     if start or end:
+        date_filter = {}
         if start:
             date_filter["begin"] = process_date_filter(start)
         if end:

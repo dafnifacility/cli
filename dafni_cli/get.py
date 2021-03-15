@@ -81,17 +81,20 @@ def model(ctx: Context, version_id: List[str]):
 @click.option(
     "--search-terms",
     default=None,
-    help="Search term for elastic search. Format: 'search terms'",
+    help='Search term for elastic search. Format: "search terms"',
+    type=str,
 )
 @click.option(
     "--start-date",
     default=None,
     help="Filter for models created since given date. Format: DD/MM/YYYY",
+    type=str,
 )
 @click.option(
     "--end-date",
     default=None,
     help="Filter for models published since given date. Format: DD/MM/YYYY",
+    type=str,
 )
 @click.pass_context
 def datasets(
