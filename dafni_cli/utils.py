@@ -1,6 +1,7 @@
 import click
 import textwrap
 from typing import List
+from datetime import datetime as dt
 
 
 def prose_print(prose: str, width: int):
@@ -56,3 +57,16 @@ def optional_column(
     else:
         entry = f" " * column_width
     return entry
+
+
+def process_date_filter(date_str: str) -> str:
+    """Function to take a date str used for filtering on date
+    and process into a format to submit to the DAFNI API's
+
+    Args:
+        date_str (str): Date Str in format dd/mm/yyyy
+
+    Returns:
+        str: Processed date str tp YYYY-MM-DDT00:00:00
+    """
+    return dt.strptime(date_str, "%d/%m/%Y").strftime("%Y-%m-%dT%H-%M-%S")
