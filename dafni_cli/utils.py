@@ -47,10 +47,11 @@ def optional_column(
         entry (str): Either the value of the entry to be put into the table, column_width number of spaces
     """
     if key in dictionary:
+        entry_string = str(dictionary[key])
         if column_width > 0:
-            entry = f"{dictionary[key]:{alignment}{column_width}}"
+            entry = f"{entry_string:{alignment}{column_width}}"
         elif column_width == 0:
-            entry = f"{dictionary[key]}"
+            entry = entry_string
         else:
             raise ValueError("Column width for optional column must be non-negative")
     else:
