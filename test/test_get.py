@@ -301,7 +301,7 @@ class TestGet:
             get_dataset_list_fixture,
         ):
             # SETUP
-            # setup get group command
+            # setup get group command to set the context containing a JWT
             mock_jwt.return_value = processed_jwt_fixture, False
             # setup get_all_datasets call
             response = get_dataset_list_fixture
@@ -329,7 +329,7 @@ class TestGet:
             get_dataset_list_fixture,
         ):
             # SETUP
-            # setup get group command
+            # setup get group command to set the context containing a JWT
             mock_jwt.return_value = processed_jwt_fixture, False
             # setup get_all_datasets call
             response = get_dataset_list_fixture

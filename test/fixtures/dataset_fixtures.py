@@ -4,7 +4,7 @@ from typing import List
 
 @pytest.fixture
 def get_dataset_list_fixture() -> List[dict]:
-    """Test fixture for simulating the datset data return
+    """Test fixture for simulating the dataset data return
     from calling the get datasets API
 
     Returns:
