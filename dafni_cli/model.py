@@ -136,20 +136,3 @@ class Model:
         if self.metadata.outputs:
             click.echo("Outputs: ")
             click.echo(self.metadata.format_outputs())
-
-
-if __name__ == "__main__":
-    jwt = "JWT eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJsb2dpbi1hcHAtand0IiwiZXhwIjoxNjE1ODEzNTgzLCJzdWIiOiI4ZDg1N2FjZi0yNjRmLTQ5Y2QtOWU3Zi0xZTlmZmQzY2U2N2EifQ.pdC8py7YTu-KhVCn2_A3MCJjnhE13JKkXFUqvzBAPQA"
-    version_id = []
-    #version_id.append("0b4b0d0a-5b05-4e14-b382-9a5c9082315b")  # COVID
-    #version_id.append("a2dc91ea-c243-4232-8d2e-f951fc5f8248")  # Transform
-    #version_id.append("d0942631-158c-4cd2-a75f-ec7ec5798381")  # SIMIM
-    #version_id.append("399cdaac-aab6-494d-870a-66de8a4217bb")  # Spatial Housing
-    #version_id.append("ef4b22c8-63be-4b53-ba7c-c1cf301774b2")  # Non-spatial Housing
-    #version_id.append("9de4ad50-fd98-4def-9bfc-39378854e6a1")  # 5G
-    version_id.append("d50776e8-db8a-4fa6-93d7-c8fb15634e76")  # Fibionacci
-    for id in version_id:
-        model = Model()
-        model.get_details_from_id(jwt, id)
-        model.get_metadata(jwt)
-        model.output_model_metadata()
