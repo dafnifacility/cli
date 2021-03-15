@@ -358,7 +358,7 @@ class TestGet:
         @pytest.mark.parametrize(
             "filter_args, search, start, end",
             [
-                (["--search-terms", "DAFNI passport"], "DAFNI passport", None, None),
+                (["--search", "DAFNI passport"], "DAFNI passport", None, None),
                 (["--start-date", "21/1/2021"], None, "21/1/2021", None),
                 (["--end-date", "21/1/2021"], None, None, "21/1/2021"),
                 (
@@ -369,7 +369,7 @@ class TestGet:
                 ),
                 (
                     [
-                        "--search-terms",
+                        "--search",
                         "DAFNI passport",
                         "--start-date",
                         "21/1/2021",

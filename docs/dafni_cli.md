@@ -90,9 +90,14 @@ If there is no valid JWT, the user will be prompted to login before the command 
   </pre>
 
 - Datasets:
-  >*Command: `dafni(.exe) get datasets`*
+  >*Command: `dafni(.exe) get datasets [options]`*
 
   Lists the datasets available to the user. 
+  
+  *Options*:
+  - **--search-terms**: Option to apply an elastic text search to the available datasets.
+  - **--start-date**:  Filter to only show the datasets with a date range since a given date with format DD/MM/YYYY.
+  - **--end-date**: Filter to only show the datasets with a date range before a given date with format DD/MM/YYYY.
   
   Example output:
   <pre>

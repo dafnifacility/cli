@@ -79,27 +79,27 @@ def model(ctx: Context, version_id: List[str]):
 
 @get.command(help="List and filter datasets")
 @click.option(
-    "--search-terms",
+    "--search",
     default=None,
-    help='Search term for elastic search. Format: "search terms"',
+    help='Search terms for elastic search. Format: "search terms"',
     type=str,
 )
 @click.option(
     "--start-date",
     default=None,
-    help="Filter for models created since given date. Format: DD/MM/YYYY",
+    help="Filter for datasets with a start date since given date. Format: DD/MM/YYYY",
     type=str,
 )
 @click.option(
     "--end-date",
     default=None,
-    help="Filter for models published since given date. Format: DD/MM/YYYY",
+    help="Filter for datasets with a end date up to given date. Format: DD/MM/YYYY",
     type=str,
 )
 @click.pass_context
 def datasets(
     ctx: Context,
-    search_terms: Optional[str],
+    search: Optional[str],
     start_date: Optional[str],
     end_date: Optional[str],
 ):
@@ -109,9 +109,7 @@ def datasets(
     Args:
         ctx (context): contains JWT for authentication
     """
-    filters = dataset_filtering.process_datasets_filters(
-        search_terms, start_date, end_date
-    )
+    filters = dataset_filtering.process_datasets_filters(search, start_date, end_date)
     datasets_response = get_all_datasets(ctx.obj["jwt"], filters)
     datasets = process_response_to_class_list(
         datasets_response["metadata"], dataset.Dataset
