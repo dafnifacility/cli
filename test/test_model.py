@@ -103,7 +103,7 @@ class TestModel:
             mock_get.assert_called_once_with(jwt_string, version_id)
             mock_details.assert_called_once_with(model_dict)
 
-    @patch("dafni_cli.model.get_model_metadata_dicts")
+    @patch("dafni_cli.model.get_model_metadata_dict")
     class TestGetMetadata:
         """Test class to test the Model.get_metadata() functionality"""
 
@@ -238,7 +238,7 @@ class TestModel:
                 ),
                 call("Summary: summary"),
                 call("Description: "),
-                call("")
+                call(""),
             ]
             assert mock_prose.called_once_with("description", CONSOLE_WIDTH)
 
