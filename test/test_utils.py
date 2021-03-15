@@ -19,11 +19,11 @@ class TestProsePrint:
         utils.prose_print(string, 10)
 
         # ASSERT
-        assert mock_click.echo.call_args_list == [
-            call(string)
-        ]
+        assert mock_click.echo.call_args_list == [call(string)]
 
-    def test_string_without_line_breaks_or_spaces_is_split_correctly_and_printed_sequentially(self, mock_click):
+    def test_string_without_line_breaks_or_spaces_is_split_correctly_and_printed_sequentially(
+        self, mock_click
+    ):
         # SETUP
         string = "123456"
 
@@ -37,7 +37,9 @@ class TestProsePrint:
             call("56"),
         ]
 
-    def test_string_with_space_before_width_but_no_line_break_splits_at_space(self, mock_click):
+    def test_string_with_space_before_width_but_no_line_break_splits_at_space(
+        self, mock_click
+    ):
         # SETUP
         string = "12 3456"
 
@@ -136,7 +138,9 @@ class TestOptionalColumn:
         # ASSERT
         assert entry == "     value"
 
-    def test_if_key_exists_and_no_column_width_specified_string_with_no_extra_spaces_is_returned(self):
+    def test_if_key_exists_and_no_column_width_specified_string_with_no_extra_spaces_is_returned(
+        self,
+    ):
         # SETUP
         key = "key"
         value = "value"
@@ -148,7 +152,9 @@ class TestOptionalColumn:
         # ASSERT
         assert entry == "value"
 
-    def test_if_key_does_not_exist_but_column_width_specified_then_blank_space_of_specified_length_is_returned(self):
+    def test_if_key_does_not_exist_but_column_width_specified_then_blank_space_of_specified_length_is_returned(
+        self,
+    ):
         # SETUP
         key = "key"
         dictionary = {"other_key": "value"}
@@ -160,7 +166,9 @@ class TestOptionalColumn:
         # ASSERT
         assert entry == " " * 8
 
-    def test_if_key_does_not_exist_and_column_width_not_specified_then_empty_string_returned(self):
+    def test_if_key_does_not_exist_and_column_width_not_specified_then_empty_string_returned(
+        self,
+    ):
         # SETUP
         key = "key"
         dictionary = {"other_key": "value"}

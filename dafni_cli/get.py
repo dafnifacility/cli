@@ -1,5 +1,6 @@
 import click
 from click import Context
+from typing import List
 
 from dafni_cli.api.datasets_api import get_all_datasets
 from dafni_cli.api.models_api import get_models_dicts
@@ -60,9 +61,9 @@ def models(ctx: Context, long: bool, creation_date: str, publication_date: str):
 
 
 @get.command()
-@click.argument("version-id", nargs=-1)
+@click.argument("version-id", nargs=-1, required=True)
 @click.pass_context
-def model(ctx: Context, version_id: str):
+def model(ctx: Context, version_id: List[str]):
     """Displays the metadata for one or more model versions
 
     Args:

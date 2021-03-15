@@ -209,7 +209,9 @@ class TestModelMetadata:
         class TestFormatDataslots:
             """Test class to test the ModelMetadata.format_dataslots() functionality"""
 
-            def test_dataslots_string_is_formatted_properly_if_it_exists(self, get_model_metadata_fixture):
+            def test_dataslots_string_is_formatted_properly_if_it_exists(
+                self, get_model_metadata_fixture
+            ):
                 # SETUP
                 metadata_dict = get_model_metadata_fixture
                 metadata = model_metadata.ModelMetadata(metadata_dict)
@@ -233,7 +235,9 @@ class TestModelMetadata:
                 # ASSERT
                 assert dataslot_string == expected
 
-            def test_none_returned_if_there_are_no_dataslots(self, get_model_metadata_fixture):
+            def test_none_returned_if_there_are_no_dataslots(
+                self, get_model_metadata_fixture
+            ):
                 # SETUP
                 metadata_dict = get_model_metadata_fixture
                 del metadata_dict["spec"]["inputs"]["dataslots"]

@@ -32,7 +32,7 @@ def get_single_model_dict(jwt: str, model_version_id: str) -> dict:
     return dafni_get_request(url, jwt)
 
 
-def get_model_metadata_dicts(jwt: str, model_version_id: str) -> dict:
+def get_model_metadata_dict(jwt: str, model_version_id: str) -> dict:
     """Function to call the get model metadata endpoint and return the resulting dictionary.
 
     Args:
