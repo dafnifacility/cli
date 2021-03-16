@@ -232,7 +232,7 @@ class TestOptionalColumn:
 
 
 class TestProcessDateFilter:
-    """Test class to test te process_date_filter functionality"""
+    """Test class to test the process_date_filter functionality"""
 
     @pytest.mark.parametrize(
         "date_str, expected",
