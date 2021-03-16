@@ -61,37 +61,35 @@ def models(ctx: Context, long: bool, creation_date: str, publication_date: str):
             model.output_details(long)
 
 
-@get.group(invoke_without_command=True)
-@click.argument("version-id", nargs=-1, required=True)
+@get.command(help="Display metadata or version history of a particular model or models")
+@click.argument(
+    "version-id",
+    nargs=-1,
+    required=True
+)
+@click.option(
+    "--version-history/--metadata",
+    default=False,
+    help="Whether to display the version history of a model instead of the metadata"
+)
 @click.pass_context
-def model(ctx: Context, version_id: List[str]):
+def model(ctx: Context, version_id: List[str], version_history: bool):
     """Displays the metadata for one or more model versions
 
     Args:
         ctx (Context): contains JWT for authentication
         version_id (list[str]): List of version IDs of the models to be displayed
+        version_history (bool): Whether to display version_history instead of metadata
     """
     for vid in version_id:
-        model = Model()
+        model = Model(vid)
         model.get_details_from_id(ctx.obj["jwt"], vid)
-        model.get_metadata(ctx.obj["jwt"])
-        model.output_metadata()
-
-
-@model.command()
-@click.argument("version-id", nargs=1)
-@click.pass_context
-def version_history(ctx: Context, version_id: str):
-    """Displays the version history for a model
-
-    Args:
-        ctx (Context): contains JWT for authentication
-        version_id (str): Version ID of the model whose version history is to be displayed
-    """
-    model = Model()
-    model.get_details_from_id(ctx.obj["jwt"], version_id)
-    version_history = ModelVersionHistory(ctx.obj["jwt"], model)
-    version_history.output_version_history()
+        if version_history:
+            history = ModelVersionHistory(ctx.obj["jwt"], model)
+            history.output_version_history()
+        else:
+            model.get_metadata(ctx.obj["jwt"])
+            model.output_metadata()
 
 
 @get.command()
