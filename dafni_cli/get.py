@@ -2,7 +2,7 @@ import click
 from click import Context
 from typing import List, Optional
 
-from dafni_cli.api.datasets_api import get_all_datasets
+from dafni_cli.api.datasets_api import get_all_datasets, get_latest_dataset_metadata
 from dafni_cli.api.models_api import get_models_dicts
 from dafni_cli.datasets import dataset, dataset_filtering
 from dafni_cli.login import check_for_jwt_file
@@ -26,16 +26,19 @@ def get(ctx: Context):
     "--long/--short",
     default=False,
     help="Also displays the full description of each model.",
+    type=bool,
 )
 @click.option(
     "--creation-date",
     default=None,
     help="Filter for models created since given date. Format: DD/MM/YYYY",
+    type=str,
 )
 @click.option(
     "--publication-date",
     default=None,
     help="Filter for models published since given date. Format: DD/MM/YYYY",
+    type=str,
 )
 @click.pass_context
 def models(ctx: Context, long: bool, creation_date: str, publication_date: str):
@@ -61,7 +64,7 @@ def models(ctx: Context, long: bool, creation_date: str, publication_date: str):
 
 
 @get.command()
-@click.argument("version-id", nargs=-1, required=True)
+@click.argument("version-id", nargs=-1, required=True, type=str)
 @click.pass_context
 def model(ctx: Context, version_id: List[str]):
     """Displays the metadata for one or more model versions
@@ -115,6 +118,15 @@ def datasets(
     )
     for dataset_model in datasets:
         dataset_model.output_dataset_details()
+
+
+@get.command()
+@click.option("--id", required=True, type=str, help="Dataset ID")
+@click.option("--version-id", required=True, type=str, help="Dataset Version ID")
+@click.pass_context
+def dataset(ctx: Context, id: str, version_id: str):
+
+    metadata = get_latest_dataset_metadata(ctx.obj["jwt"], id, version_id)
 
 
 @get.command()
