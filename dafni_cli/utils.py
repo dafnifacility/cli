@@ -1,6 +1,6 @@
 import click
 import textwrap
-from typing import List
+from typing import List, Optional, Union
 from datetime import datetime as dt
 
 
@@ -71,3 +71,56 @@ def process_date_filter(date_str: str) -> str:
         str: Processed date str tp YYYY-MM-DDT00:00:00
     """
     return dt.strptime(date_str, "%d/%m/%Y").strftime("%Y-%m-%dT%H:%M:%S")
+
+
+def check_key_in_dict(
+    input_dict: dict,
+    key: str,
+    nested_key: Optional[str] = None,
+    default: Optional[str] = "N/A",
+) -> Optional[Union[str, int]]:
+    """Utility function to check a nested dict for a given
+    key and nested key if applicable. If the keys exist, the
+    associated value is returned, otherwise the default value is returned.
+
+    Args:
+        input_dict (dict): dict to check in for keys
+        key (str): [description]
+        nested_key (Optional[str], optional): [description]. Defaults to None.
+        default (Optional[str], optional): [description]. Defaults to "N/A".
+
+    Returns:
+        Optional[Union[str, int]]: [description]
+    """
+    if isinstance(input_dict, dict):
+        if key in input_dict:
+            if nested_key and isinstance(input_dict[key], dict):
+                if nested_key in input_dict[key]:
+                    return input_dict[key][nested_key]
+            elif not nested_key:
+                return input_dict[key]
+
+    return default
+
+
+def output_table_header(
+    keys: List[str], widths: List[int], alignment: str = "^"
+) -> str:
+
+    header_items = [f"{key:{alignment}{widths[idx]}}" for idx, key in enumerate(keys)]
+    header = " ".join(header_items)
+    header += "\n"
+    header += "-" * sum(widths, len(keys))
+    header += "\n"
+
+    return header
+
+
+def output_table_row(values: List[str], widths: List[int], alignment: str = "<") -> str:
+    row_items = [
+        f"{value:{alignment}{widths[idx]}}" for idx, value in enumerate(values)
+    ]
+    row = " ".join(row_items)
+    row += "\n"
+
+    return row

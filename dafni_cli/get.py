@@ -4,7 +4,8 @@ from typing import List, Optional
 
 from dafni_cli.api.datasets_api import get_all_datasets, get_latest_dataset_metadata
 from dafni_cli.api.models_api import get_models_dicts
-from dafni_cli.datasets import dataset, dataset_filtering
+from dafni_cli.datasets import dataset_filtering, dataset_metadata
+from dafni_cli.datasets.dataset import Dataset
 from dafni_cli.login import check_for_jwt_file
 from dafni_cli.api.models_api import get_models_dicts
 from dafni_cli.model import Model
@@ -114,7 +115,7 @@ def datasets(
     filters = dataset_filtering.process_datasets_filters(search, start_date, end_date)
     datasets_response = get_all_datasets(ctx.obj["jwt"], filters)
     datasets = process_response_to_class_list(
-        datasets_response["metadata"], dataset.Dataset
+        datasets_response["metadata"], Dataset
     )
     for dataset_model in datasets:
         dataset_model.output_dataset_details()
@@ -127,6 +128,9 @@ def datasets(
 def dataset(ctx: Context, id: str, version_id: str):
 
     metadata = get_latest_dataset_metadata(ctx.obj["jwt"], id, version_id)
+    dataset_meta = dataset_metadata.DatasetMeta()
+    dataset_meta.set_details_from_dict(metadata)
+    dataset_meta.output_metadata_details()
 
 
 @get.command()
