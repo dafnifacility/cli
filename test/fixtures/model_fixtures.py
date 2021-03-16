@@ -24,14 +24,14 @@ def get_models_list_fixture() -> List[dict]:
                     "id": "0a0a0a0a-0a00-0a00-a000-0a0a0000000a",
                     "version_tags": ["latest", "new_param"],
                     "published": "2021-02-01T00:00:00.000000Z",
-                    "version_message": "version 1 message"
+                    "version_message": "version 1 message",
                 },
                 {
                     "id": "1a0a0a0a-0a00-0a00-a000-0a0a0000000a",
                     "version_tags": [],
                     "published": "2021-05-02T00:00:00.000000Z",
-                    "version_message": "version 2 message"
-                }
+                    "version_message": "version 2 message",
+                },
             ],
             "container": "reg.dafni.rl.ac.uk/pilots/models/mobile-model/nims",
         },
@@ -48,7 +48,7 @@ def get_models_list_fixture() -> List[dict]:
                     "id": "1a0a0a0a-0a00-0a00-a000-0a0a0000000a",
                     "version_tags": ["latest"],
                     "published": "2021-05-02T00:00:00.000000Z",
-                    "version_message": "Latest message"
+                    "version_message": "Latest message",
                 }
             ],
             "container": "reg.dafni.rl.ac.uk/pilots/models/mobile-model/nims",

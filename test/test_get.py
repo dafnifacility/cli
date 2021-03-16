@@ -283,8 +283,10 @@ class TestGet:
             # setup get jwt
             mock_jwt.return_value = processed_jwt_fixture, False
             # setup retrieving
-            mock_get.side_effect = [get_models_list_fixture[0],
-                                    get_models_list_fixture[1]]
+            mock_get.side_effect = [
+                get_models_list_fixture[0],
+                get_models_list_fixture[1],
+            ]
             version_id = get_models_list_fixture[0]["id"]
             # Setup click
             runner = CliRunner()
@@ -294,8 +296,12 @@ class TestGet:
             result = runner.invoke(get.get, ["model", version_id, "--version-history"])
 
             # ASSERT
-            assert mock_details.called_once_with(processed_jwt_fixture["jwt"], version_id)
-            assert mock_initialise.called_once_with(processed_jwt_fixture["jwt"], model.Model(version_id))
+            assert mock_details.called_once_with(
+                processed_jwt_fixture["jwt"], version_id
+            )
+            assert mock_initialise.called_once_with(
+                processed_jwt_fixture["jwt"], model.Model(version_id)
+            )
             mock_output_version_history.assert_called_once()
             assert result.exit_code == 0
 
@@ -332,7 +338,9 @@ class TestGet:
             mock_initialise.return_value = None
 
             # CALL
-            result = runner.invoke(get.get, ["model", version_id_1, version_id_2, "--version-history"])
+            result = runner.invoke(
+                get.get, ["model", version_id_1, version_id_2, "--version-history"]
+            )
 
             # ASSERT
             assert mock_details.call_args_list == [

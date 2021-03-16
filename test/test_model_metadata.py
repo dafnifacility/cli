@@ -210,23 +210,23 @@ class TestModelMetadata:
         """Test class to test the ModelMetadata.format_dataslots() functionality"""
 
         def test_dataslots_string_is_formatted_properly_if_it_exists(
-                self, get_model_metadata_fixture
+            self, get_model_metadata_fixture
         ):
             # SETUP
             metadata_dict = get_model_metadata_fixture
             metadata = model_metadata.ModelMetadata(metadata_dict)
             # Expected output
             expected = (
-                    f"Name: Inputs\n"
-                    + f"Path in container: inputs/\n"
-                    + f"Required: True\n"
-                    + f"Default Datasets: \n"
-                    + f"Name: "
-                    + f"ID: 11111a1a-a111-11aa-a111-11aa11111aaa"
-                    + TAB_SPACE
-                    + f"Version ID: 21111a1a-a111-11aa-a111-11aa11111aaa"
-                    + TAB_SPACE
-                    + "\n"
+                f"Name: Inputs\n"
+                + f"Path in container: inputs/\n"
+                + f"Required: True\n"
+                + f"Default Datasets: \n"
+                + f"Name: "
+                + f"ID: 11111a1a-a111-11aa-a111-11aa11111aaa"
+                + TAB_SPACE
+                + f"Version ID: 21111a1a-a111-11aa-a111-11aa11111aaa"
+                + TAB_SPACE
+                + "\n"
             )
 
             # CALL
@@ -236,7 +236,7 @@ class TestModelMetadata:
             assert dataslot_string == expected
 
         def test_none_returned_if_there_are_no_dataslots(
-                self, get_model_metadata_fixture
+            self, get_model_metadata_fixture
         ):
             # SETUP
             metadata_dict = get_model_metadata_fixture
@@ -255,7 +255,7 @@ class TestModelMetadata:
         """Test class to test the ModelMetadata.format_outputs() functionality"""
 
         def test_outputs_table_is_formatted_properly(
-                self, mock_column, mock_header, get_model_metadata_fixture
+            self, mock_column, mock_header, get_model_metadata_fixture
         ):
             # SETUP
             metadata_dict = get_model_metadata_fixture
@@ -270,18 +270,18 @@ class TestModelMetadata:
             mock_column.side_effect = optional_column_outputs
             # Expected table
             expected_table = (
-                    f"dataset_1.xls"
-                    + " " * 2
-                    + f"xls"
-                    + " " * (OUTPUT_FORMAT_COLUMN_WIDTH - 3)
-                    + optional_column_outputs[0]
-                    + "\n"
-                    + f"dataset_2.xls"
-                    + " " * 2
-                    + f"xls"
-                    + " " * (INPUT_TYPE_COLUMN_WIDTH - 3)
-                    + optional_column_outputs[1]
-                    + "\n"
+                f"dataset_1.xls"
+                + " " * 2
+                + f"xls"
+                + " " * (OUTPUT_FORMAT_COLUMN_WIDTH - 3)
+                + optional_column_outputs[0]
+                + "\n"
+                + f"dataset_2.xls"
+                + " " * 2
+                + f"xls"
+                + " " * (INPUT_TYPE_COLUMN_WIDTH - 3)
+                + optional_column_outputs[1]
+                + "\n"
             )
             # CALL
             table_string = metadata.format_outputs()

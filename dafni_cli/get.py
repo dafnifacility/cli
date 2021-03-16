@@ -62,15 +62,11 @@ def models(ctx: Context, long: bool, creation_date: str, publication_date: str):
 
 
 @get.command(help="Display metadata or version history of a particular model or models")
-@click.argument(
-    "version-id",
-    nargs=-1,
-    required=True
-)
+@click.argument("version-id", nargs=-1, required=True)
 @click.option(
     "--version-history/--metadata",
     default=False,
-    help="Whether to display the version history of a model instead of the metadata"
+    help="Whether to display the version history of a model instead of the metadata",
 )
 @click.pass_context
 def model(ctx: Context, version_id: List[str], version_history: bool):

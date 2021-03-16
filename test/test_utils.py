@@ -117,7 +117,7 @@ class TestOptionalColumn:
             ("value", "value     "),
             (1, "1         "),
             (1.0, "1.0       "),
-            ({'sub_key': 'value'}, "{'sub_key': 'value'}"),
+            ({"sub_key": "value"}, "{'sub_key': 'value'}"),
             ({}, "{}        "),
             ([], "[]        "),
             ([1, 2], "[1, 2]    "),
@@ -142,14 +142,16 @@ class TestOptionalColumn:
             ("value", "     value"),
             (1, "         1"),
             (1.0, "       1.0"),
-            ({'sub_key': 'value'}, "{'sub_key': 'value'}"),
+            ({"sub_key": "value"}, "{'sub_key': 'value'}"),
             ({}, "        {}"),
             ([], "        []"),
             ([1, 2], "    [1, 2]"),
             (True, "      True"),
         ],
     )
-    def test_if_key_exists_value_is_returned_with_correct_width_and_alignment(self, value, result):
+    def test_if_key_exists_value_is_returned_with_correct_width_and_alignment(
+        self, value, result
+    ):
         # SETUP
         key = "key"
         dictionary = {key: value}
@@ -168,7 +170,7 @@ class TestOptionalColumn:
             ("value", "value"),
             (1, "1"),
             (1.0, "1.0"),
-            ({'sub_key': 'value'}, "{'sub_key': 'value'}"),
+            ({"sub_key": "value"}, "{'sub_key': 'value'}"),
             ({}, "{}"),
             ([], "[]"),
             ([1, 2], "[1, 2]"),
@@ -176,9 +178,7 @@ class TestOptionalColumn:
         ],
     )
     def test_if_key_exists_and_no_column_width_specified_string_with_no_extra_spaces_is_returned(
-        self,
-        value,
-        result
+        self, value, result
     ):
         # SETUP
         key = "key"
