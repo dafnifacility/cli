@@ -15,7 +15,11 @@ from dafni_cli.utils import process_response_to_class_list
 @click.pass_context
 def get(ctx: Context):
     """Lists entities available to the user from
-    models, datasets, workflows, groups, depending on command."""
+    models, datasets, workflows, groups, depending on command.
+
+    Args:
+        ctx (Context): Context containing JWT of the user.
+    """
     ctx.ensure_object(dict)
     jwt_dict, _ = check_for_jwt_file()
     ctx.obj["jwt"] = jwt_dict["jwt"]
