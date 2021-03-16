@@ -35,6 +35,7 @@ class Model:
         publication_time: Time the model was published
         summary: One-line summary of what the model does
         version_id: ID used to identify the specific version and model
+        version_message: Message attached when the model was updated to this model version
         version_tags: Any tags created by the publisher for this version
 
     """
@@ -49,6 +50,7 @@ class Model:
         self.publication_time = None
         self.summary = None
         self.version_id = identifier
+        self.version_message = None
         self.version_tags = None
         pass
 

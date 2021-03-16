@@ -14,50 +14,53 @@ class ModelVersionHistory:
     Attributes:
         dictionary: Dictionary returned from version_history key from model dictionary
         history: list of model instances of the different versions of the model in reverse chronological order
-        version_messages: List of version_messages in reverse chronological order
-        version_publication_dates: List of dates each version was published in reverse chronological order
-        version_tags: List of lists containing the version tags of each version in reverse chronological order
     """
 
     def __init__(self, jwt_string: str, latest_version: Model):
-        self.dictionary = latest_version.dictionary["version_history"]
+        if latest_version.version_id is None:
+            raise Exception("Model must have version_id property")
+        elif (
+                latest_version.version_tags is None or
+                latest_version.publication_time is None or
+                latest_version.display_name is None or
+                latest_version.dictionary is None
+        ):
+            latest_version.get_details_from_id(jwt_string, latest_version.version_id)
+
+        self.dictionary = latest_version.dictionary['version_history']
+        latest_version.version_message = self.dictionary[0]['version_message']
         self.history = [latest_version]
+
         if len(self.dictionary) > 1:
             for version_dict in self.dictionary[1:]:
                 version = Model()
                 version.get_details_from_id(jwt_string, version_dict["id"])
+                version.version_message = version_dict['version_message']
                 self.history.append(version)
-        self.version_messages = []
-        self.version_publication_dates = []
-        self.version_tags = []
-        for version_dict in self.dictionary:
-            self.version_messages.append(version_dict["version_message"])
-            self.version_publication_dates.append(parser.isoparse(version_dict["published"]).date())
-            self.version_tags.append(version_dict["version_tags"])
 
     def output_version_history(self):
         """Prints the version history for the model to the command line."""
-        for i in range(len(self.history)):
+        for version in self.history:
             click.echo(
                 "Name: "
-                + self.history[i].display_name
+                + version.display_name
                 + TAB_SPACE
                 + "ID: "
-                + self.history[i].version_id
+                + version.version_id
                 + TAB_SPACE
                 + "Date: "
-                + self.version_publication_dates[i].strftime("%B %d %Y")
+                + version.publication_time.strftime("%B %d %Y")
             )
-            click.echo("Version message: " + self.version_messages[i])
+            click.echo("Version message: " + version.version_message)
             tags_string = ""
-            for tag in self.version_tags[i]:
+            for tag in version.version_tags:
                 tags_string += tag + ", "
             click.echo("Version tags: " + tags_string[:-2])
             click.echo("")
 
 
 if __name__ == "__main__":
-    jwt = "JWT eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJsb2dpbi1hcHAtand0IiwiZXhwIjoxNjE1ODMxNjU1LCJzdWIiOiI4ZDg1N2FjZi0yNjRmLTQ5Y2QtOWU3Zi0xZTlmZmQzY2U2N2EifQ.KJI1JlS1hsVRIFOUaF4tRBJKt2sHriEZp9mp28qTTA4"
+    jwt = "JWT eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJsb2dpbi1hcHAtand0IiwiZXhwIjoxNjE1OTAyOTY0LCJzdWIiOiI4ZDg1N2FjZi0yNjRmLTQ5Y2QtOWU3Zi0xZTlmZmQzY2U2N2EifQ.uwxpXdZSOlw2aWe0l4NdJUiK8xZJ0ctm79r1jWnz1uI"
     version_id = []
     #version_id.append("0b4b0d0a-5b05-4e14-b382-9a5c9082315b")  # COVID
     #version_id.append("a2dc91ea-c243-4232-8d2e-f951fc5f8248")  # Transform
