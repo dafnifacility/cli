@@ -52,15 +52,20 @@ If there is no valid JWT, the user will be prompted to login before the command 
   </pre>
 
 - Model:
-  >*Command: `dafni(.exe) get model [version_id]`*
+  >*Command: `dafni(.exe) get model [version_id] [options]`*
   
-  Displays the metadata for the model.
+  Displays the metadata or version history for one or more model(s).
   
-  Arguments:
+  *Arguments*:
   - **version_id**: Version of the model to display the metadata of.
   Multiple version IDs can be specified and the metadata of each model will be displayed in sequence.
   
-  Example output:
+  *Options*:
+  - **--version-history/--metadata**: If `--version-history` is added as an option, the name, version ID, publication date and version message of each version of the model will be displayed in reverse chronological order.
+    If `--metadata` is chosen, the metadata for that version of the model is displayed.
+    Default: `--metadata`. 
+  
+  Example outputs:
   <pre>
   Name: Model 1
   Date: January 1st 2020
@@ -87,6 +92,17 @@ If there is no valid JWT, the user will be prompted to login before the command 
   Name                                     Format    Summary
   a_very_big_table_of_results.csv          CSV       The results you care about
   another_very_big_table_of_results.csv    CSV       Some extra results you may find useful
+  </pre>
+  
+  With `--version-history`.
+  <pre>
+  Name: New Model 1     ID: abc10-ab20-3abc-12345678a1b2     Date: January 1st 2020
+  Version message: New version
+  Version tags: latest, new parameter
+  
+  Name: Model 1     ID: aaa10-ab20-3abc-12345678a1b2     Date: December 31st 2019
+  Version message: Original version
+  Version tags: 
   </pre>
 
 - Datasets:
