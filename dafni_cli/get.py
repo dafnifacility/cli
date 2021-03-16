@@ -114,23 +114,27 @@ def datasets(
     """
     filters = dataset_filtering.process_datasets_filters(search, start_date, end_date)
     datasets_response = get_all_datasets(ctx.obj["jwt"], filters)
-    datasets = process_response_to_class_list(
-        datasets_response["metadata"], Dataset
-    )
+    datasets = process_response_to_class_list(datasets_response["metadata"], Dataset)
     for dataset_model in datasets:
         dataset_model.output_dataset_details()
 
 
 @get.command()
+@click.option(
+    "--long/--short",
+    default=False,
+    help="Also displays the full description of each model.",
+    type=bool,
+)
 @click.option("--id", required=True, type=str, help="Dataset ID")
 @click.option("--version-id", required=True, type=str, help="Dataset Version ID")
 @click.pass_context
-def dataset(ctx: Context, id: str, version_id: str):
+def dataset(ctx: Context, id: str, version_id: str, long: bool):
 
     metadata = get_latest_dataset_metadata(ctx.obj["jwt"], id, version_id)
     dataset_meta = dataset_metadata.DatasetMeta()
     dataset_meta.set_details_from_dict(metadata)
-    dataset_meta.output_metadata_details()
+    dataset_meta.output_metadata_details(long)
 
 
 @get.command()

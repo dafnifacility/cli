@@ -2,6 +2,8 @@ import click
 import textwrap
 from typing import List, Optional, Union
 from datetime import datetime as dt
+from dateutil.parser import isoparse
+from dafni_cli.consts import DATA_FORMATS
 
 
 def prose_print(prose: str, width: int):
@@ -85,28 +87,63 @@ def check_key_in_dict(
 
     Args:
         input_dict (dict): dict to check in for keys
-        key (str): [description]
-        nested_key (Optional[str], optional): [description]. Defaults to None.
-        default (Optional[str], optional): [description]. Defaults to "N/A".
+        key (str): first key to check for
+        nested_key (Optional[str], optional): A nested key to check for. Defaults to None.
+        default (Optional[str], optional): default value if key(s) not found. Defaults to "N/A".
 
     Returns:
-        Optional[Union[str, int]]: [description]
+        Optional[Union[str, int]]: Value associated with given dict and key(s)
     """
+    value = None
     if isinstance(input_dict, dict):
         if key in input_dict:
             if nested_key and isinstance(input_dict[key], dict):
                 if nested_key in input_dict[key]:
-                    return input_dict[key][nested_key]
+                    value = input_dict[key][nested_key]
             elif not nested_key:
-                return input_dict[key]
+                value = input_dict[key]
+    if value:
+        return value
+    return default
 
+
+def process_dict_datetime(
+    input_dict: dict, key: str, nested_key: Optional[str] = None, default="N/A"
+) -> str:
+    """Utility function to check a nested dict for a given
+    key and nested key if applicable. If the keys exist, the
+    associated value is parsed to a datetime and then formatted to an
+    applicable datetime string, otherwise the default value is returned.
+
+    Args:
+        input_dict (dict): dict to check in for keys
+        key (str): first key to check for
+        nested_key (Optional[str], optional): A nested key to check for. Defaults to None.
+        default (Optional[str], optional): default value if key(s) not found. Defaults to "N/A".
+
+    Returns:
+        str: Parsed datetime associated with given dict and key(s)
+    """
+    value = check_key_in_dict(input_dict, key, nested_key)
+    if value:
+        return isoparse(value).strftime("%B %d %Y")
     return default
 
 
 def output_table_header(
-    keys: List[str], widths: List[int], alignment: str = "^"
+    keys: List[str], widths: List[int], alignment: str = "<"
 ) -> str:
+    """Function to generate a table header for the given keys,
+    with a dashed line of equal length underneath
 
+    Args:
+        keys (List[str]): Table Columns
+        widths (List[int]): Width associated with each column
+        alignment (str, optional): Direction to align header. Defaults to "<".
+
+    Returns:
+        str: String containing all Headers with associated spacing and line breaks
+    """
     header_items = [f"{key:{alignment}{widths[idx]}}" for idx, key in enumerate(keys)]
     header = " ".join(header_items)
     header += "\n"
@@ -117,6 +154,17 @@ def output_table_header(
 
 
 def output_table_row(values: List[str], widths: List[int], alignment: str = "<") -> str:
+    """Utility function to generate the contents of a table outputted to the command line,
+    from a given list of values and defined widths
+
+    Args:
+        values (List[str]): Row Values
+        widths (List[int]): Width for each column int he row
+        alignment (str, optional): Alignment of row contents. Defaults to "<".
+
+    Returns:
+        str: A table row, with required spacing
+    """
     row_items = [
         f"{value:{alignment}{widths[idx]}}" for idx, value in enumerate(values)
     ]
@@ -124,3 +172,31 @@ def output_table_row(values: List[str], widths: List[int], alignment: str = "<")
     row += "\n"
 
     return row
+
+
+def process_file_size(file_size: int) -> str:
+    """Utility function to take in a file size in bytes
+    and format into a tale ready format.
+    This converts the size into appropriate units, with
+    the units appended
+
+    Args:
+        file_size (int): File size in bytes
+
+    Returns:
+        str: Converted file size with applicable units
+    """
+    if not isinstance(file_size, int):
+        return "N/A"
+    if file_size < 1e3:
+
+        return f"{file_size} B"
+    elif file_size >= 1e3 and file_size < 1e6:
+        size = round(file_size / 1e3, 1)
+        return f"{size} KB"
+    elif file_size >= 1e6 and file_size < 1e9:
+        size = round(file_size / 1e6, 1)
+        return f"{size} MB"
+    else:
+        size = round(file_size / 1e9, 1)
+        return f"{size} GB"
