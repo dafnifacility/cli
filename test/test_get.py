@@ -237,10 +237,7 @@ class TestGet:
             # setup get jwt
             mock_jwt.return_value = processed_jwt_fixture, False
             # setup retrieving
-            mock_get.side_effect = [
-                get_models_list_fixture[0],
-                get_models_list_fixture[1],
-            ]
+            mock_get.side_effect = get_models_list_fixture
             version_id_1 = get_models_list_fixture[0]["id"]
             version_id_2 = get_models_list_fixture[1]["id"]
             # setup setting metadata
@@ -283,10 +280,7 @@ class TestGet:
             # setup get jwt
             mock_jwt.return_value = processed_jwt_fixture, False
             # setup retrieving
-            mock_get.side_effect = [
-                get_models_list_fixture[0],
-                get_models_list_fixture[1],
-            ]
+            mock_get.side_effect = get_models_list_fixture
             version_id = get_models_list_fixture[0]["id"]
             # Setup click
             runner = CliRunner()
@@ -325,10 +319,7 @@ class TestGet:
             # setup get jwt
             mock_jwt.return_value = processed_jwt_fixture, False
             # setup retrieving
-            mock_get.side_effect = [
-                get_models_list_fixture[0],
-                get_models_list_fixture[1],
-            ]
+            mock_get.side_effect = get_models_list_fixture
             version_id_1 = get_models_list_fixture[0]["id"]
             version_id_2 = get_models_list_fixture[1]["id"]
             # setup setting metadata
