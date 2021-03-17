@@ -259,3 +259,363 @@ class TestProcessDateFilter:
         # SETUP # CALL # ASSERT
         with pytest.raises(ValueError):
             utils.process_date_filter(date_str)
+
+
+class TestCheckKeyInDict:
+    """Test class to test the check_key_in_dict functionality"""
+
+    @pytest.mark.parametrize("input_dict", [[], "str", 12])
+    def test_default_value_returned_if_input_dict_is_not_a_dict(self, input_dict):
+        # SETUP
+        key = "key"
+
+        # CALL
+        result = utils.check_key_in_dict(input_dict, key)
+
+        # ASSERT
+        assert result == "N/A"
+
+    @pytest.mark.parametrize("input_dict", [[], "str", 12])
+    def test_defined_default_value_returned_if_input_dict_is_not_a_dict(
+        self, input_dict
+    ):
+        # SETUP
+        key = "key"
+        default = "default"
+
+        # CALL
+        result = utils.check_key_in_dict(input_dict, key, default=default)
+
+        # ASSERT
+        assert result == default
+
+    def test_default_value_returned_if_key_not_in_input_dict(self):
+        # SETUP
+        input_dict = {"key_1": "value_1"}
+        key = "key_2"
+
+        # CALL
+        result = utils.check_key_in_dict(input_dict, key)
+
+        # ASSERT
+        assert result == "N/A"
+
+    @pytest.mark.parametrize("value", [["some", "items"], [], {}, "", "str", 12])
+    def test_value_returned_if_key_in_input_dict(self, value):
+        # SETUP
+        input_dict = {"key_1": value}
+        key = "key_1"
+
+        # CALL
+        result = utils.check_key_in_dict(input_dict, key)
+
+        # ASSERT
+        assert result == value
+
+    def test_default_value_returned_if_key_in_input_dict_and_value_is_none(self):
+        # SETUP
+        input_dict = {"key_1": None}
+        key = "key_1"
+
+        # CALL
+        result = utils.check_key_in_dict(input_dict, key)
+
+        # ASSERT
+        assert result == "N/A"
+
+    def test_default_value_returned_if_nested_key_not_in_input_dict(self):
+        # SETUP
+        input_dict = {"key_1": {"nested_1": "value_1"}}
+        key = "key_1"
+        nested_key = "nested_2"
+
+        # CALL
+        result = utils.check_key_in_dict(input_dict, key, nested_key)
+
+        # ASSERT
+        assert result == "N/A"
+
+    @pytest.mark.parametrize("value", [[], "str", 12])
+    def test_default_value_returned_if_nested_key_given_but_nested_item_not_a_dict(
+        self, value
+    ):
+        # SETUP
+        input_dict = {"key_1": value}
+        key = "key_1"
+        nested_key = "nested_2"
+
+        # CALL
+        result = utils.check_key_in_dict(input_dict, key, nested_key)
+
+        # ASSERT
+        assert result == "N/A"
+
+    @pytest.mark.parametrize("value", [["some", "items"], [], {}, "", "str", 12])
+    def test_value_returned_if_nested_key_in_input_dict(self, value):
+        # SETUP
+        input_dict = {"key_1": {"nested_1": value}}
+        key = "key_1"
+        nested_key = "nested_1"
+
+        # CALL
+        result = utils.check_key_in_dict(input_dict, key, nested_key)
+
+        # ASSERT
+        assert result == value
+
+    def test_default_value_returned_if_nested_key_in_input_dict_and_value_is_none(self):
+        # SETUP
+        # SETUP
+        input_dict = {"key_1": {"nested_1": None}}
+        key = "key_1"
+        nested_key = "nested_1"
+
+        # CALL
+        result = utils.check_key_in_dict(input_dict, key, nested_key)
+
+        # ASSERT
+        assert result == "N/A"
+
+
+@patch("dafni_cli.utils.check_key_in_dict")
+class TestProcessDictDatetime:
+    """Test class to test the process_dict_datetime functionality"""
+
+    @pytest.mark.parametrize("value", [[], (), {}, None])
+    def test_default_value_returned_if_key_not_found(self, mock_check, value):
+        # SETUP
+        mock_check.return_value = value
+        input_dict = {"key": "value"}
+        key = "key_1"
+
+        # CALL
+        result = utils.process_dict_datetime(input_dict, key)
+
+        # ASSERT
+        assert result == "N/A"
+
+    @pytest.mark.parametrize("value", [[], (), {}, None])
+    def test_defined_default_value_returned_if_key_not_found(self, mock_check, value):
+        # SETUP
+        mock_check.return_value = value
+        input_dict = {"key": "value"}
+        key = "key_1"
+        default = "default"
+
+        # CALL
+        result = utils.process_dict_datetime(input_dict, key, default=default)
+
+        # ASSERT
+        assert result == "default"
+
+    @pytest.mark.parametrize(
+        "value",
+        [
+            "2021/01/03",
+            "March 21st 2021",
+            "2021-3-16",
+        ],
+    )
+    def test_value_returned_unprocessed_if_invalid_datetime_str(
+        self, mock_check, value
+    ):
+        # SETUP
+        mock_check.return_value = value
+        input_dict = {"key": "value"}
+        key = "key"
+
+        # CALL
+        result = utils.process_dict_datetime(input_dict, key)
+
+        # ASSERT
+        assert result == value
+
+    @pytest.mark.parametrize(
+        "value",
+        [
+            "2021-03-16T09:27:21+00:00",
+            "2021-03-16T09:27:21Z",
+            "2021-03-16",
+        ],
+    )
+    def test_value_returned_processed_if_valid_datetime_str_found(
+        self, mock_check, value
+    ):
+        # SETUP
+        mock_check.return_value = value
+        input_dict = {"key": "value"}
+        key = "key"
+
+        # CALL
+        result = utils.process_dict_datetime(input_dict, key)
+
+        # ASSERT
+        assert result == "March 16 2021"
+
+
+class TestOutputTableRow:
+    @pytest.mark.parametrize(
+        "columns, widths, expected",
+        [
+            (["Column_1"], [10], "Column_1  \n-----------\n"),
+            (
+                ["Column_1", "Column_2", "Column_3"],
+                [10, 11, 12],
+                "Column_1   Column_2    Column_3    \n------------------------------------\n",
+            ),
+        ],
+    )
+    def test_table_header_string_processed_correctly_when_no_alignment_given(
+        self, columns, widths, expected
+    ):
+        # SETUP
+        # CALL
+        result = utils.output_table_row(columns, widths, header=True)
+
+        # ASSERT
+        assert result == expected
+
+    @pytest.mark.parametrize(
+        "alignment, expected",
+        [
+            (
+                "<",
+                "Column_1   Column_2    Column_3    \n------------------------------------\n",
+            ),
+            (
+                "^",
+                " Column_1   Column_2     Column_3  \n------------------------------------\n",
+            ),
+            (
+                ">",
+                "  Column_1    Column_2     Column_3\n------------------------------------\n",
+            ),
+        ],
+    )
+    def test_table_header_string_processed_correctly_when_alignment_given_for_multiple_columns(
+        self, alignment, expected
+    ):
+        # SETUP
+        columns = ["Column_1", "Column_2", "Column_3"]
+        widths = [10, 11, 12]
+
+        # CALL
+        result = utils.output_table_row(
+            columns, widths, alignment=alignment, header=True
+        )
+
+        # ASSERT
+        assert result == expected
+
+    @pytest.mark.parametrize(
+        "alignment, expected",
+        [
+            (
+                "<",
+                "Column_1  \n-----------\n",
+            ),
+            (
+                "^",
+                " Column_1 \n-----------\n",
+            ),
+            (
+                ">",
+                "  Column_1\n-----------\n",
+            ),
+        ],
+    )
+    def test_table_header_string_processed_correctly_when_alignment_given_for_single_column(
+        self, alignment, expected
+    ):
+        # SETUP
+        columns = ["Column_1"]
+        widths = [10]
+
+        # CALL
+        result = utils.output_table_row(
+            columns, widths, alignment=alignment, header=True
+        )
+
+        # ASSERT
+        assert result == expected
+
+    @pytest.mark.parametrize(
+        "values, widths, expected",
+        [
+            (["Value_1"], [10], "Value_1   \n"),
+            (
+                ["Value_1", "Value_2", "Value_3"],
+                [10, 11, 12],
+                "Value_1    Value_2     Value_3     \n",
+            ),
+        ],
+    )
+    def test_table_row_string_processed_correctly_when_no_alignment_given(
+        self, values, widths, expected
+    ):
+        # SETUP
+        # CALL
+        result = utils.output_table_row(values, widths)
+
+        # ASSERT
+        assert result == expected
+
+    @pytest.mark.parametrize(
+        "alignment, expected",
+        [
+            (
+                "<",
+                "Value_1    Value_2     Value_3     \n",
+            ),
+            (
+                "^",
+                " Value_1     Value_2     Value_3   \n",
+            ),
+            (
+                ">",
+                "   Value_1     Value_2      Value_3\n",
+            ),
+        ],
+    )
+    def test_table_row_string_processed_correctly_when_alignment_given_for_multiple_values(
+        self, alignment, expected
+    ):
+        # SETUP
+        values = ["Value_1", "Value_2", "Value_3"]
+        widths = [10, 11, 12]
+
+        # CALL
+        result = utils.output_table_row(values, widths, alignment=alignment)
+
+        # ASSERT
+        assert result == expected
+
+    @pytest.mark.parametrize(
+        "alignment, expected",
+        [
+            (
+                "<",
+                "Value_1   \n",
+            ),
+            (
+                "^",
+                " Value_1  \n",
+            ),
+            (
+                ">",
+                "   Value_1\n",
+            ),
+        ],
+    )
+    def test_table_row_string_processed_correctly_when_alignment_given_for_single_value(
+        self, alignment, expected
+    ):
+        # SETUP
+        values = ["Value_1"]
+        widths = [10]
+
+        # CALL
+        result = utils.output_table_row(values, widths, alignment=alignment)
+
+        # ASSERT
+        assert result == expected

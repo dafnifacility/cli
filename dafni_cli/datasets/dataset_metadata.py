@@ -6,14 +6,25 @@ from dafni_cli.utils import (
     check_key_in_dict,
     process_dict_datetime,
     prose_print,
-    output_table_header,
-    output_table_row,
+    output_table,
     optional_column,
     process_file_size,
 )
 
 
 class DataFile:
+    """Class to represent the DAFNI Dataset File
+    client model
+
+    Methods:
+        __init__(): DataFile constructor
+
+    Attributes:
+        name: File Name
+        size: File Size
+        format: File Format
+    """
+
     def __init__(self, file_dict: dict):
         self.name = check_key_in_dict(file_dict, "spdx:fileName")
         self.size = process_file_size(
@@ -25,7 +36,38 @@ class DataFile:
 
 
 class DatasetMeta:
+    """Class to represent the DAFNI Dataset
+    Metadata client model
+
+    Methods:
+        __init__(): DatasetMeta constructor
+        set_details_from_dict(jwt (str), dataset (dict)): Sets the dataset metadata attributes from given client model dict
+        output_metadata_details(): Prints key information of the dataset metadata to console.
+        output_datafiles_table(): Prints a table to the console of all File related information
+        output_metadata_extra_details(): Prints extra details relating to the Dataset Metadata
+
+    Attributes:
+        created: Date the dataset was created
+        creator: Creator of the dataset
+        contact: Conact relating to the dataset
+        description: Description of the dataset
+        identifier: List of identifiers relating to the dataset
+        location: Location the Dataset relates to
+        start_date: Dataset start date if applicable
+        end_date: Dataset end date if applicable
+        files: Files associated with the dataset
+        keywords: Key words relating to the dataset e.g. Transportation
+        themes: Themes relating to dataset
+        publisher: Entity responsible for publishing the dataset
+        issued: Date the dataset was issued
+        rights: The user rights linked to the Dataset
+        language: The langauge used for the dataset
+        standard: Any related standards associated
+        update: Update Frequency
+    """
+
     def __init__(self):
+        """DatasetMeta constructor"""
         self.created = None
         self.creator = None
         self.contact = None
@@ -45,6 +87,12 @@ class DatasetMeta:
         self.update = None
 
     def set_details_from_dict(self, dataset_dict: dict):
+        """Helper function to populate the DatasetMeta details
+        based on a given DAFNI Dataset metadata client model
+
+        Args:
+            dataset_dict (dict): DAFNI Dataset metadata client model
+        """
         # Standard Metadata
         self.created = process_dict_datetime(dataset_dict, "dct:created")
         self.creator = check_key_in_dict(dataset_dict, "dct:creator", "foaf:name")
@@ -78,6 +126,15 @@ class DatasetMeta:
         self.update = check_key_in_dict(dataset_dict, "dct:accrualPeriodicity")
 
     def output_metadata_details(self, long: bool = False):
+        """Function to output details relating to the Dataset.
+        The default behavior is to print all standard metadata and
+        a table relating to the associated files.
+        If the long option is given, the additional metadata fields are
+        also printed to the console
+
+        Args:
+            long (bool, optional): Flag to print additional metdata. Defaults to False.
+        """
         click.echo(f"\nCreated: {self.created}")
         click.echo(f"Creator: {self.creator}")
         click.echo(f"Contact: {self.contact}")
@@ -88,6 +145,7 @@ class DatasetMeta:
         click.echo(f"Location: {self.location}")
         click.echo(f"Start date: {self.start_date}")
         click.echo(f"End date: {self.end_date}")
+        click.echo(f"Key Words:\n {self.keywords}")
 
         # DataFiles table
         self.output_datafiles_table()
@@ -96,26 +154,25 @@ class DatasetMeta:
             self.output_metadata_extra_details()
 
     def output_datafiles_table(self):
+        """Function to print the datafiles table to the console
+        for all associated files
+        """
         click.echo("\nData Files")
-
+        # Setup table data
         columns = ["Name", "Size", "Format"]
         name_width = max([len(datafile.name) for datafile in self.files])
-        widths = [name_width, 10, 10]
-
-        table_data = output_table_header(columns, widths)
-        table_data += "".join(
-            [
-                output_table_row(
-                    [datafile.name, datafile.size, datafile.format], widths
-                )
-                for datafile in self.files
-            ]
-        )
-
-        click.echo(table_data)
+        widths = [name_width, 10, 6]
+        rows = [
+            [datafile.name, datafile.size, datafile.format] for datafile in self.files
+        ]
+        # Print table to console
+        click.echo(output_table(columns, widths, rows))
 
     def output_metadata_extra_details(self):
-        click.echo(f"Themes: {self.themes}")
+        """Function to print additional metadata to the
+        console relating to the dataset
+        """
+        click.echo(f"Themes:\n{self.themes}")
         click.echo(f"Publisher: {self.publisher}")
         click.echo(f"Issued: {self.issued}")
         click.echo("Rights:")

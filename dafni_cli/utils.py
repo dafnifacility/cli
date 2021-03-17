@@ -102,7 +102,7 @@ def check_key_in_dict(
                     value = input_dict[key][nested_key]
             elif not nested_key:
                 value = input_dict[key]
-    if value:
+    if value is not None:
         return value
     return default
 
@@ -124,54 +124,61 @@ def process_dict_datetime(
     Returns:
         str: Parsed datetime associated with given dict and key(s)
     """
-    value = check_key_in_dict(input_dict, key, nested_key)
+    value = check_key_in_dict(input_dict, key, nested_key, None)
     if value:
-        return isoparse(value).strftime("%B %d %Y")
+        try:
+            return isoparse(value).strftime("%B %d %Y")
+        except ValueError:
+            return value
     return default
 
 
-def output_table_header(
-    keys: List[str], widths: List[int], alignment: str = "<"
+def output_table_row(
+    columns: List[str], widths: List[int], alignment: str = "<", header: bool = False
 ) -> str:
     """Function to generate a table header for the given keys,
     with a dashed line of equal length underneath
 
     Args:
-        keys (List[str]): Table Columns
+        columns (List[str]): Table Columns
         widths (List[int]): Width associated with each column
         alignment (str, optional): Direction to align header. Defaults to "<".
 
     Returns:
         str: String containing all Headers with associated spacing and line breaks
     """
-    header_items = [f"{key:{alignment}{widths[idx]}}" for idx, key in enumerate(keys)]
-    header = " ".join(header_items)
-    header += "\n"
-    header += "-" * sum(widths, len(keys))
-    header += "\n"
+    table_items = [
+        f"{column:{alignment}{widths[idx]}}" for idx, column in enumerate(columns)
+    ]
+    table_str = " ".join(table_items)
+    table_str += "\n"
 
-    return header
+    if header:
+        table_str += "-" * sum(widths, len(columns))
+        table_str += "\n"
+
+    return table_str
 
 
-def output_table_row(values: List[str], widths: List[int], alignment: str = "<") -> str:
-    """Utility function to generate the contents of a table outputted to the command line,
-    from a given list of values and defined widths
+def output_table(
+    columns: List[str], widths: List[int], values: List[List], alignment: str = "<"
+) -> str:
+    """Function to generate a table of data in the command console
 
     Args:
-        values (List[str]): Row Values
-        widths (List[int]): Width for each column int he row
-        alignment (str, optional): Alignment of row contents. Defaults to "<".
+        columns (List[str]): Column names
+        widths (List[int]): Column widths, where values are > 0
+        values (List[List]): List of rows to display in table
+        alignment (str, optional): Alignment option for table contents. Defaults to "<".
 
     Returns:
-        str: A table row, with required spacing
+        str: Table str with required spacing and line breaks for console
     """
-    row_items = [
-        f"{value:{alignment}{widths[idx]}}" for idx, value in enumerate(values)
-    ]
-    row = " ".join(row_items)
-    row += "\n"
+    table_str = output_table_row(columns, widths, alignment, header=True)
+    rows = [output_table_row(row, widths, alignment) for row in values]
+    table_str += "".join(rows)
 
-    return row
+    return table_str
 
 
 def process_file_size(file_size: int) -> str:
@@ -187,9 +194,8 @@ def process_file_size(file_size: int) -> str:
         str: Converted file size with applicable units
     """
     if not isinstance(file_size, int):
-        return "N/A"
+        return ""
     if file_size < 1e3:
-
         return f"{file_size} B"
     elif file_size >= 1e3 and file_size < 1e6:
         size = round(file_size / 1e3, 1)
