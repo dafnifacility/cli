@@ -8,7 +8,7 @@ from test.fixtures.model_fixtures import (
     get_models_list_fixture,
     get_model_metadata_fixture,
 )
-from dafni_cli import model
+from dafni_cli.model import model
 from dafni_cli.consts import DATE_TIME_FORMAT, CONSOLE_WIDTH, TAB_SPACE
 
 
@@ -80,7 +80,7 @@ class TestModel:
             assert instance.creation_time == dt(2021, 1, 1, tzinfo=tzutc())
             assert instance.publication_time == dt(2021, 1, 2, tzinfo=tzutc())
 
-    @patch("dafni_cli.model.get_single_model_dict")
+    @patch("dafni_cli.model.model.get_single_model_dict")
     @patch.object(model.Model, "set_details_from_dict")
     class TestGetDetailsFromId:
         """Test class to test the Model.get_details_from_id() functionality"""
@@ -103,7 +103,7 @@ class TestModel:
             mock_get.assert_called_once_with(jwt_string, version_id)
             mock_details.assert_called_once_with(model_dict)
 
-    @patch("dafni_cli.model.get_model_metadata_dict")
+    @patch("dafni_cli.model.model.get_model_metadata_dict")
     class TestGetMetadata:
         """Test class to test the Model.get_metadata() functionality"""
 
@@ -182,9 +182,9 @@ class TestModel:
             with pytest.raises(ValueError):
                 instance.filter_by_date(key, date)
 
-    @patch("dafni_cli.model.click")
+    @patch("dafni_cli.model.model.click")
     class TestOutputModelDetails:
-        """Test class to test the Model.output_model_details() functionality"""
+        """Test class to test the Model.output_details() functionality"""
 
         def test_model_details_outputted_correctly(self, mock_click):
             # SETUP
@@ -196,7 +196,7 @@ class TestModel:
             instance.summary = "summary"
 
             # CALL
-            instance.output_model_details()
+            instance.output_details()
 
             # ASSERT
             assert mock_click.echo.call_args_list == [
@@ -211,7 +211,7 @@ class TestModel:
                 call(""),
             ]
 
-        @patch("dafni_cli.model.prose_print")
+        @patch("dafni_cli.model.model.prose_print")
         def test_model_details_outputted_correctly_with_description_when_long_option_used(
             self, mock_prose, mock_click
         ):
@@ -225,7 +225,7 @@ class TestModel:
             instance.description = "description"
 
             # CALL
-            instance.output_model_details(long=True)
+            instance.output_details(long=True)
 
             # ASSERT
             assert mock_click.echo.call_args_list == [
@@ -242,10 +242,10 @@ class TestModel:
             ]
             assert mock_prose.called_once_with("description", CONSOLE_WIDTH)
 
-    @patch("dafni_cli.model.click")
-    @patch("dafni_cli.model.prose_print")
+    @patch("dafni_cli.model.model.click")
+    @patch("dafni_cli.model.model.prose_print")
     class TestOutputModelMetadataDetails:
-        """Test class to test the Model.output_model_metadata() functionality"""
+        """Test class to test the Model.output_metadata() functionality"""
 
         def test_output_correct_when_all_keys_present(self, mock_prose, mock_click):
             # SETUP
@@ -271,7 +271,7 @@ class TestModel:
             instance.metadata = metadata
 
             # CALL
-            instance.output_model_metadata()
+            instance.output_metadata()
 
             # ASSERT
             assert mock_click.echo.call_args_list == [
@@ -316,7 +316,7 @@ class TestModel:
             instance.metadata = metadata
 
             # CALL
-            instance.output_model_metadata()
+            instance.output_metadata()
 
             # ASSERT
             assert mock_click.echo.call_args_list == [
@@ -359,7 +359,7 @@ class TestModel:
             instance.metadata = metadata
 
             # CALL
-            instance.output_model_metadata()
+            instance.output_metadata()
 
             # ASSERT
             assert mock_click.echo.call_args_list == [
@@ -400,7 +400,7 @@ class TestModel:
             instance.metadata = metadata
 
             # CALL
-            instance.output_model_metadata()
+            instance.output_metadata()
 
             # ASSERT
             assert mock_click.echo.call_args_list == [

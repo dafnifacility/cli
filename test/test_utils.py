@@ -3,7 +3,7 @@ from mock import patch, call
 from dateutil import parser
 
 from dafni_cli import utils
-from dafni_cli.model import Model
+from dafni_cli.model.model import Model
 from test.fixtures.model_fixtures import get_models_list_fixture
 
 
