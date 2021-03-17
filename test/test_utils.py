@@ -619,3 +619,94 @@ class TestOutputTableRow:
 
         # ASSERT
         assert result == expected
+
+
+@patch("dafni_cli.utils.output_table_row")
+class TestOutputTable:
+    """Test class to test the output_table functionality"""
+
+    def test_correct_table_str_returned_for_single_column_table_with_default_alignment(
+        self, mock_output
+    ):
+        # SETUP
+        columns = ["Column_1"]
+        rows = [["Value_1"]]
+        widths = [10]
+        # setup output_table_row to return the firs column/value passed in
+        mock_output.side_effect = "Column_1  \n----------\n", "Value_1   \n"
+
+        # CALL
+        result = utils.output_table(columns, widths, rows)
+
+        # ASSERT
+        assert result == "Column_1  \n----------\nValue_1   \n"
+        assert mock_output.call_args_list == [
+            call(columns, widths, "<", header=True),
+            call(rows[0], widths, "<"),
+        ]
+
+    def test_correct_table_str_returned_for_multiple_column_and_row_table_with_default_alignment(
+        self, mock_output
+    ):
+        # SETUP
+        columns = ["Column_1", "Column_2"]
+        rows = [["Value_1", "Value_2"], ["Value_3", "Value_4"]]
+        widths = [10]
+        # setup output_table_row to return the firs column/value passed in
+        mock_output.side_effect = (
+            "Column_1  Column_2   \n----------\n",
+            "Value_1   Value_2    \n",
+            "Value_3   Value_4    \n",
+        )
+
+        # CALL
+        result = utils.output_table(columns, widths, rows)
+
+        # ASSERT
+        assert (
+            result
+            == "Column_1  Column_2   \n----------\nValue_1   Value_2    \nValue_3   Value_4    \n"
+        )
+        assert mock_output.call_args_list == [
+            call(columns, widths, "<", header=True),
+            call(rows[0], widths, "<"),
+            call(rows[1], widths, "<"),
+        ]
+
+
+class TestFileSize:
+    """Test class to test the process_file_size functionality"""
+
+    @pytest.mark.parametrize("file_size", ["12.4", [12], (12, 13)])
+    def test_empty_string_returned_if_non_integer_or_float_value_given(self, file_size):
+        # SETUP CALL
+        result = utils.process_file_size(file_size)
+        # ASSERT
+        assert result == ""
+
+    @pytest.mark.parametrize(
+        "file_size, expected",
+        [
+            (1.0, "1.0 B"),
+            (10.0, "10.0 B"),
+            (100.0, "100.0 B"),
+            (1e3, "1.0 KB"),
+            (1e4, "10.0 KB"),
+            (1e5, "100.0 KB"),
+            (1e6, "1.0 MB"),
+            (1e7, "10.0 MB"),
+            (1e8, "100.0 MB"),
+            (1e9, "1.0 GB"),
+            (1e10, "10.0 GB"),
+            (1e11, "100.0 GB"),
+            (1e12, "1000.0 GB"),
+            (1.5e3, "1.5 KB"),
+            (2.7e6, "2.7 MB"),
+            (3.8e9, "3.8 GB"),
+        ],
+    )
+    def test_file_size_processed_correctly(self, file_size, expected):
+        # SETUP CALL
+        result = utils.process_file_size(file_size)
+        # ASSERT
+        assert result == expected

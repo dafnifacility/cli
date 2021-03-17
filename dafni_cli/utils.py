@@ -181,19 +181,19 @@ def output_table(
     return table_str
 
 
-def process_file_size(file_size: int) -> str:
+def process_file_size(file_size: Union[int, float]) -> str:
     """Utility function to take in a file size in bytes
     and format into a tale ready format.
     This converts the size into appropriate units, with
     the units appended
 
     Args:
-        file_size (int): File size in bytes
+        file_size (Union[int, float]): File size in bytes
 
     Returns:
         str: Converted file size with applicable units
     """
-    if not isinstance(file_size, int):
+    if not isinstance(file_size, (int, float)):
         return ""
     if file_size < 1e3:
         return f"{file_size} B"
