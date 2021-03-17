@@ -56,7 +56,7 @@ def dafni_post_request(
 
 def dafni_put_request(
     url: str, jwt: str, data, content_type: str
-) -> Optional[bool]:
+) -> dict:
     """Performs a PUT request from the DAFNI API.
     If a status other than 200 is returned, an exception will be raised.
 

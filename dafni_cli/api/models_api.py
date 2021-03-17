@@ -53,7 +53,7 @@ def get_model_metadata_dict(jwt: str, model_version_id: str) -> dict:
 
 def validate_model_definition(
     jwt: str, model_definition: Path
-) -> Optional[bool]:
+) -> Tuple[bool, List[str]]:
     """Validates the model definition file using a PUT to the DAFNI API
 
     Args:
@@ -62,11 +62,16 @@ def validate_model_definition(
 
     Returns:
         bool: Whether the model definition is valid or not
+        List[str]: Errors encountered if the model definition file is not valid
     """
     content_type = "application/yaml"
     url = MODELS_API_URL + "/models/definition/validate/"
     with model_definition.open("rb") as md:
-        return dafni_put_request(url, jwt, md, content_type)
+        response = dafni_put_request(url, jwt, md, content_type)
+    if response["valid"]:
+        return True, []
+    else:
+        return False, response["errors"]
 
 
 def get_model_upload_urls(
