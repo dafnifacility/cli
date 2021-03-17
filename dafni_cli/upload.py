@@ -21,10 +21,11 @@ def upload(ctx: Context):
 @click.argument("metadata", nargs=1, required=True, type=click.Path(exists=True))
 @click.argument("image", nargs=1, required=True, type=click.Path(exists=True))
 @click.pass_context
-def model(ctx: Context, )
+def model(ctx: Context, metadata, image):
     """Uploads model to DAFNI from metadata and image files.
     
     Args:
         ctx (Context): contains JWT for authentication
-        
+        metadata (): File path to the metadata file
+        image (): File path to the image file
     """
