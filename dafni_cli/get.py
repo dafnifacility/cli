@@ -1,10 +1,10 @@
 import click
 from click import Context
-from typing import List
+from typing import List, Optional
 
 from dafni_cli.api.datasets_api import get_all_datasets
 from dafni_cli.api.models_api import get_models_dicts
-from dafni_cli.datasets.dataset import Dataset
+from dafni_cli.datasets import dataset, dataset_filtering
 from dafni_cli.login import check_for_jwt_file
 from dafni_cli.api.models_api import get_models_dicts
 from dafni_cli.model import Model
@@ -77,19 +77,44 @@ def model(ctx: Context, version_id: List[str]):
         model.output_model_metadata()
 
 
-@get.command()
+@get.command(help="List and filter datasets")
+@click.option(
+    "--search",
+    default=None,
+    help='Search terms for elastic search. Format: "search terms"',
+    type=str,
+)
+@click.option(
+    "--start-date",
+    default=None,
+    help="Filter for datasets with a start date since given date. Format: DD/MM/YYYY",
+    type=str,
+)
+@click.option(
+    "--end-date",
+    default=None,
+    help="Filter for datasets with a end date up to given date. Format: DD/MM/YYYY",
+    type=str,
+)
 @click.pass_context
-def datasets(ctx: Context):
-    """Displays list of model names with other options allowing
-        more details to be listed as well.
+def datasets(
+    ctx: Context,
+    search: Optional[str],
+    start_date: Optional[str],
+    end_date: Optional[str],
+):
+    """Displays a list of all available datasets
 
     Args:
         ctx (context): contains JWT for authentication
     """
-    datasets_response = get_all_datasets(ctx.obj["jwt"])
-    datasets = process_response_to_class_list(datasets_response["metadata"], Dataset)
-    for dataset in datasets:
-        dataset.output_dataset_details()
+    filters = dataset_filtering.process_datasets_filters(search, start_date, end_date)
+    datasets_response = get_all_datasets(ctx.obj["jwt"], filters)
+    datasets = process_response_to_class_list(
+        datasets_response["metadata"], dataset.Dataset
+    )
+    for dataset_model in datasets:
+        dataset_model.output_dataset_details()
 
 
 @get.command()

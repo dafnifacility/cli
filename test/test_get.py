@@ -286,6 +286,7 @@ class TestGet:
 
     @patch.object(dataset.Dataset, "output_dataset_details")
     @patch("dafni_cli.get.get_all_datasets")
+    @patch("dafni_cli.datasets.dataset_filtering.process_datasets_filters")
     @patch("dafni_cli.get.check_for_jwt_file")
     class TestDatasets:
         """Test class to test the get group datasets command"""
@@ -295,6 +296,7 @@ class TestGet:
             self,
             mock_create,
             mock_jwt,
+            mock_filter,
             mock_get,
             mock_output,
             processed_jwt_fixture,
@@ -303,6 +305,9 @@ class TestGet:
             # SETUP
             # setup get group command to set the context containing a JWT
             mock_jwt.return_value = processed_jwt_fixture, False
+            # setup filters
+            filters = {}
+            mock_filter.return_value = filters
             # setup get_all_datasets call
             response = get_dataset_list_fixture
             mock_get.return_value = response
@@ -315,7 +320,8 @@ class TestGet:
             result = runner.invoke(get.get, ["datasets"])
 
             # ASSERT
-            mock_get.assert_called_once_with(processed_jwt_fixture["jwt"])
+            mock_filter.assert_called_once_with(None, None, None)
+            mock_get.assert_called_once_with(processed_jwt_fixture["jwt"], filters)
             mock_create.assert_called_once_with(response["metadata"], dataset.Dataset)
 
             assert result.exit_code == 0
@@ -323,6 +329,7 @@ class TestGet:
         def test_output_dataset_details_called_for_each_dataset(
             self,
             mock_jwt,
+            mock_filter,
             mock_get,
             mock_output,
             processed_jwt_fixture,
@@ -331,6 +338,9 @@ class TestGet:
             # SETUP
             # setup get group command to set the context containing a JWT
             mock_jwt.return_value = processed_jwt_fixture, False
+            # setup filters
+            filters = {}
+            mock_filter.return_value = filters
             # setup get_all_datasets call
             response = get_dataset_list_fixture
             mock_get.return_value = response
@@ -344,3 +354,68 @@ class TestGet:
             assert mock_output.call_count == len(response["metadata"])
 
             assert result.exit_code == 0
+
+        @pytest.mark.parametrize(
+            "filter_args, search, start, end",
+            [
+                (["--search", "DAFNI passport"], "DAFNI passport", None, None),
+                (["--start-date", "21/1/2021"], None, "21/1/2021", None),
+                (["--end-date", "21/1/2021"], None, None, "21/1/2021"),
+                (
+                    ["--start-date", "21/1/2021", "--end-date", "22/2/2021"],
+                    None,
+                    "21/1/2021",
+                    "22/2/2021",
+                ),
+                (
+                    [
+                        "--search",
+                        "DAFNI passport",
+                        "--start-date",
+                        "21/1/2021",
+                        "--end-date",
+                        "22/2/2021",
+                    ],
+                    "DAFNI passport",
+                    "21/1/2021",
+                    "22/2/2021",
+                ),
+            ],
+            ids=[
+                "Case 1 - Only search terms used",
+                "Case 2 - Only Start date defined",
+                "Case 3 - Only End date defined",
+                "Case 4 - Start & End date defined",
+                "Case 5 - Search term & date range defined",
+            ],
+        )
+        def test_filter_options_passed_correctly_to_process_dataset_filters(
+            self,
+            mock_jwt,
+            mock_filter,
+            mock_get,
+            mock_output,
+            filter_args,
+            search,
+            start,
+            end,
+            processed_jwt_fixture,
+            get_dataset_list_fixture,
+        ):
+            # SETUP
+            # setup get group command
+            mock_jwt.return_value = processed_jwt_fixture, False
+            # setup filters
+            filters = {}
+            mock_filter.return_value = filters
+            # setup get_all_datasets call
+            response = get_dataset_list_fixture
+            mock_get.return_value = response
+            # Setup click
+            runner = CliRunner()
+
+            # CALL
+            result = runner.invoke(get.get, ["datasets", *filter_args])
+
+            # ASSERT
+            mock_filter.assert_called_once_with(search, start, end)
