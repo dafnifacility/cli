@@ -66,7 +66,7 @@ def validate_model_definition(
     """
     content_type = "application/yaml"
     url = MODELS_API_URL + "/models/definition/validate/"
-    with model_definition.open("rb") as md:
+    with open(model_definition, "rb") as md:
         response = dafni_put_request(url, jwt, md, content_type)
     if response["valid"]:
         return True, []
@@ -105,7 +105,7 @@ def upload_file_to_minio(
         file_path (Path): Path to the file
     """
     content_type = "multipart/form-data"
-    with file_path.open("rb") as file_data:
+    with open(file_path, "rb") as file_data:
         dafni_put_request(url, jwt, file_data, content_type)
 
 
