@@ -106,9 +106,16 @@ If there is no valid JWT, the user will be prompted to login before the command 
   </pre>
 
 - Datasets:
-  >*Command: `dafni(.exe) get datasets`*
+  >*Command: `dafni(.exe) get datasets [options]`*
 
   Lists the datasets available to the user. 
+  
+  *Note*: If a date range filter is applied, the default behavior is to omit any datasets that don't have a date range set. This is in part due to a bug with the discovery api (https://github.com/dafnifacility/user-feedback/issues/72) which means we can't use this filter without a search term.
+  
+  *Options*:
+  - **--search**: Option to apply a text search to the available datasets.
+  - **--start-date**:  Filter to only show the datasets with a date range since a given date with format DD/MM/YYYY.
+  - **--end-date**: Filter to only show the datasets with a date range before a given date with format DD/MM/YYYY.
   
   Example output:
   <pre>

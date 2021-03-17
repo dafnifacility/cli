@@ -229,3 +229,33 @@ class TestOptionalColumn:
             ValueError, match="Column width for optional column must be non-negative"
         ):
             utils.optional_column(dictionary, key, -1)
+
+
+class TestProcessDateFilter:
+    """Test class to test the process_date_filter functionality"""
+
+    @pytest.mark.parametrize(
+        "date_str, expected",
+        [
+            ("1/2/2003", "2003-02-01T00:00:00"),
+            ("10/2/2003", "2003-02-10T00:00:00"),
+            ("10/12/2003", "2003-12-10T00:00:00"),
+        ],
+    )
+    def test_valid_date_strings_are_formatted_correctly(self, date_str, expected):
+        # SETUP
+        # CALL
+        result = utils.process_date_filter(date_str)
+
+        # ASSERT
+        assert result == expected
+
+    @pytest.mark.parametrize(
+        "date_str",
+        ["1/1/21", "1/13/2021", "32/2/2021"],
+        ids=["Case 1 - 2 digit Year", "Case 2 - Month 13", "Case 3 - 32nd day"],
+    )
+    def test_value_error_raised_if_given_invalid_formatted_date(self, date_str):
+        # SETUP # CALL # ASSERT
+        with pytest.raises(ValueError):
+            utils.process_date_filter(date_str)
