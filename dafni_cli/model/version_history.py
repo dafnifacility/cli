@@ -52,8 +52,5 @@ class ModelVersionHistory:
                 + version.publication_time.strftime("%B %d %Y")
             )
             click.echo("Version message: " + version.version_message)
-            tags_string = ""
-            for tag in version.version_tags:
-                tags_string += tag + ", "
-            click.echo("Version tags: " + tags_string[:-2])
+            click.echo("Version tags: " + ", ".join(version.version_tags))
             click.echo("")
