@@ -52,15 +52,20 @@ If there is no valid JWT, the user will be prompted to login before the command 
   </pre>
 
 - Model:
-  >*Command: `dafni(.exe) get model [version_id]`*
+  >*Command: `dafni(.exe) get model [version_id] [options]`*
   
-  Displays the metadata for the model.
+  Displays the metadata or version history for one or more model(s).
   
-  Arguments:
+  *Arguments*:
   - **version_id**: Version of the model to display the metadata of.
   Multiple version IDs can be specified and the metadata of each model will be displayed in sequence.
   
-  Example output:
+  *Options*:
+  - **--version-history/--metadata**: If `--version-history` is added as an option, the name, version ID, publication date and version message of each version of the model will be displayed in reverse chronological order.
+    If `--metadata` is chosen, the metadata for that version of the model is displayed.
+    Default: `--metadata`. 
+  
+  Example outputs:
   <pre>
   Name: Model 1
   Date: January 1st 2020
@@ -88,11 +93,29 @@ If there is no valid JWT, the user will be prompted to login before the command 
   a_very_big_table_of_results.csv          CSV       The results you care about
   another_very_big_table_of_results.csv    CSV       Some extra results you may find useful
   </pre>
+  
+  With `--version-history`.
+  <pre>
+  Name: New Model 1     ID: abc10-ab20-3abc-12345678a1b2     Date: January 1st 2020
+  Version message: New version
+  Version tags: latest, new parameter
+  
+  Name: Model 1     ID: aaa10-ab20-3abc-12345678a1b2     Date: December 31st 2019
+  Version message: Original version
+  Version tags: 
+  </pre>
 
 - Datasets:
-  >*Command: `dafni(.exe) get datasets`*
+  >*Command: `dafni(.exe) get datasets [options]`*
 
   Lists the datasets available to the user. 
+  
+  *Note*: If a date range filter is applied, the default behavior is to omit any datasets that don't have a date range set. This is in part due to a bug with the discovery api (https://github.com/dafnifacility/user-feedback/issues/72) which means we can't use this filter without a search term.
+  
+  *Options*:
+  - **--search**: Option to apply a text search to the available datasets.
+  - **--start-date**:  Filter to only show the datasets with a date range since a given date with format DD/MM/YYYY.
+  - **--end-date**: Filter to only show the datasets with a date range before a given date with format DD/MM/YYYY.
   
   Example output:
   <pre>

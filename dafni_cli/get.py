@@ -1,13 +1,14 @@
 import click
 from click import Context
-from typing import List
+from typing import List, Optional
 
 from dafni_cli.api.datasets_api import get_all_datasets
 from dafni_cli.api.models_api import get_models_dicts
-from dafni_cli.datasets.dataset import Dataset
+from dafni_cli.datasets import dataset, dataset_filtering
 from dafni_cli.login import check_for_jwt_file
+from dafni_cli.model.model import Model
+from dafni_cli.model.version_history import ModelVersionHistory
 from dafni_cli.api.models_api import get_models_dicts
-from dafni_cli.model import Model
 from dafni_cli.utils import process_response_to_class_list
 
 
@@ -61,39 +62,74 @@ def models(ctx: Context, long: bool, creation_date: str, publication_date: str):
         if publication_date:
             date_filter = model.filter_by_date("publication", publication_date)
         if date_filter:
-            model.output_model_details(long)
+            model.output_details(long)
 
 
-@get.command()
+@get.command(help="Display metadata or version history of a particular model or models")
 @click.argument("version-id", nargs=-1, required=True)
+@click.option(
+    "--version-history/--metadata",
+    default=False,
+    help="Whether to display the version history of a model instead of the metadata",
+)
 @click.pass_context
-def model(ctx: Context, version_id: List[str]):
+def model(ctx: Context, version_id: List[str], version_history: bool):
     """Displays the metadata for one or more model versions
 
     Args:
-         ctx (context): contains JWT for authentication
-         version_id (list[str]): List of version ids of the models to be displayed
+        ctx (Context): contains JWT for authentication
+        version_id (list[str]): List of version IDs of the models to be displayed
+        version_history (bool): Whether to display version_history instead of metadata
     """
     for vid in version_id:
-        model = Model()
+        model = Model(vid)
         model.get_details_from_id(ctx.obj["jwt"], vid)
-        model.get_metadata(ctx.obj["jwt"])
-        model.output_model_metadata()
+        if version_history:
+            history = ModelVersionHistory(ctx.obj["jwt"], model)
+            history.output_version_history()
+        else:
+            model.get_metadata(ctx.obj["jwt"])
+            model.output_metadata()
 
 
-@get.command()
+@get.command(help="List and filter datasets")
+@click.option(
+    "--search",
+    default=None,
+    help='Search terms for elastic search. Format: "search terms"',
+    type=str,
+)
+@click.option(
+    "--start-date",
+    default=None,
+    help="Filter for datasets with a start date since given date. Format: DD/MM/YYYY",
+    type=str,
+)
+@click.option(
+    "--end-date",
+    default=None,
+    help="Filter for datasets with a end date up to given date. Format: DD/MM/YYYY",
+    type=str,
+)
 @click.pass_context
-def datasets(ctx: Context):
-    """Displays list of model names with other options allowing
-        more details to be listed as well.
+def datasets(
+    ctx: Context,
+    search: Optional[str],
+    start_date: Optional[str],
+    end_date: Optional[str],
+):
+    """Displays a list of all available datasets
 
     Args:
         ctx (context): contains JWT for authentication
     """
-    datasets_response = get_all_datasets(ctx.obj["jwt"])
-    datasets = process_response_to_class_list(datasets_response["metadata"], Dataset)
-    for dataset in datasets:
-        dataset.output_dataset_details()
+    filters = dataset_filtering.process_datasets_filters(search, start_date, end_date)
+    datasets_response = get_all_datasets(ctx.obj["jwt"], filters)
+    datasets = process_response_to_class_list(
+        datasets_response["metadata"], dataset.Dataset
+    )
+    for dataset_model in datasets:
+        dataset_model.output_dataset_details()
 
 
 @get.command()
