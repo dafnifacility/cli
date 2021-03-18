@@ -63,12 +63,12 @@ class TestModelMetaDataDict:
 
 
 @patch("dafni_cli.api.models_api.dafni_put_request")
+@patch(
+        "builtins.open", new_callable=mock_open, read_data="definition file"
+    )
 class TestValidateModelDefinition:
     """Test class to test the validate_model_definition functionality"""
 
-    @patch(
-        "builtins.open", new_callable=mock_open, read_data="valid definition file"
-    )
     def test_valid_model_definition_file_processed_correctly(
             self,
             open_mock,
@@ -76,17 +76,74 @@ class TestValidateModelDefinition:
     ):
         # SETUP
         mock_put.return_value = {"valid": True}
-        # open_mock.return_value = "valid definition file"
-
+        mock_file = Path("definition_file")
         jwt = "JWT"
-        content_type = "application/yaml"
 
         # CALL
-        response, errors = models_api.validate_model_definition(jwt, Path("definition.yaml"))
+        response, errors = models_api.validate_model_definition(jwt, mock_file)
 
         # ASSERT
+        open_mock.assert_called_once_with(
+            mock_file, "rb"
+        )
         mock_put.assert_called_once_with(
-            MODELS_API_URL + "/models/definition/validate/", jwt, "valid model definition", "application/yaml"
+            MODELS_API_URL + "/models/definition/validate/", jwt, open(mock_file, "rb"), "application/yaml"
         )
         assert response
         assert errors == []
+
+    def test_invalid_model_definition_file_processed_correctly(
+            self,
+            open_mock,
+            mock_put
+    ):
+        # SETUP
+        mock_put.return_value = {"valid": False, "errors": ["error message"]}
+        mock_file = Path("definition_file")
+        jwt = "JWT"
+
+        # CALL
+        response, errors = models_api.validate_model_definition(jwt, mock_file)
+
+        # ASSERT
+        open_mock.assert_called_once_with(
+            mock_file, "rb"
+        )
+        mock_put.assert_called_once_with(
+            MODELS_API_URL + "/models/definition/validate/", jwt, open(mock_file, "rb"), "application/yaml"
+        )
+        assert not response
+        assert errors == ["error message"]
+
+
+@patch("dafni_cli.api.models_api.dafni_post_request")
+class TestGetModelUploadUrls:
+    """Test class to test the get_model_upload_urls functionality"""
+
+    def test_post_request_called_with_correct_arguments(self, mock_post):
+        # SETUP
+        jwt = "JWT"
+        url = MODELS_API_URL + "/models/upload/"
+        data = {"image": True, "definition": True}
+
+        # CALL
+        _, _ = models_api.get_model_upload_urls(jwt)
+
+        # ASSERT
+        mock_post.assert_called_once_with(
+            url, jwt, data
+        )
+
+    def test_response_dictionary_is_handled_correctly_and_returns_both_id_and_urls(self, mock_post):
+        # SETUP
+        jwt = "JWT"
+        urls_dict = {"definition": "definition url", "image": "image url"}
+        mock_post.return_value = {"id": "upload id",
+                                  "urls": urls_dict}
+
+        # CALL
+        upload_id, urls = models_api.get_model_upload_urls(jwt)
+
+        # ASSERT
+        assert upload_id == "upload id"
+        assert urls == urls_dict
