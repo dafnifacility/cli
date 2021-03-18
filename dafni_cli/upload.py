@@ -1,12 +1,12 @@
 import click
 from click import Context, Path
+from click.testing import CliRunner
 
 from dafni_cli.login import check_for_jwt_file
 from dafni_cli.api.models_api import (
     validate_model_definition,
     get_model_upload_urls,
     upload_file_to_minio,
-    model_ingest,
     model_version_ingest
 )
 
@@ -31,24 +31,26 @@ def upload(ctx: Context):
 @click.option("--parent-model", type=str, default=None)
 @click.pass_context
 def model(
-        ctx: Context, definition: str, image: str, version_message: str, parent_model: str
+        ctx: Context, definition: click.Path, image: click.Path, version_message: str, parent_model: str
 ):
     """Uploads model to DAFNI from metadata and image files.
     
     Args:
         ctx (Context): contains JWT for authentication
-        definition (str): File path to the model definition file
-        image (str): File path to the image file
+        definition (click.Path): File path to the model definition file
+        image (click.Path): File path to the image file
         version_message (str): Version message to be included with this model version
         parent_model (str): ID of the parent model that this is an update of
     """
     # TODO Confirmation of choices - print name of parent model?
-
     click.echo("Validating model definition")
+    click.echo(definition.__class__)
+    click.echo(image.__class__)
     valid, errors = validate_model_definition(ctx.obj["jwt"], definition)
     if not valid:
         click.echo("Definition validation failed with the following errors:", errors)
         exit()
+    exit()
 
     click.echo("Getting urls")
     upload_id, urls = get_model_upload_urls(ctx.obj["jwt"])
@@ -60,7 +62,4 @@ def model(
     upload_file_to_minio(ctx.obj["jwt"], image_url, image)
 
     click.echo("Ingesting model")
-    if parent_model:
-        model_version_ingest(ctx.obj["jwt"], parent_model, upload_id, version_message)
-    else:
-        model_ingest(ctx.obj["jwt"], upload_id, version_message)
+    model_version_ingest(ctx.obj["jwt"], upload_id, version_message, parent_model)

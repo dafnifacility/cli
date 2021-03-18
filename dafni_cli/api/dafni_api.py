@@ -1,8 +1,5 @@
 import requests
 from typing import Union, List, BinaryIO
-from io import BufferedReader
-
-from dafni_cli.consts import MODELS_API_URL, DISCOVERY_API_URL
 
 
 def dafni_get_request(
