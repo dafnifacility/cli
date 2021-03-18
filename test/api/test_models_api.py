@@ -178,3 +178,48 @@ class TestUploadFileToMinio:
         mock_put.assert_called_once_with(
             url, jwt, open(Path(file_path), "rb"), MINIO_UPLOAD_CT
         )
+
+
+@patch("dafni_cli.api.models_api.dafni_post_request")
+class TestModelVersionIngest:
+    """Test class to test the model_ingest functionality"""
+
+    def test_post_request_called_with_correct_arguments_when_no_parent_model(
+            self,
+            mock_post
+    ):
+        # SETUP
+        jwt = "JWT"
+        upload_id = "uploadID"
+        version_message = "version message"
+
+        # CALL
+        models_api.model_version_ingest(jwt, upload_id, version_message)
+
+        # ASSERT
+        mock_post.assert_called_once_with(
+            MODELS_API_URL + "/models/upload/uploadID/ingest/",
+            jwt,
+            {"version_message": "version message"}
+        )
+
+    def test_post_request_called_with_correct_arguments_when_there_is_a_parent_model(
+            self,
+            mock_post
+    ):
+        # SETUP
+        jwt = "JWT"
+        upload_id = "uploadID"
+        version_message = "version message"
+        model_id = "parentModel"
+
+        # CALL
+        models_api.model_version_ingest(jwt, upload_id, version_message, model_id)
+
+        # ASSERT
+        mock_post.assert_called_once_with(
+            MODELS_API_URL + "/models/parentModel/upload/uploadID/ingest/",
+            jwt,
+            {"version_message": "version message"}
+        )
+

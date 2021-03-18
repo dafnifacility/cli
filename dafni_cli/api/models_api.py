@@ -58,7 +58,7 @@ def get_model_metadata_dict(jwt: str, model_version_id: str) -> dict:
 
 
 def validate_model_definition(
-    jwt: str, model_definition: Path
+        jwt: str, model_definition: Path
 ) -> Tuple[bool, List[str]]:
     """Validates the model definition file using a PUT to the DAFNI API
 
@@ -81,7 +81,7 @@ def validate_model_definition(
 
 
 def get_model_upload_urls(
-    jwt: str
+        jwt: str
 ) -> Tuple[str, dict]:
     """Obtains the model upload urls from the DAFNI API
 
@@ -101,7 +101,7 @@ def get_model_upload_urls(
 
 
 def upload_file_to_minio(
-    jwt: str, url: str, file_path: Path
+        jwt: str, url: str, file_path: Path
 ) -> None:
     """Function to upload definition or image files to DAFNI
 
@@ -115,33 +115,21 @@ def upload_file_to_minio(
         dafni_put_request(url, jwt, file_data, content_type)
 
 
-def model_ingest(
-    jwt: str, upload_id: str, version_message: str
-) -> None:
-    """Ingests a new model to DAFNI
-
-    Args:
-        jwt (str): JWT
-        upload_id (str): Upload ID
-        version_message (str): Message to be attached to this version
-    """
-    url = MODELS_API_URL + "/models/upload/" + upload_id + "/ingest/"
-    data = {"version_message": version_message}
-    response = dafni_post_request(url, jwt, data)
-
-
 def model_version_ingest(
-    jwt: str, upload_id: str, model_id: str, version_message: str
+        jwt: str, upload_id: str, version_message: str, model_id: str = None
 ) -> None:
     """Ingests a new version of a model to DAFNI
 
         Args:
             jwt (str): JWT
             upload_id (str): Upload ID
-            model_id (str): ID of existing parent model
             version_message (str): Message to be attached to this version
+            model_id (str): ID of existing parent model if it exists
     """
-    url = MODELS_API_URL + "/models/" + model_id + "/upload/" + upload_id + "/ingest/"
+    if model_id:
+        url = MODELS_API_URL + "/models/" + model_id + "/upload/" + upload_id + "/ingest/"
+    else:
+        url = MODELS_API_URL + "/models/upload/" + upload_id + "/ingest/"
     data = {"version_message": version_message}
     response = dafni_post_request(url, jwt, data)
 
