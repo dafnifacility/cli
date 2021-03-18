@@ -9,6 +9,10 @@ DSS_API_URL = "https://dafni-dss-dssauth.secure.dafni.rl.ac.uk"
 JWT_FILENAME = "dafni_jwt.txt"
 JWT_COOKIE = "__Secure-dafnijwt"
 
+# Content types
+MINIO_UPLOAD_CT = "multipart/form-data"
+VALIDATE_MODEL_CT = "application/yaml"
+
 # Formatting
 DATE_TIME_FORMAT = "%m/%d/%Y %H:%M:%S"
 

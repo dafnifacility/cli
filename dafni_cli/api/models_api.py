@@ -3,7 +3,12 @@ from typing import Union, List, Tuple, Optional
 from pathlib import Path
 import click
 
-from dafni_cli.consts import MODELS_API_URL, DISCOVERY_API_URL
+from dafni_cli.consts import (
+    MODELS_API_URL,
+    DISCOVERY_API_URL,
+    VALIDATE_MODEL_CT,
+    MINIO_UPLOAD_CT
+)
 from dafni_cli.api.dafni_api import (
     dafni_get_request,
     dafni_post_request,
@@ -65,7 +70,7 @@ def validate_model_definition(
         bool: Whether the model definition is valid or not
         List[str]: Errors encountered if the model definition file is not valid
     """
-    content_type = "application/yaml"
+    content_type = VALIDATE_MODEL_CT
     url = MODELS_API_URL + "/models/definition/validate/"
     with open(model_definition, "rb") as md:
         response = dafni_put_request(url, jwt, md, content_type)
@@ -105,7 +110,7 @@ def upload_file_to_minio(
         url (str): URL for the file
         file_path (Path): Path to the file
     """
-    content_type = "multipart/form-data"
+    content_type = MINIO_UPLOAD_CT
     with open(file_path, "rb") as file_data:
         dafni_put_request(url, jwt, file_data, content_type)
 
@@ -143,4 +148,6 @@ def model_version_ingest(
 
 if __name__ == '__main__':
     jwt = "JWT eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJsb2dpbi1hcHAtand0IiwiZXhwIjoxNjE2MDg5ODA2LCJzdWIiOiI4ZDg1N2FjZi0yNjRmLTQ5Y2QtOWU3Zi0xZTlmZmQzY2U2N2EifQ.Uoa5kWbVkBA7XGB9MypmSTK1DcwVKiYLF6Dg7WrGtrA"
-    validate_model_definition(jwt, Path("..\path.txt"))
+    upload_id, urls = get_model_upload_urls(jwt)
+    print(upload_id)
+    print(urls)
