@@ -1,6 +1,7 @@
 import requests
 from typing import Union, List, Tuple, Optional
 from pathlib import Path
+import click
 
 from dafni_cli.consts import MODELS_API_URL, DISCOVERY_API_URL
 from dafni_cli.api.dafni_api import (
@@ -66,7 +67,8 @@ def validate_model_definition(
     """
     content_type = "application/yaml"
     url = MODELS_API_URL + "/models/definition/validate/"
-    with open(model_definition, "rb") as md:
+    with model_definition.open("r") as md:
+        print(md.__class__)
         response = dafni_put_request(url, jwt, md, content_type)
     if response["valid"]:
         return True, []
@@ -95,17 +97,17 @@ def get_model_upload_urls(
 
 
 def upload_file_to_minio(
-    jwt: str, url: str, file_path: Path
+    jwt: str, url: str, file_path: str
 ) -> None:
     """Function to upload definition or image files to DAFNI
 
     Args:
         jwt (str): JWT
         url (str): URL for the file
-        file_path (Path): Path to the file
+        file_path (str): Path to the file
     """
     content_type = "multipart/form-data"
-    with open(file_path, "rb") as file_data:
+    with open(file_path, "r") as file_data:
         dafni_put_request(url, jwt, file_data, content_type)
 
 
@@ -138,3 +140,7 @@ def model_version_ingest(
     url = MODELS_API_URL + "/models/" + model_id + "/upload/" + upload_id + "/ingest/"
     data = {"version_message": version_message}
     response = dafni_post_request(url, jwt, data)
+
+
+if __name__ == '__main__':
+    validate_model_definition("jwt", Path("../path.txt"))

@@ -1,6 +1,5 @@
 import click
-from click import Context
-from pathlib import Path
+from click import Context, Path
 
 from dafni_cli.login import check_for_jwt_file
 from dafni_cli.api.models_api import (
@@ -32,14 +31,14 @@ def upload(ctx: Context):
 @click.option("--parent-model", type=str, default=None)
 @click.pass_context
 def model(
-        ctx: Context, definition: Path, image: Path, version_message: str, parent_model: str
+        ctx: Context, definition: str, image: str, version_message: str, parent_model: str
 ):
     """Uploads model to DAFNI from metadata and image files.
     
     Args:
         ctx (Context): contains JWT for authentication
-        definition (Path): File path to the model definition file
-        image (Path): File path to the image file
+        definition (str): File path to the model definition file
+        image (str): File path to the image file
         version_message (str): Version message to be included with this model version
         parent_model (str): ID of the parent model that this is an update of
     """

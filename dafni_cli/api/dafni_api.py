@@ -74,5 +74,6 @@ def dafni_put_request(
         headers={"Content-Type": content_type, "authorization": jwt},
         data=data,
     )
+    print(response.text)
     response.raise_for_status()
     return response.json()

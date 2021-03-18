@@ -1,6 +1,7 @@
 import pytest
-from mock import patch
+from mock import patch, mock_open
 from requests.exceptions import HTTPError
+from pathlib import Path
 
 from dafni_cli.consts import MODELS_API_URL
 from dafni_cli.api import models_api
@@ -12,7 +13,6 @@ class TestGetModelsDicts:
     """Test class to test the get_models_dicts functionality"""
 
     def test_dafni_get_request_called_correctly(self, mock_get):
-
         # SETUP
         mock_get.return_value = [{"key": "value"}]
 
@@ -29,7 +29,6 @@ class TestGetSingleModelDict:
     """Test class to test the get_single_model_dict functionality"""
 
     def test_dafni_get_request_called_correctly(self, mock_get):
-
         # SETUP
         mock_get.return_value = {"key": "value"}
 
@@ -48,7 +47,6 @@ class TestModelMetaDataDict:
     """Test class to test the get_model_metadata_dict functionality"""
 
     def test_dafni_get_request_called_correctly(self, mock_get):
-
         # SETUP
         mock_get.return_value = {"key": "value"}
 
@@ -62,3 +60,33 @@ class TestModelMetaDataDict:
         mock_get.assert_called_once_with(
             MODELS_API_URL + "/models/version_1/definition/", JWT
         )
+
+
+@patch("dafni_cli.api.models_api.dafni_put_request")
+class TestValidateModelDefinition:
+    """Test class to test the validate_model_definition functionality"""
+
+    @patch(
+        "builtins.open", new_callable=mock_open, read_data="valid definition file"
+    )
+    def test_valid_model_definition_file_processed_correctly(
+            self,
+            open_mock,
+            mock_put
+    ):
+        # SETUP
+        mock_put.return_value = {"valid": True}
+        # open_mock.return_value = "valid definition file"
+
+        jwt = "JWT"
+        content_type = "application/yaml"
+
+        # CALL
+        response, errors = models_api.validate_model_definition(jwt, Path("definition.yaml"))
+
+        # ASSERT
+        mock_put.assert_called_once_with(
+            MODELS_API_URL + "/models/definition/validate/", jwt, "valid model definition", "application/yaml"
+        )
+        assert response
+        assert errors == []
