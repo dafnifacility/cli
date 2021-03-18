@@ -136,6 +136,4 @@ def model_version_ingest(
 
 if __name__ == '__main__':
     jwt = "JWT eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJsb2dpbi1hcHAtand0IiwiZXhwIjoxNjE2MDg5ODA2LCJzdWIiOiI4ZDg1N2FjZi0yNjRmLTQ5Y2QtOWU3Zi0xZTlmZmQzY2U2N2EifQ.Uoa5kWbVkBA7XGB9MypmSTK1DcwVKiYLF6Dg7WrGtrA"
-    upload_id, urls = get_model_upload_urls(jwt)
-    print(upload_id)
-    print(urls)
+
