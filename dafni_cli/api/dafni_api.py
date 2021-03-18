@@ -1,5 +1,6 @@
 import requests
-from typing import Union, List, Optional
+from typing import Union, List, BinaryIO
+from io import BufferedReader
 
 from dafni_cli.consts import MODELS_API_URL, DISCOVERY_API_URL
 
@@ -55,7 +56,7 @@ def dafni_post_request(
 
 
 def dafni_put_request(
-    url: str, jwt: str, data, content_type: str
+    url: str, jwt: str, data: BinaryIO, content_type: str
 ) -> dict:
     """Performs a PUT request from the DAFNI API.
     If a status other than 200 is returned, an exception will be raised.
@@ -63,17 +64,16 @@ def dafni_put_request(
     Args:
         url (str): The url endpoint that is being queried
         jwt (str): JWT
-        data: The data to be PUT-ed
+        data (BinaryIO): The data to be PUT-ed
         content_type (str): Content type for the headers
 
     Returns:
         bool: Response when validating data
     """
-    response = requests.post(
+    response = requests.put(
         url,
         headers={"Content-Type": content_type, "authorization": jwt},
         data=data,
     )
-    print(response.text)
     response.raise_for_status()
     return response.json()
