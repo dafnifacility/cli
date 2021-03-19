@@ -10,6 +10,7 @@ from dafni_cli.api.models_api import (
     upload_file_to_minio,
     model_version_ingest
 )
+from dafni_cli.utils import argument_confirmation
 
 
 @click.group()
@@ -43,7 +44,20 @@ def model(
         version_message (str): Version message to be included with this model version
         parent_model (str): ID of the parent model that this is an update of
     """
-    # TODO Confirmation of choices - print name of parent model?
+    argument_names = ["Model definition file path",
+                      "Image file path",
+                      "Version message"]
+    arguments = [definition,
+                 image,
+                 version_message]
+    if parent_model:
+        argument_names.append("Parent model ID")
+        arguments.append(parent_model)
+        additional_message = None
+    else:
+        additional_message = "No parent model: new model to be created"
+    argument_confirmation(argument_names, arguments, additional_message)
+
     click.echo("Validating model definition")
     valid, error_message = validate_model_definition(ctx.obj["jwt"], definition)
     if not valid:

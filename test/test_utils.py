@@ -259,3 +259,62 @@ class TestProcessDateFilter:
         # SETUP # CALL # ASSERT
         with pytest.raises(ValueError):
             utils.process_date_filter(date_str)
+
+
+@patch("dafni_cli.utils.click")
+class TestArgumentConfirmation:
+    """Test class to test the argument_confirmation functionality"""
+
+    def test_arguments_are_printed_correctly_without_additional_messages(self, mock_click):
+        # SETUP
+        argument_names = ["arg 1", "arg 2", "arg 3"]
+        arguments = ["string option", "12", "{'key': 'value'}"]
+
+        # CALL
+        utils.argument_confirmation(argument_names, arguments)
+
+        # ASSERT
+        assert mock_click.echo.call_args_list == [
+            call("arg 1: string option"),
+            call("arg 2: 12"),
+            call("arg 3: {'key': 'value'}")
+        ]
+        mock_click.confirm.assert_called_once_with('Confirm model upload?', abort=True)
+
+    def test_arguments_are_printed_correctly_with_additional_messages(self, mock_click):
+        # SETUP
+        argument_names = ["arg 1", "arg 2", "arg 3"]
+        arguments = ["string option", "12", "{'key': 'value'}"]
+        additional_messages = ["additional message 1", "additional message 2"]
+
+        # CALL
+        utils.argument_confirmation(argument_names, arguments, additional_messages)
+
+        # ASSERT
+        assert mock_click.echo.call_args_list == [
+            call("arg 1: string option"),
+            call("arg 2: 12"),
+            call("arg 3: {'key': 'value'}"),
+            call("additional message 1"),
+            call("additional message 2")
+        ]
+        mock_click.confirm.assert_called_once_with('Confirm model upload?', abort=True)
+
+    def test_arguments_are_printed_correctly_with_none_additional_message_specified(
+            self, mock_click
+    ):
+        # SETUP
+        argument_names = ["arg 1", "arg 2", "arg 3"]
+        arguments = ["string option", "12", "{'key': 'value'}"]
+        additional_messages = None
+
+        # CALL
+        utils.argument_confirmation(argument_names, arguments, additional_messages)
+
+        # ASSERT
+        assert mock_click.echo.call_args_list == [
+            call("arg 1: string option"),
+            call("arg 2: 12"),
+            call("arg 3: {'key': 'value'}")
+        ]
+        mock_click.confirm.assert_called_once_with('Confirm model upload?', abort=True)

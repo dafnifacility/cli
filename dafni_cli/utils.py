@@ -1,6 +1,6 @@
 import click
 import textwrap
-from typing import List
+from typing import List, Optional
 from datetime import datetime as dt
 
 
@@ -71,3 +71,22 @@ def process_date_filter(date_str: str) -> str:
         str: Processed date str to YYYY-MM-DDT00:00:00
     """
     return dt.strptime(date_str, "%d/%m/%Y").strftime("%Y-%m-%dT%H:%M:%S")
+
+
+def argument_confirmation(
+        argument_names: List[str], arguments: List[str], additional_messages: Optional[List[str]]=None
+):
+    """Function to display the arguments and options chosen by the user
+    and ask for confirmation
+
+    Args:
+        argument_names (List[str]): List of the names of the arguments/options for the command
+        arguments (List[str]): List of values chosen for each corresponding argument/option
+        additional_messages (Optional[List[str]]): Other messages to be added after options are listed
+    """
+    for i in range(len(argument_names)):
+        click.echo(argument_names[i] + ": " + arguments[i])
+    if additional_messages:
+        for message in additional_messages:
+            click.echo(message)
+    click.confirm('Confirm model upload?', abort=True)
