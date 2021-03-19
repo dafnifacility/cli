@@ -1,5 +1,6 @@
 from dateutil.parser import isoparse
 import click
+from typing import Optional
 
 from dafni_cli.consts import CONSOLE_WIDTH, DATA_FORMATS
 from dafni_cli.utils import (
@@ -25,7 +26,26 @@ class DataFile:
         format: File Format
     """
 
-    def __init__(self, file_dict: dict):
+    def __init__(self, file_dict: Optional[dict] = None):
+        """DatFile Constructor
+
+        Args:
+            file_dict (Optional[dict], optional): DataFile Client model to map. Defaults to None.
+        """
+        self.name = None
+        self.size = None
+        self.format = None
+
+        if file_dict:
+            self.set_details_from_dict(file_dict)
+
+    def set_details_from_dict(self, file_dict: dict):
+        """Function to set the DataFile attributes based on a given
+        Dataset metadata client model
+
+        Args:
+            file_dict (dict): [description]
+        """
         self.name = check_key_in_dict(file_dict, "spdx:fileName")
         self.size = process_file_size(
             check_key_in_dict(file_dict, "dcat:byteSize", default=None)
@@ -66,7 +86,7 @@ class DatasetMeta:
         update: Update Frequency
     """
 
-    def __init__(self):
+    def __init__(self, dataset_dict: Optional[dict] = None):
         """DatasetMeta constructor"""
         self.created = None
         self.creator = None
@@ -86,6 +106,9 @@ class DatasetMeta:
         self.standard = None
         self.update = None
 
+        if dataset_dict:
+            self.set_details_from_dict(dataset_dict)
+
     def set_details_from_dict(self, dataset_dict: dict):
         """Helper function to populate the DatasetMeta details
         based on a given DAFNI Dataset metadata client model
@@ -95,7 +118,8 @@ class DatasetMeta:
         """
         # Standard Metadata
         self.created = process_dict_datetime(dataset_dict, "dct:created")
-        self.creator = check_key_in_dict(dataset_dict, "dct:creator", "foaf:name")
+        if check_key_in_dict(dataset_dict, "dct:creator", default=None):
+            self.creator = dataset_dict["dct:creator"][0]["foaf:name"]
         self.contact = check_key_in_dict(
             dataset_dict, "dcat:contactPoint", "vcard:hasEmail"
         )
