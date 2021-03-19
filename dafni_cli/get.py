@@ -7,8 +7,9 @@ from dafni_cli.api.models_api import get_models_dicts
 from dafni_cli.datasets import dataset_filtering, dataset_metadata
 from dafni_cli.datasets.dataset import Dataset
 from dafni_cli.login import check_for_jwt_file
+from dafni_cli.model.model import Model
+from dafni_cli.model.version_history import ModelVersionHistory
 from dafni_cli.api.models_api import get_models_dicts
-from dafni_cli.model import Model
 from dafni_cli.utils import process_response_to_class_list
 
 
@@ -61,24 +62,34 @@ def models(ctx: Context, long: bool, creation_date: str, publication_date: str):
         if publication_date:
             date_filter = model.filter_by_date("publication", publication_date)
         if date_filter:
-            model.output_model_details(long)
+            model.output_details(long)
 
 
-@get.command()
-@click.argument("version-id", nargs=-1, required=True, type=str)
+@get.command(help="Display metadata or version history of a particular model or models")
+@click.argument("version-id", nargs=-1, required=True)
+@click.option(
+    "--version-history/--metadata",
+    default=False,
+    help="Whether to display the version history of a model instead of the metadata",
+)
 @click.pass_context
-def model(ctx: Context, version_id: List[str]):
+def model(ctx: Context, version_id: List[str], version_history: bool):
     """Displays the metadata for one or more model versions
 
     Args:
-         ctx (context): contains JWT for authentication
-         version_id (list[str]): List of version ids of the models to be displayed
+        ctx (Context): contains JWT for authentication
+        version_id (list[str]): List of version IDs of the models to be displayed
+        version_history (bool): Whether to display version_history instead of metadata
     """
     for vid in version_id:
-        model = Model()
+        model = Model(vid)
         model.get_details_from_id(ctx.obj["jwt"], vid)
-        model.get_metadata(ctx.obj["jwt"])
-        model.output_model_metadata()
+        if version_history:
+            history = ModelVersionHistory(ctx.obj["jwt"], model)
+            history.output_version_history()
+        else:
+            model.get_metadata(ctx.obj["jwt"])
+            model.output_metadata()
 
 
 @get.command(help="List and filter datasets")

@@ -3,7 +3,7 @@ from mock import patch, call
 from dateutil import parser
 
 from dafni_cli import utils
-from dafni_cli.model import Model
+from dafni_cli.model.model import Model
 from test.fixtures.model_fixtures import get_models_list_fixture
 
 
@@ -232,7 +232,7 @@ class TestOptionalColumn:
 
 
 class TestProcessDateFilter:
-    """Test class to test te process_date_filter functionality"""
+    """Test class to test the process_date_filter functionality"""
 
     @pytest.mark.parametrize(
         "date_str, expected",

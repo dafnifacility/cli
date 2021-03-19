@@ -13,13 +13,13 @@ class TestProcessDatasetsFiltering:
         [
             (None, None, None, {}),
             ("DAFNI Search", None, None, {"search_text": "DAFNI Search"}),
-            (None, "Start Date", None, {"date_range": {"begin": "Start Date"}}),
-            (None, None, "End Date", {"date_range": {"end": "End Date"}}),
+            (None, "Start Date", None, {"date_range": {"begin": "Start Date", "data_with_no_date": False}}),
+            (None, None, "End Date", {"date_range": {"end": "End Date", "data_with_no_date": False}}),
             (
                 "DAFNI Search",
                 None,
                 "End Date",
-                {"search_text": "DAFNI Search", "date_range": {"end": "End Date"}},
+                {"search_text": "DAFNI Search", "date_range": {"end": "End Date", "data_with_no_date": False}},
             ),
             (
                 "DAFNI Search",
@@ -27,7 +27,7 @@ class TestProcessDatasetsFiltering:
                 "End Date",
                 {
                     "search_text": "DAFNI Search",
-                    "date_range": {"begin": "Start Date", "end": "End Date"},
+                    "date_range": {"begin": "Start Date", "end": "End Date", "data_with_no_date": False},
                 },
             ),
         ],ids=[
