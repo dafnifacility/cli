@@ -132,19 +132,25 @@ def datasets(
 
 @get.command()
 @click.option(
-    "--long/--short",
+    "--long/--short","-l/-s",
     default=False,
     help="Also displays the full description of each model.",
     type=bool,
 )
-@click.option("--id", required=True, type=str, help="Dataset ID")
-@click.option("--version-id", required=True, type=str, help="Dataset Version ID")
+@click.option("--id", "-i", required=True, type=str, help="Dataset ID")
+@click.option("--version-id", "-v", required=True, type=str, help="Dataset Version ID")
 @click.pass_context
 def dataset(ctx: Context, id: str, version_id: str, long: bool):
+    """Command to the the meta data relating to a given version of a dataset
 
+    Args:
+        ctx (Context): CLI context
+        id (str): Dataset ID
+        version_id (str): Dataset version ID
+        long (bool): Flag to view additional metadata attributes
+    """
     metadata = get_latest_dataset_metadata(ctx.obj["jwt"], id, version_id)
-    dataset_meta = dataset_metadata.DatasetMeta()
-    dataset_meta.set_details_from_dict(metadata)
+    dataset_meta = dataset_metadata.DatasetMeta(metadata)
     dataset_meta.output_metadata_details(long)
 
 

@@ -136,11 +136,11 @@ If there is no valid JWT, the user will be prompted to login before the command 
   *Note*: If a date range filter is applied, the default behavior is to omit any datasets that don't have a date range set. This is in part due to a bug with the discovery api (https://github.com/dafnifacility/user-feedback/issues/72) which means we can't use this filter without a search term.
   
   *Arguments*:
-  - **--id**: Dataset ID
-  - **--version-id**: Dataset Version ID
+  - **--id**/**-i**: Dataset ID
+  - **--version-id**/**-v**: Dataset Version ID
 
   *Options*:
-  - **--long**: This prints out the additional Metadata fields: Themes, Publisher, Issued date, Rights, Language, Standards, & update frequency
+  - **--long**/**-l**: This prints out the additional Metadata fields: Themes, Publisher, Issued date, Rights, Language, Standards, & update frequency
   
   Example output:
   <pre>

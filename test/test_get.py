@@ -7,10 +7,13 @@ from dafni_cli.model import (
     model,
     version_history,
 )
-from dafni_cli.datasets import dataset
+from dafni_cli.datasets import dataset, dataset_metadata
 from test.fixtures.jwt_fixtures import processed_jwt_fixture
 from test.fixtures.model_fixtures import get_models_list_fixture
-from test.fixtures.dataset_fixtures import get_dataset_list_fixture
+from test.fixtures.dataset_fixtures import (
+    get_dataset_list_fixture,
+    dataset_metadata_fixture,
+)
 from test.fixtures.model_fixtures import get_model_metadata_fixture
 
 
@@ -498,7 +501,109 @@ class TestGet:
             runner = CliRunner()
 
             # CALL
-            result = runner.invoke(get.get, ["datasets", *filter_args])
+            runner.invoke(get.get, ["datasets", *filter_args])
 
             # ASSERT
             mock_filter.assert_called_once_with(search, start, end)
+
+    @patch.object(dataset_metadata.DatasetMeta, "output_metadata_details")
+    @patch.object(dataset_metadata.DatasetMeta, "__init__")
+    @patch("dafni_cli.get.get_latest_dataset_metadata")
+    @patch("dafni_cli.get.check_for_jwt_file")
+    class TestDataset:
+        """Test class to test the get group dataset command"""
+
+        @pytest.mark.parametrize("version_tag", ["--version-id", "-v"])
+        @pytest.mark.parametrize("id_tag", ["--id", "-i"])
+        def test_get_dataset_called_with_jwt_from_context_with_default_long_value(
+            self,
+            mock_jwt,
+            mock_get,
+            mock_init,
+            mock_output,
+            id_tag,
+            version_tag,
+            processed_jwt_fixture,
+            dataset_metadata_fixture,
+        ):
+            # SETUP
+            # setup get group command to set the context containing a JWT
+            mock_jwt.return_value = processed_jwt_fixture, False
+            # setup get_latest_dataset_metadata call
+            response = dataset_metadata_fixture
+            mock_get.return_value = response
+            # setup DatasetMeta class
+            mock_init.return_value = None
+            mock_output.return_value = "Output"
+
+            # setup data
+            dataset_id = "0a0a0a0a-0a00-0a00-a000-0a0a0000000a"
+            version_id = "0a0a0a0a-0a00-0a00-a000-0a0a0000000b"
+
+            # Setup click
+            runner = CliRunner()
+
+            # CALL
+            result = runner.invoke(
+                get.get, ["dataset", id_tag, dataset_id, version_tag, version_id]
+            )
+
+            # ASSERT
+            mock_get.assert_called_once_with(
+                processed_jwt_fixture["jwt"], dataset_id, version_id
+            )
+            mock_init.assert_called_once_with(response)
+            mock_output.assert_called_once_with(False)
+
+            assert result.exit_code == 0
+
+        @pytest.mark.parametrize("version_tag", ["--version-id", "-v"])
+        @pytest.mark.parametrize("id_tag", ["--id", "-i"])
+        @pytest.mark.parametrize(
+            "option, long",
+            [("--short", False), ("-s", False), ("-l", True), ("--long", True)],
+        )
+        def test_get_dataset_called_with_jwt_from_context_with_given_long_value(
+            self,
+            mock_jwt,
+            mock_get,
+            mock_init,
+            mock_output,
+            option,
+            long,
+            id_tag,
+            version_tag,
+            processed_jwt_fixture,
+            dataset_metadata_fixture,
+        ):
+            # SETUP
+            # setup get group command to set the context containing a JWT
+            mock_jwt.return_value = processed_jwt_fixture, False
+            # setup get_latest_dataset_metadata call
+            response = dataset_metadata_fixture
+            mock_get.return_value = response
+            # setup DatasetMeta class
+            mock_init.return_value = None
+            mock_output.return_value = "Output"
+
+            # setup data
+            dataset_id = "0a0a0a0a-0a00-0a00-a000-0a0a0000000a"
+            version_id = "0a0a0a0a-0a00-0a00-a000-0a0a0000000b"
+
+            # Setup click
+            runner = CliRunner()
+
+            # CALL
+            result = runner.invoke(
+                get.get,
+                ["dataset", id_tag, dataset_id, version_tag, version_id, option],
+            )
+
+            # ASSERT
+            mock_get.assert_called_once_with(
+                processed_jwt_fixture["jwt"], dataset_id, version_id
+            )
+            mock_init.assert_called_once_with(response)
+            mock_output.assert_called_once_with(long)
+
+            assert result.exit_code == 0
