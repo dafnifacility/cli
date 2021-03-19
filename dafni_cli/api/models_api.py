@@ -3,13 +3,13 @@ from typing import Union, List, Tuple, Optional
 from pathlib import Path
 import click
 
-from dafni_cli.consts import (
+from consts import (
     MODELS_API_URL,
     DISCOVERY_API_URL,
     VALIDATE_MODEL_CT,
     MINIO_UPLOAD_CT
 )
-from dafni_cli.api.dafni_api import (
+from api.dafni_api import (
     dafni_get_request,
     dafni_post_request,
     dafni_put_request
@@ -59,7 +59,7 @@ def get_model_metadata_dict(jwt: str, model_version_id: str) -> dict:
 
 def validate_model_definition(
         jwt: str, model_definition: Path
-) -> Tuple[bool, List[str]]:
+) -> Tuple[bool, str]:
     """Validates the model definition file using a PUT to the DAFNI API
 
     Args:
@@ -75,9 +75,9 @@ def validate_model_definition(
     with open(model_definition, "rb") as md:
         response = dafni_put_request(url, jwt, md, content_type)
     if response["valid"]:
-        return True, []
+        return True, ""
     else:
-        return False, response["errors"]
+        return False, response["errors"][0]
 
 
 def get_model_upload_urls(
@@ -110,8 +110,12 @@ def upload_file_to_minio(
         url (str): URL for the file
         file_path (Path): Path to the file
     """
+    print(url)
+    print(file_path.__class__)
     content_type = MINIO_UPLOAD_CT
+    print(content_type)
     with open(file_path, "rb") as file_data:
+        print(file_data.__class__)
         dafni_put_request(url, jwt, file_data, content_type)
 
 

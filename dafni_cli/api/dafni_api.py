@@ -67,6 +67,10 @@ def dafni_put_request(
     Returns:
         bool: Response when validating data
     """
+    print(url)
+    print(content_type)
+    print(data.__class__)
+    print(data.read())
     response = requests.put(
         url,
         headers={"Content-Type": content_type, "authorization": jwt},
