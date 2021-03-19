@@ -89,7 +89,8 @@ Models:
 * View version history for specific model (format as models available list)
 * View specific historical model version metadata (format as specific model latest metadata)
 * Upload a new model
-* Delete a model
+
+Python packaging of CLI
 
 Datasets:
 * List all datasets available to user
@@ -101,8 +102,11 @@ Datasets:
 * Upload a new dataset
 * Update dataset metadata
 * Update dataset data files to create new version
+
+Deleting models and datasets
+* Delete a model
 * Delete a dataset
-* Delete a dataset version
+* Delete a dataset version]
 
 Workflows:
 * List all workflows available to user
