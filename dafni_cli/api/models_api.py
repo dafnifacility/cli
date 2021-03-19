@@ -3,13 +3,13 @@ from typing import Union, List, Tuple, Optional
 from pathlib import Path
 import click
 
-from consts import (
+from dafni_cli.consts import (
     MODELS_API_URL,
     DISCOVERY_API_URL,
     VALIDATE_MODEL_CT,
     MINIO_UPLOAD_CT
 )
-from api.dafni_api import (
+from dafni_cli.api.dafni_api import (
     dafni_get_request,
     dafni_post_request,
     dafni_put_request

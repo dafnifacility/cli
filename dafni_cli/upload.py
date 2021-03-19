@@ -4,7 +4,7 @@ from click.testing import CliRunner
 from pathlib import Path
 
 from dafni_cli.login import check_for_jwt_file
-from api.models_api import (
+from dafni_cli.api.models_api import (
     validate_model_definition,
     get_model_upload_urls,
     upload_file_to_minio,
