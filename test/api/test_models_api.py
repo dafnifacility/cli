@@ -76,15 +76,17 @@ class TestValidateModelDefinition:
     def test_valid_model_definition_file_processed_correctly(
             self,
             open_mock,
-            mock_put
+            mock_put,
+            request_response_fixture
     ):
         # SETUP
-        mock_put.return_value = {"valid": True}
+        request_response_fixture.json.return_value = {"valid": True}
+        mock_put.return_value = request_response_fixture
         mock_file = Path("definition_file")
         jwt = "JWT"
 
         # CALL
-        response, errors = models_api.validate_model_definition(jwt, mock_file)
+        response, error_message = models_api.validate_model_definition(jwt, mock_file)
 
         # ASSERT
         open_mock.assert_called_once_with(
@@ -94,15 +96,17 @@ class TestValidateModelDefinition:
             MODELS_API_URL + "/models/definition/validate/", jwt, open(mock_file, "rb"), VALIDATE_MODEL_CT
         )
         assert response
-        assert errors == []
+        assert error_message == ""
 
     def test_invalid_model_definition_file_processed_correctly(
             self,
             open_mock,
-            mock_put
+            mock_put,
+            request_response_fixture
     ):
         # SETUP
-        mock_put.return_value = {"valid": False, "errors": ["error message"]}
+        request_response_fixture.json.return_value = {"valid": False, "errors": ["error message"]}
+        mock_put.return_value = request_response_fixture
         mock_file = Path("definition_file")
         jwt = "JWT"
 
@@ -117,7 +121,7 @@ class TestValidateModelDefinition:
             MODELS_API_URL + "/models/definition/validate/", jwt, open(mock_file, "rb"), VALIDATE_MODEL_CT
         )
         assert not response
-        assert errors == ["error message"]
+        assert errors == "error message"
 
 
 @patch("dafni_cli.api.models_api.dafni_post_request")

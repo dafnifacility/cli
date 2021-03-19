@@ -1,5 +1,6 @@
 import requests
 from typing import Union, List, BinaryIO
+from requests import Response
 
 
 def dafni_get_request(
@@ -54,7 +55,7 @@ def dafni_post_request(
 
 def dafni_put_request(
     url: str, jwt: str, data: BinaryIO, content_type: str
-) -> dict:
+) -> Response:
     """Performs a PUT request from the DAFNI API.
     If a status other than 200 is returned, an exception will be raised.
 
@@ -65,16 +66,12 @@ def dafni_put_request(
         content_type (str): Content type for the headers
 
     Returns:
-        bool: Response when validating data
+        Response: Response from API
     """
-    print(url)
-    print(content_type)
-    print(data.__class__)
-    print(data.read())
     response = requests.put(
         url,
         headers={"Content-Type": content_type, "authorization": jwt},
         data=data,
     )
     response.raise_for_status()
-    return response.json()
+    return response

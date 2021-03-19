@@ -74,10 +74,10 @@ def validate_model_definition(
     url = MODELS_API_URL + "/models/definition/validate/"
     with open(model_definition, "rb") as md:
         response = dafni_put_request(url, jwt, md, content_type)
-    if response["valid"]:
+    if response.json()["valid"]:
         return True, ""
     else:
-        return False, response["errors"][0]
+        return False, response.json()["errors"][0]
 
 
 def get_model_upload_urls(
@@ -107,15 +107,11 @@ def upload_file_to_minio(
 
     Args:
         jwt (str): JWT
-        url (str): URL for the file
+        url (str): URL to upload the file to
         file_path (Path): Path to the file
     """
-    print(url)
-    print(file_path.__class__)
     content_type = MINIO_UPLOAD_CT
-    print(content_type)
     with open(file_path, "rb") as file_data:
-        print(file_data.__class__)
         dafni_put_request(url, jwt, file_data, content_type)
 
 

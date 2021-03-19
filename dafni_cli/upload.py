@@ -54,9 +54,6 @@ def model(
     upload_id, urls = get_model_upload_urls(ctx.obj["jwt"])
     definition_url = urls["definition"]
     image_url = urls["image"]
-    click.echo(upload_id)
-    click.echo(definition_url)
-    click.echo(image_url)
 
     click.echo("Uploading model definition and image")
     upload_file_to_minio(ctx.obj["jwt"], definition_url, definition)
@@ -64,7 +61,3 @@ def model(
 
     click.echo("Ingesting model")
     model_version_ingest(ctx.obj["jwt"], upload_id, version_message, parent_model)
-
-
-if __name__ == "__main__":
-    upload()

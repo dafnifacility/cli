@@ -152,7 +152,7 @@ class TestDafniPutRequest:
         result = dafni_api.dafni_put_request(url, jwt, data, content_type)
 
         # ASSERT
-        assert result == {"key": "value"}
+        assert result == request_response_fixture
         mock_request.put.assert_called_once_with(
             url,
             headers={"Content-Type": content_type, "authorization": jwt},
