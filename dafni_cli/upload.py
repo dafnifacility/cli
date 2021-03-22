@@ -87,3 +87,5 @@ def model(
 
     click.echo("Ingesting model")
     model_version_ingest(ctx.obj["jwt"], upload_id, version_message, parent_model)
+
+    click.echo("Model upload complete")

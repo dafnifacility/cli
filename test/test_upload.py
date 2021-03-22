@@ -281,5 +281,6 @@ class TestUpload:
                 call("Validating model definition"),
                 call("Getting urls"),
                 call("Uploading model definition and image"),
-                call("Ingesting model")
+                call("Ingesting model"),
+                call("Model upload complete")
             ]
