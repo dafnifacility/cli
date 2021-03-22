@@ -1,8 +1,12 @@
 import requests
 from typing import Union, List
+from requests import Response
 
 from dafni_cli.consts import MODELS_API_URL, DISCOVERY_API_URL
-from dafni_cli.api.dafni_api import dafni_get_request
+from dafni_cli.api.dafni_api import (
+    dafni_get_request,
+    dafni_delete_request
+)
 
 
 def get_models_dicts(jwt: str) -> List[dict]:
@@ -44,3 +48,14 @@ def get_model_metadata_dict(jwt: str, model_version_id: str) -> dict:
     """
     url = MODELS_API_URL + "/models/" + model_version_id + "/definition/"
     return dafni_get_request(url, jwt)
+
+
+def delete_model(jwt: str, model_version_id: str) -> Response:
+    """Calls the delete model endpoint.
+
+    Args:
+        jwt (str): JWT
+        model_version_id (str): model version ID for selected model
+    """
+    url = MODELS_API_URL + "/models/" + model_version_id
+    return dafni_delete_request(url, jwt)
