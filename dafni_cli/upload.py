@@ -2,6 +2,8 @@ import click
 from click import Context
 from click.testing import CliRunner
 from pathlib import Path
+from requests.exceptions import HTTPError
+from requests import Response
 
 from dafni_cli.login import check_for_jwt_file
 from dafni_cli.api.models_api import (
@@ -55,14 +57,24 @@ def model(
         arguments.append(parent_model)
         additional_message = None
     else:
-        additional_message = "No parent model: new model to be created"
+        additional_message = ["No parent model: new model to be created"]
     argument_confirmation(argument_names, arguments, additional_message)
 
     click.echo("Validating model definition")
-    valid, error_message = validate_model_definition(ctx.obj["jwt"], definition)
+    # Print helpful message when 500 error returned
+    try:
+        valid, error_message = validate_model_definition(ctx.obj["jwt"], definition)
+    except HTTPError as e:
+        if e.response.status_code == 500:
+            click.echo("Error validating the model definition. "
+                       "See https://docs.secure.dafni.rl.ac.uk/docs/how-to/models/how-to-write-a-model-definition-file/"
+                       " for guidance")
+        else:
+            click.echo(e)
+        exit(1)
     if not valid:
         click.echo("Definition validation failed with the following errors: " + error_message)
-        exit()
+        exit(1)
 
     click.echo("Getting urls")
     upload_id, urls = get_model_upload_urls(ctx.obj["jwt"])

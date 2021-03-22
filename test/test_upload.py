@@ -1,6 +1,7 @@
 import pytest
 from mock import patch, call
 from click.testing import CliRunner
+from requests import HTTPError, Response
 
 from dafni_cli import upload
 from test.fixtures.jwt_fixtures import processed_jwt_fixture
@@ -66,6 +67,79 @@ class TestUpload:
     class TestModel:
         """test class to test the upload.model() command functionality"""
 
+        def test_method_aborted_and_500_error_printed_if_500_response_from_validation_method(
+                self,
+                mock_validate,
+                mock_click,
+                mock_confirm,
+                mock_jwt,
+                processed_jwt_fixture
+        ):
+            # SETUP
+            mock_jwt.return_value = processed_jwt_fixture, False
+            error_response = Response()
+            error_response.status_code = 500
+            mock_validate.side_effect = HTTPError(response=error_response)
+            runner = CliRunner()
+
+            # CALL
+            with runner.isolated_filesystem():
+                with open('test_definition.yaml', 'w') as f:
+                    f.write("test definition file")
+                with open('test_image.txt', 'w') as f:
+                    f.write("test image file")
+                result = runner.invoke(upload.upload,
+                                       ["model",
+                                        "test_definition.yaml",
+                                        "test_image.txt",
+                                        "--version-message",
+                                        "version message"])
+
+            # ASSERT
+            assert result.exit_code == 1
+            assert mock_click.echo.call_args_list == [
+                call("Validating model definition"),
+                call("Error validating the model definition. "
+                     "See https://docs.secure.dafni.rl.ac.uk/docs/how-to/models/how-to-write-a-model-definition-file/"
+                     " for guidance")
+            ]
+
+        def test_method_aborted_and_standard_error_printed_if_non200_or_500_response_from_validation_method(
+                self,
+                mock_validate,
+                mock_click,
+                mock_confirm,
+                mock_jwt,
+                processed_jwt_fixture
+        ):
+            # SETUP
+            mock_jwt.return_value = processed_jwt_fixture, False
+            error_response = Response()
+            error_response.status_code = 400
+            error = HTTPError("error message", response=error_response)
+            mock_validate.side_effect = error
+            runner = CliRunner()
+
+            # CALL
+            with runner.isolated_filesystem():
+                with open('test_definition.yaml', 'w') as f:
+                    f.write("test definition file")
+                with open('test_image.txt', 'w') as f:
+                    f.write("test image file")
+                result = runner.invoke(upload.upload,
+                                       ["model",
+                                        "test_definition.yaml",
+                                        "test_image.txt",
+                                        "--version-message",
+                                        "version message"])
+
+            # ASSERT
+            assert result.exit_code == 1
+            assert mock_click.echo.call_args_list == [
+                call("Validating model definition"),
+                call(error)
+            ]
+
         def test_method_aborted_and_error_printed_if_model_definition_is_not_valid(
                 self,
                 mock_validate,
@@ -93,11 +167,11 @@ class TestUpload:
                                         "version message"])
 
             # ASSERT
-            assert result.exit_code == 0
+            assert result.exit_code == 1
             mock_confirm.assert_called_once_with(
                 ["Model definition file path", "Image file path", "Version message"],
                 ["test_definition.yaml", "test_image.txt", "version message"],
-                "No parent model: new model to be created"
+                ["No parent model: new model to be created"]
             )
             mock_validate.assert_called_once_with(
                 processed_jwt_fixture["jwt"], "test_definition.yaml"
@@ -114,32 +188,32 @@ class TestUpload:
             "upload_options, expected_argument, confirm_arg_1, confirm_arg_2, confirm_arg_3",
             [
                 (
-                    [
-                        "model",
-                        "test_definition.yaml",
-                        "test_image.txt",
-                        "--version-message",
-                        "version message"
-                    ],
-                    None,
-                    ["Model definition file path", "Image file path", "Version message"],
-                    ["test_definition.yaml", "test_image.txt", "version message"],
-                    "No parent model: new model to be created"
+                        [
+                            "model",
+                            "test_definition.yaml",
+                            "test_image.txt",
+                            "--version-message",
+                            "version message"
+                        ],
+                        None,
+                        ["Model definition file path", "Image file path", "Version message"],
+                        ["test_definition.yaml", "test_image.txt", "version message"],
+                        ["No parent model: new model to be created"]
                 ),
                 (
-                    [
-                        "model",
-                        "test_definition.yaml",
-                        "test_image.txt",
-                        "--version-message",
-                        "version message",
-                        "--parent-model",
-                        "parent-model-id"
-                    ],
-                    "parent-model-id",
-                    ["Model definition file path", "Image file path", "Version message", "Parent model ID"],
-                    ["test_definition.yaml", "test_image.txt", "version message", "parent-model-id"],
-                    None
+                        [
+                            "model",
+                            "test_definition.yaml",
+                            "test_image.txt",
+                            "--version-message",
+                            "version message",
+                            "--parent-model",
+                            "parent-model-id"
+                        ],
+                        "parent-model-id",
+                        ["Model definition file path", "Image file path", "Version message", "Parent model ID"],
+                        ["test_definition.yaml", "test_image.txt", "version message", "parent-model-id"],
+                        None
                 )
             ],
             ids=[
