@@ -9,6 +9,7 @@ from dafni_cli.api.models_api import (
     get_single_model_dict,
     get_model_metadata_dict,
 )
+from dafni_cli.auth import Auth
 from dafni_cli.utils import prose_print
 
 
@@ -47,6 +48,7 @@ class Model:
         self.dictionary = None
         self.display_name = None
         self.metadata = None
+        self.privileges = None
         self.publication_time = None
         self.summary = None
         self.version_id = identifier
@@ -64,6 +66,7 @@ class Model:
         self.description = model_dict["description"]
         self.dictionary = model_dict
         self.display_name = model_dict["name"]
+        self.privileges = Auth(model_dict["auth"])
         self.publication_time = parser.isoparse(model_dict["publication_date"])
         self.summary = model_dict["summary"]
         self.version_id = model_dict["id"]
