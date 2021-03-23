@@ -76,8 +76,7 @@ def process_date_filter(date_str: str) -> str:
 
 def check_key_in_dict(
     input_dict: dict,
-    key: str,
-    nested_key: Optional[str] = None,
+    keys: List[str],
     default: Optional[str] = "N/A",
 ) -> Optional[Union[str, int]]:
     """Utility function to check a nested dict for a given
@@ -86,29 +85,27 @@ def check_key_in_dict(
 
     Args:
         input_dict (dict): dict to check in for keys
-        key (str): first key to check for
-        nested_key (Optional[str], optional): A nested key to check for. Defaults to None.
+        key (str): keys to check for
         default (Optional[str], optional): default value if key(s) not found. Defaults to "N/A".
 
     Returns:
         Optional[Union[str, int]]: Value associated with given dict and key(s)
     """
-    value = None
+    _element = None
     if isinstance(input_dict, dict):
-        if key in input_dict:
-            if nested_key and isinstance(input_dict[key], dict):
-                if nested_key in input_dict[key]:
-                    value = input_dict[key][nested_key]
-            elif not nested_key:
-                value = input_dict[key]
-    if value is not None:
-        return value
+        _element = input_dict
+        for key in keys:
+            try:
+                _element = _element[key]
+            except BaseException:
+                return default
+
+    if _element is not None:
+        return _element
     return default
 
 
-def process_dict_datetime(
-    input_dict: dict, key: str, nested_key: Optional[str] = None, default="N/A"
-) -> str:
+def process_dict_datetime(input_dict: dict, keys: List[str], default="N/A") -> str:
     """Utility function to check a nested dict for a given
     key and nested key if applicable. If the keys exist, the
     associated value is parsed to a datetime and then formatted to an
@@ -117,14 +114,14 @@ def process_dict_datetime(
 
     Args:
         input_dict (dict): dict to check in for keys
-        key (str): first key to check for
+        keys (List[str]): keys to check for
         nested_key (Optional[str], optional): A nested key to check for. Defaults to None.
         default (Optional[str], optional): default value if key(s) not found. Defaults to "N/A".
 
     Returns:
         str: Parsed datetime associated with given dict and key(s)
     """
-    value = check_key_in_dict(input_dict, key, nested_key, None)
+    value = check_key_in_dict(input_dict, keys, None)
     if value:
         try:
             return isoparse(value).strftime("%B %d %Y")

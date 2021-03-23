@@ -267,10 +267,10 @@ class TestCheckKeyInDict:
     @pytest.mark.parametrize("input_dict", [[], "str", 12])
     def test_default_value_returned_if_input_dict_is_not_a_dict(self, input_dict):
         # SETUP
-        key = "key"
+        keys = ["key"]
 
         # CALL
-        result = utils.check_key_in_dict(input_dict, key)
+        result = utils.check_key_in_dict(input_dict, keys)
 
         # ASSERT
         assert result == "N/A"
@@ -280,11 +280,11 @@ class TestCheckKeyInDict:
         self, input_dict
     ):
         # SETUP
-        key = "key"
+        keys = ["key"]
         default = "default"
 
         # CALL
-        result = utils.check_key_in_dict(input_dict, key, default=default)
+        result = utils.check_key_in_dict(input_dict, keys, default=default)
 
         # ASSERT
         assert result == default
@@ -292,10 +292,10 @@ class TestCheckKeyInDict:
     def test_default_value_returned_if_key_not_in_input_dict(self):
         # SETUP
         input_dict = {"key_1": "value_1"}
-        key = "key_2"
+        keys = ["key_2"]
 
         # CALL
-        result = utils.check_key_in_dict(input_dict, key)
+        result = utils.check_key_in_dict(input_dict, keys)
 
         # ASSERT
         assert result == "N/A"
@@ -304,10 +304,10 @@ class TestCheckKeyInDict:
     def test_value_returned_if_key_in_input_dict(self, value):
         # SETUP
         input_dict = {"key_1": value}
-        key = "key_1"
+        keys = ["key_1"]
 
         # CALL
-        result = utils.check_key_in_dict(input_dict, key)
+        result = utils.check_key_in_dict(input_dict, keys)
 
         # ASSERT
         assert result == value
@@ -315,10 +315,10 @@ class TestCheckKeyInDict:
     def test_default_value_returned_if_key_in_input_dict_and_value_is_none(self):
         # SETUP
         input_dict = {"key_1": None}
-        key = "key_1"
+        keys = ["key_1"]
 
         # CALL
-        result = utils.check_key_in_dict(input_dict, key)
+        result = utils.check_key_in_dict(input_dict, keys)
 
         # ASSERT
         assert result == "N/A"
@@ -326,11 +326,10 @@ class TestCheckKeyInDict:
     def test_default_value_returned_if_nested_key_not_in_input_dict(self):
         # SETUP
         input_dict = {"key_1": {"nested_1": "value_1"}}
-        key = "key_1"
-        nested_key = "nested_2"
+        keys = ["key_1", "nested_2"]
 
         # CALL
-        result = utils.check_key_in_dict(input_dict, key, nested_key)
+        result = utils.check_key_in_dict(input_dict, keys)
 
         # ASSERT
         assert result == "N/A"
@@ -341,11 +340,10 @@ class TestCheckKeyInDict:
     ):
         # SETUP
         input_dict = {"key_1": value}
-        key = "key_1"
-        nested_key = "nested_2"
+        keys = ["key_1", "nested_2"]
 
         # CALL
-        result = utils.check_key_in_dict(input_dict, key, nested_key)
+        result = utils.check_key_in_dict(input_dict, keys)
 
         # ASSERT
         assert result == "N/A"
@@ -354,11 +352,10 @@ class TestCheckKeyInDict:
     def test_value_returned_if_nested_key_in_input_dict(self, value):
         # SETUP
         input_dict = {"key_1": {"nested_1": value}}
-        key = "key_1"
-        nested_key = "nested_1"
+        keys = ["key_1", "nested_1"]
 
         # CALL
-        result = utils.check_key_in_dict(input_dict, key, nested_key)
+        result = utils.check_key_in_dict(input_dict, keys)
 
         # ASSERT
         assert result == value
@@ -367,11 +364,10 @@ class TestCheckKeyInDict:
         # SETUP
         # SETUP
         input_dict = {"key_1": {"nested_1": None}}
-        key = "key_1"
-        nested_key = "nested_1"
+        keys = ["key_1", "nested_1"]
 
         # CALL
-        result = utils.check_key_in_dict(input_dict, key, nested_key)
+        result = utils.check_key_in_dict(input_dict, keys)
 
         # ASSERT
         assert result == "N/A"
@@ -386,10 +382,10 @@ class TestProcessDictDatetime:
         # SETUP
         mock_check.return_value = value
         input_dict = {"key": "value"}
-        key = "key_1"
+        keys = ["key_1"]
 
         # CALL
-        result = utils.process_dict_datetime(input_dict, key)
+        result = utils.process_dict_datetime(input_dict, keys)
 
         # ASSERT
         assert result == "N/A"
@@ -399,11 +395,11 @@ class TestProcessDictDatetime:
         # SETUP
         mock_check.return_value = value
         input_dict = {"key": "value"}
-        key = "key_1"
+        keys = ["key_1"]
         default = "default"
 
         # CALL
-        result = utils.process_dict_datetime(input_dict, key, default=default)
+        result = utils.process_dict_datetime(input_dict, keys, default=default)
 
         # ASSERT
         assert result == "default"
@@ -422,10 +418,10 @@ class TestProcessDictDatetime:
         # SETUP
         mock_check.return_value = value
         input_dict = {"key": "value"}
-        key = "key"
+        keys = ["key"]
 
         # CALL
-        result = utils.process_dict_datetime(input_dict, key)
+        result = utils.process_dict_datetime(input_dict, keys)
 
         # ASSERT
         assert result == value
@@ -444,10 +440,10 @@ class TestProcessDictDatetime:
         # SETUP
         mock_check.return_value = value
         input_dict = {"key": "value"}
-        key = "key"
+        keys = ["key"]
 
         # CALL
-        result = utils.process_dict_datetime(input_dict, key)
+        result = utils.process_dict_datetime(input_dict, keys)
 
         # ASSERT
         assert result == "March 16 2021"

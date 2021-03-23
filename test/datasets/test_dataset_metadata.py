@@ -189,25 +189,25 @@ class TestDatasetMeta:
 
             # ASSERT
             assert mock_date.call_args_list == [
-                call(dataset_dict, "dct:created"),
-                call(dataset_dict, "dct:PeriodOfTime", "time:hasBeginning"),
-                call(dataset_dict, "dct:PeriodOfTime", "time:hasEnd"),
-                call(dataset_dict, "dct:issued"),
+                call(dataset_dict, ["dct:created"]),
+                call(dataset_dict, ["dct:PeriodOfTime", "time:hasBeginning"]),
+                call(dataset_dict, ["dct:PeriodOfTime", "time:hasEnd"]),
+                call(dataset_dict, ["dct:issued"]),
             ]
             assert mock_dict.call_args_list == [
-                call(dataset_dict, "dct:creator", default=None),
-                call(dataset_dict, "dcat:contactPoint", "vcard:hasEmail"),
-                call(dataset_dict, "dct:description"),
-                call(dataset_dict, "dct:identifier"),
-                call(dataset_dict, "dct:spatial", "rdfs:label"),
-                call(dataset_dict, "dcat:keyword"),
-                call(dataset_dict, "dcat:distribution", default=None),
-                call(dataset_dict, "dcat:theme"),
-                call(dataset_dict, "dct:publisher", "foaf:name"),
-                call(dataset_dict, "dct:rights"),
-                call(dataset_dict, "dct:language"),
-                call(dataset_dict, "dct:conformsTo", "label"),
-                call(dataset_dict, "dct:accrualPeriodicity"),
+                call(dataset_dict, ["dct:creator"], default=None),
+                call(dataset_dict, ["dcat:contactPoint", "vcard:hasEmail"]),
+                call(dataset_dict, ["dct:description"]),
+                call(dataset_dict, ["dct:identifier"]),
+                call(dataset_dict, ["dct:spatial", "rdfs:label"]),
+                call(dataset_dict, ["dcat:keyword"]),
+                call(dataset_dict, ["dcat:distribution"], default=None),
+                call(dataset_dict, ["dcat:theme"]),
+                call(dataset_dict, ["dct:publisher", "foaf:name"]),
+                call(dataset_dict, ["dct:rights"]),
+                call(dataset_dict, ["dct:language"]),
+                call(dataset_dict, ["dct:conformsTo", "label"]),
+                call(dataset_dict, ["dct:accrualPeriodicity"]),
             ]
 
             mock_datafile.assert_called_once_with({"key": "value"})

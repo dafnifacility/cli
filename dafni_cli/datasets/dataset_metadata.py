@@ -117,37 +117,37 @@ class DatasetMetadata:
             dataset_dict (dict): DAFNI Dataset metadata client model
         """
         # Standard Metadata
-        self.created = process_dict_datetime(dataset_dict, "dct:created")
-        if check_key_in_dict(dataset_dict, "dct:creator", default=None):
+        self.created = process_dict_datetime(dataset_dict, ["dct:created"])
+        if check_key_in_dict(dataset_dict, ["dct:creator"], default=None):
             self.creator = dataset_dict["dct:creator"][0]["foaf:name"]
         self.contact = check_key_in_dict(
-            dataset_dict, "dcat:contactPoint", "vcard:hasEmail"
+            dataset_dict, ["dcat:contactPoint", "vcard:hasEmail"]
         )
-        self.description = check_key_in_dict(dataset_dict, "dct:description")
-        self.identifier = check_key_in_dict(dataset_dict, "dct:identifier")
-        self.location = check_key_in_dict(dataset_dict, "dct:spatial", "rdfs:label")
+        self.description = check_key_in_dict(dataset_dict, ["dct:description"])
+        self.identifier = check_key_in_dict(dataset_dict, ["dct:identifier"])
+        self.location = check_key_in_dict(dataset_dict, ["dct:spatial", "rdfs:label"])
         self.start_date = process_dict_datetime(
-            dataset_dict, "dct:PeriodOfTime", "time:hasBeginning"
+            dataset_dict, ["dct:PeriodOfTime", "time:hasBeginning"]
         )
         self.end_date = process_dict_datetime(
-            dataset_dict, "dct:PeriodOfTime", "time:hasEnd"
+            dataset_dict, ["dct:PeriodOfTime", "time:hasEnd"]
         )
-        self.keywords = check_key_in_dict(dataset_dict, "dcat:keyword")
+        self.keywords = check_key_in_dict(dataset_dict, ["dcat:keyword"])
 
         # Process Files
-        if check_key_in_dict(dataset_dict, "dcat:distribution", default=None):
+        if check_key_in_dict(dataset_dict, ["dcat:distribution"], default=None):
             self.files = [
                 DataFile(file_dict) for file_dict in dataset_dict["dcat:distribution"]
             ]
 
         # Additional Metadata fields
-        self.themes = check_key_in_dict(dataset_dict, "dcat:theme")
-        self.publisher = check_key_in_dict(dataset_dict, "dct:publisher", "foaf:name")
-        self.issued = process_dict_datetime(dataset_dict, "dct:issued")
-        self.rights = check_key_in_dict(dataset_dict, "dct:rights")
-        self.language = check_key_in_dict(dataset_dict, "dct:language")
-        self.standard = check_key_in_dict(dataset_dict, "dct:conformsTo", "label")
-        self.update = check_key_in_dict(dataset_dict, "dct:accrualPeriodicity")
+        self.themes = check_key_in_dict(dataset_dict, ["dcat:theme"])
+        self.publisher = check_key_in_dict(dataset_dict, ["dct:publisher", "foaf:name"])
+        self.issued = process_dict_datetime(dataset_dict, ["dct:issued"])
+        self.rights = check_key_in_dict(dataset_dict, ["dct:rights"])
+        self.language = check_key_in_dict(dataset_dict, ["dct:language"])
+        self.standard = check_key_in_dict(dataset_dict, ["dct:conformsTo", "label"])
+        self.update = check_key_in_dict(dataset_dict, ["dct:accrualPeriodicity"])
 
     def output_metadata_details(self, long: bool = False):
         """Function to output details relating to the Dataset.
