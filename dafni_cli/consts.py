@@ -34,3 +34,14 @@ OUTPUT_SUMMARY_COLUMN_WIDTH = 20
 CONSOLE_WIDTH = 120
 
 TAB_SPACE = "    "
+
+# Datasets
+DATA_FORMATS = {
+    "application/octet-stream": "Binary",
+    "application/pdf": "PDF",
+    "application/vnd.ms-excel": "Excel",
+    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": "Excel",
+    "application/zip": "ZIP",
+    "text/csv": "CSV",
+    "text/plain": "Text",
+}
