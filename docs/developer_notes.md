@@ -36,3 +36,11 @@ A new executable can be created by running the following command in the venv env
 
 The additional option `--hiddenimport=python-dateutil` is required, as pyinstaller fails to automatically pick up the codes dependency on the python-dateutil module.
 
+### Pip deployment
+The code has also been designed to be deployed as a pip package via pypi (https://pypi.org/user/dafni-facility/).
+
+If the code has been updated, and a new release is being made, the setup.py version number should be appropriately incremented, and then the following command run from the root directory of the repository:
+
+`python -m build`
+
+This will create a build and dist folder in the root folder, containing a `.tar.gz` and a `.whl` for the new version of the pip package ready to publish to pypi.
