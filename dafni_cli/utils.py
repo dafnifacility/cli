@@ -1,7 +1,8 @@
 import click
 import textwrap
-from typing import List, Optional
+from typing import List, Optional, Union
 from datetime import datetime as dt
+from dateutil.parser import isoparse
 
 
 def prose_print(prose: str, width: int):
@@ -71,6 +72,138 @@ def process_date_filter(date_str: str) -> str:
         str: Processed date str to YYYY-MM-DDT00:00:00
     """
     return dt.strptime(date_str, "%d/%m/%Y").strftime("%Y-%m-%dT%H:%M:%S")
+
+
+def check_key_in_dict(
+    input_dict: dict,
+    keys: List[str],
+    default: Optional[str] = "N/A",
+) -> Optional[Union[str, int]]:
+    """Utility function to check a nested dict for a given
+    key and nested keys if applicable. If the keys exist, the
+    associated value is returned, otherwise the default value is returned.
+
+    Args:
+        input_dict (dict): dict to check in for keys
+        key (List[str]): keys to check for
+        default (Optional[str], optional): default value if key(s) not found. Defaults to "N/A".
+
+    Returns:
+        Optional[Union[str, int]]: Value associated with given dict and key(s)
+    """
+    _element = None
+    if isinstance(input_dict, dict):
+        _element = input_dict
+        for key in keys:
+            try:
+                _element = _element[key]
+            except BaseException:
+                return default
+
+    if _element is not None:
+        return _element
+    return default
+
+
+def process_dict_datetime(input_dict: dict, keys: List[str], default="N/A") -> str:
+    """Utility function to check a nested dict for a given
+    key and nested key if applicable. If the keys exist, the
+    associated value is parsed to a datetime and then formatted to an
+    applicable datetime string, otherwise the default value is returned.
+    This function will only parse datetimes in the ISO date format
+
+    Args:
+        input_dict (dict): dict to check in for keys
+        keys (List[str]): keys to check for
+        nested_key (Optional[str], optional): A nested key to check for. Defaults to None.
+        default (Optional[str], optional): default value if key(s) not found. Defaults to "N/A".
+
+    Returns:
+        str: Parsed datetime associated with given dict and key(s)
+    """
+    value = check_key_in_dict(input_dict, keys, None)
+    if value:
+        try:
+            return isoparse(value).strftime("%B %d %Y")
+        except ValueError:
+            return value
+    return default
+
+
+def output_table_row(
+    entries: List[str], widths: List[int], alignment: str = "<", header: bool = False
+) -> str:
+    """Function to generate a table row given values and column widths.
+    If the header argument is set to true, a dashed line of equal length is added underneath.
+
+    Args:
+        entries (List[str]): Table Values
+        widths (List[int]): Width associated with each column
+        alignment (str, optional): Direction to align entry. Defaults to "<".
+        header (bool): Flag to set if the given row is the table header. Defaults to False.
+
+    Returns:
+        str: String containing all entries with associated spacing and line breaks
+    """
+    table_items = [
+        f"{value:{alignment}{widths[idx]}}" for idx, value in enumerate(entries)
+    ]
+    table_str = " ".join(table_items)
+    table_str += "\n"
+
+    if header:
+        table_str += "-" * sum(widths, len(entries))
+        table_str += "\n"
+
+    return table_str
+
+
+def output_table(
+    columns: List[str], widths: List[int], values: List[List], alignment: str = "<"
+) -> str:
+    """Function to generate a table of data in the command console
+
+    Args:
+        columns (List[str]): Column names
+        widths (List[int]): Column widths, where values are > 0
+        values (List[List]): List of rows to display in table
+        alignment (str, optional): Alignment option for table contents. Defaults to "<".
+
+    Returns:
+        str: Table str with required spacing and line breaks for console
+    """
+    table_str = output_table_row(columns, widths, alignment, header=True)
+    rows = [output_table_row(row, widths, alignment) for row in values]
+    table_str += "".join(rows)
+
+    return table_str
+
+
+def process_file_size(file_size: Union[int, float]) -> str:
+    """Utility function to take in a file size in bytes
+    and format into a table ready format.
+    This converts the size into appropriate units, with
+    the units appended
+
+    Args:
+        file_size (Union[int, float]): File size in bytes
+
+    Returns:
+        str: Converted file size with applicable units
+    """
+    if not isinstance(file_size, (int, float)):
+        return ""
+    if file_size < 1e3:
+        return f"{file_size} B"
+    elif file_size >= 1e3 and file_size < 1e6:
+        size = round(file_size / 1e3, 1)
+        return f"{size} KB"
+    elif file_size >= 1e6 and file_size < 1e9:
+        size = round(file_size / 1e6, 1)
+        return f"{size} MB"
+    else:
+        size = round(file_size / 1e9, 1)
+        return f"{size} GB"
 
 
 def argument_confirmation(

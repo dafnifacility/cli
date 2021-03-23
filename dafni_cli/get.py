@@ -2,9 +2,10 @@ import click
 from click import Context
 from typing import List, Optional
 
-from dafni_cli.api.datasets_api import get_all_datasets
+from dafni_cli.api.datasets_api import get_all_datasets, get_latest_dataset_metadata
 from dafni_cli.api.models_api import get_models_dicts
-from dafni_cli.datasets import dataset, dataset_filtering
+from dafni_cli.datasets import dataset_filtering, dataset_metadata
+from dafni_cli.datasets.dataset import Dataset
 from dafni_cli.login import check_for_jwt_file
 from dafni_cli.model.model import Model
 from dafni_cli.model.version_history import ModelVersionHistory
@@ -29,18 +30,22 @@ def get(ctx: Context):
 @get.command(help="List and filter models")
 @click.option(
     "--long/--short",
+    "-l/-s",
     default=False,
     help="Also displays the full description of each model.",
+    type=bool,
 )
 @click.option(
     "--creation-date",
     default=None,
     help="Filter for models created since given date. Format: DD/MM/YYYY",
+    type=str,
 )
 @click.option(
     "--publication-date",
     default=None,
     help="Filter for models published since given date. Format: DD/MM/YYYY",
+    type=str,
 )
 @click.pass_context
 def models(ctx: Context, long: bool, creation_date: str, publication_date: str):
@@ -125,11 +130,34 @@ def datasets(
     """
     filters = dataset_filtering.process_datasets_filters(search, start_date, end_date)
     datasets_response = get_all_datasets(ctx.obj["jwt"], filters)
-    datasets = process_response_to_class_list(
-        datasets_response["metadata"], dataset.Dataset
-    )
+    datasets = process_response_to_class_list(datasets_response["metadata"], Dataset)
     for dataset_model in datasets:
         dataset_model.output_dataset_details()
+
+
+@get.command()
+@click.option(
+    "--long/--short",
+    "-l/-s",
+    default=False,
+    help="Also displays the full description of each model.",
+    type=bool,
+)
+@click.argument("id", nargs=1, required=True, type=str)
+@click.argument("version-id", nargs=1, required=True, type=str)
+@click.pass_context
+def dataset(ctx: Context, id: str, version_id: str, long: bool):
+    """Command to the the meta data relating to a given version of a dataset
+
+    Args:
+        ctx (Context): CLI context
+        id (str): Dataset ID
+        version_id (str): Dataset version ID
+        long (bool): Flag to view additional metadata attributes
+    """
+    metadata = get_latest_dataset_metadata(ctx.obj["jwt"], id, version_id)
+    dataset_meta = dataset_metadata.DatasetMetadata(metadata)
+    dataset_meta.output_metadata_details(long)
 
 
 @get.command()

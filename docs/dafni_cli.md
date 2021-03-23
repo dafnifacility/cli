@@ -128,7 +128,50 @@ If there is no valid JWT, the user will be prompted to login before the command 
   Verbose description of the dataset
   </pre>
 
+- Dataset:
+  >*Command: `dafni(.exe) get dataset [dataset_id] [version_id] [options]`*
 
+  Lists the datasets available to the user. 
+  
+  *Note*: If a date range filter is applied, the default behavior is to omit any datasets that don't have a date range set. This is in part due to a bug with the discovery api (https://github.com/dafnifacility/user-feedback/issues/72) which means we can't use this filter without a search term.
+  
+  *Arguments*:
+  - **id**: Dataset ID
+  - **version-id**: Dataset Version ID
+
+  *Options*:
+  - **--long**/**-l**: This prints out the additional Metadata fields: Themes, Publisher, Issued date, Rights, Language, Standards, & update frequency
+  
+  Example output:
+  <pre>
+  Created: March 04 2021
+  Creator: DAFNI
+  Contact: contact@stfc.ac.uk
+  Description:
+  Dataset description.
+  Identifier: [id1]
+  Location: England
+  Start date: March 13 2010
+  End date: March 14 2020
+  Key Words:
+  ['Arc', 'UDM', 'Visualisation']
+  
+  Data Files
+  Name             Size       Format
+  arc-outline.csv  737.3 KB   CSV
+  </pre>
+  *With --long option*
+  <pre>
+  Themes:
+  [Population distribution and demography, Utility and governmental services, Statistical units]
+  Publisher: DAFNI
+  Issued: March 04 2021
+  Rights:
+  Open Government Licence.
+  Language: en
+  Standard: ISO 9001
+  Update Frequency: Annually
+</pre>
 ___
 ### Upload
 
