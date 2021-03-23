@@ -80,12 +80,12 @@ def check_key_in_dict(
     default: Optional[str] = "N/A",
 ) -> Optional[Union[str, int]]:
     """Utility function to check a nested dict for a given
-    key and nested key if applicable. If the keys exist, the
+    key and nested keys if applicable. If the keys exist, the
     associated value is returned, otherwise the default value is returned.
 
     Args:
         input_dict (dict): dict to check in for keys
-        key (str): keys to check for
+        key (List[str]): keys to check for
         default (Optional[str], optional): default value if key(s) not found. Defaults to "N/A".
 
     Returns:
@@ -131,28 +131,28 @@ def process_dict_datetime(input_dict: dict, keys: List[str], default="N/A") -> s
 
 
 def output_table_row(
-    columns: List[str], widths: List[int], alignment: str = "<", header: bool = False
+    entries: List[str], widths: List[int], alignment: str = "<", header: bool = False
 ) -> str:
     """Function to generate a table row given values and column widths.
     If the header argument is set to true, a dashed line of equal length is added underneath.
 
     Args:
-        columns (List[str]): Table Columns
+        entries (List[str]): Table Values
         widths (List[int]): Width associated with each column
         alignment (str, optional): Direction to align entry. Defaults to "<".
         header (bool): Flag to set if the given row is the table header. Defaults to False.
 
     Returns:
-        str: String containing all Headers with associated spacing and line breaks
+        str: String containing all entries with associated spacing and line breaks
     """
     table_items = [
-        f"{column:{alignment}{widths[idx]}}" for idx, column in enumerate(columns)
+        f"{value:{alignment}{widths[idx]}}" for idx, value in enumerate(entries)
     ]
     table_str = " ".join(table_items)
     table_str += "\n"
 
     if header:
-        table_str += "-" * sum(widths, len(columns))
+        table_str += "-" * sum(widths, len(entries))
         table_str += "\n"
 
     return table_str
