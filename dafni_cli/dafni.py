@@ -1,8 +1,8 @@
 import click
-from dafni_cli.get import get
-from dafni_cli.login import login, logout
-from dafni_cli.delete import delete
-from dafni_cli.upload import upload
+from dafni_cli.commands.get import get
+from dafni_cli.commands.login import login, logout
+from dafni_cli.commands.delete import delete
+from dafni_cli.commands.upload import upload
 
 
 @click.group()
