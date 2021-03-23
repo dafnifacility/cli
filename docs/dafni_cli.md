@@ -172,3 +172,26 @@ If there is no valid JWT, the user will be prompted to login before the command 
   Standard: ISO 9001
   Update Frequency: Annually
 </pre>
+___
+### Upload
+
+>Command: `dafni(.exe) upload [sub-command]`
+
+Upload an entity to DAFNI.
+If there is no valid JWT, the user will be prompted to login before the command is carried out.
+
+**Sub-Commands:**
+- Model:
+  >*Command: `dafni(.exe) upload model [definition] [image] [options]`*
+  
+  Uploads a model version to DAFNI.
+  
+  *Arguments*:
+  - **definition**: File path to the model definition file.
+  - **image**: File path to the Docker image for the model.
+  Information about how these files are created, and the format they should be in can be found here: https://facility.secure.dafni.rl.ac.uk/models/add/
+  
+  *Options*:
+  - **--version-message**: Message to be added with this model version.
+  This is a required option.
+  - **--parent-model**: If the model version is an updated version of a previous DAFNI model, the ID of the parent model should be specified through this option.

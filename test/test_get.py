@@ -1,5 +1,5 @@
 import pytest
-from mock import patch, call, PropertyMock
+from mock import patch, call
 from click.testing import CliRunner
 
 from dafni_cli import get
