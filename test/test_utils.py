@@ -269,9 +269,10 @@ class TestArgumentConfirmation:
         # SETUP
         argument_names = ["arg 1", "arg 2", "arg 3"]
         arguments = ["string option", "12", "{'key': 'value'}"]
+        confirmation_message = "confirmation message"
 
         # CALL
-        utils.argument_confirmation(argument_names, arguments)
+        utils.argument_confirmation(argument_names, arguments, confirmation_message)
 
         # ASSERT
         assert mock_click.echo.call_args_list == [
@@ -279,16 +280,19 @@ class TestArgumentConfirmation:
             call("arg 2: 12"),
             call("arg 3: {'key': 'value'}")
         ]
-        mock_click.confirm.assert_called_once_with('Confirm model upload?', abort=True)
+        mock_click.confirm.assert_called_once_with(confirmation_message, abort=True)
 
     def test_arguments_are_printed_correctly_with_additional_messages(self, mock_click):
         # SETUP
         argument_names = ["arg 1", "arg 2", "arg 3"]
         arguments = ["string option", "12", "{'key': 'value'}"]
+        confirmation_message = "confirmation message"
         additional_messages = ["additional message 1", "additional message 2"]
 
         # CALL
-        utils.argument_confirmation(argument_names, arguments, additional_messages)
+        utils.argument_confirmation(
+            argument_names, arguments, confirmation_message, additional_messages
+        )
 
         # ASSERT
         assert mock_click.echo.call_args_list == [
@@ -298,7 +302,7 @@ class TestArgumentConfirmation:
             call("additional message 1"),
             call("additional message 2")
         ]
-        mock_click.confirm.assert_called_once_with('Confirm model upload?', abort=True)
+        mock_click.confirm.assert_called_once_with(confirmation_message, abort=True)
 
     def test_arguments_are_printed_correctly_with_none_additional_message_specified(
             self, mock_click
@@ -306,10 +310,13 @@ class TestArgumentConfirmation:
         # SETUP
         argument_names = ["arg 1", "arg 2", "arg 3"]
         arguments = ["string option", "12", "{'key': 'value'}"]
+        confirmation_message = "confirmation message"
         additional_messages = None
 
         # CALL
-        utils.argument_confirmation(argument_names, arguments, additional_messages)
+        utils.argument_confirmation(
+            argument_names, arguments, confirmation_message, additional_messages
+        )
 
         # ASSERT
         assert mock_click.echo.call_args_list == [
@@ -317,4 +324,4 @@ class TestArgumentConfirmation:
             call("arg 2: 12"),
             call("arg 3: {'key': 'value'}")
         ]
-        mock_click.confirm.assert_called_once_with('Confirm model upload?', abort=True)
+        mock_click.confirm.assert_called_once_with(confirmation_message, abort=True)

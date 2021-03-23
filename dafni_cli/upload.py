@@ -52,13 +52,14 @@ def model(
     arguments = [definition,
                  image,
                  version_message]
+    confirmation_message = "Confirm model upload?"
     if parent_model:
         argument_names.append("Parent model ID")
         arguments.append(parent_model)
         additional_message = None
     else:
         additional_message = ["No parent model: new model to be created"]
-    argument_confirmation(argument_names, arguments, additional_message)
+    argument_confirmation(argument_names, arguments, confirmation_message, additional_message)
 
     click.echo("Validating model definition")
     # Print helpful message when 500 error returned

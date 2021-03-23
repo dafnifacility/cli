@@ -4,7 +4,7 @@ from requests import Response
 
 
 def dafni_get_request(
-    url: str, jwt: str, allow_redirect: bool = False
+        url: str, jwt: str, allow_redirect: bool = False
 ) -> Union[List[dict], dict]:
     """Performs a GET request from the DAFNI API.
     If a status other than 200 is returned, an exception will be raised.
@@ -28,7 +28,7 @@ def dafni_get_request(
 
 
 def dafni_post_request(
-    url: str, jwt: str, data: dict, allow_redirect: bool = False
+        url: str, jwt: str, data: dict, allow_redirect: bool = False
 ) -> Union[List[dict], dict]:
     """Performs a POST request from the DAFNI API.
     If a status other than 200 is returned, an exception will be raised.
@@ -54,7 +54,7 @@ def dafni_post_request(
 
 
 def dafni_put_request(
-    url: str, jwt: str, data: BinaryIO, content_type: str
+        url: str, jwt: str, data: BinaryIO, content_type: str = "application/yaml"
 ) -> Response:
     """Performs a PUT request from the DAFNI API.
     If a status other than 200 is returned, an exception will be raised.
@@ -63,7 +63,7 @@ def dafni_put_request(
         url (str): The url endpoint that is being queried
         jwt (str): JWT
         data (BinaryIO): The data to be PUT-ed
-        content_type (str): Content type for the headers
+        content_type (str): Content type for the headers (e.g. "application/yaml")
 
     Returns:
         Response: Response from API

@@ -171,6 +171,7 @@ class TestUpload:
             mock_confirm.assert_called_once_with(
                 ["Model definition file path", "Image file path", "Version message"],
                 ["test_definition.yaml", "test_image.txt", "version message"],
+                "Confirm model upload?",
                 ["No parent model: new model to be created"]
             )
             mock_validate.assert_called_once_with(
@@ -256,7 +257,7 @@ class TestUpload:
             # ASSERT
             assert result.exit_code == 0
             mock_confirm.assert_called_once_with(
-                confirm_arg_1, confirm_arg_2, confirm_arg_3
+                confirm_arg_1, confirm_arg_2, "Confirm model upload?", confirm_arg_3
             )
             mock_validate.assert_called_once_with(
                 processed_jwt_fixture["jwt"], "test_definition.yaml"

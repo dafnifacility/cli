@@ -74,7 +74,7 @@ def process_date_filter(date_str: str) -> str:
 
 
 def argument_confirmation(
-        argument_names: List[str], arguments: List[str], additional_messages: Optional[List[str]]=None
+        argument_names: List[str], arguments: List[str], confirmation_message: str, additional_messages: Optional[List[str]]=None
 ):
     """Function to display the arguments and options chosen by the user
     and ask for confirmation
@@ -82,11 +82,12 @@ def argument_confirmation(
     Args:
         argument_names (List[str]): List of the names of the arguments/options for the command
         arguments (List[str]): List of values chosen for each corresponding argument/option
+        confirmation_message (str): String to display after arguments which prompts the user to confirm or reject
         additional_messages (Optional[List[str]]): Other messages to be added after options are listed
     """
-    for i in range(len(argument_names)):
-        click.echo(argument_names[i] + ": " + arguments[i])
+    for i, value in enumerate(argument_names):
+        click.echo(f"{value}: {arguments[i]}")
     if additional_messages:
         for message in additional_messages:
             click.echo(message)
-    click.confirm('Confirm model upload?', abort=True)
+    click.confirm(confirmation_message, abort=True)

@@ -1,11 +1,10 @@
 import requests
+from requests import Response
 from typing import Union, List, Tuple, Optional
 from pathlib import Path
-import click
 
 from dafni_cli.consts import (
     MODELS_API_URL,
-    DISCOVERY_API_URL,
     VALIDATE_MODEL_CT,
     MINIO_UPLOAD_CT
 )
@@ -102,38 +101,39 @@ def get_model_upload_urls(
 
 def upload_file_to_minio(
         jwt: str, url: str, file_path: Path
-) -> None:
+) -> Response:
     """Function to upload definition or image files to DAFNI
 
     Args:
         jwt (str): JWT
         url (str): URL to upload the file to
         file_path (Path): Path to the file
+
+    Returns:
+        Response: Response returned from the put request
     """
     content_type = MINIO_UPLOAD_CT
     with open(file_path, "rb") as file_data:
-        dafni_put_request(url, jwt, file_data, content_type)
+        return dafni_put_request(url, jwt, file_data, content_type)
 
 
 def model_version_ingest(
         jwt: str, upload_id: str, version_message: str, model_id: str = None
-) -> None:
+) -> dict:
     """Ingests a new version of a model to DAFNI
 
-        Args:
-            jwt (str): JWT
-            upload_id (str): Upload ID
-            version_message (str): Message to be attached to this version
-            model_id (str): ID of existing parent model if it exists
+    Args:
+        jwt (str): JWT
+        upload_id (str): Upload ID
+        version_message (str): Message to be attached to this version
+        model_id (str): ID of existing parent model if it exists
+
+    Returns:
+        dict: JSON from response returned in post request
     """
     if model_id:
         url = MODELS_API_URL + "/models/" + model_id + "/upload/" + upload_id + "/ingest/"
     else:
         url = MODELS_API_URL + "/models/upload/" + upload_id + "/ingest/"
     data = {"version_message": version_message}
-    response = dafni_post_request(url, jwt, data)
-
-
-if __name__ == '__main__':
-    jwt = "JWT eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJsb2dpbi1hcHAtand0IiwiZXhwIjoxNjE2MDg5ODA2LCJzdWIiOiI4ZDg1N2FjZi0yNjRmLTQ5Y2QtOWU3Zi0xZTlmZmQzY2U2N2EifQ.Uoa5kWbVkBA7XGB9MypmSTK1DcwVKiYLF6Dg7WrGtrA"
-
+    return dafni_post_request(url, jwt, data)
