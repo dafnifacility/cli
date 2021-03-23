@@ -46,12 +46,12 @@ class DataFile:
         Args:
             file_dict (dict): [description]
         """
-        self.name = check_key_in_dict(file_dict, "spdx:fileName")
+        self.name = check_key_in_dict(file_dict, ["spdx:fileName"])
         self.size = process_file_size(
-            check_key_in_dict(file_dict, "dcat:byteSize", default=None)
+            check_key_in_dict(file_dict, ["dcat:byteSize"], default=None)
         )
         self.format = DATA_FORMATS.get(
-            check_key_in_dict(file_dict, "dcat:mediaType"), ""
+            check_key_in_dict(file_dict, ["dcat:mediaType"]), ""
         )
 
 
