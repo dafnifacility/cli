@@ -129,15 +129,15 @@ If there is no valid JWT, the user will be prompted to login before the command 
   </pre>
 
 - Dataset:
-  >*Command: `dafni(.exe) get dataset --id [dataset_id] --version-id [version_id] [options]`*
+  >*Command: `dafni(.exe) get dataset [dataset_id] [version_id] [options]`*
 
   Lists the datasets available to the user. 
   
   *Note*: If a date range filter is applied, the default behavior is to omit any datasets that don't have a date range set. This is in part due to a bug with the discovery api (https://github.com/dafnifacility/user-feedback/issues/72) which means we can't use this filter without a search term.
   
   *Arguments*:
-  - **--id**/**-i**: Dataset ID
-  - **--version-id**/**-v**: Dataset Version ID
+  - **id**: Dataset ID
+  - **version-id**: Dataset Version ID
 
   *Options*:
   - **--long**/**-l**: This prints out the additional Metadata fields: Themes, Publisher, Issued date, Rights, Language, Standards, & update frequency

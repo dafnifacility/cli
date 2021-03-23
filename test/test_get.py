@@ -513,16 +513,12 @@ class TestGet:
     class TestDataset:
         """Test class to test the get group dataset command"""
 
-        @pytest.mark.parametrize("version_tag", ["--version-id", "-v"])
-        @pytest.mark.parametrize("id_tag", ["--id", "-i"])
         def test_get_dataset_called_with_jwt_from_context_with_default_long_value(
             self,
             mock_jwt,
             mock_get,
             mock_init,
             mock_output,
-            id_tag,
-            version_tag,
             processed_jwt_fixture,
             dataset_metadata_fixture,
         ):
@@ -544,9 +540,7 @@ class TestGet:
             runner = CliRunner()
 
             # CALL
-            result = runner.invoke(
-                get.get, ["dataset", id_tag, dataset_id, version_tag, version_id]
-            )
+            result = runner.invoke(get.get, ["dataset", dataset_id, version_id])
 
             # ASSERT
             mock_get.assert_called_once_with(
@@ -557,8 +551,6 @@ class TestGet:
 
             assert result.exit_code == 0
 
-        @pytest.mark.parametrize("version_tag", ["--version-id", "-v"])
-        @pytest.mark.parametrize("id_tag", ["--id", "-i"])
         @pytest.mark.parametrize(
             "option, long",
             [("--short", False), ("-s", False), ("-l", True), ("--long", True)],
@@ -571,8 +563,6 @@ class TestGet:
             mock_output,
             option,
             long,
-            id_tag,
-            version_tag,
             processed_jwt_fixture,
             dataset_metadata_fixture,
         ):
@@ -596,7 +586,7 @@ class TestGet:
             # CALL
             result = runner.invoke(
                 get.get,
-                ["dataset", id_tag, dataset_id, version_tag, version_id, option],
+                ["dataset", dataset_id, version_id, option],
             )
 
             # ASSERT

@@ -139,8 +139,8 @@ def datasets(
     help="Also displays the full description of each model.",
     type=bool,
 )
-@click.option("--id", "-i", required=True, type=str, help="Dataset ID")
-@click.option("--version-id", "-v", required=True, type=str, help="Dataset Version ID")
+@click.argument("id", nargs=1, required=True, type=str)
+@click.argument("version-id", nargs=1, required=True, type=str)
 @click.pass_context
 def dataset(ctx: Context, id: str, version_id: str, long: bool):
     """Command to the the meta data relating to a given version of a dataset
