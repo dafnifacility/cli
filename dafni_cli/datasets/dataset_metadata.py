@@ -21,13 +21,13 @@ class DataFile:
         __init__(): DataFile constructor
 
     Attributes:
-        name: File Name
-        size: File Size
-        format: File Format
+        name (str): File Name
+        size (str): File Size
+        format (str): File Format
     """
 
     def __init__(self, file_dict: Optional[dict] = None):
-        """DatFile Constructor
+        """DataFile Constructor
 
         Args:
             file_dict (Optional[dict], optional): DataFile Client model to map. Defaults to None.
@@ -55,39 +55,39 @@ class DataFile:
         )
 
 
-class DatasetMeta:
+class DatasetMetadata:
     """Class to represent the DAFNI Dataset
     Metadata client model
 
     Methods:
-        __init__(): DatasetMeta constructor
+        __init__(): DatasetMetadata constructor
         set_details_from_dict(jwt (str), dataset (dict)): Sets the dataset metadata attributes from given client model dict
         output_metadata_details(): Prints key information of the dataset metadata to console.
         output_datafiles_table(): Prints a table to the console of all File related information
         output_metadata_extra_details(): Prints extra details relating to the Dataset Metadata
 
     Attributes:
-        created: Date the dataset was created
-        creator: Creator of the dataset
-        contact: Conact relating to the dataset
-        description: Description of the dataset
-        identifier: List of identifiers relating to the dataset
-        location: Location the Dataset relates to
-        start_date: Dataset start date if applicable
-        end_date: Dataset end date if applicable
-        files: Files associated with the dataset
-        keywords: Key words relating to the dataset e.g. Transportation
-        themes: Themes relating to dataset
-        publisher: Entity responsible for publishing the dataset
-        issued: Date the dataset was issued
-        rights: The user rights linked to the Dataset
-        language: The langauge used for the dataset
-        standard: Any related standards associated
-        update: Update Frequency
+        created (str): Date the dataset was created
+        creator (str): Creator of the dataset
+        contact (str): Contact relating to the dataset
+        description (str): Description of the dataset
+        identifier (str): List of identifiers relating to the dataset
+        location (str): Location the Dataset relates to
+        start_date (str): Dataset start date if applicable
+        end_date (str): Dataset end date if applicable
+        files (List[DataFile]): Files associated with the dataset
+        keywords (List[str]): Key words relating to the dataset e.g. Transportation
+        themes (List[str]): Themes relating to dataset
+        publisher (str): Entity responsible for publishing the dataset
+        issued (str): Date the dataset was issued
+        rights (str): The user rights linked to the Dataset
+        language (str): The langauge used for the dataset
+        standard (str): Any related standards associated
+        update (str): Update Frequency
     """
 
     def __init__(self, dataset_dict: Optional[dict] = None):
-        """DatasetMeta constructor"""
+        """DatasetMetadata constructor"""
         self.created = None
         self.creator = None
         self.contact = None
@@ -110,7 +110,7 @@ class DatasetMeta:
             self.set_details_from_dict(dataset_dict)
 
     def set_details_from_dict(self, dataset_dict: dict):
-        """Helper function to populate the DatasetMeta details
+        """Helper function to populate the DatasetMetadata details
         based on a given DAFNI Dataset metadata client model
 
         Args:
@@ -157,7 +157,7 @@ class DatasetMeta:
         also printed to the console
 
         Args:
-            long (bool, optional): Flag to print additional metdata. Defaults to False.
+            long (bool, optional): Flag to print additional metadata. Defaults to False.
         """
         click.echo(f"\nCreated: {self.created}")
         click.echo(f"Creator: {self.creator}")

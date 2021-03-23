@@ -1,7 +1,7 @@
 import pytest
 from mock import patch, call
 
-from dafni_cli.datasets.dataset_metadata import DataFile, DatasetMeta
+from dafni_cli.datasets.dataset_metadata import DataFile, DatasetMetadata
 from dafni_cli.consts import CONSOLE_WIDTH, DATA_FORMATS
 
 from test.fixtures.dataset_fixtures import (
@@ -12,7 +12,7 @@ from test.fixtures.dataset_fixtures import (
 
 
 class TestDataFile:
-    "Test class to test the DataFile Class"
+    """Test class to test the DataFile Class"""
 
     @patch.object(DataFile, "set_details_from_dict")
     class TestInit:
@@ -26,7 +26,7 @@ class TestDataFile:
             # ASSERT
             assert all(getattr(instance, attr) is None for attr in expected_attr)
 
-        def test_set_Details_from_dict_called_if_given_a_dict(self, mock_set):
+        def test_set_details_from_dict_called_if_given_a_dict(self, mock_set):
             # SETUP
             file_dict = {"key": "value"}
             # CALL
@@ -107,10 +107,10 @@ class TestDataFile:
 
 
 class TestDatasetMeta:
-    """Test class for the DatasetMeta class"""
+    """Test class for the DatasetMetadata class"""
 
     class TestInit:
-        "Test class for the DatasetMeta.__init__() function"
+        """Test class for the DatasetMetadata.__init__() function"""
 
         def test_the_correct_attributes_are_created(self):
             # SETUP
@@ -134,23 +134,23 @@ class TestDatasetMeta:
             array_keys = ["files", "keywords"]
 
             # CALL
-            instance = DatasetMeta()
+            instance = DatasetMetadata()
 
             # ASSERT
             assert all(getattr(instance, key) is None for key in none_keys)
             assert all(getattr(instance, key) == [] for key in array_keys)
 
-        @patch.object(DatasetMeta, "set_details_from_dict")
+        @patch.object(DatasetMetadata, "set_details_from_dict")
         def test_set_details_from_dict_called_if_give_dict(self, mock_set):
             # SETUP
             dataset_dict = {"key": "value"}
             # CALL
-            DatasetMeta(dataset_dict)
+            DatasetMetadata(dataset_dict)
             # ASSERT
             mock_set.assert_called_once_with(dataset_dict)
 
     class TestSetDetailsFromDict:
-        """Test class to test the set_dateils_from_dict functionality"""
+        """Test class to test the set_details_from_dict functionality"""
 
         @patch.object(DataFile, "__init__")
         @patch("dafni_cli.datasets.dataset_metadata.check_key_in_dict")
@@ -178,7 +178,7 @@ class TestDatasetMeta:
                 "Update",
             )
 
-            instance = DatasetMeta()
+            instance = DatasetMetadata()
             dataset_dict = {
                 "dcat:distribution": [{"key": "value"}],
                 "dct:creator": [{"foaf:name": "Name"}],
@@ -238,7 +238,7 @@ class TestDatasetMeta:
                 "Update",
             )
 
-            instance = DatasetMeta()
+            instance = DatasetMetadata()
             dataset_dict = {
                 "dcat:distribution": [{"key": "value"}],
                 "dct:creator": [{"foaf:name": "Name"}],
@@ -255,7 +255,7 @@ class TestDatasetMeta:
         ):
             # SETUP
             dataset_dict = dataset_metadata_fixture
-            instance = DatasetMeta()
+            instance = DatasetMetadata()
 
             # CALL
             instance.set_details_from_dict(dataset_dict)
@@ -281,8 +281,8 @@ class TestDatasetMeta:
             assert instance.standard == dataset_dict["dct:conformsTo"]["label"]
             assert instance.update == dataset_dict["dct:accrualPeriodicity"]
 
-    @patch.object(DatasetMeta, "output_metadata_extra_details")
-    @patch.object(DatasetMeta, "output_datafiles_table")
+    @patch.object(DatasetMetadata, "output_metadata_extra_details")
+    @patch.object(DatasetMetadata, "output_datafiles_table")
     @patch("dafni_cli.datasets.dataset_metadata.prose_print")
     @patch("dafni_cli.datasets.dataset_metadata.click")
     class TestOutputMetadataDetails:
@@ -336,7 +336,7 @@ class TestDatasetMeta:
     @patch("dafni_cli.datasets.dataset_metadata.output_table")
     @patch("dafni_cli.datasets.dataset_metadata.click")
     class TestOutputDatafilesTable:
-        """Test class to test the DatasetMeta.output_datafiles_table() functionality"""
+        """Test class to test the DatasetMetadata.output_datafiles_table() functionality"""
 
         @pytest.mark.parametrize("width", range(6, 50, 5))
         @pytest.mark.parametrize(
@@ -354,7 +354,7 @@ class TestDatasetMeta:
             files.append(file_name)
 
             instance_files = [datafile_mock(name=name) for name in files]
-            instance = DatasetMeta()
+            instance = DatasetMetadata()
             instance.files = instance_files
 
             # CALL
@@ -373,7 +373,7 @@ class TestDatasetMeta:
             # SETUP
             # setup datafiles
             instance_files = [datafile_mock()]
-            instance = DatasetMeta()
+            instance = DatasetMetadata()
             instance.files = instance_files
             # setup output table
             mock_output.return_value = "output table"
@@ -390,7 +390,7 @@ class TestDatasetMeta:
     @patch("dafni_cli.datasets.dataset_metadata.prose_print")
     @patch("dafni_cli.datasets.dataset_metadata.click")
     class TestOutputMetadataExtraDetails:
-        """Test class to test DatasetMeta.output_metadata_extra_details()"""
+        """Test class to test DatasetMetadata.output_metadata_extra_details()"""
 
         def test_extra_details_outputted_as_expected(self, mock_click, mock_prose):
             # SETUP

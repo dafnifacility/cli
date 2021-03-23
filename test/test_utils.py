@@ -674,7 +674,7 @@ class TestOutputTable:
         ]
 
 
-class TestFileSize:
+class TestProcessFileSize:
     """Test class to test the process_file_size functionality"""
 
     @pytest.mark.parametrize("file_size", ["12.4", [12], (12, 13)])
@@ -703,6 +703,8 @@ class TestFileSize:
             (1.5e3, "1.5 KB"),
             (2.7e6, "2.7 MB"),
             (3.8e9, "3.8 GB"),
+            (2.743e6, "2.7 MB"),
+            (3.854e9, "3.9 GB"),
         ],
     )
     def test_file_size_processed_correctly(self, file_size, expected):

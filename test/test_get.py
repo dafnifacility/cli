@@ -506,8 +506,8 @@ class TestGet:
             # ASSERT
             mock_filter.assert_called_once_with(search, start, end)
 
-    @patch.object(dataset_metadata.DatasetMeta, "output_metadata_details")
-    @patch.object(dataset_metadata.DatasetMeta, "__init__")
+    @patch.object(dataset_metadata.DatasetMetadata, "output_metadata_details")
+    @patch.object(dataset_metadata.DatasetMetadata, "__init__")
     @patch("dafni_cli.get.get_latest_dataset_metadata")
     @patch("dafni_cli.get.check_for_jwt_file")
     class TestDataset:
@@ -532,7 +532,7 @@ class TestGet:
             # setup get_latest_dataset_metadata call
             response = dataset_metadata_fixture
             mock_get.return_value = response
-            # setup DatasetMeta class
+            # setup DatasetMetadata class
             mock_init.return_value = None
             mock_output.return_value = "Output"
 
@@ -582,7 +582,7 @@ class TestGet:
             # setup get_latest_dataset_metadata call
             response = dataset_metadata_fixture
             mock_get.return_value = response
-            # setup DatasetMeta class
+            # setup DatasetMetadata class
             mock_init.return_value = None
             mock_output.return_value = "Output"
 

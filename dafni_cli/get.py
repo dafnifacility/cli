@@ -26,6 +26,7 @@ def get(ctx: Context):
 @get.command(help="List and filter models")
 @click.option(
     "--long/--short",
+    "-l/-s",
     default=False,
     help="Also displays the full description of each model.",
     type=bool,
@@ -132,7 +133,8 @@ def datasets(
 
 @get.command()
 @click.option(
-    "--long/--short","-l/-s",
+    "--long/--short",
+    "-l/-s",
     default=False,
     help="Also displays the full description of each model.",
     type=bool,
@@ -150,7 +152,7 @@ def dataset(ctx: Context, id: str, version_id: str, long: bool):
         long (bool): Flag to view additional metadata attributes
     """
     metadata = get_latest_dataset_metadata(ctx.obj["jwt"], id, version_id)
-    dataset_meta = dataset_metadata.DatasetMeta(metadata)
+    dataset_meta = dataset_metadata.DatasetMetadata(metadata)
     dataset_meta.output_metadata_details(long)
 
 

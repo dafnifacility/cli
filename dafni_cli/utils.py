@@ -3,7 +3,6 @@ import textwrap
 from typing import List, Optional, Union
 from datetime import datetime as dt
 from dateutil.parser import isoparse
-from dafni_cli.consts import DATA_FORMATS
 
 
 def prose_print(prose: str, width: int):
@@ -114,6 +113,7 @@ def process_dict_datetime(
     key and nested key if applicable. If the keys exist, the
     associated value is parsed to a datetime and then formatted to an
     applicable datetime string, otherwise the default value is returned.
+    This function will only parse datetimes in the ISO date format
 
     Args:
         input_dict (dict): dict to check in for keys
@@ -136,13 +136,14 @@ def process_dict_datetime(
 def output_table_row(
     columns: List[str], widths: List[int], alignment: str = "<", header: bool = False
 ) -> str:
-    """Function to generate a table header for the given keys,
-    with a dashed line of equal length underneath
+    """Function to generate a table row given values and column widths.
+    If the header argument is set to true, a dashed line of equal length is added underneath.
 
     Args:
         columns (List[str]): Table Columns
         widths (List[int]): Width associated with each column
-        alignment (str, optional): Direction to align header. Defaults to "<".
+        alignment (str, optional): Direction to align entry. Defaults to "<".
+        header (bool): Flag to set if the given row is the table header. Defaults to False.
 
     Returns:
         str: String containing all Headers with associated spacing and line breaks
@@ -183,7 +184,7 @@ def output_table(
 
 def process_file_size(file_size: Union[int, float]) -> str:
     """Utility function to take in a file size in bytes
-    and format into a tale ready format.
+    and format into a table ready format.
     This converts the size into appropriate units, with
     the units appended
 

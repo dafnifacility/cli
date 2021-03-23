@@ -1,7 +1,7 @@
 import pytest
 from typing import List
 
-from dafni_cli.datasets.dataset_metadata import DataFile, DatasetMeta
+from dafni_cli.datasets.dataset_metadata import DataFile, DatasetMetadata
 
 
 @pytest.fixture
@@ -241,8 +241,8 @@ def dataset_meta_mock(
     language: str = "en",
     standard: str = "ISO 9001",
     update: str = "Annual",
-) -> DatasetMeta:
-    """Function to generate a DatasetMeta object with mock data for testing
+) -> DatasetMetadata:
+    """Function to generate a DatasetMetadata object with mock data for testing
 
     Args:
         created (str, optional): Created date. Defaults to "March 20 2021".
@@ -264,9 +264,9 @@ def dataset_meta_mock(
         update (str, optional): Frequency updated. Defaults to "Annual".
 
     Returns:
-        DatasetMeta: DatasetMeta object with mock data
+        DatasetMetadata: DatasetMetadata object with mock data
     """
-    instance = DatasetMeta()
+    instance = DatasetMetadata()
     instance.created = created
     instance.creator = creator
     instance.contact = contact
