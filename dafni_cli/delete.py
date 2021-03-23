@@ -36,21 +36,22 @@ def model(ctx: Context, version_id: str):
         # Find name (and version message) of each model version that will be deleted
         model_version = Model(vid)
         model_version.get_details_from_id(ctx.obj['jwt'], vid)
-        if model_version.dictionary['auth']['destroy']:
-            click.echo("ID: " +
-                       vid +
-                       TAB_SPACE +
-                       "Name: " +
-                       model_version.display_name +
-                       TAB_SPACE +
-                       "Publication date: " +
-                       model_version.publication_time.date().strftime("%B %d %Y") +
-                       TAB_SPACE +
-                       "Version message: " +
-                       model_version.version_message
-                       )
-        else:
-            # User doesn't have permissions - do something about this
+        if not model_version.dictionary['auth']['destroy']:
+            click.echo("You do not have sufficient permissions to delete model version:")
+        click.echo("ID: " +
+                   vid +
+                   TAB_SPACE +
+                   "Name: " +
+                   model_version.display_name +
+                   TAB_SPACE +
+                   "Publication date: " +
+                   model_version.publication_time.date().strftime("%B %d %Y") +
+                   TAB_SPACE +
+                   "Version message: " +
+                   model_version.version_message
+                   )
+        if not model_version.dictionary['auth']['destroy']:
+            exit(1)
     # Ask for confirmation
     click.confirm("", abort=True)
     for vid in version_id:
