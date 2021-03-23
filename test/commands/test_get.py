@@ -20,8 +20,8 @@ from test.fixtures.model_fixtures import get_model_metadata_fixture
 class TestGet:
     """test class to test the get() command functionality"""
 
-    @patch("dafni_cli.get.get_models_dicts")
-    @patch("dafni_cli.get.check_for_jwt_file")
+    @patch("dafni_cli.commands.get.get_models_dicts")
+    @patch("dafni_cli.commands.get.check_for_jwt_file")
     class TestInit:
         """Test class to test the get() group processing of the
         JWT
@@ -48,12 +48,12 @@ class TestGet:
 
     @patch.object(model.Model, "filter_by_date")
     @patch.object(model.Model, "output_details")
-    @patch("dafni_cli.get.get_models_dicts")
-    @patch("dafni_cli.get.check_for_jwt_file")
+    @patch("dafni_cli.commands.get.get_models_dicts")
+    @patch("dafni_cli.commands.get.check_for_jwt_file")
     class TestModels:
         """Test class to test the get.models command"""
 
-        @patch("dafni_cli.get.process_response_to_class_list")
+        @patch("dafni_cli.commands.get.process_response_to_class_list")
         def test_get_models_dict_called_with_jwt_from_context(
             self,
             mock_list,
@@ -186,7 +186,7 @@ class TestGet:
     @patch.object(model.Model, "output_metadata")
     @patch("dafni_cli.model.model.get_model_metadata_dict")
     @patch("dafni_cli.model.model.get_single_model_dict")
-    @patch("dafni_cli.get.check_for_jwt_file")
+    @patch("dafni_cli.commands.get.check_for_jwt_file")
     class TestModel:
         """Test class to test the get.models command"""
 
@@ -345,7 +345,7 @@ class TestGet:
             assert mock_output_version_history.call_args_list == [call(), call()]
             assert result.exit_code == 0
 
-        @patch("dafni_cli.get.click")
+        @patch("dafni_cli.commands.get.click")
         def test_message_printed_when_no_id_provided(
             self,
             mock_click,
@@ -371,13 +371,13 @@ class TestGet:
             assert result.exit_code == 1
 
     @patch.object(dataset.Dataset, "output_dataset_details")
-    @patch("dafni_cli.get.get_all_datasets")
+    @patch("dafni_cli.commands.get.get_all_datasets")
     @patch("dafni_cli.datasets.dataset_filtering.process_datasets_filters")
-    @patch("dafni_cli.get.check_for_jwt_file")
+    @patch("dafni_cli.commands.get.check_for_jwt_file")
     class TestDatasets:
         """Test class to test the get group datasets command"""
 
-        @patch("dafni_cli.get.process_response_to_class_list")
+        @patch("dafni_cli.commands.get.process_response_to_class_list")
         def test_get_all_datasets_called_with_jwt_from_context(
             self,
             mock_create,
@@ -508,8 +508,8 @@ class TestGet:
 
     @patch.object(dataset_metadata.DatasetMetadata, "output_metadata_details")
     @patch.object(dataset_metadata.DatasetMetadata, "__init__")
-    @patch("dafni_cli.get.get_latest_dataset_metadata")
-    @patch("dafni_cli.get.check_for_jwt_file")
+    @patch("dafni_cli.commands.get.get_latest_dataset_metadata")
+    @patch("dafni_cli.commands.get.check_for_jwt_file")
     class TestDataset:
         """Test class to test the get group dataset command"""
 

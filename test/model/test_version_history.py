@@ -119,12 +119,14 @@ class TestVersionHistory:
         """Test class to test the VersionHistory.output_version_history() functionality"""
 
         def test_single_version_displayed_correctly(
-            self, mock_get_details, mock_click, get_models_list_fixture,
+            self, mock_get_details, mock_click, get_single_model_fixture,
         ):
             # SETUP
             model_instance = model.Model()
+            # Remove first value of the version history
+            get_single_model_fixture["version_history"] = [get_single_model_fixture["version_history"][0]]
             # Populate the dictionary of the model so the version history dictionary can be accessed
-            model_instance.dictionary = get_models_list_fixture[1]
+            model_instance.dictionary = get_single_model_fixture
             model_instance.version_id = "id"
             jwt = "jwt"
             instance = version_history.ModelVersionHistory(jwt, model_instance)
@@ -149,12 +151,14 @@ class TestVersionHistory:
             ]
 
         def test_multiple_versions_displayed_correctly(
-            self, mock_get_details, mock_click, get_models_list_fixture,
+            self, mock_get_details, mock_click, get_single_model_fixture,
         ):
             # SETUP
             init_model_instance = model.Model()
+            # Remove first value of the version history
+            get_single_model_fixture["version_history"] = [get_single_model_fixture["version_history"][0]]
             # Populate the dictionary of the model so the version history dictionary can be accessed
-            init_model_instance.dictionary = get_models_list_fixture[1]
+            init_model_instance.dictionary = get_single_model_fixture
             jwt = "jwt"
             init_model_instance.version_id = "id"
             instance = version_history.ModelVersionHistory(jwt, init_model_instance)

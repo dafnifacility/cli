@@ -9,6 +9,7 @@ from test.fixtures.model_fixtures import (
     get_single_model_fixture,
     get_model_metadata_fixture,
 )
+from dafni_cli import auth
 from dafni_cli.model import model
 from dafni_cli.consts import DATE_TIME_FORMAT, CONSOLE_WIDTH, TAB_SPACE
 
@@ -28,6 +29,7 @@ class TestModel:
                 "dictionary",
                 "display_name",
                 "metadata",
+                "privileges",
                 "publication_time",
                 "summary",
                 "version_id",
@@ -53,22 +55,25 @@ class TestModel:
     class TestSetDetailsFromDict:
         """Test class to test the Model.get_details_from_dict() functionality"""
 
-        def test_non_date_fields_set_correctly(self, get_models_list_fixture):
+        @patch.object(auth.Auth, "__init__")
+        def test_non_date_fields_set_correctly(self, mock_auth, get_models_list_fixture):
             # SETUP
             instance = model.Model()
             model_dict = get_models_list_fixture[0]
+            mock_auth.return_value = None
 
             # CALL
             instance.set_details_from_dict(model_dict)
 
             # ASSERT
+            assert instance.container == model_dict["container"]
+            assert instance.description == model_dict["description"]
             assert instance.dictionary == model_dict
             assert instance.display_name == model_dict["name"]
+            mock_auth.assert_called_once_with(model_dict["auth"])
             assert instance.summary == model_dict["summary"]
-            assert instance.description == model_dict["description"]
             assert instance.version_id == model_dict["id"]
             assert instance.version_tags == model_dict["version_tags"]
-            assert instance.container == model_dict["container"]
 
         def test_ISO_dates_are_converted_to_datetime(self, get_models_list_fixture):
             # SETUP

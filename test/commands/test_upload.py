@@ -11,12 +11,12 @@ from test.fixtures.model_fixtures import get_model_upload_urls_fixture
 class TestUpload:
     """test class to test the upload() command functionality"""
 
-    @patch("dafni_cli.upload.model_version_ingest")
-    @patch("dafni_cli.upload.upload_file_to_minio")
-    @patch("dafni_cli.upload.get_model_upload_urls")
-    @patch("dafni_cli.upload.validate_model_definition")
-    @patch("dafni_cli.upload.argument_confirmation")
-    @patch("dafni_cli.upload.check_for_jwt_file")
+    @patch("dafni_cli.commands.upload.model_version_ingest")
+    @patch("dafni_cli.commands.upload.upload_file_to_minio")
+    @patch("dafni_cli.commands.upload.get_model_upload_urls")
+    @patch("dafni_cli.commands.upload.validate_model_definition")
+    @patch("dafni_cli.commands.upload.argument_confirmation")
+    @patch("dafni_cli.commands.upload.check_for_jwt_file")
     class TestInit:
         """Test class to test the get() group processing of the
         JWT
@@ -60,10 +60,10 @@ class TestUpload:
             assert ctx["jwt"] == processed_jwt_fixture["jwt"]
             assert result.exit_code == 0
 
-    @patch("dafni_cli.upload.check_for_jwt_file")
-    @patch("dafni_cli.upload.argument_confirmation")
-    @patch("dafni_cli.upload.click")
-    @patch("dafni_cli.upload.validate_model_definition")
+    @patch("dafni_cli.commands.upload.check_for_jwt_file")
+    @patch("dafni_cli.commands.upload.argument_confirmation")
+    @patch("dafni_cli.commands.upload.click")
+    @patch("dafni_cli.commands.upload.validate_model_definition")
     class TestModel:
         """test class to test the upload.model() command functionality"""
 
@@ -182,9 +182,9 @@ class TestUpload:
                 call("Definition validation failed with the following errors: Test validation error")
             ]
 
-        @patch("dafni_cli.upload.get_model_upload_urls")
-        @patch("dafni_cli.upload.upload_file_to_minio")
-        @patch("dafni_cli.upload.model_version_ingest")
+        @patch("dafni_cli.commands.upload.get_model_upload_urls")
+        @patch("dafni_cli.commands.upload.upload_file_to_minio")
+        @patch("dafni_cli.commands.upload.model_version_ingest")
         @pytest.mark.parametrize(
             "upload_options, expected_argument, confirm_arg_1, confirm_arg_2, confirm_arg_3",
             [

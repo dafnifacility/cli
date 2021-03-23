@@ -16,8 +16,8 @@ from test.fixtures.jwt_fixtures import (
 )
 
 
-@patch("dafni_cli.login.process_jwt")
-@patch("dafni_cli.login.requests")
+@patch("dafni_cli.commands.login.process_jwt")
+@patch("dafni_cli.commands.login.requests")
 class TestGetNewJwt:
     """Test class to test the get_new_jwt functionality"""
 
@@ -144,7 +144,7 @@ class TestProcessJwt:
         )
 
 
-@patch("dafni_cli.login.os.path.exists")
+@patch("dafni_cli.commands.login.os.path.exists")
 @patch(
     "builtins.open", new_callable=mock_open, read_data=json.dumps({"jwt": "JWT String"})
 )
@@ -174,8 +174,8 @@ class TestReadJwtFile:
         assert result == {"jwt": "JWT String"}
 
 
-@patch("dafni_cli.login.get_new_jwt")
-@patch("dafni_cli.login.click")
+@patch("dafni_cli.commands.login.get_new_jwt")
+@patch("dafni_cli.commands.login.click")
 class TestRequestLoginDetails:
     """Test class to test the request_login_details functionality"""
 
@@ -224,9 +224,9 @@ class TestRequestLoginDetails:
         mock_jwt.assert_called_once_with("user_name", "pwd")
 
 
-@patch("dafni_cli.login.request_login_details")
-@patch("dafni_cli.login.read_jwt_file")
-@patch("dafni_cli.login.dt")
+@patch("dafni_cli.commands.login.request_login_details")
+@patch("dafni_cli.commands.login.read_jwt_file")
+@patch("dafni_cli.commands.login.dt")
 class TestCheckForJwtFile:
     """Test class to test the check_for_jwt_file functionality"""
 
@@ -293,7 +293,7 @@ class TestCheckForJwtFile:
         assert new_jwt is False
 
 
-@patch("dafni_cli.login.check_for_jwt_file")
+@patch("dafni_cli.commands.login.check_for_jwt_file")
 class TestLogin:
     """Test class to test the login functionality"""
 
@@ -325,9 +325,9 @@ class TestLogin:
         )
 
 
-@patch("dafni_cli.login.os.remove")
-@patch("dafni_cli.login.os.getcwd")
-@patch("dafni_cli.login.read_jwt_file")
+@patch("dafni_cli.commands.login.os.remove")
+@patch("dafni_cli.commands.login.os.getcwd")
+@patch("dafni_cli.commands.login.read_jwt_file")
 class TestLogout:
     """Test class to test the logout command"""
 
