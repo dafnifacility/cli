@@ -135,7 +135,7 @@ class TestGetModelUploadUrls:
         data = {"image": True, "definition": True}
 
         # CALL
-        _, _ = models_api.get_model_upload_urls(jwt)
+        models_api.get_model_upload_urls(jwt)
 
         # ASSERT
         mock_post.assert_called_once_with(

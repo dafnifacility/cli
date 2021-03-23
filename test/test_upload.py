@@ -104,7 +104,7 @@ class TestUpload:
                      " for guidance")
             ]
 
-        def test_method_aborted_and_standard_error_printed_if_non200_or_500_response_from_validation_method(
+        def test_method_aborted_and_standard_error_printed_if_non_200_or_500_response_from_validation_method(
                 self,
                 mock_validate,
                 mock_click,

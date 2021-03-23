@@ -2,6 +2,7 @@ import pytest
 from mock import patch, mock_open
 from requests.exceptions import HTTPError
 from pathlib import Path
+from typing import BinaryIO
 
 from dafni_cli.consts import MODELS_API_URL
 from dafni_cli.api import dafni_api
@@ -130,14 +131,11 @@ class TestDafniPostRequest:
 
 
 @patch("dafni_cli.api.dafni_api.requests")
-@patch(
-        "builtins.open", new_callable=mock_open, read_data="definition file"
-)
 class TestDafniPutRequest:
     """Test class to test the dafni_put_request functionality"""
 
     def test_requests_response_processed_correctly(
-        self, open_mock, mock_request, request_response_fixture
+        self, mock_request, request_response_fixture
     ):
         # SETUP
         # setup return value for requests call
@@ -145,7 +143,7 @@ class TestDafniPutRequest:
         # setup data for call
         url = "dafni/models/url"
         jwt = JWT
-        data = open(Path("path/to/file"), "rb")
+        data = BinaryIO()
         content_type = "content type"
 
         # CALL
@@ -160,7 +158,7 @@ class TestDafniPutRequest:
         )
 
     def test_exception_raised_for_failed_call(
-        self, open_mock, mock_request, request_response_fixture
+        self, mock_request, request_response_fixture
     ):
         # SETUP
         # setup return value for requests call
@@ -172,7 +170,7 @@ class TestDafniPutRequest:
         # setup data for call
         url = "dafni/models/url"
         jwt = JWT
-        data = open(Path("path/to/file"), "rb")
+        data = BinaryIO()
         content_type = "content type"
 
         # CALL
