@@ -204,3 +204,23 @@ def process_file_size(file_size: Union[int, float]) -> str:
     else:
         size = round(file_size / 1e9, 1)
         return f"{size} GB"
+
+
+def argument_confirmation(
+        argument_names: List[str], arguments: List[str], confirmation_message: str, additional_messages: Optional[List[str]]=None
+):
+    """Function to display the arguments and options chosen by the user
+    and ask for confirmation
+
+    Args:
+        argument_names (List[str]): List of the names of the arguments/options for the command
+        arguments (List[str]): List of values chosen for each corresponding argument/option
+        confirmation_message (str): String to display after arguments which prompts the user to confirm or reject
+        additional_messages (Optional[List[str]]): Other messages to be added after options are listed
+    """
+    for i, value in enumerate(argument_names):
+        click.echo(f"{value}: {arguments[i]}")
+    if additional_messages:
+        for message in additional_messages:
+            click.echo(message)
+    click.confirm(confirmation_message, abort=True)

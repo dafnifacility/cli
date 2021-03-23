@@ -1,8 +1,8 @@
 import pytest
 from mock import patch
 from requests.exceptions import HTTPError
+from typing import BinaryIO
 
-from dafni_cli.consts import MODELS_API_URL
 from dafni_cli.api import dafni_api
 from test.fixtures.jwt_fixtures import request_response_fixture, JWT
 
@@ -126,3 +126,52 @@ class TestDafniPostRequest:
         # ASSERT
         with pytest.raises(HTTPError, match="404 client model"):
             dafni_api.dafni_post_request(url, jwt, data)
+
+
+@patch("dafni_cli.api.dafni_api.requests")
+class TestDafniPutRequest:
+    """Test class to test the dafni_put_request functionality"""
+
+    def test_requests_response_processed_correctly(
+        self, mock_request, request_response_fixture
+    ):
+        # SETUP
+        # setup return value for requests call
+        mock_request.put.return_value = request_response_fixture
+        # setup data for call
+        url = "dafni/models/url"
+        jwt = JWT
+        data = BinaryIO()
+        content_type = "content type"
+
+        # CALL
+        result = dafni_api.dafni_put_request(url, jwt, data, content_type)
+
+        # ASSERT
+        assert result == request_response_fixture
+        mock_request.put.assert_called_once_with(
+            url,
+            headers={"Content-Type": content_type, "authorization": jwt},
+            data=data,
+        )
+
+    def test_exception_raised_for_failed_call(
+        self, mock_request, request_response_fixture
+    ):
+        # SETUP
+        # setup return value for requests call
+        request_response_fixture.raise_for_status.side_effect = HTTPError(
+            "404 client model"
+        )
+        mock_request.put.return_value = request_response_fixture
+
+        # setup data for call
+        url = "dafni/models/url"
+        jwt = JWT
+        data = BinaryIO()
+        content_type = "content type"
+
+        # CALL
+        # ASSERT
+        with pytest.raises(HTTPError, match="404 client model"):
+            dafni_api.dafni_put_request(url, jwt, data, content_type)

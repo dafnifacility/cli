@@ -68,9 +68,9 @@ class TestDataFile:
 
             # ASSERT
             assert mock_check.call_args_list == [
-                call(file_dict, "spdx:fileName"),
-                call(file_dict, "dcat:byteSize", default=None),
-                call(file_dict, "dcat:mediaType"),
+                call(file_dict, ["spdx:fileName"]),
+                call(file_dict, ["dcat:byteSize"], default=None),
+                call(file_dict, ["dcat:mediaType"]),
             ]
             mock_process.assert_called_once_with("Mock Check")
 

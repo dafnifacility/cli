@@ -1,5 +1,5 @@
 import pytest
-from typing import List
+from typing import List, Tuple
 
 
 @pytest.fixture
@@ -151,3 +151,29 @@ def get_model_metadata_fixture() -> dict:
     }
 
     return metadata
+
+
+@pytest.fixture
+def get_model_upload_urls_fixture() -> Tuple[str, dict]:
+    """Test fixture for model upload urls
+
+    Returns:
+        str: Example upload id
+        dict: Example dict containing definition and image urls
+    """
+    upload_id = "00a0a000-00a0-0000-0000-00a0000a0000"
+    upload_urls = {"definition": "https://nims-io.secure.dafni.rl.ac.uk/" +
+                                 "78f9dfe8-dabe-404d-abfb-c4cd16b9ccab/" +
+                                 "definition?X-Amz-Algorithm=AWS4-HMAC-SHA256" +
+                                 "&X-Amz-Credential=3DCC953FC59AC3FB3AF5%2F20210319%2Fus-east-1%2Fs3%2Faws4_request" +
+                                 "&X-Amz-Date=20210319T114018Z&X-Amz-Expires=14400&X-Amz-SignedHeaders=host" +
+                                 "&X-Amz-Signature=5853a7e47b4e173c5e17ecfd799b2121f24809dae741ee95d93d040ddc14d1db",
+                   "image": "https://nims-io.secure.dafni.rl.ac.uk/" +
+                            "78f9dfe8-dabe-404d-abfb-c4cd16b9ccab/" +
+                            "image?X-Amz-Algorithm=AWS4-HMAC-SHA256" +
+                            "&X-Amz-Credential=3DCC953FC59AC3FB3AF5%2F20210319%2Fus-east-1%2Fs3%2Faws4_request" +
+                            "&X-Amz-Date=20210319T114018Z&X-Amz-Expires=14400" +
+                            "&X-Amz-SignedHeaders=host" +
+                            "&X-Amz-Signature=be49a3a8fbcee39d2c07197d3bd1b48ef28c637b36a1a00557fdee6f9be90ff1"
+                   }
+    return upload_id, upload_urls
