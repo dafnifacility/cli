@@ -1,10 +1,8 @@
 import pytest
-from mock import patch, mock_open
+from mock import patch
 from requests.exceptions import HTTPError
-from pathlib import Path
 from typing import BinaryIO
 
-from dafni_cli.consts import MODELS_API_URL
 from dafni_cli.api import dafni_api
 from test.fixtures.jwt_fixtures import request_response_fixture, JWT
 
