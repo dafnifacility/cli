@@ -6,6 +6,7 @@ from dateutil.tz import tzutc
 from test.fixtures.jwt_fixtures import JWT
 from test.fixtures.model_fixtures import (
     get_models_list_fixture,
+    get_single_model_fixture,
     get_model_metadata_fixture,
 )
 from dafni_cli.model import model
@@ -30,6 +31,7 @@ class TestModel:
                 "publication_time",
                 "summary",
                 "version_id",
+                "version_message",
                 "version_tags",
             ]
             # CALL
@@ -86,10 +88,10 @@ class TestModel:
         """Test class to test the Model.get_details_from_id() functionality"""
 
         def test_single_api_call_made_and_processed(
-            self, mock_details, mock_get, get_models_list_fixture
+            self, mock_details, mock_get, get_single_model_fixture
         ):
             # SETUP
-            model_dict = get_models_list_fixture[0]
+            model_dict = get_single_model_fixture
             mock_get.return_value = model_dict
 
             instance = model.Model()

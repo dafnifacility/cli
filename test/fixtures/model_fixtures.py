@@ -19,20 +19,6 @@ def get_models_list_fixture() -> List[dict]:
             "publication_date": "2021-01-02T00:00:00.000000Z",
             "id": "0a0a0a0a-0a00-0a00-a000-0a0a0000000a",
             "version_tags": ["latest"],
-            "version_history": [
-                {
-                    "id": "0a0a0a0a-0a00-0a00-a000-0a0a0000000a",
-                    "version_tags": ["latest", "new_param"],
-                    "published": "2021-02-01T00:00:00.000000Z",
-                    "version_message": "version 1 message",
-                },
-                {
-                    "id": "1a0a0a0a-0a00-0a00-a000-0a0a0000000a",
-                    "version_tags": [],
-                    "published": "2021-05-02T00:00:00.000000Z",
-                    "version_message": "version 2 message",
-                },
-            ],
             "container": "reg.dafni.rl.ac.uk/pilots/models/mobile-model/nims",
         },
         {
@@ -56,6 +42,42 @@ def get_models_list_fixture() -> List[dict]:
     ]
 
     return models
+
+
+@pytest.fixture
+def get_single_model_fixture() -> dict:
+    """Test fixture for simulating the models data return
+    from calling the get model <version-id> API
+
+    Returns:
+        List[dict]: example get Model <version-id> response
+    """
+    model = {
+        "name": "test model name",
+        "summary": "this model is for use in tests for the Model class",
+        "description": "This is a terribly long description of the test dictionary",
+        "creation_date": "2021-01-01T00:00:00.000000Z",
+        "publication_date": "2021-01-02T00:00:00.000000Z",
+        "id": "0a0a0a0a-0a00-0a00-a000-0a0a0000000a",
+        "version_message": "test version message",
+        "version_tags": ["latest"],
+        "version_history": [
+            {
+                "id": "0a0a0a0a-0a00-0a00-a000-0a0a0000000a",
+                "version_tags": ["latest", "new_param"],
+                "published": "2021-02-01T00:00:00.000000Z",
+                "version_message": "version 1 message",
+            },
+            {
+                "id": "1a0a0a0a-0a00-0a00-a000-0a0a0000000a",
+                "version_tags": [],
+                "published": "2021-05-02T00:00:00.000000Z",
+                "version_message": "version 2 message",
+            },
+        ],
+        "container": "reg.dafni.rl.ac.uk/pilots/models/mobile-model/nims",
+    }
+    return model
 
 
 @pytest.fixture

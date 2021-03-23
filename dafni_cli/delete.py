@@ -43,7 +43,10 @@ def model(ctx: Context, version_id: str):
                    model_version.display_name +
                    TAB_SPACE +
                    "Publication date: " +
-                   model_version.publication_time.date().strftime("%B %d %Y")
+                   model_version.publication_time.date().strftime("%B %d %Y") +
+                   TAB_SPACE +
+                   "Version message: " +
+                   model_version.version_message
                    )
     # Ask for confirmation
     click.confirm("", abort=True)

@@ -77,6 +77,8 @@ class Model:
         """
         model_dict = get_single_model_dict(jwt_string, version_id_string)
         self.set_details_from_dict(model_dict)
+        # Version message key appears on single model API response, but not list of all models response
+        self.version_message = model_dict["version_message"]
 
     def get_metadata(self, jwt_string: str):
         """Retrieve metadata for the model using the model details and the /models/<version-id>/description/ endpoint.
