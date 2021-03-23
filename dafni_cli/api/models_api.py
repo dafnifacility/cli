@@ -1,15 +1,5 @@
-import requests
-<<<<<<< HEAD
-from typing import Union, List
 from requests import Response
-
-from dafni_cli.consts import MODELS_API_URL, DISCOVERY_API_URL
-from dafni_cli.api.dafni_api import (
-    dafni_get_request,
-    dafni_delete_request
-=======
-from requests import Response
-from typing import Union, List, Tuple, Optional
+from typing import List, Tuple
 from pathlib import Path
 
 from dafni_cli.consts import (
@@ -20,8 +10,8 @@ from dafni_cli.consts import (
 from dafni_cli.api.dafni_api import (
     dafni_get_request,
     dafni_post_request,
-    dafni_put_request
->>>>>>> main
+    dafni_put_request,
+    dafni_delete_request
 )
 
 
