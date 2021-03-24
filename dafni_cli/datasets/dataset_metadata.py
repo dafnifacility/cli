@@ -2,7 +2,7 @@ from dateutil.parser import isoparse
 import click
 from typing import Optional
 
-from dafni_cli.consts import CONSOLE_WIDTH, DATA_FORMATS
+from dafni_cli.consts import CONSOLE_WIDTH, DATA_FORMATS, TAB_SPACE
 from dafni_cli.utils import (
     check_key_in_dict,
     process_dict_datetime,
@@ -86,7 +86,9 @@ class DatasetMetadata:
         update (str): Update Frequency
     """
 
-    def __init__(self, dataset_dict: Optional[dict] = None):
+    def __init__(
+        self, dataset_dict: Optional[dict] = None, version_id: Optional[str] = None
+    ):
         """DatasetMetadata constructor"""
         self.created = None
         self.creator = None
@@ -105,11 +107,16 @@ class DatasetMetadata:
         self.language = None
         self.standard = None
         self.update = None
+        self.title = None
+        self.id = None
+        self.version_id = None
 
         if dataset_dict:
-            self.set_details_from_dict(dataset_dict)
+            self.set_details_from_dict(dataset_dict, version_id)
 
-    def set_details_from_dict(self, dataset_dict: dict):
+    def set_details_from_dict(
+        self, dataset_dict: dict, version_id: Optional[str] = None
+    ):
         """Helper function to populate the DatasetMetadata details
         based on a given DAFNI Dataset metadata client model
 
@@ -148,6 +155,11 @@ class DatasetMetadata:
         self.language = check_key_in_dict(dataset_dict, ["dct:language"])
         self.standard = check_key_in_dict(dataset_dict, ["dct:conformsTo", "label"])
         self.update = check_key_in_dict(dataset_dict, ["dct:accrualPeriodicity"])
+
+        # Version History Fields
+        self.id = check_key_in_dict(dataset_dict, ["version_history", "dataset_uuid"])
+        self.version_id = version_id
+        self.title = check_key_in_dict(dataset_dict, ["dct:title"])
 
     def output_metadata_details(self, long: bool = False):
         """Function to output details relating to the Dataset.
@@ -204,3 +216,14 @@ class DatasetMetadata:
         click.echo(f"Language: {self.language}")
         click.echo(f"Standard: {self.standard}")
         click.echo(f"Update Frequency: {self.update}")
+
+    def output_version_details(self):
+        """Prints relevant dataset attributes to command line"""
+        click.echo(f"\nTitle: {self.title}")
+        click.echo(f"ID: {self.id}")
+        click.echo(f"Version ID: {self.version_id}")
+        click.echo(f"Publisher: {self.publisher}")
+        click.echo(f"From: {self.start_date}{TAB_SPACE}To: {self.end_date}")
+        click.echo("Description: ")
+        prose_print(self.description, CONSOLE_WIDTH)
+        click.echo("")
