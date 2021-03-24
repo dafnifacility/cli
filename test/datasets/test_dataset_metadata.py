@@ -2,7 +2,7 @@ import pytest
 from mock import patch, call
 
 from dafni_cli.datasets.dataset_metadata import DataFile, DatasetMetadata
-from dafni_cli.consts import CONSOLE_WIDTH, DATA_FORMATS
+from dafni_cli.consts import CONSOLE_WIDTH, DATA_FORMATS, TAB_SPACE
 
 from test.fixtures.dataset_fixtures import (
     dataset_metadata_fixture,
@@ -130,6 +130,9 @@ class TestDatasetMeta:
                 "language",
                 "standard",
                 "update",
+                "title",
+                "dataset_id",
+                "version_id",
             ]
             array_keys = ["files", "keywords"]
 
@@ -141,13 +144,27 @@ class TestDatasetMeta:
             assert all(getattr(instance, key) == [] for key in array_keys)
 
         @patch.object(DatasetMetadata, "set_details_from_dict")
-        def test_set_details_from_dict_called_if_give_dict(self, mock_set):
+        def test_set_details_from_dict_called_if_give_dict_with_default_version_id(
+            self, mock_set
+        ):
             # SETUP
             dataset_dict = {"key": "value"}
             # CALL
             DatasetMetadata(dataset_dict)
             # ASSERT
-            mock_set.assert_called_once_with(dataset_dict)
+            mock_set.assert_called_once_with(dataset_dict, None)
+
+        @patch.object(DatasetMetadata, "set_details_from_dict")
+        def test_set_details_from_dict_called_if_give_dict_with_given_version_id(
+            self, mock_set
+        ):
+            # SETUP
+            dataset_dict = {"key": "value"}
+            version_id = "version"
+            # CALL
+            DatasetMetadata(dataset_dict, version_id)
+            # ASSERT
+            mock_set.assert_called_once_with(dataset_dict, version_id)
 
     class TestSetDetailsFromDict:
         """Test class to test the set_details_from_dict functionality"""
@@ -171,11 +188,14 @@ class TestDatasetMeta:
                 "Files",
                 "Themes",
                 "Publisher",
-                "Issued",
                 "Rights",
                 "Language",
                 "Standard",
                 "Update",
+                "ID",
+                "Title",
+                ["Versions"],
+                "Version_IDs",
             )
 
             instance = DatasetMetadata()
@@ -208,6 +228,8 @@ class TestDatasetMeta:
                 call(dataset_dict, ["dct:language"]),
                 call(dataset_dict, ["dct:conformsTo", "label"]),
                 call(dataset_dict, ["dct:accrualPeriodicity"]),
+                call(dataset_dict, ["version_history", "dataset_uuid"]),
+                call(dataset_dict, ["dct:title"]),
             ]
 
             mock_datafile.assert_called_once_with({"key": "value"})
@@ -231,11 +253,14 @@ class TestDatasetMeta:
                 None,
                 "Themes",
                 "Publisher",
-                "Issued",
                 "Rights",
                 "Language",
                 "Standard",
                 "Update",
+                "ID",
+                "Title",
+                ["Versions"],
+                "Version_IDs",
             )
 
             instance = DatasetMetadata()
@@ -411,3 +436,27 @@ class TestDatasetMeta:
             ]
 
             mock_prose.assert_called_once_with(instance.rights, CONSOLE_WIDTH)
+
+    @patch("dafni_cli.datasets.dataset_metadata.prose_print")
+    @patch("dafni_cli.datasets.dataset_metadata.click")
+    class TestOutputVersionDetails:
+        """Test class to test DatasetMetadata.output_version_details()"""
+
+        def test_version_details_outputted_as_expected(self, mock_click, mock_prose):
+            # SETUP
+            instance = dataset_meta_mock()
+
+            # CALL
+            instance.output_version_details()
+
+            # ASSERT
+            assert mock_click.echo.call_args_list == [
+                call(f"\nTitle: {instance.title}"),
+                call(f"ID: {instance.dataset_id}"),
+                call(f"Version ID: {instance.version_id}"),
+                call(f"Publisher: {instance.publisher}"),
+                call(f"From: {instance.start_date}{TAB_SPACE}To: {instance.end_date}"),
+                call("Description: "),
+            ]
+
+            mock_prose.assert_called_once_with(instance.description, CONSOLE_WIDTH)

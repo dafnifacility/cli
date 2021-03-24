@@ -241,6 +241,9 @@ def dataset_meta_mock(
     language: str = "en",
     standard: str = "ISO 9001",
     update: str = "Annual",
+    title: str = "Title",
+    dataset_id: str = "Dataset ID",
+    version_id: str = "Version ID",
 ) -> DatasetMetadata:
     """Function to generate a DatasetMetadata object with mock data for testing
 
@@ -262,6 +265,9 @@ def dataset_meta_mock(
         language (str, optional): Associated Language. Defaults to "en".
         standard (str, optional): Associated standards. Defaults to "ISO 9001".
         update (str, optional): Frequency updated. Defaults to "Annual".
+        title (str, optional): Associated Title. Defaults to "en".
+        dataset_id (str, optional): Dataset ID. Defaults to "ISO 9001".
+        version_id (str, optional): Dataset Version ID. Defaults to "Annual".
 
     Returns:
         DatasetMetadata: DatasetMetadata object with mock data
@@ -284,5 +290,8 @@ def dataset_meta_mock(
     instance.language = language
     instance.standard = standard
     instance.update = update
+    instance.title = title
+    instance.dataset_id = dataset_id
+    instance.version_id = version_id
 
     return instance
