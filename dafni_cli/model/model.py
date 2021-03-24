@@ -48,7 +48,7 @@ class Model:
         self.dictionary = None
         self.display_name = None
         self.metadata = None
-        self.privileges = None
+        self.privileges = Auth()
         self.publication_time = None
         self.summary = None
         self.version_id = identifier

@@ -195,3 +195,57 @@ If there is no valid JWT, the user will be prompted to login before the command 
   - **--version-message**: Message to be added with this model version.
   This is a required option.
   - **--parent-model**: If the model version is an updated version of a previous DAFNI model, the ID of the parent model should be specified through this option.
+  
+  Example output:
+  <pre>
+  Model definition file path: path\to\model-definition
+  Image file path: path\to\docker-image
+  Version message: Model version message
+  No parent model: new model to be created
+  Confirm model upload? [y/N]:
+  </pre>
+  With parent model:
+  <pre>
+  Model definition file path: path\to\model-definition
+  Image file path: path\to\docker-image
+  Version message: Model version message
+  Parent model ID: 0000aa0a-0000-0000-0000-a00aaa000aa0
+  Confirm model upload? [y/N]:
+  </pre>
+  After confirmation:
+  <pre>
+  Validating model definition
+  Getting urls
+  Uploading model definition and image
+  Ingesting model
+  Model upload complete
+  </pre>
+
+___
+### Delete
+
+>Command: `dafni(.exe) delete [sub-command]`
+
+Delete an entity to DAFNI.
+If there is no valid JWT, the user will be prompted to login before the command is carried out.
+
+**Sub-Commands:**
+- Model:
+  >*Command: `dafni(.exe) delete model [version-id]`*
+  
+  Deletes one or more model version(s) from DAFNI.
+  
+  *Arguments*:
+  - **version-id**: Version id(s) of the model version(s) to be deleted.
+  If the user does not have the necessary permissions to delete the model version, 
+  the process will be aborted.
+  
+  Example output:
+  <pre>
+  ID: f2a30e94-5576-46a5-b4e5-88193d494fcd    Name: Hello World    Publication date: March 24 2021    Version message: Testing pip package with parent model
+  Confirm deletion of models? [y/N]:
+  </pre>
+  After confirmation:
+  <pre>
+  Model versions deleted
+  </pre>

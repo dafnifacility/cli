@@ -15,21 +15,27 @@ class TestAuth:
 
         def test_expected_attributes_found_on_class_when_no_dict_given(self):
             # SETUP
-            expected_attributes = [
+            string_attributes = [
                 "asset_id",
-                "destroy",
                 "name",
+                "reason"
+            ]
+            bool_attributes = [
+                "destroy",
                 "read",
-                "reason",
                 "update",
                 "view"
             ]
+
             # CALL
             instance = Auth()
             # ASSERT
             assert isinstance(instance, Auth)
             assert all(
-                getattr(instance, value) is None for value in expected_attributes
+                getattr(instance, value) is None for value in string_attributes
+            )
+            assert all(
+                getattr(instance, value) is False for value in bool_attributes
             )
 
         def test_attributes_have_expected_values_when_model_auth_dict_used(

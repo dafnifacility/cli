@@ -8,14 +8,18 @@ from dafni_cli.model.model import Model
 from dafni_cli.utils import argument_confirmation
 
 
-def collate_model_version_details(ctx: Context, version_id_list: List[str]) -> List[str]:
+def collate_model_version_details(
+        jwt_string: str, version_id_list: List[str]
+) -> List[str]:
     model_version_details_list = []
     for vid in version_id_list:
-        # Find name (and version message) of each model version that will be deleted
+        # Find details of each model version that will be deleted
         model_version = Model(vid)
-        model_version.get_details_from_id(ctx.obj['jwt'], vid)
+        model_version.get_details_from_id(jwt_string, vid)
+        # Exit if user doesn't have necessary permissions
         if not model_version.privileges.destroy:
             click.echo("You do not have sufficient permissions to delete model version:")
+            click.echo(model_version.output_version_details())
             exit(1)
         model_version_details_list.append(model_version.output_version_details())
     return model_version_details_list
@@ -45,11 +49,12 @@ def model(ctx: Context, version_id: List[str]):
         ctx (context): contains JWT for authentication
         version_id (str): ID(s) of the model version(s) to be deleted
     """
-    model_version_details_list = collate_model_version_details(ctx, version_id)
+    model_version_details_list = collate_model_version_details(ctx.obj['jwt'], version_id)
     argument_confirmation(
-        model_version_details_list,
-        [""] * len(model_version_details_list),
-        "Confirm deletion of models?"
+        [],
+        [],
+        "Confirm deletion of models?",
+        model_version_details_list
     )
     for vid in version_id:
         delete_model(ctx.obj['jwt'], vid)

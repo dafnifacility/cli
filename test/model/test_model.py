@@ -29,7 +29,6 @@ class TestModel:
                 "dictionary",
                 "display_name",
                 "metadata",
-                "privileges",
                 "publication_time",
                 "summary",
                 "version_id",
@@ -43,6 +42,7 @@ class TestModel:
             assert all(
                 getattr(instance, value) is None for value in expected_attributes
             )
+            assert isinstance(getattr(instance, "privileges"), auth.Auth)
 
         def test_version_id_set_if_identifier_given(self):
             # SETUP
@@ -58,9 +58,9 @@ class TestModel:
         @patch.object(auth.Auth, "__init__")
         def test_non_date_fields_set_correctly(self, mock_auth, get_models_list_fixture):
             # SETUP
+            mock_auth.return_value = None
             instance = model.Model()
             model_dict = get_models_list_fixture[0]
-            mock_auth.return_value = None
 
             # CALL
             instance.set_details_from_dict(model_dict)
@@ -70,7 +70,10 @@ class TestModel:
             assert instance.description == model_dict["description"]
             assert instance.dictionary == model_dict
             assert instance.display_name == model_dict["name"]
-            mock_auth.assert_called_once_with(model_dict["auth"])
+            assert mock_auth.call_args_list == [
+                call(),
+                call(model_dict["auth"])
+            ]
             assert instance.summary == model_dict["summary"]
             assert instance.version_id == model_dict["id"]
             assert instance.version_tags == model_dict["version_tags"]
@@ -419,3 +422,26 @@ class TestModel:
                 call(""),
             ]
             assert mock_prose.called_once_with("description", CONSOLE_WIDTH)
+
+    class TestOutputVersionDetails:
+        """Test class to test the Model.output_version_details() functionality"""
+
+        def test_returned_string_is_as_expected(self):
+            # SETUP
+            instance = model.Model()
+            instance.version_id = "version-id"
+            instance.display_name = "Model name"
+            instance.publication_time = dt(2020, 1, 1, 00, 00, 00)
+            instance.version_message = "Model version message"
+
+            # CALL
+            result = instance.output_version_details()
+
+            # ASSERT
+            assert result == "ID: version-id" + \
+                   TAB_SPACE + \
+                   "Name: Model name" + \
+                   TAB_SPACE + \
+                   "Publication date: January 01 2020" + \
+                   TAB_SPACE + \
+                   "Version message: Model version message"

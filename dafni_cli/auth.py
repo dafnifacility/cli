@@ -20,6 +20,7 @@ class Auth:
         update (bool): Update access
         view (bool): View access
     """
+    destroy = None
 
     def __init__(self, auth_dict: Optional[dict] = None):
         """Auth Constructor
@@ -28,12 +29,12 @@ class Auth:
             auth_dict (Optional[dict]): auth dictionary found in model and dataset dictionaries
         """
         self.asset_id = None
-        self.destroy = None
+        self.destroy = False
         self.name = None
-        self.read = None
+        self.read = False
         self.reason = None
-        self.update = None
-        self.view = None
+        self.update = False
+        self.view = False
 
         if auth_dict:
             self.set_details_from_dict(auth_dict)

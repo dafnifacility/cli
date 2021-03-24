@@ -1,5 +1,9 @@
 import pytest
 from typing import List, Tuple
+import datetime as dt
+
+from dafni_cli.model.model import Model
+from dafni_cli.auth import Auth
 
 
 @pytest.fixture
@@ -185,3 +189,86 @@ def get_model_upload_urls_fixture() -> Tuple[str, dict]:
                             "&X-Amz-Signature=be49a3a8fbcee39d2c07197d3bd1b48ef28c637b36a1a00557fdee6f9be90ff1"
                    }
     return upload_id, upload_urls
+
+
+def auth_mock(
+    asset_id: str = "asset id",
+    destroy: bool = True,
+    name: str = "Auth name",
+    read: bool = True,
+    reason: str = "Auth reason",
+    update: bool = True,
+    view: bool = True
+) -> Auth:
+    """Test fixture to generate an Auth object with given attributes
+
+    Args:
+        asset_id (str, optional): ID for the asset trying to be accessed. Defaults to "asset id".
+        destroy (bool, optional): Whether the user has access to delete the entity. Defaults to True.
+        name (str, optional): Name. Defaults to "Auth name".
+        read (bool, optional): Whether the user has access to read the entity. Defaults to True.
+        reason (str, optional): Reason for access. Defaults to "Auth reason".
+        update (bool, optional): Whether the user has access to update the entity. Defaults to True.
+        view (bool, option): Whether the user has access to view the entity. Defaults to True.
+
+    Returns:
+        Auth: Generated Auth object for testing
+    """
+    instance = Auth()
+    instance.asset_id = asset_id
+    instance.destroy = destroy
+    instance.name = name
+    instance.read = read
+    instance.reason = reason
+    instance.update = update
+    instance.view = view
+
+    return instance
+
+
+def model_mock(
+    container: str = "Container name",
+    creation_time: dt.datetime = dt.datetime(2020, 1, 1, 00, 00, 00),
+    description: str = "Model description",
+    dictionary: dict = {'key': 'value'},
+    display_name: str = "Model name",
+    privileges: Auth = auth_mock(),
+    publication_time: dt.datetime = dt.datetime(2020, 1, 1, 00, 00, 00),
+    summary: str = "Model summary",
+    version_id: str = "0a0a0a0a-0a00-0a00-a000-0a0a0000000a",
+    version_message: str = "Version message",
+    version_tags: List[str] = ["tag1", "tag2"]
+) -> Model:
+    """Test fixture to generate a Model object with given attributes
+
+    Args:
+        container (str, optional): Container name. Defaults to "Container name".
+        creation_time (dt.datetime, optional): Formatted creation time. Defaults to midnight on 01/01/2020.
+        description (str, optional): Model description. Defaults to "Model description".
+        dictionary (dict, optional): Model dictionary. Defaults to {"key": "value"}.
+        display_name (str, optional): Model display name. Defaults to "Model name".
+        privileges (Auth, optional): Authorisation for model. Defaults to mock_auth.
+        publication_time (dt.datetime, optional): Formatted publication time. Defaults to midnight on 01/01/2020.
+        summary (str, optional): Summary of model. Defaults to "Model summary".
+        version_id (str, optional): Version ID of model. Defaults to "0a0a0a0a-0a00-0a00-a000-0a0a0000000a".
+        version_message (str, optional): Version message associated with model version. Defaults to "Version message".
+        version_tags (List[str], optional): Version tags associated with model version. Defaults to ["tag1", "tag2"].
+
+    Returns:
+        Model: Generated Model object for testing
+    """
+
+    instance = Model()
+    instance.container = container
+    instance.creation_time = creation_time
+    instance.description = description
+    instance.dictionary = dictionary
+    instance.display_name = display_name
+    instance.privileges = privileges
+    instance.publication_time = publication_time
+    instance.summary = summary
+    instance.version_id = version_id
+    instance.version_message = version_message
+    instance.version_tags = version_tags
+
+    return instance
