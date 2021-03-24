@@ -36,7 +36,7 @@ def process_response_to_class_list(response: List[dict], class_instance: object)
 
 
 def optional_column(
-    dictionary: dict, key: str, column_width: int = 0, alignment: str = "<"
+        dictionary: dict, key: str, column_width: int = 0, alignment: str = "<"
 ):
     """Adds a value to a column, if the key exists in the dictionary
     and adds spaces of the appropriate width if not.
@@ -75,9 +75,9 @@ def process_date_filter(date_str: str) -> str:
 
 
 def check_key_in_dict(
-    input_dict: dict,
-    keys: List[str],
-    default: Optional[str] = "N/A",
+        input_dict: dict,
+        keys: List[str],
+        default: Optional[str] = "N/A",
 ) -> Optional[Union[str, int]]:
     """Utility function to check a nested dict for a given
     key and nested keys if applicable. If the keys exist, the
@@ -131,7 +131,7 @@ def process_dict_datetime(input_dict: dict, keys: List[str], default="N/A") -> s
 
 
 def output_table_row(
-    entries: List[str], widths: List[int], alignment: str = "<", header: bool = False
+        entries: List[str], widths: List[int], alignment: str = "<", header: bool = False
 ) -> str:
     """Function to generate a table row given values and column widths.
     If the header argument is set to true, a dashed line of equal length is added underneath.
@@ -159,7 +159,7 @@ def output_table_row(
 
 
 def output_table(
-    columns: List[str], widths: List[int], values: List[List], alignment: str = "<"
+        columns: List[str], widths: List[int], values: List[List], alignment: str = "<"
 ) -> str:
     """Function to generate a table of data in the command console
 
@@ -207,7 +207,10 @@ def process_file_size(file_size: Union[int, float]) -> str:
 
 
 def argument_confirmation(
-        argument_names: List[str], arguments: List[str], confirmation_message: str, additional_messages: Optional[List[str]]=None
+        argument_names: List[str],
+        arguments: List[str],
+        confirmation_message: str,
+        additional_messages: Optional[List[str]] = None
 ):
     """Function to display the arguments and options chosen by the user
     and ask for confirmation

@@ -144,3 +144,18 @@ class Model:
         if self.metadata.outputs:
             click.echo("Outputs: ")
             click.echo(self.metadata.format_outputs())
+
+    def output_version_details(self) -> str:
+        """Prints version ID, display name, publication time and version message on one line"""
+        return("ID: " +
+               self.version_id +
+               TAB_SPACE +
+               "Name: " +
+               self.display_name +
+               TAB_SPACE +
+               "Publication date: " +
+               self.publication_time.date().strftime("%B %d %Y") +
+               TAB_SPACE +
+               "Version message: " +
+               self.version_message
+               )
