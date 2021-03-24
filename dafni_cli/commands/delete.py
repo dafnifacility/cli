@@ -11,6 +11,17 @@ from dafni_cli.utils import argument_confirmation
 def collate_model_version_details(
         jwt_string: str, version_id_list: List[str]
 ) -> List[str]:
+    """Checks for destroy privileges for the user,
+    and produces a list of the version details,
+    of each model to be deleted
+
+    Args:
+        jwt_string (str): JWT
+        version_id_list (List[str]): List of the version IDs of each model to be deleted
+
+    Returns:
+        List[str]: List of the model details to be displayed during deletion confirmation
+    """
     model_version_details_list = []
     for vid in version_id_list:
         # Find details of each model version that will be deleted
