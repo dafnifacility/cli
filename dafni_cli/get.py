@@ -10,7 +10,10 @@ from dafni_cli.login import check_for_jwt_file
 from dafni_cli.model.model import Model
 from dafni_cli.model.version_history import ModelVersionHistory
 from dafni_cli.api.models_api import get_models_dicts
-from dafni_cli.utils import process_response_to_class_list
+from dafni_cli.utils import (
+    process_response_to_class_list,
+    print_json
+)
 
 
 @click.group()
@@ -47,8 +50,15 @@ def get(ctx: Context):
     help="Filter for models published since given date. Format: DD/MM/YYYY",
     type=str,
 )
+@click.option(
+    "--json/--pretty",
+    "-j/-p",
+    default=False,
+    help="Prints raw json returned from API.",
+    type=bool
+)
 @click.pass_context
-def models(ctx: Context, long: bool, creation_date: str, publication_date: str):
+def models(ctx: Context, long: bool, creation_date: str, publication_date: str, json: bool):
     """Displays list of model names with other options allowing
         more details to be listed as well.
 
@@ -57,9 +67,11 @@ def models(ctx: Context, long: bool, creation_date: str, publication_date: str):
         long (bool): whether to print the description of each model as well
         creation_date (str): for filtering by creation date. Format: DD/MM/YYYY
         publication_date (str): for filtering by publication date. Format: DD/MM/YYYY
+        json (bool): whether to print the raw json returned by the DAFNI API
     """
     model_dict_list = get_models_dicts(ctx.obj["jwt"])
     model_list = process_response_to_class_list(model_dict_list, Model)
+    filtered_model_dict_list = []
     for model in model_list:
         date_filter = True
         if creation_date:
@@ -67,7 +79,12 @@ def models(ctx: Context, long: bool, creation_date: str, publication_date: str):
         if publication_date:
             date_filter = model.filter_by_date("publication", publication_date)
         if date_filter:
-            model.output_details(long)
+            if json:
+                filtered_model_dict_list.append(model.dictionary)
+            else:
+                model.output_details(long)
+    if json:
+        print_json(filtered_model_dict_list)
 
 
 @get.command(help="Display metadata or version history of a particular model or models")
