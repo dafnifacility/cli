@@ -183,10 +183,17 @@ def datasets(
     help="Also displays the full description of each model.",
     type=bool,
 )
+@click.option(
+    "--json/--pretty",
+    "-j/-p",
+    default=False,
+    help="Prints raw json returned from API.",
+    type=bool
+)
 @click.argument("id", nargs=1, required=True, type=str)
 @click.argument("version-id", nargs=1, required=True, type=str)
 @click.pass_context
-def dataset(ctx: Context, id: str, version_id: str, long: bool):
+def dataset(ctx: Context, id: str, version_id: str, long: bool, json: bool):
     """Command to the the meta data relating to a given version of a dataset
 
     Args:
@@ -194,10 +201,14 @@ def dataset(ctx: Context, id: str, version_id: str, long: bool):
         id (str): Dataset ID
         version_id (str): Dataset version ID
         long (bool): Flag to view additional metadata attributes
+        json (bool): Flag to view json returned from API
     """
     metadata = get_latest_dataset_metadata(ctx.obj["jwt"], id, version_id)
-    dataset_meta = dataset_metadata.DatasetMetadata(metadata)
-    dataset_meta.output_metadata_details(long)
+    if json:
+        print_json(metadata)
+    else:
+        dataset_meta = dataset_metadata.DatasetMetadata(metadata)
+        dataset_meta.output_metadata_details(long)
 
 
 @get.command()
