@@ -109,7 +109,7 @@ def model(ctx: Context, version_id: List[str], version_history: bool, json: bool
         ctx (Context): contains JWT for authentication
         version_id (list[str]): List of version IDs of the models to be displayed
         version_history (bool): Whether to display version_history instead of metadata
-        json (bool): Whether to output raw json from API or pretty print metadata/version history
+        json (bool): Whether to output raw json from API or pretty print metadata/version history. Defaults to False.
     """
     for vid in version_id:
         model = Model(vid)
@@ -141,23 +141,38 @@ def model(ctx: Context, version_id: List[str], version_history: bool, json: bool
     help="Filter for datasets with a end date up to given date. Format: DD/MM/YYYY",
     type=str,
 )
+@click.option(
+    "--json/--pretty",
+    "-j/-p",
+    default=False,
+    help="Prints raw json returned from API.",
+    type=bool
+)
 @click.pass_context
 def datasets(
     ctx: Context,
     search: Optional[str],
     start_date: Optional[str],
     end_date: Optional[str],
+    json: Optional[bool]
 ):
     """Displays a list of all available datasets
 
     Args:
         ctx (context): contains JWT for authentication
+        search (Optional[str]): Search terms for elastic search. Format: "search terms"
+        start_date (Optional[str]): Filter for datasets with a start date since given date. Format: DD/MM/YYYY
+        end_date (Optional[str]): Filter for datasets with a end date up to given date. Format: DD/MM/YYYY
+        json (Optional[bool]): Whether to output raw json from API or pretty print information. Defaults to False.
     """
     filters = dataset_filtering.process_datasets_filters(search, start_date, end_date)
     datasets_response = get_all_datasets(ctx.obj["jwt"], filters)
-    datasets = process_response_to_class_list(datasets_response["metadata"], Dataset)
-    for dataset_model in datasets:
-        dataset_model.output_dataset_details()
+    if json:
+        print_json(datasets_response)
+    else:
+        datasets = process_response_to_class_list(datasets_response["metadata"], Dataset)
+        for dataset_model in datasets:
+            dataset_model.output_dataset_details()
 
 
 @get.command()
