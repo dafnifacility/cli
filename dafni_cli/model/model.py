@@ -9,7 +9,10 @@ from dafni_cli.api.models_api import (
     get_single_model_dict,
     get_model_metadata_dict,
 )
-from dafni_cli.utils import prose_print
+from dafni_cli.utils import (
+    prose_print,
+    print_json
+)
 
 
 class Model:
@@ -122,20 +125,27 @@ class Model:
             prose_print(self.description, CONSOLE_WIDTH)
         click.echo("")
 
-    def output_metadata(self):
-        """Prints the metadata for the model to command line."""
-        click.echo("Name: " + self.display_name)
-        click.echo("Date: " + self.creation_time.strftime("%B %d %Y"))
-        click.echo("Summary: ")
-        click.echo(self.summary)
-        click.echo("Description: ")
-        prose_print(self.description, CONSOLE_WIDTH)
-        click.echo("")
-        if self.metadata.inputs:
-            click.echo("Input Parameters: ")
-            click.echo(self.metadata.format_parameters())
-            click.echo("Input Data Slots: ")
-            click.echo(self.metadata.format_dataslots())
-        if self.metadata.outputs:
-            click.echo("Outputs: ")
-            click.echo(self.metadata.format_outputs())
+    def output_metadata(self, json_flag: bool = False):
+        """Prints the metadata for the model to command line.
+
+        Args:
+            json_flag (bool): Whether to print raw json or pretty print information. Defaults to False.
+        """
+        if not json_flag:
+            click.echo("Name: " + self.display_name)
+            click.echo("Date: " + self.creation_time.strftime("%B %d %Y"))
+            click.echo("Summary: ")
+            click.echo(self.summary)
+            click.echo("Description: ")
+            prose_print(self.description, CONSOLE_WIDTH)
+            click.echo("")
+            if self.metadata.inputs:
+                click.echo("Input Parameters: ")
+                click.echo(self.metadata.format_parameters())
+                click.echo("Input Data Slots: ")
+                click.echo(self.metadata.format_dataslots())
+            if self.metadata.outputs:
+                click.echo("Outputs: ")
+                click.echo(self.metadata.format_outputs())
+        else:
+            print_json(self.metadata.dictionary)

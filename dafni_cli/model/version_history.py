@@ -3,6 +3,7 @@ from dateutil import parser
 
 from dafni_cli.model.model import Model
 from dafni_cli.consts import TAB_SPACE
+from dafni_cli.utils import print_json
 
 
 class ModelVersionHistory:
@@ -38,19 +39,26 @@ class ModelVersionHistory:
                 version.version_message = version_dict["version_message"]
                 self.history.append(version)
 
-    def output_version_history(self):
-        """Prints the version history for the model to the command line."""
-        for version in self.history:
-            click.echo(
-                "Name: "
-                + version.display_name
-                + TAB_SPACE
-                + "ID: "
-                + version.version_id
-                + TAB_SPACE
-                + "Date: "
-                + version.publication_time.strftime("%B %d %Y")
-            )
-            click.echo("Version message: " + version.version_message)
-            click.echo("Version tags: " + ", ".join(version.version_tags))
-            click.echo("")
+    def output_version_history(self, json_flag: bool = False):
+        """Prints the version history for the model to the command line.
+
+        Args:
+            json_flag (bool): Whether to print raw json or pretty print information. Defaults to False.
+        """
+        if not json_flag:
+            for version in self.history:
+                click.echo(
+                    "Name: "
+                    + version.display_name
+                    + TAB_SPACE
+                    + "ID: "
+                    + version.version_id
+                    + TAB_SPACE
+                    + "Date: "
+                    + version.publication_time.strftime("%B %d %Y")
+                )
+                click.echo("Version message: " + version.version_message)
+                click.echo("Version tags: " + ", ".join(version.version_tags))
+                click.echo("")
+        else:
+            print_json(self.dictionary)

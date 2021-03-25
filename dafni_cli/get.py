@@ -94,24 +94,32 @@ def models(ctx: Context, long: bool, creation_date: str, publication_date: str, 
     default=False,
     help="Whether to display the version history of a model instead of the metadata",
 )
+@click.option(
+    "--json/--pretty",
+    "-j/-p",
+    default=False,
+    help="Prints raw json returned from API.",
+    type=bool
+)
 @click.pass_context
-def model(ctx: Context, version_id: List[str], version_history: bool):
+def model(ctx: Context, version_id: List[str], version_history: bool, json: bool):
     """Displays the metadata for one or more model versions
 
     Args:
         ctx (Context): contains JWT for authentication
         version_id (list[str]): List of version IDs of the models to be displayed
         version_history (bool): Whether to display version_history instead of metadata
+        json (bool): Whether to output raw json from API or pretty print metadata/version history
     """
     for vid in version_id:
         model = Model(vid)
         model.get_details_from_id(ctx.obj["jwt"], vid)
         if version_history:
             history = ModelVersionHistory(ctx.obj["jwt"], model)
-            history.output_version_history()
+            history.output_version_history(json)
         else:
             model.get_metadata(ctx.obj["jwt"])
-            model.output_metadata()
+            model.output_metadata(json)
 
 
 @get.command(help="List and filter datasets")
