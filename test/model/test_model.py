@@ -412,3 +412,24 @@ class TestModel:
                 call(""),
             ]
             assert mock_prose.called_once_with("description", CONSOLE_WIDTH)
+
+        @patch("dafni_cli.model.model.print_json")
+        def test_output_correct_when_json_flag_true(
+                self, mock_print, mock_prose, mock_click, get_model_metadata_fixture
+        ):
+            # SETUP
+            # mock outputs from metadata
+            metadata = MagicMock()
+            mock_dictionary = PropertyMock(return_value=get_model_metadata_fixture)
+            type(metadata).dictionary = mock_dictionary
+            # mock model
+            instance = model.Model()
+            instance.metadata = metadata
+
+            # CALL
+            instance.output_metadata(True)
+
+            # ASSERT
+            mock_print.assert_called_once_with(get_model_metadata_fixture)
+            mock_click.assert_not_called()
+            mock_prose.assert_not_called()

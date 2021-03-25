@@ -287,22 +287,28 @@ class TestGet:
             assert result.exit_code == 0
 
     @patch.object(model.Model, "get_details_from_id")
-    @patch.object(model.Model, "get_metadata")
-    @patch.object(model.Model, "output_metadata")
-    @patch("dafni_cli.model.model.get_model_metadata_dict")
     @patch("dafni_cli.model.model.get_single_model_dict")
     @patch("dafni_cli.get.check_for_jwt_file")
     class TestModel:
         """Test class to test the get.models command"""
 
+        @pytest.mark.parametrize(
+            "json_flag, value",
+            [("--json", True), ("--pretty", False)],
+        )
+        @patch.object(model.Model, "get_metadata")
+        @patch.object(model.Model, "output_metadata")
+        @patch("dafni_cli.model.model.get_model_metadata_dict")
         def test_model_methods_each_called_once_when_one_version_id_given(
             self,
-            mock_jwt,
-            mock_get,
             mock_set_metadata,
             mock_output,
             mock_get_metadata,
+            mock_jwt,
+            mock_get,
             mock_details,
+            json_flag,
+            value,
             processed_jwt_fixture,
             get_models_list_fixture,
             get_model_metadata_fixture,
@@ -319,24 +325,33 @@ class TestGet:
             runner = CliRunner()
 
             # CALL
-            result = runner.invoke(get.get, ["model", version_id])
+            result = runner.invoke(get.get, ["model", json_flag, version_id])
 
             # ASSERT
             mock_details.assert_called_once_with(
                 processed_jwt_fixture["jwt"], version_id
             )
             mock_get_metadata.assert_called_once_with(processed_jwt_fixture["jwt"])
-            mock_output.assert_called_once()
+            mock_output.assert_called_once_with(value)
             assert result.exit_code == 0
 
+        @pytest.mark.parametrize(
+            "json_flag, value",
+            [("--json", True), ("--pretty", False)],
+        )
+        @patch.object(model.Model, "get_metadata")
+        @patch.object(model.Model, "output_metadata")
+        @patch("dafni_cli.model.model.get_model_metadata_dict")
         def test_model_methods_each_called_twice_when_two_version_ids_given(
             self,
-            mock_jwt,
-            mock_get,
             mock_set_metadata,
             mock_output,
             mock_get_metadata,
+            mock_jwt,
+            mock_get,
             mock_details,
+            json_flag,
+            value,
             processed_jwt_fixture,
             get_models_list_fixture,
             get_model_metadata_fixture,
@@ -354,7 +369,9 @@ class TestGet:
             runner = CliRunner()
 
             # CALL
-            result = runner.invoke(get.get, ["model", version_id_1, version_id_2])
+            result = runner.invoke(
+                get.get, ["model", json_flag, version_id_1, version_id_2]
+            )
 
             # ASSERT
             assert mock_details.call_args_list == [
@@ -365,9 +382,13 @@ class TestGet:
                 call(processed_jwt_fixture["jwt"]),
                 call(processed_jwt_fixture["jwt"]),
             ]
-            assert mock_output.call_args_list == [call(), call()]
+            assert mock_output.call_args_list == [call(value), call(value)]
             assert result.exit_code == 0
 
+        @pytest.mark.parametrize(
+            "json_flag, value",
+            [("--json", True), ("--pretty", False)],
+        )
         @patch.object(version_history.ModelVersionHistory, "output_version_history")
         @patch.object(version_history.ModelVersionHistory, "__init__")
         def test_version_history_methods_each_called_once_when_one_version_id_given(
@@ -376,10 +397,9 @@ class TestGet:
             mock_output_version_history,
             mock_jwt,
             mock_get,
-            mock_set_metadata,
-            mock_output,
-            mock_get_metadata,
             mock_details,
+            json_flag,
+            value,
             processed_jwt_fixture,
             get_models_list_fixture,
             get_model_metadata_fixture,
@@ -395,7 +415,7 @@ class TestGet:
             mock_initialise.return_value = None
 
             # CALL
-            result = runner.invoke(get.get, ["model", version_id, "--version-history"])
+            result = runner.invoke(get.get, ["model", version_id, json_flag, "--version-history"])
 
             # ASSERT
             assert mock_details.called_once_with(
@@ -404,9 +424,13 @@ class TestGet:
             assert mock_initialise.called_once_with(
                 processed_jwt_fixture["jwt"], model.Model(version_id)
             )
-            mock_output_version_history.assert_called_once()
+            mock_output_version_history.assert_called_once_with(value)
             assert result.exit_code == 0
 
+        @pytest.mark.parametrize(
+            "json_flag, value",
+            [("--json", True), ("--pretty", False)],
+        )
         @patch.object(version_history.ModelVersionHistory, "output_version_history")
         @patch.object(version_history.ModelVersionHistory, "__init__")
         def test_version_history_methods_each_called_twice_when_two_version_ids_given(
@@ -415,10 +439,9 @@ class TestGet:
             mock_output_version_history,
             mock_jwt,
             mock_get,
-            mock_set_metadata,
-            mock_output,
-            mock_get_metadata,
             mock_details,
+            json_flag,
+            value,
             processed_jwt_fixture,
             get_models_list_fixture,
             get_model_metadata_fixture,
@@ -430,15 +453,13 @@ class TestGet:
             mock_get.side_effect = get_models_list_fixture
             version_id_1 = get_models_list_fixture[0]["id"]
             version_id_2 = get_models_list_fixture[1]["id"]
-            # setup setting metadata
-            mock_set_metadata.return_value = get_model_metadata_fixture
             # Setup click
             runner = CliRunner()
             mock_initialise.return_value = None
 
             # CALL
             result = runner.invoke(
-                get.get, ["model", version_id_1, version_id_2, "--version-history"]
+                get.get, ["model", version_id_1, version_id_2, json_flag, "--version-history"]
             )
 
             # ASSERT
@@ -447,33 +468,8 @@ class TestGet:
                 call(processed_jwt_fixture["jwt"], version_id_2),
             ]
             assert mock_initialise.call_count == 2
-            assert mock_output_version_history.call_args_list == [call(), call()]
+            assert mock_output_version_history.call_args_list == [call(value), call(value)]
             assert result.exit_code == 0
-
-        @patch("dafni_cli.get.click")
-        def test_message_printed_when_no_id_provided(
-            self,
-            mock_click,
-            mock_jwt,
-            mock_get,
-            mock_set_metadata,
-            mock_output,
-            mock_get_metadata,
-            mock_details,
-        ):
-            # SETUP
-            # Setup click
-            runner = CliRunner()
-
-            # CALL
-            result = runner.invoke(get.get, ["model"])
-
-            # ASSERT
-            mock_details.assert_not_called()
-            mock_get_metadata.assert_not_called()
-            mock_output.assert_not_called()
-            assert result.exception
-            assert result.exit_code == 1
 
     @patch.object(dataset.Dataset, "output_dataset_details")
     @patch("dafni_cli.get.get_all_datasets")
