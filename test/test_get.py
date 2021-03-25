@@ -181,6 +181,111 @@ class TestGet:
             assert mock_filter.call_args_list == [call(value, date), call(value, date)]
             assert result.exit_code == 0
 
+        @patch("dafni_cli.get.print_json")
+        def test_print_json_method_called_on_each_model_if_json_option_chosen_without_date_filter(
+                self,
+                mock_print,
+                mock_jwt,
+                mock_get,
+                mock_output,
+                mock_filter,
+                processed_jwt_fixture,
+                get_models_list_fixture,
+        ):
+            # SETUP
+            # setup get group command
+            mock_jwt.return_value = processed_jwt_fixture, False
+            # setup get_models_dicts call
+            models = get_models_list_fixture
+            mock_get.return_value = models
+            # Setup click
+            runner = CliRunner()
+
+            # CALL
+            result = runner.invoke(get.get, ["models", "--json"])
+
+            # ASSERT
+            mock_output.assert_not_called()
+            mock_filter.assert_not_called()
+            mock_print.assert_called_once_with(get_models_list_fixture)
+            assert result.exit_code == 0
+
+        @patch("dafni_cli.get.print_json")
+        @pytest.mark.parametrize(
+            "option, value",
+            [("--creation-date", "creation"), ("--publication-date", "publication")],
+        )
+        def test_empty_list_printed_if_filter_options_return_no_models_and_json_option_chosen(
+                self,
+                mock_print,
+                mock_jwt,
+                mock_get,
+                mock_output,
+                mock_filter,
+                option,
+                value,
+                processed_jwt_fixture,
+                get_models_list_fixture,
+        ):
+            # SETUP
+            date = "01/02/2021"
+            # setup get group command
+            mock_jwt.return_value = processed_jwt_fixture, False
+            # setup get_models_dicts call
+            models = get_models_list_fixture
+            mock_get.return_value = models
+            # setup filter_by_date return so that no models are displayed
+            mock_filter.return_value = False
+            # Setup click
+            runner = CliRunner()
+
+            # CALL
+            result = runner.invoke(get.get, ["models", "--json", option, date])
+
+            # ASSERT
+            assert mock_output.call_count == 0
+            assert mock_filter.call_args_list == [call(value, date), call(value, date)]
+            mock_print.assert_called_once_with([])
+            assert result.exit_code == 0
+
+        @patch("dafni_cli.get.print_json")
+        @pytest.mark.parametrize(
+            "option, value",
+            [("--creation-date", "creation"), ("--publication-date", "publication")],
+        )
+        def test_only_dictionaries_of_models_that_make_it_through_filter_are_printed_with_json_option(
+                self,
+                mock_print,
+                mock_jwt,
+                mock_get,
+                mock_output,
+                mock_filter,
+                option,
+                value,
+                processed_jwt_fixture,
+                get_models_list_fixture,
+        ):
+            # SETUP
+            date = "01/02/2021"
+            # setup get group command
+            mock_jwt.return_value = processed_jwt_fixture, False
+            # setup get_models_dicts call
+            models = get_models_list_fixture
+            mock_get.return_value = models
+            # setup filter_by_date return so that the second model is displayed
+            mock_filter.side_effect = False, True
+            # Setup click
+            runner = CliRunner()
+
+            # CALL
+            result = runner.invoke(get.get, ["models", "--json", option, date])
+
+            # ASSERT
+            assert mock_output.call_count == 0
+            assert mock_filter.call_args_list == [call(value, date), call(value, date)]
+            mock_print.assert_called_once_with([get_models_list_fixture[1]])
+            assert result.exit_code == 0
+
     @patch.object(model.Model, "get_details_from_id")
     @patch.object(model.Model, "get_metadata")
     @patch.object(model.Model, "output_metadata")
