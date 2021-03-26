@@ -252,7 +252,7 @@ If there is no valid JWT, the user will be prompted to login before the command 
   Information about how these files are created, and the format they should be in can be found here: https://facility.secure.dafni.rl.ac.uk/models/add/
   
   *Options*:
-  - **--version-message**: Message to be added with this model version.
+  - **--version-message (-m)**: Message to be added with this model version.
   This is a **required** option.
   - **--parent-model**: If the model version is an updated version of a previous DAFNI model, the parent ID of the model should be specified through this option.
     

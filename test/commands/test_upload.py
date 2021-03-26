@@ -22,6 +22,9 @@ class TestUpload:
         JWT
         """
 
+        @pytest.mark.parametrize(
+            "version_message_flag", ["--version-message", "-m"]
+        )
         def test_jwt_retrieved_and_set_on_context(
                 self,
                 mock_jwt,
@@ -30,6 +33,7 @@ class TestUpload:
                 mock_urls,
                 mock_minio,
                 mock_ingest,
+                version_message_flag,
                 processed_jwt_fixture,
                 get_model_upload_urls_fixture
         ):
@@ -51,7 +55,7 @@ class TestUpload:
                                        ["model",
                                         "test_definition.yaml",
                                         "test_image.txt",
-                                        "--version-message",
+                                        version_message_flag,
                                         "version message"],
                                        obj=ctx)
 
@@ -67,12 +71,16 @@ class TestUpload:
     class TestModel:
         """test class to test the upload.model() command functionality"""
 
+        @pytest.mark.parametrize(
+            "version_message_flag", ["--version-message", "-m"]
+        )
         def test_method_aborted_and_500_error_printed_if_500_response_from_validation_method(
                 self,
                 mock_validate,
                 mock_click,
                 mock_confirm,
                 mock_jwt,
+                version_message_flag,
                 processed_jwt_fixture
         ):
             # SETUP
@@ -92,7 +100,7 @@ class TestUpload:
                                        ["model",
                                         "test_definition.yaml",
                                         "test_image.txt",
-                                        "--version-message",
+                                        version_message_flag,
                                         "version message"])
 
             # ASSERT
@@ -104,12 +112,16 @@ class TestUpload:
                      " for guidance")
             ]
 
+        @pytest.mark.parametrize(
+            "version_message_flag", ["--version-message", "-m"]
+        )
         def test_method_aborted_and_standard_error_printed_if_non_200_or_500_response_from_validation_method(
                 self,
                 mock_validate,
                 mock_click,
                 mock_confirm,
                 mock_jwt,
+                version_message_flag,
                 processed_jwt_fixture
         ):
             # SETUP
@@ -130,7 +142,7 @@ class TestUpload:
                                        ["model",
                                         "test_definition.yaml",
                                         "test_image.txt",
-                                        "--version-message",
+                                        version_message_flag,
                                         "version message"])
 
             # ASSERT
@@ -140,12 +152,16 @@ class TestUpload:
                 call(error)
             ]
 
+        @pytest.mark.parametrize(
+            "version_message_flag", ["--version-message", "-m"]
+        )
         def test_method_aborted_and_error_printed_if_model_definition_is_not_valid(
                 self,
                 mock_validate,
                 mock_click,
                 mock_confirm,
                 mock_jwt,
+                version_message_flag,
                 processed_jwt_fixture
         ):
             # SETUP
@@ -163,7 +179,7 @@ class TestUpload:
                                        ["model",
                                         "test_definition.yaml",
                                         "test_image.txt",
-                                        "--version-message",
+                                        version_message_flag,
                                         "version message"])
 
             # ASSERT

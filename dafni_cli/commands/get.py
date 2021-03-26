@@ -39,7 +39,7 @@ def get(ctx: Context):
     "--long/--short",
     "-l/-s",
     default=False,
-    help="Also displays the full description of each model. Default: -s",
+    help="Also displays the description of each model. Default: -s",
     type=bool,
 )
 @click.option(
@@ -97,13 +97,13 @@ def models(ctx: Context, long: bool, creation_date: str, publication_date: str, 
     "--version-history/--metadata",
     "-v/-m",
     default=False,
-    help="Whether to display the version history of a model instead of the metadata",
+    help="Whether to display the version history of a model instead of the metadata. Default -m",
 )
 @click.option(
     "--json/--pretty",
     "-j/-p",
     default=False,
-    help="Prints raw json returned from API.",
+    help="Prints raw json returned from API. Default: -p",
     type=bool
 )
 @click.pass_context
@@ -150,7 +150,7 @@ def model(ctx: Context, version_id: List[str], version_history: bool, json: bool
     "--json/--pretty",
     "-j/-p",
     default=False,
-    help="Prints raw json returned from API.",
+    help="Prints raw json returned from API. Default: -p",
     type=bool
 )
 @click.pass_context
@@ -180,25 +180,25 @@ def datasets(
             dataset_model.output_dataset_details()
 
 
-@get.command()
+@get.command(help="Prints metadata or version history of a dataset version")
 @click.option(
     "--version-history/--metadata",
     "-v/-m",
     default=False,
-    help="Whether to display the version history of a dataset instead of the metadata",
+    help="Whether to display the version history of a dataset instead of the metadata. Default: -m",
 )
 @click.option(
     "--long/--short",
     "-l/-s",
     default=False,
-    help="Also displays the full description of each model.",
+    help="Displays extra metadata with the --metadata option. Default: -s",
     type=bool,
 )
 @click.option(
     "--json/--pretty",
     "-j/-p",
     default=False,
-    help="Prints raw json returned from API.",
+    help="Prints raw json returned from API. Default: -p",
     type=bool
 )
 @click.argument("id", nargs=1, required=True, type=str)

@@ -123,7 +123,7 @@ def check_for_jwt_file() -> Tuple[dict, bool]:
     return jwt_dict, new_jwt
 
 
-@click.command()
+@click.command(help="Login to DAFNI")
 def login():
     """Function to handle DAFNI authentication
     The function will request a new JWT with the users
@@ -145,7 +145,7 @@ def login():
         )
 
 
-@click.command()
+@click.command(help="Logout of DAFNI")
 def logout():
     """Function to handle logging out of the DAFNI
     CLI. This will involve removing the cached JWT
