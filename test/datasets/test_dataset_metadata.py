@@ -71,6 +71,7 @@ class TestDataFile:
                 call(file_dict, ["spdx:fileName"]),
                 call(file_dict, ["dcat:byteSize"], default=None),
                 call(file_dict, ["dcat:mediaType"]),
+                call(file_dict, ["dcat:downloadURL"], default=None)
             ]
             mock_process.assert_called_once_with("Mock Check")
 
@@ -93,7 +94,7 @@ class TestDataFile:
             self, mock_check, mock_process, file_format, expected
         ):
             # SETUP
-            mock_check.side_effect = ("mock name", "mock size", file_format)
+            mock_check.side_effect = ("mock name", "mock size", file_format, "url")
             mock_process.return_value = "Mock Size"
 
             file_dict = {"key": "value"}

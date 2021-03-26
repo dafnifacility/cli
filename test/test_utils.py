@@ -673,7 +673,7 @@ class TestOutputTable:
 class TestProcessFileSize:
     """Test class to test the process_file_size functionality"""
 
-    @pytest.mark.parametrize("file_size", ["12.4", [12], (12, 13)])
+    @pytest.mark.parametrize("file_size", [[12], (12, 13)])
     def test_empty_string_returned_if_non_integer_or_float_value_given(self, file_size):
         # SETUP CALL
         result = utils.process_file_size(file_size)
