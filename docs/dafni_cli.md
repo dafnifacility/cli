@@ -141,7 +141,11 @@ If there is no valid JWT, the user will be prompted to login before the command 
 
   *Options*:
   - **--long**/**-l**: This prints out the additional Metadata fields: Themes, Publisher, Issued date, Rights, Language, Standards, & update frequency
-  
+  - **--version-history/-v**: If `--version-history`/`-v` is added as an option, the Title, ID, Version ID, Publisher, Date Range
+    and Description of each version of the Dataset will be displayed in reverse chronological order.
+  - **--metadata/-m**: If `--metadata`/`-m` is chosen, the metadata for that version of the model is displayed.
+    Default: `--metadata`. 
+
   Example output:
   <pre>
   Created: March 04 2021
@@ -171,7 +175,26 @@ If there is no valid JWT, the user will be prompted to login before the command 
   Language: en
   Standard: ISO 9001
   Update Frequency: Annually
-</pre>
+  </pre>
+  *With --version-history option*
+  <pre>
+  Title: An example workflow definition - new version
+  ID: 3469587b-c7c1-4686-bd4a-0c6a2c4cc34c
+  Version ID: a6360df5-ffb0-4d39-b1a0-0f8b5d8d7fa4
+  Publisher: DAFNI
+  From: March 01 2001    To: March 01 2020
+  Description:
+  Also fulling in the standard and update frequency fields.
+  Adding a new version
+  
+  Title: An example workflow definition
+  ID: 3469587b-c7c1-4686-bd4a-0c6a2c4cc34c
+  Version ID: a26983da-644f-4930-8d5a-06193240d7fe
+  Publisher: DAFNI
+  From: March 01 2001    To: March 01 2020
+  Description:
+  Also fulling in the standard and update frequency fields.
+  </pre>
 ___
 ### Upload
 
@@ -195,3 +218,57 @@ If there is no valid JWT, the user will be prompted to login before the command 
   - **--version-message**: Message to be added with this model version.
   This is a required option.
   - **--parent-model**: If the model version is an updated version of a previous DAFNI model, the ID of the parent model should be specified through this option.
+  
+  Example output:
+  <pre>
+  Model definition file path: path\to\model-definition
+  Image file path: path\to\docker-image
+  Version message: Model version message
+  No parent model: new model to be created
+  Confirm model upload? [y/N]:
+  </pre>
+  With parent model:
+  <pre>
+  Model definition file path: path\to\model-definition
+  Image file path: path\to\docker-image
+  Version message: Model version message
+  Parent model ID: 0000aa0a-0000-0000-0000-a00aaa000aa0
+  Confirm model upload? [y/N]:
+  </pre>
+  After confirmation:
+  <pre>
+  Validating model definition
+  Getting urls
+  Uploading model definition and image
+  Ingesting model
+  Model upload complete
+  </pre>
+
+___
+### Delete
+
+>Command: `dafni(.exe) delete [sub-command]`
+
+Delete an entity to DAFNI.
+If there is no valid JWT, the user will be prompted to login before the command is carried out.
+
+**Sub-Commands:**
+- Model:
+  >*Command: `dafni(.exe) delete model [version-id]`*
+  
+  Deletes one or more model version(s) from DAFNI.
+  
+  *Arguments*:
+  - **version-id**: Version id(s) of the model version(s) to be deleted.
+  If the user does not have the necessary permissions to delete the model version, 
+  the process will be aborted.
+  
+  Example output:
+  <pre>
+  ID: f2a30e94-5576-46a5-b4e5-88193d494fcd    Name: Hello World    Publication date: March 24 2021    Version message: Testing pip package with parent model
+  Confirm deletion of models? [y/N]:
+  </pre>
+  After confirmation:
+  <pre>
+  Model versions deleted
+  </pre>

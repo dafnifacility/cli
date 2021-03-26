@@ -4,9 +4,13 @@ from typing import List, Optional
 
 from dafni_cli.api.datasets_api import get_all_datasets, get_latest_dataset_metadata
 from dafni_cli.api.models_api import get_models_dicts
-from dafni_cli.datasets import dataset_filtering, dataset_metadata
+from dafni_cli.datasets import (
+    dataset_filtering,
+    dataset_metadata,
+    dataset_version_history,
+)
 from dafni_cli.datasets.dataset import Dataset
-from dafni_cli.login import check_for_jwt_file
+from dafni_cli.commands.login import check_for_jwt_file
 from dafni_cli.model.model import Model
 from dafni_cli.model.version_history import ModelVersionHistory
 from dafni_cli.api.models_api import get_models_dicts
@@ -177,6 +181,12 @@ def datasets(
 
 @get.command()
 @click.option(
+    "--version-history/--metadata",
+    "-v/-m",
+    default=False,
+    help="Whether to display the version history of a dataset instead of the metadata",
+)
+@click.option(
     "--long/--short",
     "-l/-s",
     default=False,
@@ -193,7 +203,7 @@ def datasets(
 @click.argument("id", nargs=1, required=True, type=str)
 @click.argument("version-id", nargs=1, required=True, type=str)
 @click.pass_context
-def dataset(ctx: Context, id: str, version_id: str, long: bool, json: bool):
+def dataset(ctx: Context, id: str, version_id: str, long: bool, version_history: bool, json: bool):
     """Command to the the meta data relating to a given version of a dataset
 
     Args:
@@ -201,14 +211,21 @@ def dataset(ctx: Context, id: str, version_id: str, long: bool, json: bool):
         id (str): Dataset ID
         version_id (str): Dataset version ID
         long (bool): Flag to view additional metadata attributes
+        version_history (bool): Flag to view version history in place of metadata
         json (bool): Flag to view json returned from API
     """
     metadata = get_latest_dataset_metadata(ctx.obj["jwt"], id, version_id)
-    if json:
-        print_json(metadata)
+    if not version_history:
+        if json:
+            print_json(metadata)
+        else:
+            dataset_meta = dataset_metadata.DatasetMetadata(metadata)
+            dataset_meta.output_metadata_details(long)
     else:
-        dataset_meta = dataset_metadata.DatasetMetadata(metadata)
-        dataset_meta.output_metadata_details(long)
+        version_history = dataset_version_history.DatasetVersionHistory(
+            ctx.obj["jwt"], metadata
+        )
+        version_history.process_version_history()
 
 
 @get.command()

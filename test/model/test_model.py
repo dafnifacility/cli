@@ -6,8 +6,10 @@ from dateutil.tz import tzutc
 from test.fixtures.jwt_fixtures import JWT
 from test.fixtures.model_fixtures import (
     get_models_list_fixture,
+    get_single_model_fixture,
     get_model_metadata_fixture,
 )
+from dafni_cli import auth
 from dafni_cli.model import model
 from dafni_cli.consts import DATE_TIME_FORMAT, CONSOLE_WIDTH, TAB_SPACE
 
@@ -30,6 +32,7 @@ class TestModel:
                 "publication_time",
                 "summary",
                 "version_id",
+                "version_message",
                 "version_tags",
             ]
             # CALL
@@ -39,6 +42,7 @@ class TestModel:
             assert all(
                 getattr(instance, value) is None for value in expected_attributes
             )
+            assert isinstance(getattr(instance, "privileges"), auth.Auth)
 
         def test_version_id_set_if_identifier_given(self):
             # SETUP
@@ -51,8 +55,10 @@ class TestModel:
     class TestSetDetailsFromDict:
         """Test class to test the Model.get_details_from_dict() functionality"""
 
-        def test_non_date_fields_set_correctly(self, get_models_list_fixture):
+        @patch.object(auth.Auth, "__init__")
+        def test_non_date_fields_set_correctly(self, mock_auth, get_models_list_fixture):
             # SETUP
+            mock_auth.return_value = None
             instance = model.Model()
             model_dict = get_models_list_fixture[0]
 
@@ -60,13 +66,17 @@ class TestModel:
             instance.set_details_from_dict(model_dict)
 
             # ASSERT
+            assert instance.container == model_dict["container"]
+            assert instance.description == model_dict["description"]
             assert instance.dictionary == model_dict
             assert instance.display_name == model_dict["name"]
+            assert mock_auth.call_args_list == [
+                call(),
+                call(model_dict["auth"])
+            ]
             assert instance.summary == model_dict["summary"]
-            assert instance.description == model_dict["description"]
             assert instance.version_id == model_dict["id"]
             assert instance.version_tags == model_dict["version_tags"]
-            assert instance.container == model_dict["container"]
 
         def test_ISO_dates_are_converted_to_datetime(self, get_models_list_fixture):
             # SETUP
@@ -86,10 +96,10 @@ class TestModel:
         """Test class to test the Model.get_details_from_id() functionality"""
 
         def test_single_api_call_made_and_processed(
-            self, mock_details, mock_get, get_models_list_fixture
+            self, mock_details, mock_get, get_single_model_fixture
         ):
             # SETUP
-            model_dict = get_models_list_fixture[0]
+            model_dict = get_single_model_fixture
             mock_get.return_value = model_dict
 
             instance = model.Model()
@@ -433,3 +443,26 @@ class TestModel:
             mock_print.assert_called_once_with(get_model_metadata_fixture)
             mock_click.assert_not_called()
             mock_prose.assert_not_called()
+
+    class TestOutputVersionDetails:
+        """Test class to test the Model.output_version_details() functionality"""
+
+        def test_returned_string_is_as_expected(self):
+            # SETUP
+            instance = model.Model()
+            instance.version_id = "version-id"
+            instance.display_name = "Model name"
+            instance.publication_time = dt(2020, 1, 1, 00, 00, 00)
+            instance.version_message = "Model version message"
+
+            # CALL
+            result = instance.output_version_details()
+
+            # ASSERT
+            assert result == "ID: version-id" + \
+                   TAB_SPACE + \
+                   "Name: Model name" + \
+                   TAB_SPACE + \
+                   "Publication date: January 01 2020" + \
+                   TAB_SPACE + \
+                   "Version message: Model version message"

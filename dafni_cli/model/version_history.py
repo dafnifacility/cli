@@ -25,18 +25,18 @@ class ModelVersionHistory:
             or latest_version.publication_time is None
             or latest_version.display_name is None
             or latest_version.dictionary is None
+            or latest_version.version_message is None
+            or "version_history" not in latest_version.dictionary
         ):
             latest_version.get_details_from_id(jwt_string, latest_version.version_id)
 
         self.dictionary = latest_version.dictionary["version_history"]
-        latest_version.version_message = self.dictionary[0]["version_message"]
         self.history = [latest_version]
 
         if len(self.dictionary) > 1:
             for version_dict in self.dictionary[1:]:
                 version = Model()
                 version.get_details_from_id(jwt_string, version_dict["id"])
-                version.version_message = version_dict["version_message"]
                 self.history.append(version)
 
     def output_version_history(self, json_flag: bool = False):
