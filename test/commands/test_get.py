@@ -7,7 +7,7 @@ from dafni_cli.model import (
     model,
     version_history,
 )
-from dafni_cli.datasets import dataset, dataset_metadata
+from dafni_cli.datasets import dataset, dataset_metadata, dataset_version_history
 from test.fixtures.jwt_fixtures import processed_jwt_fixture
 from test.fixtures.model_fixtures import get_models_list_fixture
 from test.fixtures.dataset_fixtures import (
@@ -506,19 +506,19 @@ class TestGet:
             # ASSERT
             mock_filter.assert_called_once_with(search, start, end)
 
-    @patch.object(dataset_metadata.DatasetMetadata, "output_metadata_details")
-    @patch.object(dataset_metadata.DatasetMetadata, "__init__")
     @patch("dafni_cli.commands.get.get_latest_dataset_metadata")
     @patch("dafni_cli.commands.get.check_for_jwt_file")
     class TestDataset:
         """Test class to test the get group dataset command"""
 
-        def test_get_dataset_called_with_jwt_from_context_with_default_long_value(
+        @patch.object(dataset_metadata.DatasetMetadata, "output_metadata_details")
+        @patch.object(dataset_metadata.DatasetMetadata, "__init__")
+        def test_get_dataset_called_with_jwt_from_context_with_default_long_and_version_flag_value(
             self,
-            mock_jwt,
-            mock_get,
             mock_init,
             mock_output,
+            mock_jwt,
+            mock_get,
             processed_jwt_fixture,
             dataset_metadata_fixture,
         ):
@@ -551,18 +551,22 @@ class TestGet:
 
             assert result.exit_code == 0
 
+        @pytest.mark.parametrize("metadata", ["--metadata","-m"])
         @pytest.mark.parametrize(
             "option, long",
             [("--short", False), ("-s", False), ("-l", True), ("--long", True)],
         )
-        def test_get_dataset_called_with_jwt_from_context_with_given_long_value(
+        @patch.object(dataset_metadata.DatasetMetadata, "output_metadata_details")
+        @patch.object(dataset_metadata.DatasetMetadata, "__init__")
+        def test_dataset_metadata_called_with_given_long_value_when_version_history_is_false(
             self,
-            mock_jwt,
-            mock_get,
             mock_init,
             mock_output,
+            mock_jwt,
+            mock_get,
             option,
             long,
+            metadata,
             processed_jwt_fixture,
             dataset_metadata_fixture,
         ):
@@ -586,14 +590,62 @@ class TestGet:
             # CALL
             result = runner.invoke(
                 get.get,
-                ["dataset", dataset_id, version_id, option],
+                ["dataset", dataset_id, version_id, option, metadata],
             )
-
+            print(result.stdout)
+            print(result.exc_info)
             # ASSERT
             mock_get.assert_called_once_with(
                 processed_jwt_fixture["jwt"], dataset_id, version_id
             )
             mock_init.assert_called_once_with(response)
             mock_output.assert_called_once_with(long)
+
+            assert result.exit_code == 0
+
+        @pytest.mark.parametrize("version_history", ["--version-history", "-v"])
+        @patch.object(
+            dataset_version_history.DatasetVersionHistory, "process_version_history"
+        )
+        @patch.object(dataset_version_history.DatasetVersionHistory, "__init__")
+        def test_dataset_version_history_called_when_version_history_true(
+            self,
+            mock_init,
+            mock_output,
+            mock_jwt,
+            mock_get,
+            version_history,
+            processed_jwt_fixture,
+            dataset_metadata_fixture,
+        ):
+            # SETUP
+            # setup get group command to set the context containing a JWT
+            mock_jwt.return_value = processed_jwt_fixture, False
+            # setup get_latest_dataset_metadata call
+            response = dataset_metadata_fixture
+            mock_get.return_value = response
+            # setup DatasetMetadata class
+            mock_init.return_value = None
+            mock_output.return_value = "Output"
+
+            # setup data
+            dataset_id = "0a0a0a0a-0a00-0a00-a000-0a0a0000000a"
+            version_id = "0a0a0a0a-0a00-0a00-a000-0a0a0000000b"
+
+            # Setup click
+            runner = CliRunner()
+
+            # CALL
+            result = runner.invoke(
+                get.get,
+                ["dataset", dataset_id, version_id, version_history],
+            )
+
+            # ASSERT
+            mock_get.assert_called_once_with(
+                processed_jwt_fixture["jwt"], dataset_id, version_id
+            )
+            mock_init.assert_called_once_with(processed_jwt_fixture["jwt"], response)
+            mock_output.assert_called_once_with()
 
             assert result.exit_code == 0
