@@ -1,8 +1,10 @@
 from dateutil.parser import isoparse
 import click
-from typing import Optional
+from typing import Optional, Tuple, List
+from io import BytesIO
 
 from dafni_cli.api.datasets_api import get_latest_dataset_metadata
+from dafni_cli.api.dafni_api import dafni_get_request
 from dafni_cli.consts import CONSOLE_WIDTH, DATA_FORMATS, TAB_SPACE
 from dafni_cli.utils import (
     check_key_in_dict,
@@ -25,6 +27,8 @@ class DataFile:
         name (str): File Name
         size (str): File Size
         format (str): File Format
+        download (str): File Download URL
+        contents (BytesIO): Downloaded File Contents
     """
 
     def __init__(self, file_dict: Optional[dict] = None):
@@ -36,6 +40,8 @@ class DataFile:
         self.name = None
         self.size = None
         self.format = None
+        self.download = None
+        self.contents = None
 
         if file_dict:
             self.set_details_from_dict(file_dict)
@@ -54,6 +60,16 @@ class DataFile:
         self.format = DATA_FORMATS.get(
             check_key_in_dict(file_dict, ["dcat:mediaType"]), ""
         )
+        self.download = check_key_in_dict(file_dict, ["dcat:downloadURL"], default=None)
+
+    def download_contents(self, jwt: str):
+        """Function downloads the file using the download url,
+        and saves the contents as a BytesIO object to self.contents
+
+        Args:
+            jwt (str): Users JWT
+        """
+        self.contents = BytesIO(dafni_get_request(self.download, jwt, content=True))
 
 
 class DatasetMetadata:
@@ -223,3 +239,22 @@ class DatasetMetadata:
         click.echo(f"From: {self.start_date}{TAB_SPACE}To: {self.end_date}")
         click.echo("Description: ")
         prose_print(self.description, CONSOLE_WIDTH)
+
+    def download_dataset_files(self, jwt: str) -> Tuple[List[str], List[BytesIO]]:
+        """Function downloads all associated Files, and returns a tuple with
+        containing a list of all file names, and a list of all file contents
+
+        Args:
+            jwt (str): Users JWT
+
+        Returns:
+            Tuple[List[str], List[BytesIO]]: Tuple of all File names and File contents
+        """
+        file_names = []
+        file_contents = []
+        for data_file in self.files:
+            data_file.download_contents(jwt)
+            file_names.append(data_file.name)
+            file_contents.append(data_file.contents)
+
+        return file_names, file_contents
