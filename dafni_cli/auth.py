@@ -46,9 +46,9 @@ class Auth:
             auth_dict (dict): auth dictionary found in model and dataset dictionaries
         """
         self.asset_id = check_key_in_dict(auth_dict, ["asset_id"], default=None)
-        self.destroy = check_key_in_dict(auth_dict, ["destroy"], default=None)
+        self.destroy = check_key_in_dict(auth_dict, ["destroy"], default=False)
         self.name = check_key_in_dict(auth_dict, ["name"], default=None)
-        self.read = check_key_in_dict(auth_dict, ["read"], default=None)
+        self.read = check_key_in_dict(auth_dict, ["read"], default=False)
         self.reason = check_key_in_dict(auth_dict, ["reason"], default=None)
-        self.update = check_key_in_dict(auth_dict, ["update"], default=None)
-        self.view = check_key_in_dict(auth_dict, ["view"], default=None)
+        self.update = check_key_in_dict(auth_dict, ["update"], default=False)
+        self.view = check_key_in_dict(auth_dict, ["view"], default=False)

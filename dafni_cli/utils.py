@@ -77,19 +77,19 @@ def process_date_filter(date_str: str) -> str:
 def check_key_in_dict(
         input_dict: dict,
         keys: List[str],
-        default: Optional[str] = "N/A",
-) -> Optional[Union[str, int]]:
+        default: Optional[Union[str, int, dict, bool]] = "N/A",
+) -> Optional[Union[str, int, dict, bool]]:
     """Utility function to check a nested dict for a given
     key and nested keys if applicable. If the keys exist, the
     associated value is returned, otherwise the default value is returned.
 
     Args:
         input_dict (dict): dict to check in for keys
-        key (List[str]): keys to check for
-        default (Optional[str], optional): default value if key(s) not found. Defaults to "N/A".
+        keys (List[str]): keys to check for, with nested keys being subsequent elements of the list
+        default (Union[str, int, dict, bool], optional): default value if key(s) not found. Defaults to "N/A".
 
     Returns:
-        Optional[Union[str, int]]: Value associated with given dict and key(s)
+        Union[str, int, dict, bool], optional: Value associated with given dict and key(s)
     """
     _element = None
     if isinstance(input_dict, dict):
