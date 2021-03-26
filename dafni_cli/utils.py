@@ -3,7 +3,9 @@ import textwrap
 from typing import List, Optional, Union
 from datetime import datetime as dt
 from dateutil.parser import isoparse
-
+from io import BytesIO
+import os
+from zipfile import ZipFile
 
 def prose_print(prose: str, width: int):
     """
@@ -224,3 +226,16 @@ def argument_confirmation(
         for message in additional_messages:
             click.echo(message)
     click.confirm(confirmation_message, abort=True)
+
+def write_files_to_zip(zip_name: str, file_names: List[str], file_contents: List[BytesIO], directory: Optional[str]) -> None:
+    if directory:
+        path = os.path.join(directory, zip_name)
+    else:
+        path = zip_name
+
+    with ZipFile(path, 'w') as zipObj:
+        for idx,  file_name in enumerate(file_names):
+            with zipObj.open(file_name, 'w') as zip_file:
+                zip_file.write(file_contents[idx].getvalue())
+
+    
