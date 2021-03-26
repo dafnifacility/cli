@@ -9,6 +9,7 @@ from dafni_cli.api.models_api import (
     get_single_model_dict,
     get_model_metadata_dict,
 )
+from dafni_cli.auth import Auth
 from dafni_cli.utils import prose_print
 
 
@@ -47,6 +48,7 @@ class Model:
         self.dictionary = None
         self.display_name = None
         self.metadata = None
+        self.privileges = Auth()
         self.publication_time = None
         self.summary = None
         self.version_id = identifier
@@ -64,6 +66,7 @@ class Model:
         self.description = model_dict["description"]
         self.dictionary = model_dict
         self.display_name = model_dict["name"]
+        self.privileges = Auth(model_dict["auth"])
         self.publication_time = parser.isoparse(model_dict["publication_date"])
         self.summary = model_dict["summary"]
         self.version_id = model_dict["id"]
@@ -77,6 +80,8 @@ class Model:
         """
         model_dict = get_single_model_dict(jwt_string, version_id_string)
         self.set_details_from_dict(model_dict)
+        # Version message key appears on single model API response, but not list of all models response
+        self.version_message = model_dict["version_message"]
 
     def get_metadata(self, jwt_string: str):
         """Retrieve metadata for the model using the model details and the /models/<version-id>/description/ endpoint.
@@ -139,3 +144,18 @@ class Model:
         if self.metadata.outputs:
             click.echo("Outputs: ")
             click.echo(self.metadata.format_outputs())
+
+    def output_version_details(self) -> str:
+        """Prints version ID, display name, publication time and version message on one line"""
+        return("ID: " +
+               self.version_id +
+               TAB_SPACE +
+               "Name: " +
+               self.display_name +
+               TAB_SPACE +
+               "Publication date: " +
+               self.publication_time.date().strftime("%B %d %Y") +
+               TAB_SPACE +
+               "Version message: " +
+               self.version_message
+               )

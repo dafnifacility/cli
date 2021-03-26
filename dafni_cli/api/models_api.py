@@ -1,6 +1,5 @@
-import requests
 from requests import Response
-from typing import Union, List, Tuple, Optional
+from typing import List, Tuple
 from pathlib import Path
 
 from dafni_cli.consts import (
@@ -11,7 +10,8 @@ from dafni_cli.consts import (
 from dafni_cli.api.dafni_api import (
     dafni_get_request,
     dafni_post_request,
-    dafni_put_request
+    dafni_put_request,
+    dafni_delete_request
 )
 
 
@@ -137,3 +137,14 @@ def model_version_ingest(
         url = MODELS_API_URL + "/models/upload/" + upload_id + "/ingest/"
     data = {"version_message": version_message}
     return dafni_post_request(url, jwt, data)
+
+
+def delete_model(jwt: str, model_version_id: str) -> Response:
+    """Calls the delete model endpoint.
+
+    Args:
+        jwt (str): JWT
+        model_version_id (str): model version ID for selected model
+    """
+    url = MODELS_API_URL + "/models/" + model_version_id
+    return dafni_delete_request(url, jwt)
