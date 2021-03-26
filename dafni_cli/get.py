@@ -142,6 +142,7 @@ def datasets(
 @get.command()
 @click.option(
     "--version-history/--metadata",
+    "-v/-m",
     default=False,
     help="Whether to display the version history of a dataset instead of the metadata",
 )
