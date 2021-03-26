@@ -91,6 +91,7 @@ class TestDatasetVersionHistory:
                 ]
             ]
 
+    @patch("dafni_cli.datasets.dataset_version_history.print_json")
     @patch.object(DatasetMetadata, "output_version_details")
     @patch.object(DatasetMetadata, "__init__")
     @patch("dafni_cli.datasets.dataset_version_history.get_latest_dataset_metadata")
@@ -100,8 +101,8 @@ class TestDatasetVersionHistory:
         @pytest.mark.parametrize(
             "version_ids", [[], ["version_1"], ["version_1", "version_2"]]
         )
-        def test_helper_functions_called_correctly(
-            self, mock_get, mock_init, mock_output, version_ids
+        def test_helper_functions_called_correctly_with_default_json_flag(
+            self, mock_get, mock_init, mock_output, mock_print, version_ids
         ):
             # SETUP
             mock_init.return_value = None
@@ -125,3 +126,35 @@ class TestDatasetVersionHistory:
             assert mock_init.call_args_list == [
                 call("Meta data") for version_id in version_ids
             ]
+            mock_print.assert_not_called()
+
+        @pytest.mark.parametrize(
+            "version_ids, metadata_list",
+            [([], []),
+             (["version_1"], ["Meta data1"]),
+             (["version_1", "version_2"], ["Meta data1", "Meta data2"])
+            ]
+        )
+        def test_helper_functions_called_correctly_with_true_json_flag(
+                self, mock_get, mock_init, mock_output, mock_print, version_ids, metadata_list
+        ):
+            # SETUP
+            mock_get.side_effect = metadata_list
+
+            instance = DatasetVersionHistory()
+
+            instance.version_ids = version_ids
+            instance.jwt = JWT
+            instance.dataset_id = "dataset id"
+
+            # CALL
+            instance.process_version_history(True)
+
+            # ASSERT
+            assert mock_get.call_args_list == [
+                call(instance.jwt, instance.dataset_id, version_id)
+                for version_id in version_ids
+            ]
+            mock_output.assert_not_called()
+            mock_init.assert_not_called()
+            mock_print.assert_called_with(metadata_list)

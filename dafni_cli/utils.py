@@ -3,6 +3,7 @@ import textwrap
 from typing import List, Optional, Union
 from datetime import datetime as dt
 from dateutil.parser import isoparse
+import json
 
 
 def prose_print(prose: str, width: int):
@@ -227,3 +228,12 @@ def argument_confirmation(
         for message in additional_messages:
             click.echo(message)
     click.confirm(confirmation_message, abort=True)
+
+
+def print_json(response: Union[dict, List[dict]]) -> None:
+    """Takes dictionary or list of dictionary and pretty prints to command line
+
+    Args:
+        response (Union[dict, List[dict]]): Dictionary or list of dictionaries to pretty print
+    """
+    click.echo(json.dumps(response, indent=2, sort_keys=True))

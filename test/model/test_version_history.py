@@ -202,3 +202,22 @@ class TestVersionHistory:
                 call("Version tags: old, tag2"),
                 call(""),
             ]
+
+        @patch("dafni_cli.model.version_history.print_json")
+        def test_print_json_called_with_dictionary_when_json_flag_true(
+                self, mock_print, mock_get_details, mock_click, get_single_model_fixture
+        ):
+            # SETUP
+            model_instance = model.Model()
+            # Populate the dictionary of the model so the version history dictionary can be accessed
+            model_instance.dictionary = get_single_model_fixture
+            model_instance.version_id = "id"
+            jwt = "jwt"
+            instance = version_history.ModelVersionHistory(jwt, model_instance)
+
+            # CALL
+            instance.output_version_history(True)
+
+            # ASSERT
+            mock_print.assert_called_once_with(instance.dictionary)
+            mock_click.echo.assert_not_called()
