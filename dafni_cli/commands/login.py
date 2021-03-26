@@ -131,9 +131,6 @@ def login():
     in the current working directory or the existing JWT has
     expired.
     Otherwise the cached JWT is returned
-
-    Returns:
-        str: Base64 encoded JWT string
     """
     jwt_dict, jwt_flag = check_for_jwt_file()
     if not jwt_flag:

@@ -40,7 +40,7 @@ def collate_model_version_details(
 @click.pass_context
 def delete(ctx: Context):
     """Delete entity from DAFNI.
-
+    \f
     Args:
         ctx (Context): Context containing JWT of the user.
     """
@@ -59,7 +59,7 @@ def delete(ctx: Context):
 @click.pass_context
 def model(ctx: Context, version_id: List[str]):
     """Delete one or more version(s) of model(s) from DAFNI.
-
+    \f
     Args:
         ctx (context): contains JWT for authentication
         version_id (str): ID(s) of the model version(s) to be deleted

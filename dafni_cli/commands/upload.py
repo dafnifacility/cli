@@ -19,7 +19,7 @@ from dafni_cli.utils import argument_confirmation
 @click.pass_context
 def upload(ctx: Context):
     """Uploads entities (models, datasets, workflows, groups) to DAFNI.
-
+    \f
     Args:
         ctx (Context): Context containing JWT of the user.
     """
@@ -50,7 +50,7 @@ def model(
         ctx: Context, definition: click.Path, image: click.Path, version_message: str, parent_model: str
 ):
     """Uploads model to DAFNI from metadata and image files.
-    
+    \f
     Args:
         ctx (Context): contains JWT for authentication
         definition (click.Path): File path to the model definition file
