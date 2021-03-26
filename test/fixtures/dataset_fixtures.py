@@ -266,8 +266,8 @@ def dataset_meta_mock(
         standard (str, optional): Associated standards. Defaults to "ISO 9001".
         update (str, optional): Frequency updated. Defaults to "Annual".
         title (str, optional): Associated Title. Defaults to "en".
-        dataset_id (str, optional): Dataset ID. Defaults to "ISO 9001".
-        version_id (str, optional): Dataset Version ID. Defaults to "Annual".
+        dataset_id (str, optional): Dataset ID. Defaults to "Dataset ID".
+        version_id (str, optional): Dataset Version ID. Defaults to "Version ID".
 
     Returns:
         DatasetMetadata: DatasetMetadata object with mock data

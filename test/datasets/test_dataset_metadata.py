@@ -144,27 +144,13 @@ class TestDatasetMeta:
             assert all(getattr(instance, key) == [] for key in array_keys)
 
         @patch.object(DatasetMetadata, "set_details_from_dict")
-        def test_set_details_from_dict_called_if_give_dict_with_default_version_id(
-            self, mock_set
-        ):
+        def test_set_details_from_dict_called_if_give_dict(self, mock_set):
             # SETUP
             dataset_dict = {"key": "value"}
             # CALL
             DatasetMetadata(dataset_dict)
             # ASSERT
-            mock_set.assert_called_once_with(dataset_dict, None)
-
-        @patch.object(DatasetMetadata, "set_details_from_dict")
-        def test_set_details_from_dict_called_if_give_dict_with_given_version_id(
-            self, mock_set
-        ):
-            # SETUP
-            dataset_dict = {"key": "value"}
-            version_id = "version"
-            # CALL
-            DatasetMetadata(dataset_dict, version_id)
-            # ASSERT
-            mock_set.assert_called_once_with(dataset_dict, version_id)
+            mock_set.assert_called_once_with(dataset_dict)
 
     class TestSetDetailsFromDict:
         """Test class to test the set_details_from_dict functionality"""
@@ -194,8 +180,7 @@ class TestDatasetMeta:
                 "Update",
                 "ID",
                 "Title",
-                ["Versions"],
-                "Version_IDs",
+                "Version_ID",
             )
 
             instance = DatasetMetadata()
@@ -228,8 +213,9 @@ class TestDatasetMeta:
                 call(dataset_dict, ["dct:language"]),
                 call(dataset_dict, ["dct:conformsTo", "label"]),
                 call(dataset_dict, ["dct:accrualPeriodicity"]),
-                call(dataset_dict, ["version_history", "dataset_uuid"]),
+                call(dataset_dict, ["@id", "dataset_uuid"]),
                 call(dataset_dict, ["dct:title"]),
+                call(dataset_dict, ["@id", "version_uuid"]),
             ]
 
             mock_datafile.assert_called_once_with({"key": "value"})

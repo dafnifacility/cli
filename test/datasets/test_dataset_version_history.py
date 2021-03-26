@@ -59,7 +59,7 @@ class TestDatasetVersionHistory:
 
             # ASSERT
             assert mock_check.call_args_list == [
-                call(dataset_metadata_fixture, ["version_history", "dataset_uuid"]),
+                call(dataset_metadata_fixture, ["@id", "dataset_uuid"]),
                 call(
                     dataset_metadata_fixture,
                     ["version_history", "versions"],
@@ -123,5 +123,5 @@ class TestDatasetVersionHistory:
             ]
             assert mock_output.call_count == len(version_ids)
             assert mock_init.call_args_list == [
-                call("Meta data", version_id=version_id) for version_id in version_ids
+                call("Meta data") for version_id in version_ids
             ]

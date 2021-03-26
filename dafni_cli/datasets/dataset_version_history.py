@@ -42,9 +42,7 @@ class DatasetVersionHistory:
         Args:
             metadata (dict): DAFNI Dataset Metadata response
         """
-        self.dataset_id = check_key_in_dict(
-            metadata, ["version_history", "dataset_uuid"]
-        )
+        self.dataset_id = check_key_in_dict(metadata, ["@id", "dataset_uuid"])
         self.versions = check_key_in_dict(
             metadata, ["version_history", "versions"], default=[]
         )
@@ -62,5 +60,5 @@ class DatasetVersionHistory:
             metadata = get_latest_dataset_metadata(
                 self.jwt, self.dataset_id, version_id
             )
-            dataset_meta = DatasetMetadata(metadata, version_id=version_id)
+            dataset_meta = DatasetMetadata(metadata)
             dataset_meta.output_version_details()

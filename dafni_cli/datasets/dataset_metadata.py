@@ -87,9 +87,7 @@ class DatasetMetadata:
         update (str): Update Frequency
     """
 
-    def __init__(
-        self, dataset_dict: Optional[dict] = None, version_id: Optional[str] = None
-    ):
+    def __init__(self, dataset_dict: Optional[dict] = None):
         """DatasetMetadata constructor"""
         self.created = None
         self.creator = None
@@ -113,11 +111,9 @@ class DatasetMetadata:
         self.version_id = None
 
         if dataset_dict:
-            self.set_details_from_dict(dataset_dict, version_id)
+            self.set_details_from_dict(dataset_dict)
 
-    def set_details_from_dict(
-        self, dataset_dict: dict, version_id: Optional[str] = None
-    ):
+    def set_details_from_dict(self, dataset_dict: dict):
         """Helper function to populate the DatasetMetadata details
         based on a given DAFNI Dataset metadata client model
 
@@ -158,11 +154,9 @@ class DatasetMetadata:
         self.update = check_key_in_dict(dataset_dict, ["dct:accrualPeriodicity"])
 
         # Version History Fields
-        self.dataset_id = check_key_in_dict(
-            dataset_dict, ["version_history", "dataset_uuid"]
-        )
+        self.dataset_id = check_key_in_dict(dataset_dict, ["@id", "dataset_uuid"])
         self.title = check_key_in_dict(dataset_dict, ["dct:title"])
-        self.version_id = version_id
+        self.version_id = check_key_in_dict(dataset_dict, ["@id", "version_uuid"])
 
     def output_metadata_details(self, long: bool = False):
         """Function to output details relating to the Dataset.
