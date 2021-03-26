@@ -5,9 +5,7 @@ import os
 
 from dafni_cli.datasets.dataset_metadata import DatasetMetadata
 from dafni_cli.commands.login import check_for_jwt_file
-from dafni_cli.api.dafni_api import dafni_get_request
-from dafni_cli.api.datasets_api import get_all_datasets, get_latest_dataset_metadata
-from dafni_cli.model.model import Model
+from dafni_cli.api.datasets_api import get_latest_dataset_metadata
 from dafni_cli.utils import write_files_to_zip
 
 
@@ -26,12 +24,14 @@ def download(ctx: Context):
     type=click.Path(exists=True, dir_okay=True),
     help="Directory to save the zipped Dataset files to. default is the current working directory",
 )
-@click.argument("version-id", nargs=-1, required=True, type=str)
-@click.argument("id", nargs=1, required=True, type=str)
+@click.argument("dataset-id", nargs=1, required=True, type=str)
 @click.argument("version-id", nargs=1, required=True, type=str)
 @click.pass_context
 def dataset(
-    ctx: Context, id: str, version_id: List[str], directory: Optional[click.Path]
+    ctx: Context,
+    dataset_id: str,
+    version_id: List[str],
+    directory: Optional[click.Path],
 ):
     """Download all files associated with the given Dataset Version.
 
@@ -40,19 +40,25 @@ def dataset(
         id (str): Dataset ID
         version_id (str): Dataset version ID
     """
-    metadata = get_latest_dataset_metadata(ctx.obj["jwt"], id, version_id)
+    metadata = get_latest_dataset_metadata(ctx.obj["jwt"], dataset_id, version_id)
     dataset_meta = DatasetMetadata(metadata)
-    # Download all files
-    file_names, file_contents = dataset_meta.download_dataset_files(ctx.obj["jwt"])
 
-    # Setup file paths
-    if not directory:
-        directory = os.getcwd()
-    zip_name = f"Dataset_{id}_{version_id}.zip"
-    path = os.path.join(directory, zip_name)
-    # Write files to disk
-    write_files_to_zip(path, file_names, file_contents)
-    # Output file details
-    click.echo("\nThe dataset files have been downloaded to: ")
-    click.echo(os.path.join(directory, zip_name))
-    dataset_meta.output_datafiles_table()
+    if len(dataset_meta.files) > 0:
+        # Download all files
+        file_names, file_contents = dataset_meta.download_dataset_files(ctx.obj["jwt"])
+
+        # Setup file paths
+        if not directory:
+            directory = os.getcwd()
+        zip_name = f"Dataset_{dataset_id}_{version_id}.zip"
+        path = os.path.join(directory, zip_name)
+        # Write files to disk
+        write_files_to_zip(path, file_names, file_contents)
+        # Output file details
+        click.echo("\nThe dataset files have been downloaded to: ")
+        click.echo(os.path.join(directory, zip_name))
+        dataset_meta.output_datafiles_table()
+    else:
+        click.echo(
+            "\nThere are no files currently associated with the Dataset to download"
+        )

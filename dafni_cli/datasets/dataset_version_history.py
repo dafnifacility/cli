@@ -1,4 +1,4 @@
-from typing import Optional, List
+from typing import Optional
 
 from dafni_cli.datasets.dataset_metadata import DatasetMetadata
 from dafni_cli.utils import check_key_in_dict

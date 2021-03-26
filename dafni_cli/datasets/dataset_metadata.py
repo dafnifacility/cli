@@ -1,9 +1,7 @@
-from dateutil.parser import isoparse
 import click
 from typing import Optional, Tuple, List
 from io import BytesIO
 
-from dafni_cli.api.datasets_api import get_latest_dataset_metadata
 from dafni_cli.api.dafni_api import dafni_get_request
 from dafni_cli.consts import CONSOLE_WIDTH, DATA_FORMATS, TAB_SPACE
 from dafni_cli.utils import (
@@ -11,7 +9,6 @@ from dafni_cli.utils import (
     process_dict_datetime,
     prose_print,
     output_table,
-    optional_column,
     process_file_size,
 )
 
