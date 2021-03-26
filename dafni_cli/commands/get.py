@@ -10,7 +10,7 @@ from dafni_cli.datasets import (
     dataset_version_history,
 )
 from dafni_cli.datasets.dataset import Dataset
-from dafni_cli.login import check_for_jwt_file
+from dafni_cli.commands.login import check_for_jwt_file
 from dafni_cli.model.model import Model
 from dafni_cli.model.version_history import ModelVersionHistory
 from dafni_cli.api.models_api import get_models_dicts

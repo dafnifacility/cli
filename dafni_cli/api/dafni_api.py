@@ -2,6 +2,8 @@ import requests
 from typing import Union, List, BinaryIO
 from requests import Response
 
+from dafni_cli.consts import MODELS_API_URL, DISCOVERY_API_URL
+
 
 def dafni_get_request(
         url: str, jwt: str, allow_redirect: bool = False
@@ -72,6 +74,27 @@ def dafni_put_request(
         url,
         headers={"Content-Type": content_type, "authorization": jwt},
         data=data,
+    )
+    response.raise_for_status()
+    return response
+
+
+def dafni_delete_request(
+    url: str, jwt: str
+) -> Response:
+    """Performs a DELETE request from the DAFNI API.
+    If a status other than 200 is returned, an exception will be raised.
+
+    Args:
+        url (str): The url endpoint that is being queried
+        jwt (str): JWT
+
+    Returns:
+        Response: Response from the API
+    """
+    response = requests.delete(
+        url,
+        headers={"authorization": jwt}
     )
     response.raise_for_status()
     return response

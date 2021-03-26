@@ -5,7 +5,7 @@ from pathlib import Path
 from requests.exceptions import HTTPError
 from requests import Response
 
-from dafni_cli.login import check_for_jwt_file
+from dafni_cli.commands.login import check_for_jwt_file
 from dafni_cli.api.models_api import (
     validate_model_definition,
     get_model_upload_urls,
