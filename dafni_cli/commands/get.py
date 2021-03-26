@@ -20,7 +20,7 @@ from dafni_cli.utils import (
 )
 
 
-@click.group()
+@click.group(help="Lists entities available to the user")
 @click.pass_context
 def get(ctx: Context):
     """Lists entities available to the user from
@@ -39,7 +39,7 @@ def get(ctx: Context):
     "--long/--short",
     "-l/-s",
     default=False,
-    help="Also displays the full description of each model.",
+    help="Also displays the full description of each model. Default: -s",
     type=bool,
 )
 @click.option(
@@ -58,13 +58,13 @@ def get(ctx: Context):
     "--json/--pretty",
     "-j/-p",
     default=False,
-    help="Prints raw json returned from API.",
+    help="Prints raw json returned from API. Default: -p",
     type=bool
 )
 @click.pass_context
 def models(ctx: Context, long: bool, creation_date: str, publication_date: str, json: bool):
-    """Displays list of model names with other options allowing
-        more details to be listed as well.
+    """Displays list of model details with other options allowing
+        more details to be listed, filters, and for the json to be displayed.
 
     Args:
         ctx (context): contains JWT for authentication
@@ -95,6 +95,7 @@ def models(ctx: Context, long: bool, creation_date: str, publication_date: str, 
 @click.argument("version-id", nargs=-1, required=True)
 @click.option(
     "--version-history/--metadata",
+    "-v/-m",
     default=False,
     help="Whether to display the version history of a model instead of the metadata",
 )
