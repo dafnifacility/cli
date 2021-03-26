@@ -42,6 +42,9 @@ If there is no valid JWT, the user will be prompted to login before the command 
   - **--publication-date**:  Filter to only show the models created since a given date with format DD/MM/YYYY.
   - **--long/--short**: If `--long` added as an option, the description of each model will be returned as well as the regular information.
     If `--short` is chosen, only the name, version ID, creation date and summary will be displayed. Default: `--short`.
+  - **--json/--pretty**: If `--json` option chosen, the raw json of each unfiltered model is printed in a list.
+    If `--pretty` is chosen, model details in the format of the example output below are printed.
+    Default: `--pretty`.
   
   Example output:
   <pre>
@@ -63,7 +66,10 @@ If there is no valid JWT, the user will be prompted to login before the command 
   *Options*:
   - **--version-history/--metadata**: If `--version-history` is added as an option, the name, version ID, publication date and version message of each version of the model will be displayed in reverse chronological order.
     If `--metadata` is chosen, the metadata for that version of the model is displayed.
-    Default: `--metadata`. 
+    Default: `--metadata`.
+  - **--json/--pretty**: If `--json` option chosen, the raw json of the model metadata/version history is printed depending on the `--version-history/--metadata` option.
+    If `--pretty` is chosen, the model metadata/version history is printed in the format of the examples below.
+    Default: `--pretty`.
   
   Example outputs:
   <pre>
@@ -116,7 +122,10 @@ If there is no valid JWT, the user will be prompted to login before the command 
   - **--search**: Option to apply a text search to the available datasets.
   - **--start-date**:  Filter to only show the datasets with a date range since a given date with format DD/MM/YYYY.
   - **--end-date**: Filter to only show the datasets with a date range before a given date with format DD/MM/YYYY.
-  
+  - **--json/--pretty**: If `--json` option chosen, the raw json of the returned datasets after the filters are applied is returned.
+    If `--pretty` option chosen, the datsets are printed in the format of the examples below.
+    Default: `--pretty`.
+    
   Example output:
   <pre>
   Title: Example Dataset
@@ -144,7 +153,10 @@ If there is no valid JWT, the user will be prompted to login before the command 
   - **--version-history/-v**: If `--version-history`/`-v` is added as an option, the Title, ID, Version ID, Publisher, Date Range
     and Description of each version of the Dataset will be displayed in reverse chronological order.
   - **--metadata/-m**: If `--metadata`/`-m` is chosen, the metadata for that version of the model is displayed.
-    Default: `--metadata`. 
+    Default: `--metadata`.
+  - **--json/--pretty (-j/-p)**: If `--json` is chosen, the raw json for the dataset metdata/version is printed, depending on the `--version-history/--metadata` option.
+    If `--pretty` chosen, the metadata/version history is printed in the formats below.
+    Default: `--pretty`.
 
   Example output:
   <pre>
