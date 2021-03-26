@@ -222,10 +222,13 @@ def dataset(ctx: Context, id: str, version_id: str, long: bool, version_history:
             dataset_meta = dataset_metadata.DatasetMetadata(metadata)
             dataset_meta.output_metadata_details(long)
     else:
-        version_history = dataset_version_history.DatasetVersionHistory(
-            ctx.obj["jwt"], metadata
-        )
-        version_history.process_version_history()
+        if json:
+            print_json(metadata["version_history"])
+        else:
+            version_history = dataset_version_history.DatasetVersionHistory(
+                ctx.obj["jwt"], metadata
+            )
+            version_history.process_version_history()
 
 
 @get.command()

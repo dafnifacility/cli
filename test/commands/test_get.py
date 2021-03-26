@@ -654,7 +654,7 @@ class TestGet:
 
         @patch.object(dataset_metadata.DatasetMetadata, "output_metadata_details")
         @patch.object(dataset_metadata.DatasetMetadata, "__init__")
-        def test_get_dataset_called_with_jwt_from_context_with_default_long_and_version_flag_value(
+        def test_get_dataset_called_with_jwt_from_context_with_default_long_and_version_flag_value_and_json_flag(
             self,
             mock_init,
             mock_output,
@@ -693,6 +693,7 @@ class TestGet:
             mock_print.assert_not_called()
             assert result.exit_code == 0
 
+        @pytest.mark.parametrize("json_flag", ["--pretty", "-p"])
         @pytest.mark.parametrize("metadata", ["--metadata","-m"])
         @pytest.mark.parametrize(
             "option, long",
@@ -700,7 +701,7 @@ class TestGet:
         )
         @patch.object(dataset_metadata.DatasetMetadata, "output_metadata_details")
         @patch.object(dataset_metadata.DatasetMetadata, "__init__")
-        def test_dataset_metadata_called_with_given_long_value_when_version_history_is_false(
+        def test_dataset_metadata_called_with_given_long_value_when_version_history_and_json_false(
             self,
             mock_init,
             mock_output,
@@ -710,6 +711,7 @@ class TestGet:
             option,
             long,
             metadata,
+            json_flag,
             processed_jwt_fixture,
             dataset_metadata_fixture,
         ):
@@ -733,7 +735,7 @@ class TestGet:
             # CALL
             result = runner.invoke(
                 get.get,
-                ["dataset", dataset_id, version_id, option, metadata],
+                ["dataset", dataset_id, version_id, option, metadata, json_flag],
             )
             print(result.stdout)
             print(result.exc_info)
@@ -752,7 +754,7 @@ class TestGet:
         )
         @patch.object(dataset_metadata.DatasetMetadata, "output_metadata_details")
         @patch.object(dataset_metadata.DatasetMetadata, "__init__")
-        def test_print_json_called_with_same_data_no_matter_short_or_long_called(
+        def test_print_json_called_with_same_data_no_matter_short_or_long_called_with_default_metadata_flag(
             self,
             mock_init,
             mock_output,
@@ -792,12 +794,13 @@ class TestGet:
             mock_print.assert_called_once_with(response)
             assert result.exit_code == 0
 
+        @pytest.mark.parametrize("json_flag", ["--pretty", "-p"])
         @pytest.mark.parametrize("version_history", ["--version-history", "-v"])
         @patch.object(
             dataset_version_history.DatasetVersionHistory, "process_version_history"
         )
         @patch.object(dataset_version_history.DatasetVersionHistory, "__init__")
-        def test_dataset_version_history_called_when_version_history_true(
+        def test_dataset_version_history_called_when_version_history_true_and_json_flag_false(
             self,
             mock_init,
             mock_output,
@@ -805,6 +808,7 @@ class TestGet:
             mock_get,
             mock_print,
             version_history,
+            json_flag,
             processed_jwt_fixture,
             dataset_metadata_fixture,
         ):
@@ -828,7 +832,7 @@ class TestGet:
             # CALL
             result = runner.invoke(
                 get.get,
-                ["dataset", dataset_id, version_id, version_history],
+                ["dataset", dataset_id, version_id, version_history, json_flag],
             )
 
             # ASSERT
@@ -837,5 +841,56 @@ class TestGet:
             )
             mock_init.assert_called_once_with(processed_jwt_fixture["jwt"], response)
             mock_output.assert_called_once_with()
+            mock_print.assert_not_called()
+            assert result.exit_code == 0
+
+        @pytest.mark.parametrize("json_flag", ["--json", "-j"])
+        @pytest.mark.parametrize("version_history", ["--version-history", "-v"])
+        @patch.object(
+            dataset_version_history.DatasetVersionHistory, "process_version_history"
+        )
+        @patch.object(dataset_version_history.DatasetVersionHistory, "__init__")
+        def test_print_json_called_with_version_history_dict_when_version_history_true_and_json_flag_true(
+                self,
+                mock_init,
+                mock_output,
+                mock_jwt,
+                mock_get,
+                mock_print,
+                version_history,
+                json_flag,
+                processed_jwt_fixture,
+                dataset_metadata_fixture,
+        ):
+            # SETUP
+            # setup get group command to set the context containing a JWT
+            mock_jwt.return_value = processed_jwt_fixture, False
+            # setup get_latest_dataset_metadata call
+            response = dataset_metadata_fixture
+            mock_get.return_value = response
+            # setup DatasetMetadata class
+            mock_init.return_value = None
+            mock_output.return_value = "Output"
+
+            # setup data
+            dataset_id = "0a0a0a0a-0a00-0a00-a000-0a0a0000000a"
+            version_id = "0a0a0a0a-0a00-0a00-a000-0a0a0000000b"
+
+            # Setup click
+            runner = CliRunner()
+
+            # CALL
+            result = runner.invoke(
+                get.get,
+                ["dataset", dataset_id, version_id, version_history, json_flag],
+            )
+
+            # ASSERT
+            mock_get.assert_called_once_with(
+                processed_jwt_fixture["jwt"], dataset_id, version_id
+            )
+            mock_init.assert_not_called()
+            mock_output.assert_not_called()
+            mock_print.assert_called_once_with(dataset_metadata_fixture["version_history"])
 
             assert result.exit_code == 0
