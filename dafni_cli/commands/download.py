@@ -34,11 +34,12 @@ def dataset(
     directory: Optional[click.Path],
 ):
     """Download all files associated with the given Dataset Version.
-
+    \f
     Args:
         ctx (Context): CLI context
-        id (str): Dataset ID
+        dataset_id (str): Dataset ID
         version_id (str): Dataset version ID
+        directory (Optional[click.Path]): Directory to write zip folder to
     """
     metadata = get_latest_dataset_metadata(ctx.obj["jwt"], dataset_id, version_id)
     dataset_meta = DatasetMetadata(metadata)
