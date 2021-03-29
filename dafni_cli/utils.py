@@ -4,8 +4,8 @@ from typing import List, Optional, Union
 from datetime import datetime as dt
 from dateutil.parser import isoparse
 from io import BytesIO
-import os
 from zipfile import ZipFile
+import json
 
 
 def prose_print(prose: str, width: int):
@@ -249,3 +249,12 @@ def write_files_to_zip(
         for idx, file_name in enumerate(file_names):
             with zipObj.open(file_name, "w") as zip_file:
                 zip_file.write(file_contents[idx].getvalue())
+
+
+def print_json(response: Union[dict, List[dict]]) -> None:
+    """Takes dictionary or list of dictionary and pretty prints to command line
+
+    Args:
+        response (Union[dict, List[dict]]): Dictionary or list of dictionaries to pretty print
+    """
+    click.echo(json.dumps(response, indent=2, sort_keys=True))

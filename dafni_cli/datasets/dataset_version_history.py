@@ -1,7 +1,10 @@
 from typing import Optional
 
 from dafni_cli.datasets.dataset_metadata import DatasetMetadata
-from dafni_cli.utils import check_key_in_dict
+from dafni_cli.utils import (
+    check_key_in_dict,
+    print_json
+)
 from dafni_cli.api.datasets_api import get_latest_dataset_metadata
 
 
@@ -51,14 +54,23 @@ class DatasetVersionHistory:
             for version in self.versions
         ]
 
-    def process_version_history(self):
+    def process_version_history(self, json_flag: bool = False):
         """Function iterates through all Version History ID's,
         retrieves the associated Dataset Metadata, and outputs the Version details
-        to the command line
+        or Dataset metadata json for each version to the command line
+
+        Args:
+            json_flag (bool): Whether to print the Dataset metadata json for each version, or the version details
         """
+        json_list = []
         for version_id in self.version_ids:
             metadata = get_latest_dataset_metadata(
                 self.jwt, self.dataset_id, version_id
             )
-            dataset_meta = DatasetMetadata(metadata)
-            dataset_meta.output_version_details()
+            if json_flag:
+                json_list.append(metadata)
+            else:
+                dataset_meta = DatasetMetadata(metadata)
+                dataset_meta.output_version_details()
+        if json_flag:
+            print_json(json_list)
