@@ -1,6 +1,9 @@
 import pytest
 from mock import patch, call
 from dateutil import parser
+from io import BytesIO
+from zipfile import ZipFile
+import os
 
 from dafni_cli import utils
 from dafni_cli.model.model import Model
@@ -450,6 +453,8 @@ class TestProcessDictDatetime:
 
 
 class TestOutputTableRow:
+    """Test class to test the output_table_row functionality"""
+
     @pytest.mark.parametrize(
         "columns, widths, expected",
         [
@@ -673,13 +678,14 @@ class TestOutputTable:
 class TestProcessFileSize:
     """Test class to test the process_file_size functionality"""
 
-    @pytest.mark.parametrize("file_size", ["12.4", [12], (12, 13)])
+    @pytest.mark.parametrize("file_size", [[12], (12, 13)])
     def test_empty_string_returned_if_non_integer_or_float_value_given(self, file_size):
         # SETUP CALL
         result = utils.process_file_size(file_size)
         # ASSERT
         assert result == ""
 
+    @pytest.mark.parametrize("data_type", [str, float, int])
     @pytest.mark.parametrize(
         "file_size, expected",
         [
@@ -703,9 +709,13 @@ class TestProcessFileSize:
             (3.854e9, "3.9 GB"),
         ],
     )
-    def test_file_size_processed_correctly(self, file_size, expected):
-        # SETUP CALL
-        result = utils.process_file_size(file_size)
+    def test_file_size_processed_correctly(self, file_size, expected, data_type):
+        # SETUP
+        input_size = data_type(file_size)
+
+        # CALL
+        result = utils.process_file_size(input_size)
+
         # ASSERT
         assert result == expected
 
@@ -714,7 +724,9 @@ class TestProcessFileSize:
 class TestArgumentConfirmation:
     """Test class to test the argument_confirmation functionality"""
 
-    def test_arguments_are_printed_correctly_without_additional_messages(self, mock_click):
+    def test_arguments_are_printed_correctly_without_additional_messages(
+        self, mock_click
+    ):
         # SETUP
         argument_names = ["arg 1", "arg 2", "arg 3"]
         arguments = ["string option", "12", "{'key': 'value'}"]
@@ -727,7 +739,7 @@ class TestArgumentConfirmation:
         assert mock_click.echo.call_args_list == [
             call("arg 1: string option"),
             call("arg 2: 12"),
-            call("arg 3: {'key': 'value'}")
+            call("arg 3: {'key': 'value'}"),
         ]
         mock_click.confirm.assert_called_once_with(confirmation_message, abort=True)
 
@@ -749,12 +761,12 @@ class TestArgumentConfirmation:
             call("arg 2: 12"),
             call("arg 3: {'key': 'value'}"),
             call("additional message 1"),
-            call("additional message 2")
+            call("additional message 2"),
         ]
         mock_click.confirm.assert_called_once_with(confirmation_message, abort=True)
 
     def test_arguments_are_printed_correctly_with_none_additional_message_specified(
-            self, mock_click
+        self, mock_click
     ):
         # SETUP
         argument_names = ["arg 1", "arg 2", "arg 3"]
@@ -771,6 +783,32 @@ class TestArgumentConfirmation:
         assert mock_click.echo.call_args_list == [
             call("arg 1: string option"),
             call("arg 2: 12"),
-            call("arg 3: {'key': 'value'}")
+            call("arg 3: {'key': 'value'}"),
         ]
         mock_click.confirm.assert_called_once_with(confirmation_message, abort=True)
+
+
+class TestWriteFilesToZip:
+    """Test class to test the write_files_to_zip functionality"""
+
+    def test_given_files_written_as_zip_file_to_given_location_with_correct_contents(
+        self, tmp_path
+    ):
+        # SETUP
+        path = tmp_path
+        zip_path = os.path.join(path, "test.zip")
+
+        file_names = ["file_1.txt", "file_2.txt"]
+        file_contents = [BytesIO(b"Test text 1"), BytesIO(b"Test text 2")]
+
+        # CALL
+        utils.write_files_to_zip(zip_path, file_names, file_contents)
+
+        # ASSERT
+        assert os.path.exists(zip_path)
+        with ZipFile(zip_path, "r") as zipObj:
+            assert zipObj.namelist() == file_names
+
+            for idx, name in enumerate(file_names):
+                with zipObj.open(name, "r") as zip_file:
+                    assert zip_file.read() == file_contents[idx].getvalue()

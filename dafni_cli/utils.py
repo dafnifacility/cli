@@ -3,6 +3,8 @@ import textwrap
 from typing import List, Optional, Union
 from datetime import datetime as dt
 from dateutil.parser import isoparse
+from io import BytesIO
+from zipfile import ZipFile
 import json
 
 
@@ -37,7 +39,7 @@ def process_response_to_class_list(response: List[dict], class_instance: object)
 
 
 def optional_column(
-        dictionary: dict, key: str, column_width: int = 0, alignment: str = "<"
+    dictionary: dict, key: str, column_width: int = 0, alignment: str = "<"
 ):
     """Adds a value to a column, if the key exists in the dictionary
     and adds spaces of the appropriate width if not.
@@ -76,9 +78,9 @@ def process_date_filter(date_str: str) -> str:
 
 
 def check_key_in_dict(
-        input_dict: dict,
-        keys: List[str],
-        default: Optional[Union[str, int, dict, bool]] = "N/A",
+    input_dict: dict,
+    keys: List[str],
+    default: Optional[Union[str, int, dict, bool]] = "N/A",
 ) -> Optional[Union[str, int, dict, bool]]:
     """Utility function to check a nested dict for a given
     key and nested keys if applicable. If the keys exist, the
@@ -132,7 +134,7 @@ def process_dict_datetime(input_dict: dict, keys: List[str], default="N/A") -> s
 
 
 def output_table_row(
-        entries: List[str], widths: List[int], alignment: str = "<", header: bool = False
+    entries: List[str], widths: List[int], alignment: str = "<", header: bool = False
 ) -> str:
     """Function to generate a table row given values and column widths.
     If the header argument is set to true, a dashed line of equal length is added underneath.
@@ -160,7 +162,7 @@ def output_table_row(
 
 
 def output_table(
-        columns: List[str], widths: List[int], values: List[List], alignment: str = "<"
+    columns: List[str], widths: List[int], values: List[List], alignment: str = "<"
 ) -> str:
     """Function to generate a table of data in the command console
 
@@ -180,20 +182,23 @@ def output_table(
     return table_str
 
 
-def process_file_size(file_size: Union[int, float]) -> str:
+def process_file_size(file_size: str) -> str:
     """Utility function to take in a file size in bytes
     and format into a table ready format.
     This converts the size into appropriate units, with
     the units appended
 
     Args:
-        file_size (Union[int, float]): File size in bytes
+        file_size (str): File size in bytes
 
     Returns:
         str: Converted file size with applicable units
     """
-    if not isinstance(file_size, (int, float)):
+    try:
+        file_size = float(file_size)
+    except BaseException:
         return ""
+
     if file_size < 1e3:
         return f"{file_size} B"
     elif file_size >= 1e3 and file_size < 1e6:
@@ -208,10 +213,10 @@ def process_file_size(file_size: Union[int, float]) -> str:
 
 
 def argument_confirmation(
-        argument_names: List[str],
-        arguments: List[str],
-        confirmation_message: str,
-        additional_messages: Optional[List[str]] = None
+    argument_names: List[str],
+    arguments: List[str],
+    confirmation_message: str,
+    additional_messages: Optional[List[str]] = None,
 ):
     """Function to display the arguments and options chosen by the user
     and ask for confirmation
@@ -228,6 +233,22 @@ def argument_confirmation(
         for message in additional_messages:
             click.echo(message)
     click.confirm(confirmation_message, abort=True)
+
+
+def write_files_to_zip(
+    zip_path: str, file_names: List[str], file_contents: List[BytesIO]
+) -> None:
+    """Function to compress a list of files to a zip folder, and write to disk
+
+    Args:
+        zip_path (str): Full path including file name to write to
+        file_names (List[str]): List of all file names
+        file_contents (List[BytesIO]): List of file contents, 1 for each name
+    """
+    with ZipFile(zip_path, "w") as zipObj:
+        for idx, file_name in enumerate(file_names):
+            with zipObj.open(file_name, "w") as zip_file:
+                zip_file.write(file_contents[idx].getvalue())
 
 
 def print_json(response: Union[dict, List[dict]]) -> None:

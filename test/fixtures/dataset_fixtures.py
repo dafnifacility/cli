@@ -1,5 +1,6 @@
 import pytest
 from typing import List
+from io import BytesIO
 
 from dafni_cli.datasets.dataset_metadata import DataFile, DatasetMetadata
 
@@ -203,7 +204,11 @@ def dataset_metadata_fixture() -> dict:
 
 
 def datafile_mock(
-    name: str = "File 1", size: str = "120 B", file_format: str = "CSV"
+    name: str = "File 1",
+    size: str = "120 B",
+    file_format: str = "CSV",
+    download: str = "download/url",
+    contents: BytesIO = b"Test Data",
 ) -> DataFile:
     """Test fixture to generate a DataFile object with given attributes
 
@@ -211,6 +216,8 @@ def datafile_mock(
         name (str, optional): File name. Defaults to "File 1".
         size (str, optional): Formatted file size string. Defaults to "120 B".
         file_format (str, optional): File Format. Defaults to "CSV".
+        download (str, optional): Download URL for file. defaults to "download/url"
+        contents (BytesIO, optional): File Contents as bytes. defaults to b"Test Data"
 
     Returns:
         DataFile: Generated DataFile for testing
@@ -219,6 +226,8 @@ def datafile_mock(
     datafile.name = name
     datafile.size = size
     datafile.format = file_format
+    datafile.download = download
+    datafile.contents = contents
 
     return datafile
 

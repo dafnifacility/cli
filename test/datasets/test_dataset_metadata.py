@@ -2,8 +2,9 @@ import pytest
 from mock import patch, call
 
 from dafni_cli.datasets.dataset_metadata import DataFile, DatasetMetadata
-from dafni_cli.consts import CONSOLE_WIDTH, DATA_FORMATS, TAB_SPACE
+from dafni_cli.consts import CONSOLE_WIDTH, TAB_SPACE
 
+from test.fixtures.jwt_fixtures import JWT
 from test.fixtures.dataset_fixtures import (
     dataset_metadata_fixture,
     datafile_mock,
@@ -20,7 +21,7 @@ class TestDataFile:
 
         def test_datafile_has_expected_attributes(self, mock_set):
             # SETUP
-            expected_attr = ["name", "size", "format"]
+            expected_attr = ["name", "size", "format", "download", "contents"]
             # CALL
             instance = DataFile()
             # ASSERT
@@ -41,7 +42,12 @@ class TestDataFile:
 
         def test_attributes_set_correctly(self, mock_check, mock_process):
             # SETUP
-            mock_check.return_value = "Mock Check"
+            mock_check.side_effect = (
+                "Mock Check",
+                "Size Mock",
+                "Mock Format",
+                "Mock download",
+            )
             mock_process.return_value = "Mock Size"
 
             file_dict = {"key": "value"}
@@ -51,9 +57,12 @@ class TestDataFile:
             instance.set_details_from_dict(file_dict)
 
             # ASSERT
+            print(mock_process.call_args_list)
             assert instance.name == "Mock Check"
             assert instance.size == "Mock Size"
             assert instance.format == ""
+            assert instance.download == "Mock download"
+            assert instance.contents == None
 
         def test_util_functions_called_correctly(self, mock_check, mock_process):
             # SETUP
@@ -71,6 +80,7 @@ class TestDataFile:
                 call(file_dict, ["spdx:fileName"]),
                 call(file_dict, ["dcat:byteSize"], default=None),
                 call(file_dict, ["dcat:mediaType"]),
+                call(file_dict, ["dcat:downloadURL"], default=None),
             ]
             mock_process.assert_called_once_with("Mock Check")
 
@@ -93,7 +103,7 @@ class TestDataFile:
             self, mock_check, mock_process, file_format, expected
         ):
             # SETUP
-            mock_check.side_effect = ("mock name", "mock size", file_format)
+            mock_check.side_effect = ("mock name", "mock size", file_format, "url")
             mock_process.return_value = "Mock Size"
 
             file_dict = {"key": "value"}
@@ -104,6 +114,28 @@ class TestDataFile:
 
             # ASSERT
             assert instance.format == expected
+
+    @patch("dafni_cli.datasets.dataset_metadata.dafni_get_request")
+    class TestDownloadContents:
+        """test class to test the download_contents functionality"""
+
+        def test_contents_set_to_returned_file_contents(self, mock_get):
+            # SETUP
+            contents = b"Test data"
+            mock_get.return_value = contents
+
+            instance = DataFile()
+            instance.download = "download/url"
+
+            jwt = JWT
+
+            # CALL
+            instance.download_contents(jwt)
+
+            # ASSERT
+            mock_get.assert_called_once_with(instance.download, jwt, content=True)
+
+            assert contents == instance.contents.getvalue()
 
 
 class TestDatasetMeta:
@@ -446,3 +478,46 @@ class TestDatasetMeta:
             ]
 
             mock_prose.assert_called_once_with(instance.description, CONSOLE_WIDTH)
+
+    @patch.object(DataFile, "download_contents")
+    class TestDownloadDatasetFiles:
+        """test class to test the download_dataset_files functionality"""
+
+        def test_empty_arrays_returned_if_dataset_has_no_associated_files(
+            self, mock_download
+        ):
+            # SETUP
+            instance = DatasetMetadata()
+            instance.files = []
+
+            jwt = JWT
+
+            # CALL
+            file_names, file_contents = instance.download_dataset_files(jwt)
+
+            # ASSERT
+            mock_download.assert_not_called()
+
+            assert file_names == []
+            assert file_contents == []
+
+        def test_correct_names_and_contents_returned_if_dataset_has_associated_files(
+            self, mock_download
+        ):
+            # SETUP
+            instance = DatasetMetadata()
+            data_file_1 = datafile_mock()
+            data_file_2 = datafile_mock(name="File 2", contents=b"Test Data 2")
+
+            instance.files = [data_file_1, data_file_2]
+
+            jwt = JWT
+
+            # CALL
+            file_names, file_contents = instance.download_dataset_files(jwt)
+
+            # ASSERT
+            assert mock_download.call_args_list == [call(jwt), call(jwt)]
+
+            assert file_names == [data_file_1.name, data_file_2.name]
+            assert file_contents == [data_file_1.contents, data_file_2.contents]
