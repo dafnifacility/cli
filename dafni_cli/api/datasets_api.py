@@ -60,4 +60,4 @@ def get_dataset_upload_urls(jwt: str, upload_id: str, file_names: List[str]):
 def upload_dataset_metadata(jwt, upload_id: str, metadata: dict):
     url = f"{DATA_UPLOAD_API_URL}/nid/dataset/"
     data = {"bucketId": upload_id, "metadata": metadata}
-    return dafni_post_request(url, jwt, data)
+    return dafni_post_request(url, jwt, data, raise_status=False)

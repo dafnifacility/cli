@@ -3,6 +3,8 @@ from typing import List
 import click
 import json
 from requests.exceptions import HTTPError
+from dafni_cli.utils import prose_print
+from dafni_cli.consts import CONSOLE_WIDTH
 
 from dafni_cli.api.datasets_api import (
     get_dataset_upload_urls,
@@ -30,11 +32,10 @@ def upload_new_dataset_files(jwt, definition: click.Path, files: List[click.Path
             response = upload_dataset_metadata(
                 jwt, upload_id, json.load(definition_file)
             )
+            response.raise_for_status()
         except HTTPError:
             click.echo("\nMetadata Upload Failed")
-            click.echo(
-                "See https://github.com/dafnifacility/metadata-schema for more details"
-            )
+            prose_print("\n".join(response.json()), CONSOLE_WIDTH)
             exit(1)
 
-    return response
+    return response.json()

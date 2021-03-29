@@ -33,7 +33,11 @@ def dafni_get_request(
 
 
 def dafni_post_request(
-    url: str, jwt: str, data: dict, allow_redirect: bool = False
+    url: str,
+    jwt: str,
+    data: dict,
+    allow_redirect: bool = False,
+    raise_status: bool = True,
 ) -> Union[List[dict], dict]:
     """Performs a POST request from the DAFNI API.
     If a status other than 200 is returned, an exception will be raised.
@@ -43,6 +47,7 @@ def dafni_post_request(
         jwt (str): JWT
         data (dict): The data to be POSTed in JSON format
         allow_redirect (bool): Flag to allow redirects during API call. Defaults to False.
+        raise_status (bool) Flag to define if failure status' should be raised as HttpErrors. Default is True.
 
     Returns:
         List[dict]: For an endpoint returning several objects, a list is returned (e.g. /catalogue/)
@@ -54,8 +59,10 @@ def dafni_post_request(
         allow_redirects=allow_redirect,
         json=data,
     )
-    response.raise_for_status()
-    return response.json()
+    if raise_status:
+        response.raise_for_status()
+        return response.json()
+    return response
 
 
 def dafni_put_request(
