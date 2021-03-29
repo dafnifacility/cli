@@ -25,9 +25,10 @@ def get_new_jwt(user_name: str, password: str) -> dict:
         headers={"Content-Type": "application/json"},
         allow_redirects=False,
     )
-    # Raise an exception if not successful
-    response.raise_for_status()
     # Get the JWT from the returned cookies
+    if JWT_COOKIE not in response.cookies:
+        click.echo("Login Failed: Please check your username and password")
+        exit(1)
     jwt = response.cookies[JWT_COOKIE]
 
     # process the new JWT

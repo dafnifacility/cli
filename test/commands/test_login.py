@@ -1,6 +1,5 @@
 import pytest
-from requests.exceptions import HTTPError
-from mock import patch, MagicMock, PropertyMock, mock_open, call
+from mock import patch, PropertyMock, mock_open, call
 import json
 import os
 from datetime import datetime as dt
@@ -47,7 +46,9 @@ class TestGetNewJwt:
         mock_request.post.assert_called_once_with(
             LOGIN_API_URL + "/login/",
             json={"username": user_name, "password": password},
-            headers={"Content-Type": "application/json",},
+            headers={
+                "Content-Type": "application/json",
+            },
             allow_redirects=False,
         )
 
@@ -76,8 +77,10 @@ class TestGetNewJwt:
             request_response_fixture.cookies[JWT_COOKIE], user_name
         )
 
-    def test_exception_raised_for_failed_call(
+    @patch("dafni_cli.commands.login.click")
+    def test_exit_called_if_no_jwt_returned_by_api(
         self,
+        mock_click,
         mock_request,
         mock_process,
         request_response_fixture,
@@ -85,9 +88,8 @@ class TestGetNewJwt:
     ):
         # SETUP
         # setup return value for requests call
-        request_response_fixture.raise_for_status.side_effect = HTTPError(
-            "404 client model"
-        )
+        cookies = PropertyMock(return_value={})
+        type(request_response_fixture).cookies = cookies
         mock_request.post.return_value = request_response_fixture
 
         # setup data for call
@@ -95,11 +97,14 @@ class TestGetNewJwt:
         password = "password"
 
         # CALL
-        # ASSERT
-        with pytest.raises(HTTPError, match="404 client model"):
+        with pytest.raises(SystemExit, match="1"):
             login.get_new_jwt(user_name, password)
 
+        # ASSERT
         mock_process.assert_not_called()
+        mock_click.echo.assert_called_once_with(
+            "Login Failed: Please check your username and password"
+        )
 
 
 @patch("builtins.open", new_callable=mock_open)
