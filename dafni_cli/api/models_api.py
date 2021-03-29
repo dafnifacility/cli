@@ -2,16 +2,12 @@ from requests import Response
 from typing import List, Tuple
 from pathlib import Path
 
-from dafni_cli.consts import (
-    MODELS_API_URL,
-    VALIDATE_MODEL_CT,
-    MINIO_UPLOAD_CT
-)
+from dafni_cli.consts import MODELS_API_URL, VALIDATE_MODEL_CT, MINIO_UPLOAD_CT
 from dafni_cli.api.dafni_api import (
     dafni_get_request,
     dafni_post_request,
     dafni_put_request,
-    dafni_delete_request
+    dafni_delete_request,
 )
 
 
@@ -56,9 +52,7 @@ def get_model_metadata_dict(jwt: str, model_version_id: str) -> dict:
     return dafni_get_request(url, jwt)
 
 
-def validate_model_definition(
-        jwt: str, model_definition: Path
-) -> Tuple[bool, str]:
+def validate_model_definition(jwt: str, model_definition: Path) -> Tuple[bool, str]:
     """Validates the model definition file using a PUT to the DAFNI API
 
     Args:
@@ -79,9 +73,7 @@ def validate_model_definition(
         return False, response.json()["errors"][0]
 
 
-def get_model_upload_urls(
-        jwt: str
-) -> Tuple[str, dict]:
+def get_model_upload_urls(jwt: str) -> Tuple[str, dict]:
     """Obtains the model upload urls from the DAFNI API
 
     Args:
@@ -99,26 +91,8 @@ def get_model_upload_urls(
     return upload_id, urls
 
 
-def upload_file_to_minio(
-        jwt: str, url: str, file_path: Path
-) -> Response:
-    """Function to upload definition or image files to DAFNI
-
-    Args:
-        jwt (str): JWT
-        url (str): URL to upload the file to
-        file_path (Path): Path to the file
-
-    Returns:
-        Response: Response returned from the put request
-    """
-    content_type = MINIO_UPLOAD_CT
-    with open(file_path, "rb") as file_data:
-        return dafni_put_request(url, jwt, file_data, content_type)
-
-
 def model_version_ingest(
-        jwt: str, upload_id: str, version_message: str, model_id: str = None
+    jwt: str, upload_id: str, version_message: str, model_id: str = None
 ) -> dict:
     """Ingests a new version of a model to DAFNI
 
@@ -132,7 +106,9 @@ def model_version_ingest(
         dict: JSON from response returned in post request
     """
     if model_id:
-        url = MODELS_API_URL + "/models/" + model_id + "/upload/" + upload_id + "/ingest/"
+        url = (
+            MODELS_API_URL + "/models/" + model_id + "/upload/" + upload_id + "/ingest/"
+        )
     else:
         url = MODELS_API_URL + "/models/upload/" + upload_id + "/ingest/"
     data = {"version_message": version_message}

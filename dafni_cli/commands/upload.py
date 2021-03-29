@@ -4,14 +4,16 @@ from click.testing import CliRunner
 from pathlib import Path
 from requests.exceptions import HTTPError
 from requests import Response
+from typing import List
 
 from dafni_cli.commands.login import check_for_jwt_file
 from dafni_cli.api.models_api import (
     validate_model_definition,
     get_model_upload_urls,
-    upload_file_to_minio,
-    model_version_ingest
+    model_version_ingest,
 )
+from dafni_cli.api.minio_api import upload_file_to_minio
+from dafni_cli.datasets.dataset_upload import upload_new_dataset_files
 from dafni_cli.utils import argument_confirmation
 
 
@@ -47,7 +49,11 @@ def upload(ctx: Context):
 )
 @click.pass_context
 def model(
-        ctx: Context, definition: click.Path, image: click.Path, version_message: str, parent_model: str
+    ctx: Context,
+    definition: click.Path,
+    image: click.Path,
+    version_message: str,
+    parent_model: str,
 ):
     """Uploads model to DAFNI from metadata and image files.
     \f
@@ -58,12 +64,12 @@ def model(
         version_message (str): Version message to be included with this model version
         parent_model (str): ID of the parent model that this is an update of
     """
-    argument_names = ["Model definition file path",
-                      "Image file path",
-                      "Version message"]
-    arguments = [definition,
-                 image,
-                 version_message]
+    argument_names = [
+        "Model definition file path",
+        "Image file path",
+        "Version message",
+    ]
+    arguments = [definition, image, version_message]
     confirmation_message = "Confirm model upload?"
     if parent_model:
         argument_names.append("Parent model ID")
@@ -71,7 +77,9 @@ def model(
         additional_message = None
     else:
         additional_message = ["No parent model: new model to be created"]
-    argument_confirmation(argument_names, arguments, confirmation_message, additional_message)
+    argument_confirmation(
+        argument_names, arguments, confirmation_message, additional_message
+    )
 
     click.echo("Validating model definition")
     # Print helpful message when 500 error returned
@@ -79,14 +87,18 @@ def model(
         valid, error_message = validate_model_definition(ctx.obj["jwt"], definition)
     except HTTPError as e:
         if e.response.status_code == 500:
-            click.echo("Error validating the model definition. "
-                       "See https://docs.secure.dafni.rl.ac.uk/docs/how-to/models/how-to-write-a-model-definition-file/"
-                       " for guidance")
+            click.echo(
+                "Error validating the model definition. "
+                "See https://docs.secure.dafni.rl.ac.uk/docs/how-to/models/how-to-write-a-model-definition-file/"
+                " for guidance"
+            )
         else:
             click.echo(e)
         exit(1)
     if not valid:
-        click.echo("Definition validation failed with the following errors: " + error_message)
+        click.echo(
+            "Definition validation failed with the following errors: " + error_message
+        )
         exit(1)
 
     click.echo("Getting urls")
@@ -102,3 +114,24 @@ def model(
     model_version_ingest(ctx.obj["jwt"], upload_id, version_message, parent_model)
 
     click.echo("Model upload complete")
+
+
+@upload.command(help="Upload a dataset to DAFNI")
+@click.argument("definition", nargs=1, required=True, type=click.Path(exists=True))
+@click.argument("files", nargs=-1, required=True, type=click.Path(exists=True))
+@click.pass_context
+def dataset(ctx: Context, definition: click.Path, files: List[click.Path]):
+
+    # Confirm upload details
+    argument_names = ["Dataset definition file path"]
+    [argument_names.append("Dataset file path") for file_path in files]
+    arguments = [definition, *files]
+    confirmation_message = "Confirm Dataset upload?"
+    argument_confirmation(argument_names, arguments, confirmation_message)
+    # Upload all files
+    response = upload_new_dataset_files(ctx.obj["jwt"], definition, files)
+    # Output Details
+    click.echo("\nUpload Successful")
+    click.echo(f"Dataset ID: {response['datasetId']}")
+    click.echo(f"Version ID: {response['versionId']}")
+    click.echo(f"Metadata ID: {response['metadataId']}")
