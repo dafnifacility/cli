@@ -501,7 +501,7 @@ class TestDatasetMeta:
             assert file_names == []
             assert file_contents == []
 
-        def test_correct_names_and_contents_returned_if_dataset_has_no_associated_files(
+        def test_correct_names_and_contents_returned_if_dataset_has_associated_files(
             self, mock_download
         ):
             # SETUP

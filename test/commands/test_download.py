@@ -120,6 +120,10 @@ class TestDownload:
             data_id = "dataset id"
             version_id = "version id"
 
+            # Setup data for results
+            zip_name = f"Dataset_{data_id}_{version_id}.zip"
+            path = os.path.join(directory, zip_name)
+
             runner = CliRunner()
 
             # CALL
@@ -130,8 +134,6 @@ class TestDownload:
                 processed_jwt_fixture["jwt"]
             )
 
-            zip_name = f"Dataset_{data_id}_{version_id}.zip"
-            path = os.path.join(directory, zip_name)
             mock_zip.assert_called_once_with(path, file_names, file_contents)
 
             mock_instance.output_datafiles_table.assert_called_once()
@@ -174,6 +176,10 @@ class TestDownload:
             data_id = "dataset id"
             version_id = "version id"
 
+            # Setup data fro results
+            zip_name = f"Dataset_{data_id}_{version_id}.zip"
+            path = os.path.join(directory, zip_name)
+
             runner = CliRunner()
 
             # CALL
@@ -190,10 +196,12 @@ class TestDownload:
                 processed_jwt_fixture["jwt"]
             )
 
-            zip_name = f"Dataset_{data_id}_{version_id}.zip"
-            path = os.path.join(directory, zip_name)
             mock_zip.assert_called_once_with(path, file_names, file_contents)
 
             mock_instance.output_datafiles_table.assert_called_once()
+
+            assert result.stdout == (
+                "\nThe dataset files have been downloaded to: \ntest\\Dataset_dataset id_version id.zip\n"
+            )
 
             assert result.exit_code == 0

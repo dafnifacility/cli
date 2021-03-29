@@ -9,7 +9,7 @@ from dafni_cli.api.datasets_api import get_latest_dataset_metadata
 from dafni_cli.utils import write_files_to_zip
 
 
-@click.group()
+@click.group(help="Download entity from DAFNI")
 @click.pass_context
 def download(ctx: Context):
     """Download entity from DAFNI."""
@@ -22,7 +22,7 @@ def download(ctx: Context):
 @click.option(
     "--directory",
     type=click.Path(exists=True, dir_okay=True),
-    help="Directory to save the zipped Dataset files to. default is the current working directory",
+    help="Directory to save the zipped Dataset files to. Default is the current working directory",
 )
 @click.argument("dataset-id", nargs=1, required=True, type=str)
 @click.argument("version-id", nargs=1, required=True, type=str)

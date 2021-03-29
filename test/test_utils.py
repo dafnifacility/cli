@@ -453,6 +453,8 @@ class TestProcessDictDatetime:
 
 
 class TestOutputTableRow:
+    """Test class to test the output_table_row functionality"""
+
     @pytest.mark.parametrize(
         "columns, widths, expected",
         [
@@ -683,6 +685,7 @@ class TestProcessFileSize:
         # ASSERT
         assert result == ""
 
+    @pytest.mark.parametrize("data_type", [str, float, int])
     @pytest.mark.parametrize(
         "file_size, expected",
         [
@@ -706,9 +709,13 @@ class TestProcessFileSize:
             (3.854e9, "3.9 GB"),
         ],
     )
-    def test_file_size_processed_correctly(self, file_size, expected):
-        # SETUP CALL
-        result = utils.process_file_size(file_size)
+    def test_file_size_processed_correctly(self, file_size, expected, data_type):
+        # SETUP
+        input_size = data_type(file_size)
+
+        # CALL
+        result = utils.process_file_size(input_size)
+
         # ASSERT
         assert result == expected
 

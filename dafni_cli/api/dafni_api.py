@@ -2,12 +2,10 @@ import requests
 from typing import Union, List, BinaryIO
 from requests import Response
 
-from dafni_cli.consts import MODELS_API_URL, DISCOVERY_API_URL
-
 
 def dafni_get_request(
     url: str, jwt: str, allow_redirect: bool = False, content: bool = False
-) -> Union[List[dict], dict]:
+) -> Union[List[dict], dict, bytes]:
     """Performs a GET request from the DAFNI API.
     If a status other than 200 is returned, an exception will be raised.
 
