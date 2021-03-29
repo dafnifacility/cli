@@ -15,11 +15,11 @@ from dafni_cli.api.models_api import (
 from dafni_cli.utils import argument_confirmation
 
 
-@click.group()
+@click.group(help="Upload an entity to DAFNI")
 @click.pass_context
 def upload(ctx: Context):
     """Uploads entities (models, datasets, workflows, groups) to DAFNI.
-
+    \f
     Args:
         ctx (Context): Context containing JWT of the user.
     """
@@ -28,17 +28,29 @@ def upload(ctx: Context):
     ctx.obj["jwt"] = jwt_dict["jwt"]
 
 
-@upload.command()
+@upload.command(help="Upload a model to DAFNI")
 @click.argument("definition", nargs=1, required=True, type=click.Path(exists=True))
 @click.argument("image", nargs=1, required=True, type=click.Path(exists=True))
-@click.option("--version-message", nargs=1, required=True, type=str)
-@click.option("--parent-model", type=str, default=None)
+@click.option(
+    "--version-message",
+    "-m",
+    nargs=1,
+    required=True,
+    help="Version message that is to be uploaded with the version. Required.",
+    type=str,
+)
+@click.option(
+    "--parent-model",
+    type=str,
+    help="Parent ID of the parent model if this is an updated version of an existing model",
+    default=None,
+)
 @click.pass_context
 def model(
         ctx: Context, definition: click.Path, image: click.Path, version_message: str, parent_model: str
 ):
     """Uploads model to DAFNI from metadata and image files.
-    
+    \f
     Args:
         ctx (Context): contains JWT for authentication
         definition (click.Path): File path to the model definition file
