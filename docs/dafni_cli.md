@@ -284,3 +284,46 @@ If there is no valid JWT, the user will be prompted to login before the command 
   <pre>
   Model versions deleted
   </pre>
+
+___
+### Download
+
+>Command: `dafni(.exe) download [sub-command]`
+
+Download an entity from DAFNI.
+If there is no valid JWT, the user will be prompted to login before the command is carried out.
+
+**Sub-Commands:**
+- Dataset:
+  >*Command: `dafni(.exe) download dataset [dataset_id] [version_id] [options]`*
+  
+  Downloads a dataset version from DAFNI.
+  
+  *Arguments*:
+  - **dataset_id**: The Dataset ID.
+  - **version_id**: The Dataset version ID.
+  
+  *Options*:
+  - **--directory**: This defines the directory where the files will be downloaded to. Default is current working directory.
+
+  Example output:
+  <pre>
+  The dataset files have been downloaded to:
+  {directory}\Dataset_5a65bd64-1643-4b6e-9e43-c1d246559337_736e6b3e-a552-4d96-ab9e-f697388158c7.zip
+  
+  Data Files
+  Name                                 Size       Format
+  Domain_DEM.ASC                       420 B      Text
+  Rainfall_Data_1.txt                  91 B       Text
+  CityCat_Config_1.txt                 1.3 KB     Text
+  CityCat_Log.txt                      36.3 KB    Text
+  R1C1_SurfaceMaps.zip                 2.1 KB     ZIP
+  R1C1_SurfaceMaps/R1_C1_T0_0min.rsl   691 B
+  R1C1_SurfaceMaps/R1_C1_T1_10min.rsl  701 B
+  R1C1_SurfaceMaps/R1_C1_T2_20min.rsl  703 B
+  R1C1_SurfaceMaps/R1_C1_T3_30min.rsl  705 B
+  R1C1_SurfaceMaps/R1_C1_T4_40min.rsl  705 B
+  R1C1_SurfaceMaps/R1_C1_T5_50min.rsl  705 B
+  R1C1_SurfaceMaps/R1_C1_T6_60min.rsl  705 B
+  R1C1_SurfaceMaps/R1_C1_max_depth.csv 481 B      CSV
+</pre>
