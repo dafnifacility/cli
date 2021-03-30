@@ -82,6 +82,6 @@ def upload_metadata(jwt, definition: click.Path, upload_id: str) -> dict:
         except HTTPError:
             click.echo("\nMetadata Upload Failed")
             prose_print("\n".join(response.json()), CONSOLE_WIDTH)
-            exit(1)
+            raise SystemExit(1)
 
     return response.json()

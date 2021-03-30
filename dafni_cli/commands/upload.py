@@ -92,12 +92,12 @@ def model(
             )
         else:
             click.echo(e)
-        exit(1)
+        raise SystemExit(1)
     if not valid:
         click.echo(
             "Definition validation failed with the following errors: " + error_message
         )
-        exit(1)
+        raise SystemExit(1)
 
     click.echo("Getting urls")
     upload_id, urls = get_model_upload_urls(ctx.obj["jwt"])
