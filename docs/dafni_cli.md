@@ -281,6 +281,37 @@ If there is no valid JWT, the user will be prompted to login before the command 
   Model upload complete
   </pre>
 
+  **Sub-Commands:**
+- Dataset:
+  >*Command: `dafni(.exe) upload dataset [definition] files `*
+  
+  Uploads a model version to DAFNI.
+  
+  *Arguments*:
+  - **definition**: File path to the Dataset definition file. See https://github.com/dafnifacility/metadata-schema for details.
+  - **files**: List of File paths to each associated file for the Dataset.
+  
+  Example output:
+  <pre>
+  Dataset definition file path: path\to\metadata.json
+  Dataset file path: path\to\data_file_1.txt
+  Dataset file path: path\to\data_file_2.txt
+  Confirm Dataset upload? [y/N]: y
+  </pre>
+  </pre>
+  After confirmation:
+  <pre>
+  Retrieving Temporary Upload ID
+  Retrieving File Upload URls
+  Uploading Dataset Files
+  Uploading Dataset Metadata
+  
+  Upload Successful
+  Dataset ID: b291fee4-8608-49af-96d4-0ca89452b0c8
+  Version ID: 0a1be81b-d70a-4f05-91a2-1587fc7129b6
+  Metadata ID: ee1b09b7-b4b7-4843-b14d-c5ab8aaa974d
+  </pre>
+
 ___
 ### Delete
 

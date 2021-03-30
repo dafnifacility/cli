@@ -9,7 +9,7 @@ from dafni_cli.utils import argument_confirmation
 
 
 def collate_model_version_details(
-        jwt_string: str, version_id_list: List[str]
+    jwt_string: str, version_id_list: List[str]
 ) -> List[str]:
     """Checks for destroy privileges for the user,
     and produces a list of the version details,
@@ -29,9 +29,11 @@ def collate_model_version_details(
         model_version.get_details_from_id(jwt_string, vid)
         # Exit if user doesn't have necessary permissions
         if not model_version.privileges.destroy:
-            click.echo("You do not have sufficient permissions to delete model version:")
+            click.echo(
+                "You do not have sufficient permissions to delete model version:"
+            )
             click.echo(model_version.output_version_details())
-            exit(1)
+            raise SystemExit(1)
         model_version_details_list.append(model_version.output_version_details())
     return model_version_details_list
 
@@ -50,12 +52,7 @@ def delete(ctx: Context):
 
 
 @delete.command(help="Delete one or more model version(s)")
-@click.argument(
-    "version-id",
-    nargs=-1,
-    required=True,
-    type=str
-)
+@click.argument("version-id", nargs=-1, required=True, type=str)
 @click.pass_context
 def model(ctx: Context, version_id: List[str]):
     """Delete one or more version(s) of model(s) from DAFNI.
@@ -64,14 +61,13 @@ def model(ctx: Context, version_id: List[str]):
         ctx (context): contains JWT for authentication
         version_id (str): ID(s) of the model version(s) to be deleted
     """
-    model_version_details_list = collate_model_version_details(ctx.obj['jwt'], version_id)
+    model_version_details_list = collate_model_version_details(
+        ctx.obj["jwt"], version_id
+    )
     argument_confirmation(
-        [],
-        [],
-        "Confirm deletion of models?",
-        model_version_details_list
+        [], [], "Confirm deletion of models?", model_version_details_list
     )
     for vid in version_id:
-        delete_model(ctx.obj['jwt'], vid)
+        delete_model(ctx.obj["jwt"], vid)
     # Confirm action
     click.echo("Model versions deleted")
