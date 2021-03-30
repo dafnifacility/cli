@@ -1,9 +1,7 @@
 import click
 from click import Context
-from click.testing import CliRunner
 from pathlib import Path
 from requests.exceptions import HTTPError
-from requests import Response
 from typing import List
 
 from dafni_cli.commands.login import check_for_jwt_file
@@ -121,17 +119,19 @@ def model(
 @click.argument("files", nargs=-1, required=True, type=click.Path(exists=True))
 @click.pass_context
 def dataset(ctx: Context, definition: click.Path, files: List[click.Path]):
-
+    """Uploads a Dataset to DAFNI from metadata and dataset files.
+    \f
+    Args:
+        ctx (Context): contains JWT for authentication
+        definition (click.Path): Dataset metadata file
+        files (List[click.Path]): Dataset data files
+    """
     # Confirm upload details
     argument_names = ["Dataset definition file path"]
     [argument_names.append("Dataset file path") for file_path in files]
     arguments = [definition, *files]
     confirmation_message = "Confirm Dataset upload?"
     argument_confirmation(argument_names, arguments, confirmation_message)
+
     # Upload all files
-    response = upload_new_dataset_files(ctx.obj["jwt"], definition, files)
-    # Output Details
-    click.echo("\nUpload Successful")
-    click.echo(f"Dataset ID: {response['datasetId']}")
-    click.echo(f"Version ID: {response['versionId']}")
-    click.echo(f"Metadata ID: {response['metadataId']}")
+    upload_new_dataset_files(ctx.obj["jwt"], definition, files)

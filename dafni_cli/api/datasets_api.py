@@ -1,13 +1,7 @@
-import requests
-from typing import Union, List
-import json
+from typing import List
 
-from dafni_cli.consts import MODELS_API_URL, DISCOVERY_API_URL, DATA_UPLOAD_API_URL
-from dafni_cli.api.dafni_api import (
-    dafni_get_request,
-    dafni_post_request,
-    dafni_patch_request,
-)
+from dafni_cli.consts import DISCOVERY_API_URL
+from dafni_cli.api.dafni_api import dafni_get_request, dafni_post_request
 
 
 def get_all_datasets(jwt: str, filters: dict) -> List[dict]:
@@ -40,24 +34,3 @@ def get_latest_dataset_metadata(jwt: str, dataset_id: str, version_id: str) -> d
     """
     url = f"{DISCOVERY_API_URL}/metadata/{dataset_id}/{version_id}"
     return dafni_get_request(url, jwt, allow_redirect=True)
-
-
-def get_dataset_upload_id(jwt: str):
-
-    url = f"{DATA_UPLOAD_API_URL}/nid/upload/"
-    data = {"cancelToken": {"promise": {}}}
-
-    return dafni_post_request(url, jwt, data, allow_redirect=True)
-
-
-def get_dataset_upload_urls(jwt: str, upload_id: str, file_names: List[str]):
-
-    url = f"{DATA_UPLOAD_API_URL}/nid/upload/"
-    data = {"bucketId": upload_id, "datafiles": file_names}
-    return dafni_patch_request(url, jwt, data, allow_redirect=True)
-
-
-def upload_dataset_metadata(jwt, upload_id: str, metadata: dict):
-    url = f"{DATA_UPLOAD_API_URL}/nid/dataset/"
-    data = {"bucketId": upload_id, "metadata": metadata}
-    return dafni_post_request(url, jwt, data, raise_status=False)
