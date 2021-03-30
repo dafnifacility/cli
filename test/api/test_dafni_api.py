@@ -107,7 +107,7 @@ class TestDafniPostRequest:
             json=data,
         )
 
-    def test_exception_raised_for_failed_call(
+    def test_exception_raised_for_failed_call_if_raise_status_is_true(
         self, mock_request, request_response_fixture
     ):
         # SETUP
@@ -126,6 +126,27 @@ class TestDafniPostRequest:
         # ASSERT
         with pytest.raises(HTTPError, match="404 client model"):
             dafni_api.dafni_post_request(url, jwt, data)
+
+    def test_exception_not_raised_for_failed_call_if_raise_status_is_false(
+        self, mock_request, request_response_fixture
+    ):
+        # SETUP
+        # setup return value for requests call
+        request_response_fixture.raise_for_status.side_effect = HTTPError(
+            "404 client model"
+        )
+        mock_request.post.return_value = request_response_fixture
+
+        # setup data for call
+        url = "dafni/discovery/url"
+        jwt = JWT
+        data = {"key_1": "value_1"}
+
+        # CALL
+        response = dafni_api.dafni_post_request(url, jwt, data, raise_status=False)
+
+        # ASSERT
+        assert response == request_response_fixture
 
 
 @patch("dafni_cli.api.dafni_api.requests")
