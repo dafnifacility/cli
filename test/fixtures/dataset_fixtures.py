@@ -1,5 +1,8 @@
 import pytest
 from typing import List
+from io import BytesIO
+
+from dafni_cli.datasets.dataset_metadata import DataFile, DatasetMetadata
 
 
 @pytest.fixture
@@ -94,3 +97,268 @@ def get_dataset_list_fixture() -> List[dict]:
     }
 
     return datasets
+
+
+@pytest.fixture
+def dataset_metadata_fixture() -> dict:
+    """Test fixture returning an example dataset metadata response dict
+
+    Returns:
+        dict: Example Dataset metadata response dict
+    """
+    data = {
+        "@context": ["metadata-v1"],
+        "@type": "dcat:Dataset",
+        "dct:title": "An example workflow definition",
+        "dct:description": "Dataset description",
+        "dct:identifier": [
+            "0a0a0a0a-0a00-0a00-a000-0a0a0000000a:0a0a0a0a-0a00-0a00-a000-0a0a0000000b:0a0a0a0a-0a00-0a00-a000-0a0a0000000c"
+        ],
+        "dct:subject": "Biota",
+        "dcat:theme": ["Utility and governmental services"],
+        "dct:language": "en",
+        "dcat:keyword": ["test"],
+        "dct:conformsTo": {
+            "@id": "https://www.iso.org/standard/39229.html",
+            "@type": "dct:Standard",
+            "label": "ISO 19115-2:2009",
+        },
+        "dct:spatial": {"@id": None, "@type": "dct:Location", "rdfs:label": "England"},
+        "geojson": {},
+        "dct:PeriodOfTime": {
+            "type": "dct:PeriodOfTime",
+            "time:hasBeginning": "2019-03-27T00:00:00Z",
+            "time:hasEnd": "2021-03-27T00:00:00Z",
+        },
+        "dct:accrualPeriodicity": "Semiannual",
+        "dct:creator": [
+            {
+                "@type": "foaf:Organization",
+                "@id": "http://www.stfc.ac.uk",
+                "foaf:name": "STFC",
+                "internalID": None,
+            }
+        ],
+        "dct:created": "2021-03-16",
+        "dct:publisher": {
+            "@id": None,
+            "@type": "foaf:Organization",
+            "foaf:name": "Publisher",
+            "internalID": None,
+        },
+        "dcat:contactPoint": {
+            "@type": "vcard:Organization",
+            "vcard:fn": "Joe",
+            "vcard:hasEmail": "joe.bloggsd@stfc.ac.uk",
+        },
+        "dct:license": {
+            "@type": "LicenseDocument",
+            "@id": "https://creativecommons.org/licences/by/4.0/",
+            "rdfs:label": None,
+        },
+        "dct:rights": "Open Government Licence.",
+        "dafni_version_note": "Initial Dataset version",
+        "@id": {
+            "asset_id": "0a0a0a0a-0a00-0a00-a000-0a0a0000000a:0a0a0a0a-0a00-0a00-a000-0a0a0000000b:0a0a0a0a-0a00-0a00-a000-0a0a0000000c",
+            "dataset_uuid": "0a0a0a0a-0a00-0a00-a000-0a0a0000000a",
+            "version_uuid": "0a0a0a0a-0a00-0a00-a000-0a0a0000000b",
+            "metadata_uuid": "0a0a0a0a-0a00-0a00-a000-0a0a0000000c",
+        },
+        "dct:modified": "2021-03-16T09:27:21+00:00",
+        "dct:issued": "2021-03-16T09:27:21+00:00",
+        "dcat:distribution": [
+            {
+                "spdx:fileName": "workflow_def.csv",
+                "dcat:mediaType": "text/csv",
+                "dcat:byteSize": 6720,
+                "dcat:downloadURL": "url/to/file",
+            }
+        ],
+        "mediatypes": [None],
+        "version_history": {
+            "dataset_uuid": "0a0a0a0a-0a00-0a00-a000-0a0a0000000a",
+            "versions": [
+                {
+                    "version_uuid": "0a0a0a0a-0a00-0a00-a000-0a0a0000000b",
+                    "metadata_versions": [
+                        {
+                            "metadata_uuid": "0a0a0a0a-0a00-0a00-a000-0a0a0000000c",
+                            "dafni_version_note": "Initial Dataset version",
+                            "modified_date": "2021-03-16T09:27:21+00:00",
+                        }
+                    ],
+                }
+            ],
+        },
+        "auth": {
+            "asset_id": "0a0a0a0a-0a00-0a00-a000-0a0a0000000a",
+            "reason": "Accessed as part of the Tessella CLI group",
+            "view": True,
+            "read": True,
+            "update": False,
+            "destroy": False,
+        },
+    }
+
+    return data
+
+
+def datafile_mock(
+    name: str = "File 1",
+    size: str = "120 B",
+    file_format: str = "CSV",
+    download: str = "download/url",
+    contents: BytesIO = b"Test Data",
+) -> DataFile:
+    """Test fixture to generate a DataFile object with given attributes
+
+    Args:
+        name (str, optional): File name. Defaults to "File 1".
+        size (str, optional): Formatted file size string. Defaults to "120 B".
+        file_format (str, optional): File Format. Defaults to "CSV".
+        download (str, optional): Download URL for file. defaults to "download/url"
+        contents (BytesIO, optional): File Contents as bytes. defaults to b"Test Data"
+
+    Returns:
+        DataFile: Generated DataFile for testing
+    """
+    datafile = DataFile()
+    datafile.name = name
+    datafile.size = size
+    datafile.format = file_format
+    datafile.download = download
+    datafile.contents = contents
+
+    return datafile
+
+
+def dataset_meta_mock(
+    created: str = "March 20 2021",
+    creator: str = "DAFNI",
+    contact: str = "contact@email.com",
+    description: str = "description here",
+    identifier: List[str] = ["id 1", "id 2"],
+    location: str = "UK",
+    start_date: str = "May 1 2000",
+    end_date: str = "June 1 2020",
+    files: List[DataFile] = [datafile_mock()],
+    keywords: List[str] = ["Key word 1"],
+    themes: List[str] = ["Theme 1", "Theme 2"],
+    publisher: str = "Pubisher",
+    issued: str = "June 12 2021",
+    rights: str = "Some Rights",
+    language: str = "en",
+    standard: str = "ISO 9001",
+    update: str = "Annual",
+    title: str = "Title",
+    dataset_id: str = "Dataset ID",
+    version_id: str = "Version ID",
+) -> DatasetMetadata:
+    """Function to generate a DatasetMetadata object with mock data for testing
+
+    Args:
+        created (str, optional): Created date. Defaults to "March 20 2021".
+        creator (str, optional): Created by. Defaults to "DAFNI".
+        contact (str, optional): Point of contact. Defaults to "contact@email.com".
+        description (str, optional): Description. Defaults to "description here".
+        identifier (List[str], optional): List of identifiers. Defaults to ["id 1", "id 2"].
+        location (str, optional): Location relating to data. Defaults to "UK".
+        start_date (str, optional): Start of date range. Defaults to "May 1 2000".
+        end_date (str, optional): End of date range. Defaults to "June 1 2020".
+        files (List[DataFile], optional): Associated DataFile objects. Defaults to [mock_datafile()].
+        keywords (List[str], optional): Keywords. Defaults to ["Key word 1"].
+        themes (List[str], optional): Themes. Defaults to ["Theme 1", "Theme 2"].
+        publisher (str, optional): Published by. Defaults to "Pubisher".
+        issued (str, optional): Issued date. Defaults to "June 12 2021".
+        rights (str, optional): Associated rights. Defaults to "Some Rights".
+        language (str, optional): Associated Language. Defaults to "en".
+        standard (str, optional): Associated standards. Defaults to "ISO 9001".
+        update (str, optional): Frequency updated. Defaults to "Annual".
+        title (str, optional): Associated Title. Defaults to "Title".
+        dataset_id (str, optional): Dataset ID. Defaults to "Dataset ID".
+        version_id (str, optional): Dataset Version ID. Defaults to "Version ID".
+
+    Returns:
+        DatasetMetadata: DatasetMetadata object with mock data
+    """
+    instance = DatasetMetadata()
+    instance.created = created
+    instance.creator = creator
+    instance.contact = contact
+    instance.description = description
+    instance.identifier = identifier
+    instance.location = location
+    instance.start_date = start_date
+    instance.end_date = end_date
+    instance.files = files
+    instance.keywords = keywords
+    instance.themes = themes
+    instance.publisher = publisher
+    instance.issued = issued
+    instance.rights = rights
+    instance.language = language
+    instance.standard = standard
+    instance.update = update
+    instance.title = title
+    instance.dataset_id = dataset_id
+    instance.version_id = version_id
+
+    return instance
+
+
+@pytest.fixture
+def upload_metadata_fixture() -> dict:
+    """Fixture to return an example metadata dict for
+    creating a dataset
+
+    Returns:
+        dict: JSON formatted metadata dict for a Dataset
+    """
+    metadata = {
+        "@context": ["metadata-v1"],
+        "@type": "dcat:Dataset",
+        "dafni_version_note": "Initial Dataset version",
+        "dcat:contactPoint": {
+            "@type": "vcard:Organization",
+            "vcard:fn": "Tester 1",
+            "vcard:hasEmail": "test@email.com",
+        },
+        "dcat:keyword": ["Test"],
+        "dcat:theme": ["Utility and governmental services"],
+        "dct:PeriodOfTime": {
+            "type": "dct:PeriodOfTime",
+            "time:hasBeginning": None,
+            "time:hasEnd": None,
+        },
+        "dct:accrualPeriodicity": None,
+        "dct:conformsTo": {"@id": None, "@type": "dct:Standard", "label": None},
+        "dct:created": "2021-03-29",
+        "dct:creator": [
+            {
+                "@type": "foaf:Organization",
+                "@id": "https://testing.com",
+                "foaf:name": "Testing",
+                "internalID": None,
+            }
+        ],
+        "dct:description": "Some data for testing",
+        "dct:identifier": [],
+        "dct:language": "en",
+        "dct:license": {
+            "@type": "LicenseDocument",
+            "@id": "https://creativecommons.org/licences/by/4.0/",
+            "rdfs:label": None,
+        },
+        "dct:publisher": {
+            "@id": None,
+            "@type": "foaf:Organization",
+            "foaf:name": None,
+            "internalID": None,
+        },
+        "dct:rights": None,
+        "dct:spatial": {"@id": None, "@type": "dct:Location", "rdfs:label": None},
+        "dct:subject": "Utilities / Communication",
+        "dct:title": "Jamie test data",
+        "geojson": {},
+    }
+    return metadata

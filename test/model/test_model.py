@@ -6,9 +6,11 @@ from dateutil.tz import tzutc
 from test.fixtures.jwt_fixtures import JWT
 from test.fixtures.model_fixtures import (
     get_models_list_fixture,
+    get_single_model_fixture,
     get_model_metadata_fixture,
 )
-from dafni_cli import model
+from dafni_cli import auth
+from dafni_cli.model import model
 from dafni_cli.consts import DATE_TIME_FORMAT, CONSOLE_WIDTH, TAB_SPACE
 
 
@@ -30,6 +32,7 @@ class TestModel:
                 "publication_time",
                 "summary",
                 "version_id",
+                "version_message",
                 "version_tags",
             ]
             # CALL
@@ -39,6 +42,7 @@ class TestModel:
             assert all(
                 getattr(instance, value) is None for value in expected_attributes
             )
+            assert isinstance(getattr(instance, "privileges"), auth.Auth)
 
         def test_version_id_set_if_identifier_given(self):
             # SETUP
@@ -51,8 +55,10 @@ class TestModel:
     class TestSetDetailsFromDict:
         """Test class to test the Model.get_details_from_dict() functionality"""
 
-        def test_non_date_fields_set_correctly(self, get_models_list_fixture):
+        @patch.object(auth.Auth, "__init__")
+        def test_non_date_fields_set_correctly(self, mock_auth, get_models_list_fixture):
             # SETUP
+            mock_auth.return_value = None
             instance = model.Model()
             model_dict = get_models_list_fixture[0]
 
@@ -60,13 +66,17 @@ class TestModel:
             instance.set_details_from_dict(model_dict)
 
             # ASSERT
+            assert instance.container == model_dict["container"]
+            assert instance.description == model_dict["description"]
             assert instance.dictionary == model_dict
             assert instance.display_name == model_dict["name"]
+            assert mock_auth.call_args_list == [
+                call(),
+                call(model_dict["auth"])
+            ]
             assert instance.summary == model_dict["summary"]
-            assert instance.description == model_dict["description"]
             assert instance.version_id == model_dict["id"]
             assert instance.version_tags == model_dict["version_tags"]
-            assert instance.container == model_dict["container"]
 
         def test_ISO_dates_are_converted_to_datetime(self, get_models_list_fixture):
             # SETUP
@@ -80,16 +90,16 @@ class TestModel:
             assert instance.creation_time == dt(2021, 1, 1, tzinfo=tzutc())
             assert instance.publication_time == dt(2021, 1, 2, tzinfo=tzutc())
 
-    @patch("dafni_cli.model.get_single_model_dict")
+    @patch("dafni_cli.model.model.get_single_model_dict")
     @patch.object(model.Model, "set_details_from_dict")
     class TestGetDetailsFromId:
         """Test class to test the Model.get_details_from_id() functionality"""
 
         def test_single_api_call_made_and_processed(
-            self, mock_details, mock_get, get_models_list_fixture
+            self, mock_details, mock_get, get_single_model_fixture
         ):
             # SETUP
-            model_dict = get_models_list_fixture[0]
+            model_dict = get_single_model_fixture
             mock_get.return_value = model_dict
 
             instance = model.Model()
@@ -103,7 +113,7 @@ class TestModel:
             mock_get.assert_called_once_with(jwt_string, version_id)
             mock_details.assert_called_once_with(model_dict)
 
-    @patch("dafni_cli.model.get_model_metadata_dict")
+    @patch("dafni_cli.model.model.get_model_metadata_dict")
     class TestGetMetadata:
         """Test class to test the Model.get_metadata() functionality"""
 
@@ -182,9 +192,9 @@ class TestModel:
             with pytest.raises(ValueError):
                 instance.filter_by_date(key, date)
 
-    @patch("dafni_cli.model.click")
+    @patch("dafni_cli.model.model.click")
     class TestOutputModelDetails:
-        """Test class to test the Model.output_model_details() functionality"""
+        """Test class to test the Model.output_details() functionality"""
 
         def test_model_details_outputted_correctly(self, mock_click):
             # SETUP
@@ -196,7 +206,7 @@ class TestModel:
             instance.summary = "summary"
 
             # CALL
-            instance.output_model_details()
+            instance.output_details()
 
             # ASSERT
             assert mock_click.echo.call_args_list == [
@@ -211,7 +221,7 @@ class TestModel:
                 call(""),
             ]
 
-        @patch("dafni_cli.model.prose_print")
+        @patch("dafni_cli.model.model.prose_print")
         def test_model_details_outputted_correctly_with_description_when_long_option_used(
             self, mock_prose, mock_click
         ):
@@ -225,7 +235,7 @@ class TestModel:
             instance.description = "description"
 
             # CALL
-            instance.output_model_details(long=True)
+            instance.output_details(long=True)
 
             # ASSERT
             assert mock_click.echo.call_args_list == [
@@ -242,10 +252,10 @@ class TestModel:
             ]
             assert mock_prose.called_once_with("description", CONSOLE_WIDTH)
 
-    @patch("dafni_cli.model.click")
-    @patch("dafni_cli.model.prose_print")
+    @patch("dafni_cli.model.model.click")
+    @patch("dafni_cli.model.model.prose_print")
     class TestOutputModelMetadataDetails:
-        """Test class to test the Model.output_model_metadata() functionality"""
+        """Test class to test the Model.output_metadata() functionality"""
 
         def test_output_correct_when_all_keys_present(self, mock_prose, mock_click):
             # SETUP
@@ -271,7 +281,7 @@ class TestModel:
             instance.metadata = metadata
 
             # CALL
-            instance.output_model_metadata()
+            instance.output_metadata()
 
             # ASSERT
             assert mock_click.echo.call_args_list == [
@@ -316,7 +326,7 @@ class TestModel:
             instance.metadata = metadata
 
             # CALL
-            instance.output_model_metadata()
+            instance.output_metadata()
 
             # ASSERT
             assert mock_click.echo.call_args_list == [
@@ -359,7 +369,7 @@ class TestModel:
             instance.metadata = metadata
 
             # CALL
-            instance.output_model_metadata()
+            instance.output_metadata()
 
             # ASSERT
             assert mock_click.echo.call_args_list == [
@@ -400,7 +410,7 @@ class TestModel:
             instance.metadata = metadata
 
             # CALL
-            instance.output_model_metadata()
+            instance.output_metadata()
 
             # ASSERT
             assert mock_click.echo.call_args_list == [
@@ -412,3 +422,47 @@ class TestModel:
                 call(""),
             ]
             assert mock_prose.called_once_with("description", CONSOLE_WIDTH)
+
+        @patch("dafni_cli.model.model.print_json")
+        def test_output_correct_when_json_flag_true(
+                self, mock_print, mock_prose, mock_click, get_model_metadata_fixture
+        ):
+            # SETUP
+            # mock outputs from metadata
+            metadata = MagicMock()
+            mock_dictionary = PropertyMock(return_value=get_model_metadata_fixture)
+            type(metadata).dictionary = mock_dictionary
+            # mock model
+            instance = model.Model()
+            instance.metadata = metadata
+
+            # CALL
+            instance.output_metadata(True)
+
+            # ASSERT
+            mock_print.assert_called_once_with(get_model_metadata_fixture)
+            mock_click.assert_not_called()
+            mock_prose.assert_not_called()
+
+    class TestOutputVersionDetails:
+        """Test class to test the Model.output_version_details() functionality"""
+
+        def test_returned_string_is_as_expected(self):
+            # SETUP
+            instance = model.Model()
+            instance.version_id = "version-id"
+            instance.display_name = "Model name"
+            instance.publication_time = dt(2020, 1, 1, 00, 00, 00)
+            instance.version_message = "Model version message"
+
+            # CALL
+            result = instance.output_version_details()
+
+            # ASSERT
+            assert result == "ID: version-id" + \
+                   TAB_SPACE + \
+                   "Name: Model name" + \
+                   TAB_SPACE + \
+                   "Publication date: January 01 2020" + \
+                   TAB_SPACE + \
+                   "Version message: Model version message"

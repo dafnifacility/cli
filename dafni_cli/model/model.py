@@ -1,14 +1,19 @@
 import click
 import datetime as dt
+
 from dateutil import parser
 
-from dafni_cli.model_metadata import ModelMetadata
+from dafni_cli.model.model_metadata import ModelMetadata
 from dafni_cli.consts import CONSOLE_WIDTH, TAB_SPACE
 from dafni_cli.api.models_api import (
     get_single_model_dict,
     get_model_metadata_dict,
 )
-from dafni_cli.utils import prose_print
+from dafni_cli.utils import (
+    prose_print,
+    print_json
+)
+from dafni_cli.auth import Auth
 
 
 class Model:
@@ -21,8 +26,8 @@ class Model:
         get_details_from_id(jwt (str), id (str)): populates attributes from the model version ID by calling DAFNI API.
         get_metadata(jwt (str)): After details have been obtained, populate metadata attributes by calling API.
         filter_by_date(key (str), date (str)): calculates whether the model was created/published before a date.
-        output_model_details(): Prints key information of model to console.
-        output_model_metadata(): Prints key information of model metadata to console.
+        output_details(): Prints key information of model to console.
+        output_metadata(): Prints key information of model metadata to console.
 
     Attributes:
         container: Location of the docker image the model should be run in
@@ -34,6 +39,7 @@ class Model:
         publication_time: Time the model was published
         summary: One-line summary of what the model does
         version_id: ID used to identify the specific version and model
+        version_message: Message attached when the model was updated to this model version
         version_tags: Any tags created by the publisher for this version
 
     """
@@ -45,9 +51,11 @@ class Model:
         self.dictionary = None
         self.display_name = None
         self.metadata = None
+        self.privileges = Auth()
         self.publication_time = None
         self.summary = None
         self.version_id = identifier
+        self.version_message = None
         self.version_tags = None
         pass
 
@@ -61,6 +69,7 @@ class Model:
         self.description = model_dict["description"]
         self.dictionary = model_dict
         self.display_name = model_dict["name"]
+        self.privileges = Auth(model_dict["auth"])
         self.publication_time = parser.isoparse(model_dict["publication_date"])
         self.summary = model_dict["summary"]
         self.version_id = model_dict["id"]
@@ -74,6 +83,8 @@ class Model:
         """
         model_dict = get_single_model_dict(jwt_string, version_id_string)
         self.set_details_from_dict(model_dict)
+        # Version message key appears on single model API response, but not list of all models response
+        self.version_message = model_dict["version_message"]
 
     def get_metadata(self, jwt_string: str):
         """Retrieve metadata for the model using the model details and the /models/<version-id>/description/ endpoint.
@@ -101,7 +112,7 @@ class Model:
         else:
             raise KeyError("Key should be CREATION or PUBLICATION")
 
-    def output_model_details(self, long: bool = False):
+    def output_details(self, long: bool = False):
         """Prints relevant model attributes to command line"""
         click.echo(
             "Name: "
@@ -119,20 +130,42 @@ class Model:
             prose_print(self.description, CONSOLE_WIDTH)
         click.echo("")
 
-    def output_model_metadata(self):
-        """Prints the metadata for the model to command line."""
-        click.echo("Name: " + self.display_name)
-        click.echo("Date: " + self.creation_time.strftime("%B %d %Y"))
-        click.echo("Summary: ")
-        click.echo(self.summary)
-        click.echo("Description: ")
-        prose_print(self.description, CONSOLE_WIDTH)
-        click.echo("")
-        if self.metadata.inputs:
-            click.echo("Input Parameters: ")
-            click.echo(self.metadata.format_parameters())
-            click.echo("Input Data Slots: ")
-            click.echo(self.metadata.format_dataslots())
-        if self.metadata.outputs:
-            click.echo("Outputs: ")
-            click.echo(self.metadata.format_outputs())
+    def output_metadata(self, json_flag: bool = False):
+        """Prints the metadata for the model to command line.
+
+        Args:
+            json_flag (bool): Whether to print raw json or pretty print information. Defaults to False.
+        """
+        if not json_flag:
+            click.echo("Name: " + self.display_name)
+            click.echo("Date: " + self.creation_time.strftime("%B %d %Y"))
+            click.echo("Summary: ")
+            click.echo(self.summary)
+            click.echo("Description: ")
+            prose_print(self.description, CONSOLE_WIDTH)
+            click.echo("")
+            if self.metadata.inputs:
+                click.echo("Input Parameters: ")
+                click.echo(self.metadata.format_parameters())
+                click.echo("Input Data Slots: ")
+                click.echo(self.metadata.format_dataslots())
+            if self.metadata.outputs:
+                click.echo("Outputs: ")
+                click.echo(self.metadata.format_outputs())
+        else:
+            print_json(self.metadata.dictionary)
+
+    def output_version_details(self) -> str:
+        """Prints version ID, display name, publication time and version message on one line"""
+        return("ID: " +
+               self.version_id +
+               TAB_SPACE +
+               "Name: " +
+               self.display_name +
+               TAB_SPACE +
+               "Publication date: " +
+               self.publication_time.date().strftime("%B %d %Y") +
+               TAB_SPACE +
+               "Version message: " +
+               self.version_message
+               )

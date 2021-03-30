@@ -1,12 +1,11 @@
 import pytest
-from requests.exceptions import HTTPError
-from mock import patch, MagicMock, PropertyMock, mock_open, call
+from mock import patch, PropertyMock, mock_open, call
 import json
 import os
 from datetime import datetime as dt
 from click.testing import CliRunner
 
-from dafni_cli import login
+from dafni_cli.commands import login
 from dafni_cli.consts import LOGIN_API_URL, JWT_FILENAME, JWT_COOKIE, DATE_TIME_FORMAT
 
 from test.fixtures.jwt_fixtures import (
@@ -16,8 +15,8 @@ from test.fixtures.jwt_fixtures import (
 )
 
 
-@patch("dafni_cli.login.process_jwt")
-@patch("dafni_cli.login.requests")
+@patch("dafni_cli.commands.login.process_jwt")
+@patch("dafni_cli.commands.login.requests")
 class TestGetNewJwt:
     """Test class to test the get_new_jwt functionality"""
 
@@ -47,7 +46,9 @@ class TestGetNewJwt:
         mock_request.post.assert_called_once_with(
             LOGIN_API_URL + "/login/",
             json={"username": user_name, "password": password},
-            headers={"Content-Type": "application/json",},
+            headers={
+                "Content-Type": "application/json",
+            },
             allow_redirects=False,
         )
 
@@ -76,8 +77,10 @@ class TestGetNewJwt:
             request_response_fixture.cookies[JWT_COOKIE], user_name
         )
 
-    def test_exception_raised_for_failed_call(
+    @patch("dafni_cli.commands.login.click")
+    def test_exit_called_if_no_jwt_returned_by_api(
         self,
+        mock_click,
         mock_request,
         mock_process,
         request_response_fixture,
@@ -85,9 +88,8 @@ class TestGetNewJwt:
     ):
         # SETUP
         # setup return value for requests call
-        request_response_fixture.raise_for_status.side_effect = HTTPError(
-            "404 client model"
-        )
+        cookies = PropertyMock(return_value={})
+        type(request_response_fixture).cookies = cookies
         mock_request.post.return_value = request_response_fixture
 
         # setup data for call
@@ -95,11 +97,14 @@ class TestGetNewJwt:
         password = "password"
 
         # CALL
-        # ASSERT
-        with pytest.raises(HTTPError, match="404 client model"):
+        with pytest.raises(SystemExit, match="1"):
             login.get_new_jwt(user_name, password)
 
+        # ASSERT
         mock_process.assert_not_called()
+        mock_click.echo.assert_called_once_with(
+            "Login Failed: Please check your username and password"
+        )
 
 
 @patch("builtins.open", new_callable=mock_open)
@@ -144,7 +149,7 @@ class TestProcessJwt:
         )
 
 
-@patch("dafni_cli.login.os.path.exists")
+@patch("dafni_cli.commands.login.os.path.exists")
 @patch(
     "builtins.open", new_callable=mock_open, read_data=json.dumps({"jwt": "JWT String"})
 )
@@ -174,8 +179,8 @@ class TestReadJwtFile:
         assert result == {"jwt": "JWT String"}
 
 
-@patch("dafni_cli.login.get_new_jwt")
-@patch("dafni_cli.login.click")
+@patch("dafni_cli.commands.login.get_new_jwt")
+@patch("dafni_cli.commands.login.click")
 class TestRequestLoginDetails:
     """Test class to test the request_login_details functionality"""
 
@@ -224,9 +229,9 @@ class TestRequestLoginDetails:
         mock_jwt.assert_called_once_with("user_name", "pwd")
 
 
-@patch("dafni_cli.login.request_login_details")
-@patch("dafni_cli.login.read_jwt_file")
-@patch("dafni_cli.login.dt")
+@patch("dafni_cli.commands.login.request_login_details")
+@patch("dafni_cli.commands.login.read_jwt_file")
+@patch("dafni_cli.commands.login.dt")
 class TestCheckForJwtFile:
     """Test class to test the check_for_jwt_file functionality"""
 
@@ -293,7 +298,7 @@ class TestCheckForJwtFile:
         assert new_jwt is False
 
 
-@patch("dafni_cli.login.check_for_jwt_file")
+@patch("dafni_cli.commands.login.check_for_jwt_file")
 class TestLogin:
     """Test class to test the login functionality"""
 
@@ -325,9 +330,9 @@ class TestLogin:
         )
 
 
-@patch("dafni_cli.login.os.remove")
-@patch("dafni_cli.login.os.getcwd")
-@patch("dafni_cli.login.read_jwt_file")
+@patch("dafni_cli.commands.login.os.remove")
+@patch("dafni_cli.commands.login.os.getcwd")
+@patch("dafni_cli.commands.login.read_jwt_file")
 class TestLogout:
     """Test class to test the logout command"""
 
