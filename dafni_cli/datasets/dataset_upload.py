@@ -49,7 +49,7 @@ def upload_files(jwt, files: List[click.Path]) -> str:
     click.echo("\nRetrieving Temporary Upload ID")
     upload_id = get_data_upload_id(jwt)
 
-    click.echo("Retrieveing File Upload URls")
+    click.echo("Retrieving File Upload URls")
     file_names = {basename(normpath(file_path)): file_path for file_path in files}
     upload_urls = get_data_upload_urls(jwt, upload_id, list(file_names.keys()))
 

@@ -121,7 +121,7 @@ class TestUploadFiles:
         # ASSERT
         assert mock_click.echo.call_args_list == [
             call("\nRetrieving Temporary Upload ID"),
-            call("Retrieveing File Upload URls"),
+            call("Retrieving File Upload URls"),
             call("Uploading Files"),
         ]
 
