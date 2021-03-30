@@ -127,8 +127,9 @@ def dataset(ctx: Context, definition: click.Path, files: List[click.Path]):
         files (List[click.Path]): Dataset data files
     """
     # Confirm upload details
-    argument_names = ["Dataset definition file path"]
-    [argument_names.append("Dataset file path") for file_path in files]
+    argument_names = ["Dataset definition file path"] + [
+        "Dataset file path" for file_path in files
+    ]
     arguments = [definition, *files]
     confirmation_message = "Confirm Dataset upload?"
     argument_confirmation(argument_names, arguments, confirmation_message)

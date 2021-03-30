@@ -304,3 +304,61 @@ def dataset_meta_mock(
     instance.version_id = version_id
 
     return instance
+
+
+@pytest.fixture
+def upload_metadata_fixture() -> dict:
+    """Fixture to return an example metadata dict for
+    creating a dataset
+
+    Returns:
+        dict: JSON formatted metadata dict for a Dataset
+    """
+    metadata = {
+        "@context": ["metadata-v1"],
+        "@type": "dcat:Dataset",
+        "dafni_version_note": "Initial Dataset version",
+        "dcat:contactPoint": {
+            "@type": "vcard:Organization",
+            "vcard:fn": "Tester 1",
+            "vcard:hasEmail": "test@email.com",
+        },
+        "dcat:keyword": ["Test"],
+        "dcat:theme": ["Utility and governmental services"],
+        "dct:PeriodOfTime": {
+            "type": "dct:PeriodOfTime",
+            "time:hasBeginning": None,
+            "time:hasEnd": None,
+        },
+        "dct:accrualPeriodicity": None,
+        "dct:conformsTo": {"@id": None, "@type": "dct:Standard", "label": None},
+        "dct:created": "2021-03-29",
+        "dct:creator": [
+            {
+                "@type": "foaf:Organization",
+                "@id": "https://testing.com",
+                "foaf:name": "Testing",
+                "internalID": None,
+            }
+        ],
+        "dct:description": "Some data for testing",
+        "dct:identifier": [],
+        "dct:language": "en",
+        "dct:license": {
+            "@type": "LicenseDocument",
+            "@id": "https://creativecommons.org/licences/by/4.0/",
+            "rdfs:label": None,
+        },
+        "dct:publisher": {
+            "@id": None,
+            "@type": "foaf:Organization",
+            "foaf:name": None,
+            "internalID": None,
+        },
+        "dct:rights": None,
+        "dct:spatial": {"@id": None, "@type": "dct:Location", "rdfs:label": None},
+        "dct:subject": "Utilities / Communication",
+        "dct:title": "Jamie test data",
+        "geojson": {},
+    }
+    return metadata
