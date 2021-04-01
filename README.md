@@ -77,34 +77,34 @@ _For more information, contact Tom Gowland / Marion Samler_
 From the use cases described above, the following list of features is defined. These are placed in priority order, taking in to account the use cases above as well as the work required to develop each feature. 
 
 Admin #1:
-* Log in (Log out should be automatic)
-* See own user details 
+* Log in (Log out should be automatic) - DONE 
+* See own user details  - DONE
     + User Name
     + User UUID
 
 Models:
-* List all models available to user
-* Filter list of models available to user
-* View specific model latest metadata (model definition file..?)
-* View version history for specific model (format as models available list)
-* View specific historical model version metadata (format as specific model latest metadata)
-* Upload a new model
+* List all models available to user - DONE
+* Filter list of models available to user - DONE
+* View specific model latest metadata (model definition file..?) - DONE
+* View version history for specific model (format as models available list) - DONE
+* View specific historical model version metadata (format as specific model latest metadata) - DONE
+* Upload a new model - DONE
 
-Python packaging of CLI
+Python packaging of CLI - DONE
 
 Datasets:
-* List all datasets available to user
-* Filter list of datasets available to user.
-* View specific dataset latest metadata
-* View version history for specific dataset (format as datasets available list)
-* View specific historical dataset version metadata (format as specific datasets latest metadata)
-* Download dataset data and metadata
-* Upload a new dataset
+* List all datasets available to user - DONE
+* Filter list of datasets available to user. - DONE
+* View specific dataset latest metadata - DONE
+* View version history for specific dataset (format as datasets available list) - DONE
+* View specific historical dataset version metadata (format as specific datasets latest metadata) - DONE
+* Download dataset data and metadata - DONE
+* Upload a new dataset - DONE
 * Update dataset metadata
 * Update dataset data files to create new version
 
 Deleting models and datasets
-* Delete a model
+* Delete a model - DONE
 * Delete a dataset
 * Delete a dataset version]
 
