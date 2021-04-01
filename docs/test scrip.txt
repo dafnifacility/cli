@@ -1,0 +1,69 @@
+Login:
+    dafni login --help
+    dafni login
+GET
+    dafni get --help
+    Models
+        dafni get models --help
+        dafni get models
+		dafni get models --json
+        dafni get models --long
+        dafni get models --l
+        dafni get models --creation-date 01/01/2021
+        dafni get models --creation-date 01/01/2019
+        dafni get models --creation-date 01/01/2019 --long
+        dafni get models --publication-date 01/01/2021
+        dafni get models --publication-date 01/01/2019
+        dafni get models --publication-date 01/01/2019 --long
+		dafni get models --publication-date 01/01/2019 --long --json
+    Model
+        dafni get model --help
+        dafni get model 9de4ad50-fd98-4def-9bfc-39378854e6a1
+		dafni get model 9de4ad50-fd98-4def-9bfc-39378854e6a1 --json
+        dafni get model ef4b22c8-63be-4b53-ba7c-c1cf301774b2 399cdaac-aab6-494d-870a-66de8a4217bb
+        dafni get model 9de4ad50-fd98-4def-9bfc-39378854e6a1 --version-history
+        dafni get model ef4b22c8-63be-4b53-ba7c-c1cf301774b2 399cdaac-aab6-494d-870a-66de8a4217bb --version-history
+		dafni get model ef4b22c8-63be-4b53-ba7c-c1cf301774b2 399cdaac-aab6-494d-870a-66de8a4217bb --version-history --json
+    Datasets
+        dafni get datasets --help
+        dafni get datasets
+		dafni get datasets --json
+        dafni get datasets --search passport
+        dafni get datasets --start-date 01/01/2019
+        dafni get datasets --end-date 01/01/2021
+        dafni get datasets --start-date 01/01/2019 --end-date 01/01/2021
+        dafni get datasets --search passport --start-date 01/01/2011
+        dafni get datasets --search passport --end-date 01/01/2022
+        dafni get datasets --search passport --start-date 01/01/2011 --end-date 01/01/2022
+		dafni get datasets --search passport --start-date 01/01/2011 --end-date 01/01/2022 --json
+    Dataset
+        dafni get dataset --help
+        dafni get dataset 6f6c7fb8-2f04-4ffc-b7a9-58dc2739d8c2 d8d8b3ae-9d33-42fe-bfb6-ba1d7c5f0d58
+        dafni get dataset 6f6c7fb8-2f04-4ffc-b7a9-58dc2739d8c2 d8d8b3ae-9d33-42fe-bfb6-ba1d7c5f0d58 --long
+        dafni get dataset 6f6c7fb8-2f04-4ffc-b7a9-58dc2739d8c2 d8d8b3ae-9d33-42fe-bfb6-ba1d7c5f0d58 -l
+		dafni get dataset 6f6c7fb8-2f04-4ffc-b7a9-58dc2739d8c2 d8d8b3ae-9d33-42fe-bfb6-ba1d7c5f0d58 --version-history
+		dafni get dataset 6f6c7fb8-2f04-4ffc-b7a9-58dc2739d8c2 d8d8b3ae-9d33-42fe-bfb6-ba1d7c5f0d58 --json
+		dafni get dataset 6f6c7fb8-2f04-4ffc-b7a9-58dc2739d8c2 d8d8b3ae-9d33-42fe-bfb6-ba1d7c5f0d58 --version-history --json
+UPLOAD:
+    dafni upload --help
+    Model
+        dafni upload model --help
+        dafni upload model model_definition.yaml tiny-example.tar --version-message "Version message"
+		dafni upload model model_definition.yaml tiny-example.tar --version-message "Child model " --parent-model e8ab1364-e673-470b-b082-7d459b523a44
+    Dataset
+		dafni upload dataset --help
+		dafni upload dataset metadata.json file_1.txt file_2.csv file_3.dat 
+		
+DELETE
+	dafni delete --help
+	Model	
+		dafni delete model 5ec7ebcc-7fcc-451d-8bd3-74e25ab9ccc9
+		
+DOWNLOAD
+	dafni download --help
+	Dataset
+		dafni download dataset 6f6c7fb8-2f04-4ffc-b7a9-58dc2739d8c2 d8d8b3ae-9d33-42fe-bfb6-ba1d7c5f0d58
+		6f6c7fb8-2f04-4ffc-b7a9-58dc2739d8c2 d8d8b3ae-9d33-42fe-bfb6-ba1d7c5f0d58 --directory path\to\directory
+Logout
+    dafni logout --help
+    dafni logout
