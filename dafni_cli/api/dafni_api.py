@@ -19,11 +19,21 @@ def dafni_get_request(
         List[dict]: For an endpoint returning several objects, a list is returned (e.g. /models/).
         dict: For an endpoint returning one object, this will be a dictionary (e.g. /models/<version_id>).
     """
+    print(url)
     response = requests.get(
         url,
         headers={"Content-Type": "application/json", "authorization": jwt},
         allow_redirects=allow_redirect,
     )
+    print("------------------------------------------------------------------")
+    print(response.url)
+    print("------------------------------------------------------------------")
+    print(response.headers)
+    print("------------------------------------------------------------------")
+    print(response.encoding)
+    print("------------------------------------------------------------------")
+    print(response.text)
+    print("------------------------------------------------------------------")
     response.raise_for_status()
 
     if content:
@@ -55,10 +65,11 @@ def dafni_post_request(
     """
     response = requests.post(
         url,
-        headers={"Content-Type": "application/json", "authorization": jwt},
+        headers={"Content-Type": "application/json", "Authorization": jwt},
         allow_redirects=allow_redirect,
         json=data,
     )
+    response.raise_for_status()
     if raise_status:
         response.raise_for_status()
         return response.json()

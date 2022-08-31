@@ -74,7 +74,7 @@ def process_jwt(jwt: str, user_name: str) -> dict:
         "expiry": dt.fromtimestamp(json_dict["exp"]).strftime(DATE_TIME_FORMAT),
         "user_id": json_dict["sub"],
         "user_name": user_name,
-        "jwt": "JWT " + jwt,
+        "jwt": "Bearer " + jwt,
     }
 
     with open(JWT_FILENAME, "w") as jwt_file:
