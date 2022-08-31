@@ -6,7 +6,7 @@ import os
 import click
 import json
 
-from dafni_cli.consts import LOGIN_API_URL, JWT_FILENAME, JWT_COOKIE, DATE_TIME_FORMAT
+from dafni_cli.consts import LOGIN_API_URL, JWT_FILENAME, JWT_KEY, DATE_TIME_FORMAT
 
 
 def get_new_jwt(user_name: str, password: str) -> dict:
@@ -19,19 +19,28 @@ def get_new_jwt(user_name: str, password: str) -> dict:
     Returns:
         str: returned JWT
     """
+    print(LOGIN_API_URL)
     response = requests.post(
-        LOGIN_API_URL + "/login/",
-        json={"username": user_name, "password": password},
-        headers={"Content-Type": "application/json"},
-        allow_redirects=False,
+        LOGIN_API_URL + "/auth/realms/Production/protocol/openid-connect/token/",
+        data={
+            "username": user_name,
+            "password": password,
+            "client_id": "dafni-main",
+            "grant_type": "password",
+            "scope": "openid"
+            },
+        #headers={"Content-Type": "application/json"},
+        #allow_redirects=False,
     )
     # Get the JWT from the returned cookies
-    if JWT_COOKIE not in response.cookies:
+    jwt = response.json()
+    print(jwt)
+    if JWT_KEY not in jwt:
         click.echo("Login Failed: Please check your username and password")
         raise SystemExit(1)
-    jwt = response.cookies[JWT_COOKIE]
 
-    # process the new JWT
+    # Process the new JWT
+    jwt = jwt[JWT_KEY]
     jwt_dict = process_jwt(jwt, user_name)
 
     return jwt_dict
@@ -48,6 +57,7 @@ def process_jwt(jwt: str, user_name: str) -> dict:
     Returns:
         dict: dict containing the Users name & ID, along with the JWT and expiry date
     """
+    print(jwt)
     claims = jwt.split(".")[1]
     claims_bytes = claims.encode("utf-8") + b"=="
     message_bytes = base64.b64decode(claims_bytes)

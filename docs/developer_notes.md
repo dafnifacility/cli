@@ -3,27 +3,35 @@
 ## Environment Setup
 ### Create a development environment
 The code has been developed using Python *3.9.2* using a virtual environment.
-The environment can be created using the following command:
+The environment can be created using the following command, in the parent directory of the `dafni-cli` repository:
 
 `python -m venv dafni-cli`
 
 ### Update to contain all development dependencies
-The environment must then be activated using the following command:
+The environment must then be activated for the current shell using the following command:
 
-`path\to\dafni-cli\Scripts\activate.bat`
+| Platform | Command |
+| -------- | ------- |
+| Windows | `path\to\dafni-cli\Scripts\activate.bat` |
+| Linux | `source path/to/dafni-cli/bin/activate` |
 
 Then run the following to add all of the required development dependencies:
 
-`python -m pip install -r path\to\requirements.txt`
+| Platform | Command |
+| -------- | ------- |
+| Windows | `python -m pip install -r path\to\dafni-cli\docs\requirements.txt` |
+| Linux | `python -m pip install -r path/to/dafni-cli/docs/requirements.txt` |
 
-The requirements.txt file can be located within the docs folder of this repository, and contains all dependencies for both development and deployment.
+The requirements.txt file contains all required python module dependencies for both development and deployment.
+
 ___
 ## Running the tests
-Whilst running the activated venv created locally for the dafni-cli, ensure you are in the current root directory of the git repository, and run the following to run all tests:
+Whilst running the activated venv created locally for the dafni-cli, ensure you are in the root directory of the git repository, and run the following to run all tests:
 
-`python -m pytest -vv`
+`python -m pytest -vv test`
 
 The `-vv` argument is to make pytest output information on any failing tests in a verbose manner.
+
 ___
 ## Deployment 
 
