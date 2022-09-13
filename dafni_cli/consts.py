@@ -1,4 +1,5 @@
 # URLs
+WORKFLOWS_API_URL = "https://dafni-nims-api.secure.dafni.rl.ac.uk"
 MODELS_API_URL = "https://dafni-nims-api.secure.dafni.rl.ac.uk"
 LOGIN_API_URL = "https://login.secure.dafni.rl.ac.uk"
 LOGIN_API_URL = "https://keycloak.secure.dafni.rl.ac.uk"

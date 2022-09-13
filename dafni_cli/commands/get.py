@@ -4,6 +4,7 @@ from typing import List, Optional
 
 from dafni_cli.api.datasets_api import get_all_datasets, get_latest_dataset_metadata
 from dafni_cli.api.models_api import get_models_dicts
+from dafni_cli.api.workflows_api import get_workflows_dicts
 from dafni_cli.datasets import (
     dataset_filtering,
     dataset_metadata,
@@ -13,6 +14,8 @@ from dafni_cli.datasets.dataset import Dataset
 from dafni_cli.commands.login import check_for_jwt_file
 from dafni_cli.model.model import Model
 from dafni_cli.model.version_history import ModelVersionHistory
+from dafni_cli.workflow.workflow import Workflow
+#from dafni_cli.workflow.version_history import WorkflowVersionHistory
 from dafni_cli.api.models_api import get_models_dicts
 from dafni_cli.utils import (
     process_response_to_class_list,
@@ -34,6 +37,9 @@ def get(ctx: Context):
     ctx.obj["jwt"] = jwt_dict["jwt"]
 
 
+###############################################################################
+# Models commands
+###############################################################################
 @get.command(help="List and filter models")
 @click.option(
     "--long/--short",
@@ -127,6 +133,9 @@ def model(ctx: Context, version_id: List[str], version_history: bool, json: bool
             model.output_metadata(json)
 
 
+###############################################################################
+# Datasets commands
+###############################################################################
 @get.command(help="List and filter datasets")
 @click.option(
     "--search",
@@ -229,9 +238,65 @@ def dataset(ctx: Context, id: str, version_id: str, long: bool, version_history:
         version_history.process_version_history(json)
 
 
-@get.command()
-def workflows():
-    pass
+###############################################################################
+# Workflows commands
+###############################################################################
+@get.command(help="List and filter models")
+@click.option(
+    "--long/--short",
+    "-l/-s",
+    default=False,
+    help="Also displays the description of each workflow. Default: -s",
+    type=bool,
+)
+@click.option(
+    "--creation-date",
+    default=None,
+    help="Filter for workflows created since given date. Format: DD/MM/YYYY",
+    type=str,
+)
+@click.option(
+    "--publication-date",
+    default=None,
+    help="Filter for workflows published since given date. Format: DD/MM/YYYY",
+    type=str,
+)
+@click.option(
+    "--json/--pretty",
+    "-j/-p",
+    default=False,
+    help="Prints raw json returned from API. Default: -p",
+    type=bool
+)
+@click.pass_context
+def workflows(ctx: Context, long: bool, creation_date: str, publication_date: str, json: bool):
+    """
+    Display list of model details with other options allowing
+        more details to be listed, filters, and for the json to be displayed.
+    \f
+    Args:
+        ctx (context): contains JWT for authentication
+        long (bool): whether to print the description of each model as well
+        creation_date (str): for filtering by creation date. Format: DD/MM/YYYY
+        publication_date (str): for filtering by publication date. Format: DD/MM/YYYY
+        json (bool): whether to print the raw json returned by the DAFNI API
+    """
+    workflow_dict_list = get_workflows_dicts(ctx.obj["jwt"])
+    workflow_list = process_response_to_class_list(workflow_dict_list, Workflow)
+    filtered_workflow_dict_list = []
+    for model in workflow_list:
+        date_filter = True
+        if creation_date:
+            date_filter = model.filter_by_date("creation", creation_date)
+        if publication_date:
+            date_filter = model.filter_by_date("publication", publication_date)
+        if date_filter:
+            if json:
+                filtered_workflow_dict_list.append(model.dictionary)
+            else:
+                model.output_details(long)
+    if json:
+        print_json(filtered_workflow_dict_list)
 
 
 @get.command()
