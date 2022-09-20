@@ -75,16 +75,47 @@ class Model:
         pass
 
 
-    def set_details_from_dict(self, model_dict: dict):
+    def set_metadata_from_dict(self, model_dict: dict):
         """
-        Attempts to store model details from a dictionary returned from the DAFNI API.
-        Not all of the details need be present in model_dict.
+        Sets the "metadata" property from fields in the main body of the
+        dictionary
+
+        Args:
+        model_dict (dict): Dictionary returned from DAFNI API at /models endpoints
+        
+        Returns:
+            a set of Model metadata attributes that could not be set as they were not present in model_dict
+        """
+        metadata_attributes = {
+            "description",
+            "display_name",
+            "name",
+            "publisher",
+            "summary",
+            "source_code",
+            "status"
+            }
+        missing_metadata_attributes = set()
+        self.metadata = {}
+        for key in metadata_attributes:
+            try:
+                self.metadata[key] =  model_dict[key]
+            except:
+                missing_metadata_attributes.add(key)
+        pass
+
+
+    def set_attributes_from_dict(self, model_dict: dict):
+        """
+        Attempts to store model attributes from a dictionary returned from the DAFNI API.
+        Not all of the details need be present in model_dict. If the "metadata" key is
+        not present, attempt to create it
         
         Args:
             model_dict (dict): Dictionary returned from DAFNI API at /models endpoints
         
         Returns:
-            a set of attributes of Workflow that could not be set as they were not present in model_dict
+            a set of Model attributes that could not be set as they were not present in model_dict
         """
         model_attributes = self.model_attributes
         #special_attributes = {"auth", "creation_date", "publication_date"}
@@ -95,7 +126,10 @@ class Model:
             try:
                 setattr(self, key, model_dict[key])
             except:
-                missing_model_attributes.add(key)
+                if key == "metadata":
+                    self.set_metadata_from_dict(model_dict)
+                else:
+                    missing_model_attributes.add(key)
             pass
 
         # Special treatment. If these keys are not in the missing attributes set, then
@@ -117,7 +151,6 @@ class Model:
 
         # Will raise an exception anyway if model_dict is not a dictionary
         self.dictionary = model_dict
-
         return missing_model_attributes
 
 
@@ -133,7 +166,7 @@ class Model:
         print("======================================")
         print(model_dict)
         print("======================================")
-        self.set_details_from_dict(model_dict)
+        self.set_attributes_from_dict(model_dict)
         # Version message key appears on single model API response, but not list of all models response
         self.version_message = model_dict["version_message"]
 
