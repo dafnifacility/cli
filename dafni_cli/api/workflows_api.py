@@ -12,7 +12,8 @@ from dafni_cli.api.dafni_api import (
 
 
 def get_workflows_dicts(jwt: str) -> List[dict]:
-    """Call the "list workflows" endpoint and return the resulting list of dictionaries.
+    """
+    Call the "list workflows" endpoint and return the resulting list of dictionaries.
 
     Args:
         jwt (str): JWT
@@ -25,7 +26,8 @@ def get_workflows_dicts(jwt: str) -> List[dict]:
 
 
 def get_single_workflow_dict(jwt: str, workflow_version_id: str) -> dict:
-    """Call the "get workflow details" endpoint and return the resulting dictionary.
+    """
+    Call the "get workflow details" endpoint and return the resulting dictionary.
 
     Args:
         jwt (str): JWT
@@ -39,7 +41,8 @@ def get_single_workflow_dict(jwt: str, workflow_version_id: str) -> dict:
 
 
 def get_workflow_metadata_dict(jwt: str, workflow_version_id: str) -> dict:
-    """Call the "get workflow metadata" endpoint and return the resulting dictionary.
+    """
+    Call the "get workflow metadata" endpoint and return the resulting dictionary.
 
     Args:
         jwt (str): JWT
@@ -48,7 +51,7 @@ def get_workflow_metadata_dict(jwt: str, workflow_version_id: str) -> dict:
     Returns:
         dict: dictionary for the metadata of selected workflow
     """
-    url = WORKFLOWS_API_URL + "/workflows/" + workflow_version_id + "/definition/"
+    url = WORKFLOWS_API_URL + "/metadata/" + workflow_version_id + "/"
     return dafni_get_request(url, jwt)
 
 

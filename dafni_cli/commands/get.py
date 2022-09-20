@@ -15,7 +15,7 @@ from dafni_cli.commands.login import check_for_jwt_file
 from dafni_cli.model.model import Model
 from dafni_cli.model.version_history import ModelVersionHistory
 from dafni_cli.workflow.workflow import Workflow
-#from dafni_cli.workflow.version_history import WorkflowVersionHistory
+from dafni_cli.workflow.version_history import WorkflowVersionHistory
 from dafni_cli.api.models_api import get_models_dicts
 from dafni_cli.utils import (
     process_response_to_class_list,
@@ -170,7 +170,8 @@ def datasets(
     end_date: Optional[str],
     json: Optional[bool]
 ):
-    """Displays a list of all available datasets
+    """
+    Display a list of all available datasets
     \f
     Args:
         ctx (context): contains JWT for authentication
@@ -284,19 +285,55 @@ def workflows(ctx: Context, long: bool, creation_date: str, publication_date: st
     workflow_dict_list = get_workflows_dicts(ctx.obj["jwt"])
     workflow_list = process_response_to_class_list(workflow_dict_list, Workflow)
     filtered_workflow_dict_list = []
-    for model in workflow_list:
+    for workflow in workflow_list:
         date_filter = True
         if creation_date:
-            date_filter = model.filter_by_date("creation", creation_date)
+            date_filter = workflow.filter_by_date("creation", creation_date)
         if publication_date:
-            date_filter = model.filter_by_date("publication", publication_date)
+            date_filter = workflow.filter_by_date("publication", publication_date)
         if date_filter:
             if json:
-                filtered_workflow_dict_list.append(model.dictionary)
+                filtered_workflow_dict_list.append(workflow.dictionary)
             else:
-                model.output_details(long)
+                workflow.output_details(long)
     if json:
         print_json(filtered_workflow_dict_list)
+
+
+@get.command(help="Display metadata or version history of a particular workflow or workflows")
+@click.argument("version-id", nargs=-1, required=True)
+@click.option(
+    "--version-history/--metadata",
+    "-v/-m",
+    default=False,
+    help="Whether to display the version history of a workflow instead of the metadata. Default -m",
+)
+@click.option(
+    "--json/--pretty",
+    "-j/-p",
+    default=False,
+    help="Prints raw json returned from API. Default: -p",
+    type=bool
+)
+@click.pass_context
+def workflow(ctx: Context, version_id: List[str], version_history: bool, json: bool):
+    """Displays the metadata for one or more workflow versions
+    \f
+    Args:
+        ctx (Context): contains JWT for authentication
+        version_id (list[str]): List of version IDs of the workflows to be displayed
+        version_history (bool): Whether to display version_history instead of metadata
+        json (bool): Whether to output raw json from API or pretty print metadata/version history. Defaults to False.
+    """
+    for vid in version_id:
+        workflow = Workflow(vid)
+        workflow.get_details_from_id(ctx.obj["jwt"], vid)
+        if version_history:
+            history = WorkflowVersionHistory(ctx.obj["jwt"], model)
+            history.output_version_history(json)
+        else:
+            workflow.get_metadata(ctx.obj["jwt"])
+            workflow.output_metadata(json)
 
 
 @get.command()

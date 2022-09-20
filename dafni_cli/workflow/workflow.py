@@ -38,17 +38,19 @@ class Workflow:
         metadata: ModelMetadata object containing metadata for the model
         publication_time: Time the model was published
         summary: One-line summary of what the model does
-        version_id: ID used to identify the specific version and model
+        id: ID used to identify the specific version and model
         version_message: Message attached when the model was updated to this model version
         version_tags: Any tags created by the publisher for this version
     """
 
     def __init__(self, identifier=None):
-        self.auth = Auth()
+        # Attributes that are also workflow dictionary keys
         self.api_version = None
+        self.auth = Auth()
         self.creation_date = None
-        self.description = None
-        self.dictionary = None
+        self.display_name = None
+        self.description = None # present??
+        self.id = identifier
         self.instances = None
         self.kind = None
         self.metadata = None
@@ -61,38 +63,65 @@ class Workflow:
         self.spec = None
         self.summary = None
         self.version_history = None
-        self.version_id = identifier
         self.version_message = None
         self.version_tags = None
+
+        # Set of workflow dictionary keys, for use in validation functions
+        # TODO: Is .vars() reliable?
+        workflow_attributes = vars(self).keys()
+        self.workflow_attributes = set(workflow_attributes)
+
+        # Attributes that are not also workflow dictionary keys
+        self.dictionary = None
+
         return
+
 
     def set_details_from_dict(self, workflow_dict: dict):
         """
-        Take workflow details straight from the dictionary returned from the DAFNI API.
+        Attempts to store workflow details from a dictionary returned from the DAFNI API.
+        Not all of the details need be present in workflow_dict.
  
         Args:
             model_dict (dict): Dictionary returned from DAFNI API at /workflows endpoints
+
+        Returns:
+            a set of attributes of Workflow that could not be set as they were not present in workflow_dict
         """
-        print(workflow_dict)
-        self.auth = Auth(workflow_dict["auth"])
-        self.api_version = workflow_dict["api_version"]
-        self.creation_date = parser.isoparse(workflow_dict["creation_date"])
-        self.description = workflow_dict["description"]
+        workflow_attributes = self.workflow_attributes
+        #special_attributes = {"auth", "creation_date", "publication_date"}
+        #workflow_attributes = self.workflow_attributes.difference_update(special_attributes)
+
+        missing_workflow_attributes = set()
+        for key in workflow_attributes:
+            try:
+                setattr(self, key, workflow_dict[key])
+            except:
+                missing_workflow_attributes.add(key)
+            pass
+
+        # Special treatment. If these keys are not in the missing attributes set, then
+        # they have already been added above and we just need to ignore the exception
+        try:
+            self.auth = Auth(workflow_dict["auth"])
+        except:
+            pass
+
+        try:
+            self.creation_date = parser.isoparse(workflow_dict["creation_date"])
+        except:
+            pass
+
+        try:
+            self.publication_date = parser.isoparse(workflow_dict["publication_date"])
+        except:
+            pass
+
+        # Will raise an exception anyway if workflow_dict is not a dictionary
         self.dictionary = workflow_dict
-        self.display_name = workflow_dict["display_name"]
-        self.kind = workflow_dict["kind"]
-        self.name = workflow_dict["name"]
-        self.owner = workflow_dict["owner"]
-        self.parent = workflow_dict["parent"]
-        self.publication_date = parser.isoparse(workflow_dict["publication_date"])
-        self.publisher = workflow_dict["publisher"]
-        self.spec = workflow_dict["spec"]
-        self.summary = workflow_dict["summary"]
-        self.version_history = workflow_dict["version_history"]
-        self.version_id = workflow_dict["id"]
-        self.version_message = workflow_dict["version_message"]
-        self.version_tags = workflow_dict["version_tags"]
-        return
+
+        return missing_workflow_attributes
+
 
     def get_details_from_id(self, jwt_string: str, version_id_string: str):
         """
@@ -109,6 +138,7 @@ class Workflow:
         self.version_message = workflow_dict["version_message"]
         return
 
+
     def get_metadata(self, jwt_string: str):
         """
         Retrieve metadata for the workflow using the workflow details and
@@ -116,7 +146,7 @@ class Workflow:
         Args:
             jwt_string (str): JWT for login purposes
         """
-        metadata_dict = get_workflow_metadata_dict(jwt_string, self.version_id)
+        metadata_dict = get_workflow_metadata_dict(jwt_string, self.id)
         self.metadata = WorkflowMetadata(metadata_dict)
         return
 
@@ -140,13 +170,15 @@ class Workflow:
 
 
     def output_details(self, long: bool = False):
-        """Prints relevant model attributes to command line"""
+        """
+        Prints relevant model attributes to command line
+        """
         click.echo(
             "Name: "
             + self.display_name
             + TAB_SPACE
             + "ID: "
-            + self.version_id
+            + self.id
             + TAB_SPACE
             + "Date: "
             + self.creation_date.date().strftime("%B %d %Y")
@@ -158,8 +190,12 @@ class Workflow:
         click.echo("")
         return
 
+#post /workflows/<parent_id>/upload
+#https://dafni-nims-api.secure.dafni.rl.ac.uk/swagger/
+
     def output_metadata(self, json_flag: bool = False):
-        """Prints the metadata for the model to command line.
+        """
+        Prints the metadata for the model to command line.
 
         Args:
             json_flag (bool): Whether to print raw json or pretty print information. Defaults to False.
@@ -185,9 +221,11 @@ class Workflow:
         return
 
     def output_version_details(self) -> str:
-        """Prints version ID, display name, publication time and version message on one line"""
+        """
+        Prints version ID, display name, publication time and version message on one line
+        """
         return("ID: " +
-               self.version_id +
+               self.id +
                TAB_SPACE +
                "Name: " +
                self.display_name +

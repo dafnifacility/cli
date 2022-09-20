@@ -101,7 +101,7 @@ class ModelMetadata:
             self.outputs = metadata_dict["spec"]["outputs"]
         else:
             self.outputs = None
-        self.owner = metadata_dict["metadata"]["owner"]
+        self.owner = metadata_dict["owner"]
 
     def format_parameters(self) -> str:
         """
@@ -110,7 +110,7 @@ class ModelMetadata:
         Returns:
             str: Formatted string that will appear as a table when printed.
         """
-        parameters = self.inputs["env"]
+        parameters = self.inputs["parameters"]
         titles = [parameter["title"] for parameter in parameters] + ["title"]
         defaults = ["default"]
         for parameter in parameters:
@@ -130,7 +130,7 @@ class ModelMetadata:
                 parameter, "max", INPUT_MIN_MAX_COLUMN_WIDTH
             )
             params_table += optional_column(parameter, "default", default_column_width)
-            params_table += f"{parameter['desc']}\n"
+            params_table += f"{parameter['description']}\n"
         return params_table
 
     def format_dataslots(self) -> Optional[str]:
@@ -150,9 +150,9 @@ class ModelMetadata:
                 dataslots_list += "Default Datasets: \n"
                 for default in dataslot["default"]:
                     # TODO print name using API call to databases
-                    dataslots_list += "Name: "
-                    dataslots_list += f'ID: {default["uid"]}' + TAB_SPACE
-                    dataslots_list += f'Version ID: {default["versionUid"]}' + TAB_SPACE
+                    dataslots_list += "Name: " + default + TAB_SPACE
+#                    dataslots_list += f'ID: {default["uid"]}' + TAB_SPACE
+#                    dataslots_list += f'Version ID: {default["versionUid"]}' + TAB_SPACE
                 dataslots_list += "\n"
             return dataslots_list
         else:
