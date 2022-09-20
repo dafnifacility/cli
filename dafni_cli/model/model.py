@@ -8,7 +8,7 @@ from dafni_cli.model.model_metadata import ModelMetadata
 from dafni_cli.consts import CONSOLE_WIDTH, TAB_SPACE
 from dafni_cli.api.models_api import (
     get_single_model_dict,
-    get_model_metadata_dict,
+#    get_model_metadata_dict,
 )
 from dafni_cli.utils import (
     prose_print,
@@ -154,7 +154,7 @@ class Model:
         return missing_model_attributes
 
 
-    def get_details_from_id(self, jwt_string: str, version_id_string: str):
+    def get_attributes_from_id(self, jwt_string: str, version_id_string: str):
         """
         Retrieve model details from the DAFNI API by calling /models/<version-id>/ endpoint.
 
@@ -163,9 +163,6 @@ class Model:
             version_id_string (str): Version ID of the model
         """
         model_dict = get_single_model_dict(jwt_string, version_id_string)
-        print("======================================")
-        print(model_dict)
-        print("======================================")
         self.set_attributes_from_dict(model_dict)
         # Version message key appears on single model API response, but not list of all models response
         self.version_message = model_dict["version_message"]
@@ -178,7 +175,6 @@ class Model:
         Args:
             jwt_string (str): JWT for login purposes
         """
-        print(self.metadata)
 #        metadata_dict = get_model_metadata_dict(jwt_string, self.id)
         self.metadata_obj = ModelMetadata(self.dictionary)
         pass
@@ -233,9 +229,6 @@ class Model:
         Args:
             json_flag (bool): Whether to print raw json or pretty print information. Defaults to False.
         """
-        print("++++++++++++++++++++++++++++++++++++++++++")
-        print(vars(self))
-        print("++++++++++++++++++++++++++++++++++++++++++")
         if not json_flag:
             click.echo("Name: " + self.metadata["display_name"])
             click.echo("Date: " + self.creation_date.strftime("%B %d %Y"))

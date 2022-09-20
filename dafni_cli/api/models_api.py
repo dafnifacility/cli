@@ -38,18 +38,19 @@ def get_single_model_dict(jwt: str, model_version_id: str) -> dict:
     return dafni_get_request(url, jwt)
 
 
-def get_model_metadata_dict(jwt: str, model_version_id: str) -> dict:
-    """Function to call the get model metadata endpoint and return the resulting dictionary.
-
-    Args:
-        jwt (str): JWT
-        model_version_id (str): model version ID for selected model
-
-    Returns:
-        dict: dictionary for the metadata of selected model
-    """
-    url = MODELS_API_URL + "/metadata/" + model_version_id + "/"
-    return dafni_get_request(url, jwt)
+# TODO: Remove - deprecated
+#def get_model_metadata_dict(jwt: str, model_version_id: str) -> dict:
+#    """Function to call the get model metadata endpoint and return the resulting dictionary.
+#
+#    Args:
+#        jwt (str): JWT
+#        model_version_id (str): model version ID for selected model
+#
+#    Returns:
+#        dict: dictionary for the metadata of selected model
+#    """
+#    url = MODELS_API_URL + "/metadata/" + model_version_id + "/"
+#    return dafni_get_request(url, jwt)
 
 
 def validate_model_definition(jwt: str, model_definition: Path) -> Tuple[bool, str]:

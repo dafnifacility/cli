@@ -101,7 +101,8 @@ class WorkflowMetadata:
             self.outputs = metadata_dict["spec"]["outputs"]
         else:
             self.outputs = None
-        self.owner = metadata_dict["metadata"]["owner"]
+        self.owner = metadata_dict["owner"]
+        return
 
     def format_parameters(self) -> str:
         """

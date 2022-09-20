@@ -7,7 +7,7 @@ from dafni_cli.workflow.workflow_metadata import WorkflowMetadata
 from dafni_cli.consts import CONSOLE_WIDTH, TAB_SPACE
 from dafni_cli.api.workflows_api import (
     get_single_workflow_dict,
-    get_workflow_metadata_dict
+#    get_workflow_metadata_dict
 )
 from dafni_cli.utils import (
     prose_print,
@@ -77,13 +77,13 @@ class Workflow:
         return
 
 
-    def set_details_from_dict(self, workflow_dict: dict):
+    def set_attributes_from_dict(self, workflow_dict: dict):
         """
         Attempts to store workflow details from a dictionary returned from the DAFNI API.
         Not all of the details need be present in workflow_dict.
  
         Args:
-            model_dict (dict): Dictionary returned from DAFNI API at /workflows endpoints
+            workflow_dict (dict): Dictionary returned from DAFNI API at /workflows endpoints
 
         Returns:
             a set of attributes of Workflow that could not be set as they were not present in workflow_dict
@@ -123,17 +123,16 @@ class Workflow:
         return missing_workflow_attributes
 
 
-    def get_details_from_id(self, jwt_string: str, version_id_string: str):
+    def get_attributes_from_id(self, jwt_string: str, version_id_string: str):
         """
-        Retrieve workflow details from the DAFNI API using the
-        /workflows/<version-id> endpoint.
+        Retrieve workflow attributes from the DAFNI API using the /workflows/<version-id> endpoint.
  
         Args:
             jwt_string (str): JWT for login purposes
             version_id_string (str): Version ID of the model
         """
         workflow_dict = get_single_workflow_dict(jwt_string, version_id_string)
-        self.set_details_from_dict(workflow_dict)
+        self.set_attributes_from_dict(workflow_dict)
         # TODO: Check: Version message key appears on single workflow API response, but not list of all workflows response
         self.version_message = workflow_dict["version_message"]
         return
@@ -146,9 +145,10 @@ class Workflow:
         Args:
             jwt_string (str): JWT for login purposes
         """
-        metadata_dict = get_workflow_metadata_dict(jwt_string, self.id)
-        self.metadata = WorkflowMetadata(metadata_dict)
+#        metadata_dict = get_workflow_metadata_dict(jwt_string, self.id)
+        self.metadata_obj = WorkflowMetadata(self.dictionary)
         return
+
 
     def filter_by_date(self, key: str, date: str) -> bool:
         """Filters workflows based on the date given as an option.
@@ -201,24 +201,24 @@ class Workflow:
             json_flag (bool): Whether to print raw json or pretty print information. Defaults to False.
         """
         if not json_flag:
-            click.echo("Name: " + self.display_name)
+            click.echo("Name: " + self.metadata["display_name"])
             click.echo("Date: " + self.creation_date.strftime("%B %d %Y"))
             click.echo("Summary: ")
-            click.echo(self.summary)
-            click.echo("Description: ")
-            prose_print(self.description, CONSOLE_WIDTH)
+            click.echo(self.metadata["summary"])
+            prose_print(self.metadata["description"], CONSOLE_WIDTH)
             click.echo("")
-            if self.metadata.inputs:
+            if self.metadata_obj.inputs:
                 click.echo("Input Parameters: ")
-                click.echo(self.metadata.format_parameters())
+                click.echo(self.metadata_obj.format_parameters())
                 click.echo("Input Data Slots: ")
-                click.echo(self.metadata.format_dataslots())
-            if self.metadata.outputs:
+                click.echo(self.metadata_obj.format_dataslots())
+            if self.metadata_obj.outputs:
                 click.echo("Outputs: ")
-                click.echo(self.metadata.format_outputs())
+                click.echo(self.metadata_obj.format_outputs())
         else:
-            print_json(self.metadata.dictionary)
+            print_json(self.dictionary)
         return
+
 
     def output_version_details(self) -> str:
         """
