@@ -247,7 +247,7 @@ class Workflow:
                self.id +
                TAB_SPACE +
                "Name: " +
-               self.display_name +
+               self.metadata["display_name"] +
                TAB_SPACE +
                "Publication date: " +
                self.publication_date.date().strftime("%B %d %Y") +

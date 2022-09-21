@@ -1,8 +1,10 @@
+import json
+from tokenize import String
 from requests import Response
 from typing import List, Tuple
 from pathlib import Path
 
-from dafni_cli.consts import WORKFLOWS_API_URL, VALIDATE_MODEL_CT, MINIO_UPLOAD_CT
+from dafni_cli.consts import WORKFLOWS_API_URL
 from dafni_cli.api.dafni_api import (
     dafni_get_request,
     dafni_post_request,
@@ -77,56 +79,33 @@ def get_single_workflow_dict(jwt: str, workflow_version_id: str) -> dict:
 #        return False, response.json()["errors"][0]
 
 
-#def get_model_upload_urls(jwt: str) -> Tuple[str, dict]:
-#    """Obtains the model upload urls from the DAFNI API
-#
-#    Args:
-#        jwt (str): JWT
-#
-#    Returns:
-#        str: The ID for the upload
-#        dict: The urls for the definition and image with keys "definition" and "image", respectively.
-#    """
-#    url = WORKFLOWS_API_URL + "/models/upload/"
-#    data = {"image": True, "definition": True}
-#    urls_resp = dafni_post_request(url, jwt, data)
-#    upload_id = urls_resp["id"]
-#    urls = urls_resp["urls"]
-#    return upload_id, urls
+def upload_workflow(jwt: str, file_path: Path) -> Tuple[str, dict]:
+    """
+    Uploads a DAFNI workflow to the platform
 
+    Args:
+        jwt (str): JWT
+        file_path: Path to the workflow definition file (JSON)
 
-#def model_version_ingest(
-#    jwt: str, upload_id: str, version_message: str, model_id: str = None
-#) -> dict:
-#    """Ingests a new version of a model to DAFNI
-#
-#    Args:
-#        jwt (str): JWT
-#        upload_id (str): Upload ID
-#        version_message (str): Message to be attached to this version
-#        model_id (str): ID of existing parent model if it exists
-#
-#    Returns:
-#        dict: JSON from response returned in post request
-#    """
-#    if model_id:
-#        url = (
-#            WORKFLOWS_API_URL + "/models/" + model_id + "/upload/" + upload_id + "/ingest/"
-#        )
-#    else:
-#        url = WORKFLOWS_API_URL + "/models/upload/" + upload_id + "/ingest/"
-#    data = {"version_message": version_message}
-#    return dafni_post_request(url, jwt, data)
+    Returns:
+        str: The ID for the upload
+        dict: The urls for the definition and image with keys "definition" and "image", respectively.
+    """
+    url = WORKFLOWS_API_URL + "/workflows/upload/"
+    print(file_path)
+    with open(file_path, "r") as f:
+        workflow_description = json.load(f)
+        print(workflow_description)
+        return dafni_post_request(url, jwt, workflow_description)
 
 
 def delete_workflow(jwt: str, workflow_version_id: str) -> Response:
     """
     Calls the delete model endpoint.
-    TODO: Does this exist in DAFNI?
 
     Args:
         jwt (str): JWT
         model_version_id (str): model version ID for selected model
     """
-    url = WORKFLOWS_API_URL + "/models/" + workflow_version_id
+    url = WORKFLOWS_API_URL + "/workflows/" + workflow_version_id
     return dafni_delete_request(url, jwt)

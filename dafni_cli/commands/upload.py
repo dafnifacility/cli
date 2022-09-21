@@ -8,8 +8,9 @@ from dafni_cli.commands.login import check_for_jwt_file
 from dafni_cli.api.models_api import (
     validate_model_definition,
     get_model_upload_urls,
-    model_version_ingest,
+    model_version_ingest
 )
+from dafni_cli.api.workflows_api import upload_workflow
 from dafni_cli.api.minio_api import upload_file_to_minio
 from dafni_cli.datasets.dataset_upload import upload_new_dataset_files
 from dafni_cli.utils import argument_confirmation
@@ -114,6 +115,7 @@ def model(
     click.echo("Model upload complete")
 
 
+
 @upload.command(help="Upload a dataset to DAFNI")
 @click.argument("definition", nargs=1, required=True, type=click.Path(exists=True))
 @click.argument("files", nargs=-1, required=True, type=click.Path(exists=True))
@@ -136,3 +138,89 @@ def dataset(ctx: Context, definition: click.Path, files: List[click.Path]):
 
     # Upload all files
     upload_new_dataset_files(ctx.obj["jwt"], definition, files)
+
+
+
+@upload.command(help="Upload a workflow to DAFNI")
+@click.argument("definition", nargs=1, required=True, type=click.Path(exists=True))
+#@click.argument("image", nargs=1, required=True, type=click.Path(exists=True))
+@click.option(
+    "--version-message",
+    "-m",
+    nargs=1,
+    required=True,
+    help="Version message that is to be uploaded with the version. Required.",
+    type=str,
+)
+@click.option(
+    "--parent-workflow",
+    type=str,
+    help="Parent workflow ID if this is an updated version of an existing workflow",
+    default=None,
+)
+@click.pass_context
+def workflow(
+    ctx: Context,
+    definition: click.Path,
+    version_message: str,
+    parent_workflow: str,
+):
+    """
+    Uploads a workflow in JSON form to DAFNI.
+    \f
+    Args:
+        ctx (Context): contains JWT for authentication
+        definition (click.Path): File path to the workflow definition file
+        version_message (str): Version message to be included with this model version
+        parent_model (str): ID of the parent model that this is an update of
+    """
+    argument_names = [
+        "Workflow definition file path",
+        "Version message",
+    ]
+    arguments = [definition, version_message]
+    confirmation_message = "Confirm workflow upload?"
+    if parent_workflow:
+        argument_names.append("Parent workflow ID")
+        arguments.append(parent_workflow)
+        additional_message = None
+    else:
+        additional_message = ["No parent workflow: new workflow to be created"]
+    argument_confirmation(
+        argument_names, arguments, confirmation_message, additional_message
+    )
+
+    click.echo("Validating model definition")
+    # Print helpful message when 500 error returned
+    #try:
+    #    valid, error_message = validate_model_definition(ctx.obj["jwt"], definition)
+    #except HTTPError as e:
+    #    if e.response.status_code == 500:
+    #        click.echo(
+    #            "Error validating the model definition. "
+    #            "See https://docs.secure.dafni.rl.ac.uk/docs/how-to/models/how-to-write-a-model-definition-file/"
+    #            " for guidance"
+    #        )
+    #    else:
+    #        click.echo(e)
+    #    raise SystemExit(1)
+    #if not valid:
+    #    click.echo(
+    #        "Definition validation failed with the following errors: " + error_message
+    #    )
+    #    raise SystemExit(1)
+
+    #click.echo("Getting urls")
+    #upload_id, urls = get_model_upload_urls(ctx.obj["jwt"])
+    #definition_url = urls["definition"]
+
+    #click.echo("Uploading model definition and image")
+    #upload_file_to_minio(ctx.obj["jwt"], definition_url, definition)
+
+    #click.echo("Ingesting model")
+    #model_version_ingest(ctx.obj["jwt"], upload_id, version_message, parent_model)
+
+    click.echo("Uploading workflow")
+    upload_workflow(ctx.obj["jwt"], definition)
+
+    click.echo("Workflow upload complete")

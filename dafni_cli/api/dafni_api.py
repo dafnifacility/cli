@@ -67,8 +67,9 @@ def dafni_post_request(
         url,
         headers={"Content-Type": "application/json", "authorization": jwt},
         allow_redirects=allow_redirect,
-        json=data,
+        json=data
     )
+    print(response.json())
     response.raise_for_status()
     if raise_status:
         response.raise_for_status()
