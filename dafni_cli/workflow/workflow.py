@@ -19,28 +19,47 @@ from dafni_cli.auth import Auth
 class Workflow:
     """
     Contains information about a DAFNI workflow DAFNI.
-    The information (as attributes) for a workflow can be populated from a dictionary, or an id.
+    The information (as attributes) for a workflow can be populated from a dictionary, or a DAFNI workflow UUID.
 
     Methods:
         get_details_from_dict(dict): populates attributes from the workflow dictionary from the DAFNI API
         get_details_from_id(jwt (str), id (str)): populates attributes from the workflow version ID by calling DAFNI API.
-        get_metadata(jwt (str)): After details have been obtained, populate metadata attributes by calling API.
+        get_metadata(jwt (str)): After details have been obtained, populate metadata attributes.
         filter_by_date(key (str), date (str)): calculates whether the workflow was created/published before a date.
         output_details(): Prints key information of workflow to console.
         output_metadata(): Prints key information of workflow metadata to console.
 
     Attributes:
-        container: Location of the docker image the model should be run in
-        creation_time: Time the model was created
-        description: More-detailed information of the model
-        dictionary: Dictionary of full model information
-        display_name: Name of the model shown in the web app
-        metadata: ModelMetadata object containing metadata for the model
-        publication_time: Time the model was published
+        api_version: The version of the API that created the data
+        auth: credentials used to retrieve the data
+        creation_date: Date and time the workflow was created
+        description: More detailed information on the model
+        display_name: Name of the workflow used in the web app
+        id: ID used to identify the specific workflow version
+        instances: A list of the workflow version run instances
+        kind: The type of asset (will be 'W', workflow)
+        metadata: a sub-group containing the workflow metadata:
+            description: More detailed information on the model
+            display_name: Name of the workflow used in the web app
+            name: DAFNI workflow name
+            publisher: Organisation publishing the model
+            summary: One-line summary of what the model does
+            source_code: Generally, a link (e.g. Github) link to the project source
+            status: ?
+        name: DAFNI workflow name
+        owner: UUID of the workflow owner
+        parameter_sets:
+        parent: UUID of the workflow's parent
+        publication_date: Date and time the model was published
+        publisher: Organisation publishing the model
+        spec: JSON description of the workflow steps
         summary: One-line summary of what the model does
-        id: ID used to identify the specific version and model
+        version_history: A list of all versions of the workflow
         version_message: Message attached when the model was updated to this model version
         version_tags: Any tags created by the publisher for this version
+
+        dictionary: Full description of the model as retrieved from the API
+        metadata_obj: ModelMetadata object containing metadata for the model
     """
 
     def __init__(self, identifier=None):
@@ -67,12 +86,12 @@ class Workflow:
         self.version_tags = None
 
         # Set of workflow dictionary keys, for use in validation functions
-        # TODO: Is .vars() reliable?
         workflow_attributes = vars(self).keys()
         self.workflow_attributes = set(workflow_attributes)
 
         # Attributes that are not also workflow dictionary keys
         self.dictionary = None
+        self.metadata_obj = None
 
         return
 
@@ -117,7 +136,7 @@ class Workflow:
         except:
             pass
 
-        # Will raise an exception anyway if workflow_dict is not a dictionary
+        #  If workflow_dict is not a dictionary then an exception will have already been raised
         self.dictionary = workflow_dict
 
         return missing_workflow_attributes
