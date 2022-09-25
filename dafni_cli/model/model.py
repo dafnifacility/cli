@@ -66,12 +66,12 @@ class Model:
         """
         self.creation_time = parser.isoparse(model_dict["creation_date"])
         self.container = model_dict["container"]
-        self.description = model_dict["description"]
+        self.description = model_dict.get("description", model_dict["metadata"]["description"])
         self.dictionary = model_dict
-        self.display_name = model_dict["name"]
+        self.display_name = model_dict["metadata"]["name"]
         self.privileges = Auth(model_dict["auth"])
         self.publication_time = parser.isoparse(model_dict["publication_date"])
-        self.summary = model_dict["summary"]
+        self.summary = model_dict["metadata"]["summary"]
         self.version_id = model_dict["id"]
         self.version_tags = model_dict["version_tags"]
 
