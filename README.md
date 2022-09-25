@@ -187,3 +187,18 @@ The web app code (in VueJS) is available [here](https://github.com/dafnifacility
 ## Tasks
  - Bethan to firm up use cases and prioritise these
  - James to think about syntax of the CLI and make a decision for us to fight about
+
+
+## NOTES AUG 2022
+- Set up venv
+    - DAFNI cli works only with python 3.9
+    - python3.9 -m venv env
+    - source env/bin/activate
+    - pip3.9 install -r cli/docs/requirements.txt
+
+- Build
+    - python3.9 -m build cli
+- Install
+    - pip3.9 install dist/dafni_cli-0.0.1-py3-none-any.whl
+- Execute
+    - python3.9 dafni_cli/dafni.py login
