@@ -8,7 +8,6 @@ import json
 
 from dafni_cli.consts import LOGIN_API_URL, JWT_FILENAME, JWT_COOKIE, DATE_TIME_FORMAT
 
-
 def get_new_jwt(user_name: str, password: str) -> dict:
     """Function to get a JWT for the given user for DAFNI access
 
@@ -90,15 +89,47 @@ def request_login_details() -> dict:
 
     :return: jwt_dict (dict): user_jwt returned by PROCESS_JWT
     """
+    
     user_name = click.prompt("User name")
     password = click.prompt("Password", hide_input=True)
-    jwt_dict = get_new_jwt(user_name, password)
-    click.echo("Login Complete")
-    click.echo(
-        "user name: {0}, user id: {1}".format(
-            jwt_dict["user_name"], jwt_dict["user_id"]
-        )
+
+    login_resp = requests.post(
+        LOGIN_API_URL,
+        {
+            "username": user_name,
+            "password": password,
+            "client_id": "dafni-main",
+            "grant_type": "password",
+            "scope": "openid",
+        },
     )
+
+    resp = login_resp.json()
+    access_token = login_resp.json()["access_token"]
+
+    # claims = jwt.split(".")[1]
+    # claims_bytes = claims.encode("utf-8") + b"=="
+    # message_bytes = base64.b64decode(claims_bytes)
+    # message = message_bytes.decode("utf-8")
+    # json_dict = json.loads(message)
+
+    jwt_dict = {
+        "expiry": dt.now().strftime(DATE_TIME_FORMAT),
+        "user_id": resp["id_token"],
+        "user_name": user_name,
+        "jwt": f"Bearer {access_token}",
+    }
+
+    with open(JWT_FILENAME, "w") as jwt_file:
+        jwt_file.write(json.dumps(jwt_dict))
+
+    # jwt_dict = get_new_jwt(user_name, password)
+    # click.echo("Login Complete")
+    # click.echo(
+    #     "user name: {0}, user id: {1}".format(
+    #         jwt_dict["user_name"], jwt_dict["user_id"]
+    #     )
+    # )
     return jwt_dict
 
 
@@ -117,6 +148,7 @@ def check_for_jwt_file() -> Tuple[dict, bool]:
         new_jwt = True
     else:
         # Ensure the existing JWT has not expired
+        # print(jwt_dict["expiry"])
         expiry_date = dt.strptime(jwt_dict["expiry"], DATE_TIME_FORMAT)
         if expiry_date < dt.now():
             jwt_dict = request_login_details()
@@ -161,3 +193,9 @@ def logout():
         )
     else:
         click.echo("Already logged out")
+
+def main():
+    request_login_details()
+
+if __name__ == "__main__":
+    main()
