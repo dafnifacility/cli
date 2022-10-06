@@ -3,6 +3,7 @@ from tokenize import String
 from requests import Response
 from typing import List, Tuple
 from pathlib import Path
+from multimethod import multimethod
 
 from dafni_cli.consts import WORKFLOWS_API_URL
 from dafni_cli.api.dafni_api import (
@@ -79,9 +80,10 @@ def get_single_workflow_dict(jwt: str, workflow_version_id: str) -> dict:
 #        return False, response.json()["errors"][0]
 
 
+@multimethod
 def upload_workflow(jwt: str, file_path: Path) -> Tuple[str, dict]:
     """
-    Uploads a DAFNI workflow to the platform
+    Uploads a DAFNI workflow specified in a file to the platform
 
     Args:
         jwt (str): JWT
@@ -97,6 +99,24 @@ def upload_workflow(jwt: str, file_path: Path) -> Tuple[str, dict]:
         workflow_description = json.load(f)
         print(workflow_description)
         return dafni_post_request(url, jwt, workflow_description)
+
+
+@multimethod
+def upload_workflow(jwt: str, workflow_description: dict) -> Tuple[str, dict]:
+    """
+    Uploads a DAFNI workflow specified in a dictionary to the platform
+
+    Args:
+        jwt (str): JWT
+        workflow_description: A dictionary containing the workflow
+
+    Returns:
+        str: The ID for the upload
+        dict: The urls for the definition and image with keys "definition" and "image", respectively.
+    """
+    url = WORKFLOWS_API_URL + "/workflows/upload/"
+    print(workflow_description)
+    return dafni_post_request(url, jwt, workflow_description)
 
 
 def delete_workflow(jwt: str, workflow_version_id: str) -> Response:

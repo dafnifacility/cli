@@ -16,7 +16,6 @@ from dafni_cli.model.model import Model
 from dafni_cli.model.version_history import ModelVersionHistory
 from dafni_cli.workflow.workflow import Workflow
 from dafni_cli.workflow.version_history import WorkflowVersionHistory
-from dafni_cli.api.models_api import get_models_dicts
 from dafni_cli.utils import (
     process_response_to_class_list,
     print_json

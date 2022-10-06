@@ -31,18 +31,32 @@ class Model:
         output_metadata(): Prints key information of model metadata to console.
 
     Attributes:
+        api_version: Version of the DAFNI API used to retrieve model data
+        auth: Authentication credentials used to retreive model data
         container: Location of the docker image the model should be run in
-        creation_time: Time the model was created
-        description: More-detailed information of the model
-        dictionary: Dictionary of full model information
-        display_name: Name of the model shown in the web app
-        metadata: ModelMetadata object containing metadata for the model
-        publication_time: Time the model was published
-        summary: One-line summary of what the model does
-        version_id: ID used to identify the specific version and model
+        container_version: Version of the docker image
+        creation_date: Date and time the model was created
+        ingest_completed_date: date and time the model was ingested into minio
+        id: Model version ID
+        kind: Type of DAFNI object (should be "M" for model)
+        metadata: model metadata ...
+            description: More-detailed information of the model
+            display_name: Name of the model shown in the web app
+            name: The full name of the model
+            summary: A short description of the model
+            source_code: A link to the models source doce (e.g. Github)
+            status:
+        owner: The model owner
+        parent: The parent model ID
+        publication_date: Date and time the model was published
+        spec: Full description of the model
+        type: Type of dafni object ("model")
+        version_history: Full version history of the model with UUIDs for each previous version
         version_message: Message attached when the model was updated to this model version
         version_tags: Any tags created by the publisher for this version
 
+        dictionary: Dictionary of full model information
+        metadata_obj: ModelMetadata object containing metadata for the model
     """
 
     def __init__(self, identifier=None):
