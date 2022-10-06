@@ -1,3 +1,12 @@
+###############################################################################
+# Workflows API
+###############################################################################
+#
+# Uses the API definition at https://dafni-nims-api.secure.dafni.rl.ac.uk/swagger/
+#
+###############################################################################
+
+
 import json
 from tokenize import String
 from requests import Response
@@ -16,7 +25,7 @@ from dafni_cli.api.dafni_api import (
 
 def get_all_workflows_dicts(jwt: str) -> List[dict]:
     """
-    Call the "list workflows" endpoint and return the resulting list of dictionaries.
+    Call the "workflows_list" endpoint and return the resulting list of dictionaries.
 
     Args:
         jwt (str): JWT
@@ -30,7 +39,7 @@ def get_all_workflows_dicts(jwt: str) -> List[dict]:
 
 def get_single_workflow_dict(jwt: str, workflow_version_id: str) -> dict:
     """
-    Call the workflows_read endpoint and return the resulting dictionary.
+    Call the "workflows_read" endpoint and return the resulting dictionary.
 
     Args:
         jwt (str): JWT
@@ -83,7 +92,7 @@ def get_single_workflow_dict(jwt: str, workflow_version_id: str) -> dict:
 #@multimethod
 def upload_workflow(jwt: str, file_path: Path, version_message: str, parent_id: str) -> Tuple[str, dict]:
     """
-    Uploads a DAFNI workflow specified in a file to the platform
+    Uploads a DAFNI workflow specified in a JSON file
 
     Args:
         jwt (str): JWT
@@ -126,11 +135,11 @@ def upload_workflow(jwt: str, file_path: Path, version_message: str, parent_id: 
 
 def delete_workflow(jwt: str, workflow_version_id: str) -> Response:
     """
-    Calls the delete model endpoint.
+    Calls the workflows_delete endpoint
 
     Args:
         jwt (str): JWT
-        model_version_id (str): model version ID for selected model
+        workflow_version_id (str): model version ID for selected model
     """
     url = WORKFLOWS_API_URL + "/workflows/" + workflow_version_id
     return dafni_delete_request(url, jwt)
