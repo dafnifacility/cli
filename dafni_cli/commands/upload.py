@@ -19,6 +19,9 @@ from dafni_cli.datasets.dataset_upload import upload_new_dataset_files
 from dafni_cli.utils import argument_confirmation
 
 
+###############################################################################
+# COMMAND: Upload an ENTITY to DAFNI
+###############################################################################
 @click.group(help="Upload an entity to DAFNI")
 @click.pass_context
 def upload(ctx: Context):
@@ -32,6 +35,9 @@ def upload(ctx: Context):
     ctx.obj["jwt"] = jwt_dict["jwt"]
 
 
+###############################################################################
+# COMMAND: Upload a MODEL to DAFNI
+###############################################################################
 @upload.command(help="Upload a model to DAFNI")
 @click.argument("definition", nargs=1, required=True, type=click.Path(exists=True))
 @click.argument("image", nargs=1, required=True, type=click.Path(exists=True))
@@ -118,7 +124,9 @@ def model(
     click.echo("Model upload complete")
 
 
-
+###############################################################################
+# COMMAND: Upload a DATASET to DAFNI
+###############################################################################
 @upload.command(help="Upload a dataset to DAFNI")
 @click.argument("definition", nargs=1, required=True, type=click.Path(exists=True))
 @click.argument("files", nargs=-1, required=True, type=click.Path(exists=True))
@@ -143,30 +151,34 @@ def dataset(ctx: Context, definition: click.Path, files: List[click.Path]):
     upload_new_dataset_files(ctx.obj["jwt"], definition, files)
 
 
-
+###############################################################################
+# COMMAND: Upload a WORKFLOW to DAFNI
+###############################################################################
 @upload.command(help="Upload a workflow to DAFNI")
 @click.argument("definition", nargs=1, required=True, type=click.Path(exists=True))
-#@click.argument("image", nargs=1, required=True, type=click.Path(exists=True))
 @click.option(
     "--version-message",
     "-m",
     nargs=1,
-    required=True,
-    help="Version message that is to be uploaded with the version. Required.",
+    required=False,
     type=str,
+    default=None,
+    help="Message describing this version, will override any version message that is defined in the workflow description"
 )
 @click.option(
-    "--parent-workflow",
+    "--parent-id",
+    nargs=1,
+    required=False,
     type=str,
-    help="Parent workflow ID if this is an updated version of an existing workflow",
     default=None,
+    help="Parent workflow ID if this is an updated version of an existing workflow"
 )
 @click.pass_context
 def workflow(
     ctx: Context,
     definition: click.Path,
     version_message: str,
-    parent_workflow: str,
+    parent_id: str,
 ):
     """
     Uploads a workflow in JSON form to DAFNI.
@@ -174,8 +186,8 @@ def workflow(
     Args:
         ctx (Context): contains JWT for authentication
         definition (click.Path): File path to the workflow definition file
-        version_message (str): Version message to be included with this model version
-        parent_model (str): ID of the parent model that this is an update of
+        version_message (str): Version message to be included with this workflow version
+        parent_id (str): ID of the parent workflow that this is an update of
     """
     argument_names = [
         "Workflow definition file path",
@@ -183,9 +195,9 @@ def workflow(
     ]
     arguments = [definition, version_message]
     confirmation_message = "Confirm workflow upload?"
-    if parent_workflow:
+    if parent_id:
         argument_names.append("Parent workflow ID")
-        arguments.append(parent_workflow)
+        arguments.append(parent_id)
         additional_message = None
     else:
         additional_message = ["No parent workflow: new workflow to be created"]
@@ -224,7 +236,7 @@ def workflow(
     #model_version_ingest(ctx.obj["jwt"], upload_id, version_message, parent_model)
 
     click.echo("Uploading workflow")
-    upload_workflow(ctx.obj["jwt"], definition)
+    upload_workflow(ctx.obj["jwt"], definition, version_message, parent_id)
 
     click.echo("Workflow upload complete")
 

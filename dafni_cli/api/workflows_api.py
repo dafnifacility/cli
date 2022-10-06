@@ -80,43 +80,48 @@ def get_single_workflow_dict(jwt: str, workflow_version_id: str) -> dict:
 #        return False, response.json()["errors"][0]
 
 
-@multimethod
-def upload_workflow(jwt: str, file_path: Path) -> Tuple[str, dict]:
+#@multimethod
+def upload_workflow(jwt: str, file_path: Path, version_message: str, parent_id: str) -> Tuple[str, dict]:
     """
     Uploads a DAFNI workflow specified in a file to the platform
 
     Args:
         jwt (str): JWT
         file_path: Path to the workflow definition file (JSON)
+        version_message: String describing the new version, which will overwrite any version message in the JSON description
+        parent_id: The ID of the parent workflow, for updating an existing workflow
 
     Returns:
         str: The ID for the upload
         dict: The urls for the definition and image with keys "definition" and "image", respectively.
     """
-    url = WORKFLOWS_API_URL + "/workflows/upload/"
-    print(file_path)
+    if parent_id:
+        url = WORKFLOWS_API_URL + "/workflows/" + parent_id + "/upload/"
+    else:
+        url = WORKFLOWS_API_URL + "/workflows/upload/"
     with open(file_path, "r") as f:
         workflow_description = json.load(f)
-        print(workflow_description)
+        if version_message:
+            workflow_description["version_message"] = version_message
         return dafni_post_request(url, jwt, workflow_description)
 
 
-@multimethod
-def upload_workflow(jwt: str, workflow_description: dict) -> Tuple[str, dict]:
-    """
-    Uploads a DAFNI workflow specified in a dictionary to the platform
-
-    Args:
-        jwt (str): JWT
-        workflow_description: A dictionary containing the workflow
-
-    Returns:
-        str: The ID for the upload
-        dict: The urls for the definition and image with keys "definition" and "image", respectively.
-    """
-    url = WORKFLOWS_API_URL + "/workflows/upload/"
-    print(workflow_description)
-    return dafni_post_request(url, jwt, workflow_description)
+#@multimethod
+#def upload_workflow(jwt: str, workflow_description: dict) -> Tuple[str, dict]:
+#    """
+#    Uploads a DAFNI workflow specified in a dictionary to the platform
+#
+#    Args:
+#        jwt (str): JWT
+#        workflow_description: A dictionary containing the workflow
+#
+#    Returns:
+#        str: The ID for the upload
+#        dict: The urls for the definition and image with keys "definition" and "image", respectively.
+#    """
+#    url = WORKFLOWS_API_URL + "/workflows/upload/"
+#    print(workflow_description)
+#    return dafni_post_request(url, jwt, workflow_description)
 
 
 def delete_workflow(jwt: str, workflow_version_id: str) -> Response:
