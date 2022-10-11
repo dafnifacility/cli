@@ -68,7 +68,7 @@ def validate_model_definition(jwt: str, model_definition: Path) -> Tuple[bool, s
         List[str]: Errors encountered if the model definition file is not valid
     """
     content_type = VALIDATE_MODEL_CT
-    url = MODELS_API_URL + "/models/definition/validate/"
+    url = MODELS_API_URL + "/models/validate/"
     with open(model_definition, "rb") as md:
         response = dafni_put_request(url, jwt, md, content_type)
     if response.json()["valid"]:

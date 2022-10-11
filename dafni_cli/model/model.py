@@ -23,8 +23,8 @@ class Model:
     The information (as attributes) for a model can be populated from a dictionary, or an id.
 
     Methods:
-        get_details_from_dict(dict): populates attributes from the model dictionary from the DAFNI API
-        get_details_from_id(jwt (str), id (str)): populates attributes from the model version ID by calling DAFNI API.
+        get_attributes_from_dict(dict): populates attributes from the model dictionary from the DAFNI API
+        get_attributes_from_id(jwt (str), id (str)): populates attributes from the model version ID by calling DAFNI API.
         get_metadata(jwt (str)): After details have been obtained, populate metadata attributes by calling API.
         filter_by_date(key (str), date (str)): calculates whether the model was created/published before a date.
         output_details(): Prints key information of model to console.
@@ -271,7 +271,7 @@ class Model:
                self.id +
                TAB_SPACE +
                "Name: " +
-               self.display_name +
+               self.metadata["display_name"] +
                TAB_SPACE +
                "Publication date: " +
                self.publication_date.date().strftime("%B %d %Y") +

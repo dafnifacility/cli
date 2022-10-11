@@ -50,7 +50,7 @@ def upload(ctx: Context):
     type=str,
 )
 @click.option(
-    "--parent-model",
+    "--parent-id",
     type=str,
     help="Parent ID of the parent model if this is an updated version of an existing model",
     default=None,
@@ -61,7 +61,7 @@ def model(
     definition: click.Path,
     image: click.Path,
     version_message: str,
-    parent_model: str,
+    parent_id: str,
 ):
     """Uploads model to DAFNI from metadata and image files.
     \f
@@ -70,7 +70,7 @@ def model(
         definition (click.Path): File path to the model definition file
         image (click.Path): File path to the image file
         version_message (str): Version message to be included with this model version
-        parent_model (str): ID of the parent model that this is an update of
+        parent_id (str): ID of the parent model that this is an update of
     """
     argument_names = [
         "Model definition file path",
@@ -79,9 +79,9 @@ def model(
     ]
     arguments = [definition, image, version_message]
     confirmation_message = "Confirm model upload?"
-    if parent_model:
+    if parent_id:
         argument_names.append("Parent model ID")
-        arguments.append(parent_model)
+        arguments.append(parent_id)
         additional_message = None
     else:
         additional_message = ["No parent model: new model to be created"]
@@ -119,7 +119,7 @@ def model(
     upload_file_to_minio(ctx.obj["jwt"], image_url, image)
 
     click.echo("Ingesting model")
-    model_version_ingest(ctx.obj["jwt"], upload_id, version_message, parent_model)
+    model_version_ingest(ctx.obj["jwt"], upload_id, version_message, parent_id)
 
     click.echo("Model upload complete")
 
@@ -255,7 +255,7 @@ def workflow(
     type=str,
 )
 @click.option(
-    "--parent-workflow",
+    "--parent-id",
     type=str,
     help="Parent workflow ID if this is an updated version of an existing workflow",
     default=None,
@@ -265,7 +265,7 @@ def workflow_params(
     ctx: Context,
     definition: click.Path,
     version_message: str,
-    parent_workflow: str,
+    parent_id: str,
 ):
     """
     Uploads a workflow in JSON form to DAFNI.
@@ -282,9 +282,9 @@ def workflow_params(
     ]
     arguments = [definition, version_message]
     confirmation_message = "Confirm workflow upload?"
-    if parent_workflow:
+    if parent_id:
         argument_names.append("Parent workflow ID")
-        arguments.append(parent_workflow)
+        arguments.append(parent_id)
         additional_message = None
     else:
         additional_message = ["No parent workflow: new workflow to be created"]
