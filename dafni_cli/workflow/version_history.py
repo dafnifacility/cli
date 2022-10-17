@@ -22,7 +22,7 @@ class WorkflowVersionHistory:
             raise Exception("Workflow must have version_id property")
         elif (
             latest_version.version_tags is None
-            or latest_version.publication_time is None
+            or latest_version.publication_date is None
             or latest_version.display_name is None
             or latest_version.dictionary is None
             or latest_version.version_message is None
