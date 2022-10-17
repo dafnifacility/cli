@@ -190,7 +190,7 @@ class Workflow:
 
     def output_details(self, long: bool = False):
         """
-        Prints relevant model attributes to command line
+        Prints relevant workflow attributes to command line
         """
         click.echo(
             "Name: "
