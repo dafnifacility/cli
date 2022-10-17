@@ -214,7 +214,7 @@ class Workflow:
 
     def output_metadata(self, json_flag: bool = False):
         """
-        Prints the metadata for the model to command line.
+        Prints the metadata for the workflow to command line.
 
         Args:
             json_flag (bool): Whether to print raw json or pretty print information. Defaults to False.
