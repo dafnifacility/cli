@@ -184,7 +184,7 @@ class Model:
 
     def get_metadata(self, jwt_string: str):
         """
-        Retrieve metadata for the model using the model details and the /models/<version-id>/description/ endpoint.
+        Retrieve metadata for the model using the model details.
 
         Args:
             jwt_string (str): JWT for login purposes
