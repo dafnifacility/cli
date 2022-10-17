@@ -28,7 +28,7 @@ class WorkflowVersionHistory:
             or latest_version.version_message is None
             or "version_history" not in latest_version.dictionary
         ):
-            latest_version.get_details_from_id(jwt_string, latest_version.version_id)
+            latest_version.get_attributes_from_id(jwt_string, latest_version.id)
 
         self.dictionary = latest_version.dictionary["version_history"]
         self.history = [latest_version]
