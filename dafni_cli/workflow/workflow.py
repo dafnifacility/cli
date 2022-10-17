@@ -159,8 +159,7 @@ class Workflow:
 
     def get_metadata(self, jwt_string: str):
         """
-        Retrieve metadata for the workflow using the workflow details and
-        the /models/<version-id>/description/ endpoint.
+        Retrieve metadata for the workflow using the workflow details.
         Args:
             jwt_string (str): JWT for login purposes
         """
