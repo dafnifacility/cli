@@ -23,7 +23,7 @@ class WorkflowVersionHistory:
         elif (
             latest_version.version_tags is None
             or latest_version.publication_date is None
-            or latest_version.display_name is None
+            or latest_version.metadata["display_name"] is None
             or latest_version.dictionary is None
             or latest_version.version_message is None
             or "version_history" not in latest_version.dictionary
@@ -36,7 +36,7 @@ class WorkflowVersionHistory:
         if len(self.dictionary) > 1:
             for version_dict in self.dictionary[1:]:
                 version = Workflow()
-                version.get_details_from_id(jwt_string, version_dict["id"])
+                version.get_attributes_from_id(jwt_string, version_dict["id"])
                 self.history.append(version)
 
     def output_version_history(self, json_flag: bool = False):
@@ -49,13 +49,13 @@ class WorkflowVersionHistory:
             for version in self.history:
                 click.echo(
                     "Name: "
-                    + version.display_name
+                    + version.metadata["display_name"]
                     + TAB_SPACE
                     + "ID: "
-                    + version.version_id
+                    + version.id
                     + TAB_SPACE
                     + "Date: "
-                    + version.publication_time.strftime("%B %d %Y")
+                    + version.publication_date.strftime("%B %d %Y")
                 )
                 click.echo("Version message: " + version.version_message)
                 click.echo("Version tags: " + ", ".join(version.version_tags))
