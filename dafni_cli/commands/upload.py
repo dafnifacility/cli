@@ -205,7 +205,7 @@ def workflow(
         argument_names, arguments, confirmation_message, additional_message
     )
 
-    click.echo("Validating workflow definition")
+    # click.echo("Validating workflow definition")
     # Print helpful message when 500 error returned
     #try:
     #    valid, error_message = validate_model_definition(ctx.obj["jwt"], definition)
