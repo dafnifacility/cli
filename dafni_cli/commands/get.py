@@ -330,7 +330,7 @@ def workflow(ctx: Context, version_id: List[str], version_history: bool, json: b
         workflow = Workflow(vid)
         workflow.get_attributes_from_id(ctx.obj["jwt"], vid)
         if version_history:
-            history = WorkflowVersionHistory(ctx.obj["jwt"], model)
+            history = WorkflowVersionHistory(ctx.obj["jwt"], workflow)
             history.output_version_history(json)
         else:
             workflow.get_metadata(ctx.obj["jwt"])
