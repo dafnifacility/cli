@@ -18,7 +18,7 @@ class WorkflowVersionHistory:
     """
 
     def __init__(self, jwt_string: str, latest_version: Workflow):
-        if latest_version.version_id is None:
+        if latest_version.id is None:
             raise Exception("Workflow must have version_id property")
         elif (
             latest_version.version_tags is None
