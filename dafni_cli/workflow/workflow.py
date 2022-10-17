@@ -173,7 +173,7 @@ class Workflow:
         """Filters workflows based on the date given as an option.
         Args:
             key (str): Key for MODEL_DICT in which date is contained
-            date (str): Date for which models are to be filtered on: format DD/MM/YYYY
+            date (str): Date for which workflows are to be filtered on: format DD/MM/YYYY
 
         Returns:
             bool: Whether to display the model based on the filter
