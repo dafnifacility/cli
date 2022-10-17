@@ -172,7 +172,7 @@ class Workflow:
     def filter_by_date(self, key: str, date: str) -> bool:
         """Filters workflows based on the date given as an option.
         Args:
-            key (str): Key for MODEL_DICT in which date is contained
+            key (str): Key for WORKFLOW_DICT in which date is contained
             date (str): Date for which workflows are to be filtered on: format DD/MM/YYYY
 
         Returns:
