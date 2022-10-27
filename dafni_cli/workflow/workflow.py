@@ -33,7 +33,7 @@ class Workflow:
         api_version: The version of the API that created the data
         auth: credentials used to retrieve the data
         creation_date: Date and time the workflow was created
-        description: More detailed information on the model
+        description: More detailed information on the workflow
         display_name: Name of the workflow used in the web app
         id: ID used to identify the specific workflow version
         instances: A list of the workflow version run instances
