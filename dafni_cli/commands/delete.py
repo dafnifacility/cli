@@ -95,7 +95,7 @@ def collate_workflow_version_details(
         version_id_list (List[str]): List of the version IDs of each workflow to be deleted
 
     Returns:
-        List[str]: List of the worfflow  details to be displayed during deletion confirmation
+        List[str]: List of the workflow  details to be displayed during deletion confirmation
     """
     workflow_version_details_list = []
     for vid in version_id_list:
