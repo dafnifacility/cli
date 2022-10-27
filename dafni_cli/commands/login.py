@@ -6,11 +6,12 @@ import os
 import click
 import json
 
-from dafni_cli.consts import LOGIN_API_URL, JWT_FILENAME, JWT_COOKIE, DATE_TIME_FORMAT
+from dafni_cli.consts import LOGIN_API_URL, JWT_FILENAME, JWT_KEY, DATE_TIME_FORMAT
 
 
 def get_new_jwt(user_name: str, password: str) -> dict:
-    """Function to get a JWT for the given user for DAFNI access
+    """
+    Get a JWT for the supplied user name for DAFNI access
 
     Args:
         user_name (str): users username
@@ -20,34 +21,49 @@ def get_new_jwt(user_name: str, password: str) -> dict:
         str: returned JWT
     """
     response = requests.post(
-        LOGIN_API_URL + "/login/",
-        json={"username": user_name, "password": password},
-        headers={"Content-Type": "application/json"},
-        allow_redirects=False,
+        LOGIN_API_URL + "/auth/realms/Production/protocol/openid-connect/token/",
+        # Must be "data=" rather than "json=" or fails to log in
+        data={
+            "username": user_name,
+            "password": password,
+            "client_id": "dafni-main",
+            "grant_type": "password",
+            "scope": "openid"
+            },
+        # The following options cause a login failure.
+        #headers={"Content-Type": "application/json"},
+        #allow_redirects=False,
     )
-    # Get the JWT from the returned cookies
-    if JWT_COOKIE not in response.cookies:
+    # Get the JWT from the data returned from the login connection
+    jwt = response.json()
+    if JWT_KEY not in jwt:
         click.echo("Login Failed: Please check your username and password")
         raise SystemExit(1)
-    jwt = response.cookies[JWT_COOKIE]
 
-    # process the new JWT
+    # Process the new JWT
+    jwt = jwt[JWT_KEY]
     jwt_dict = process_jwt(jwt, user_name)
 
     return jwt_dict
 
 
 def process_jwt(jwt: str, user_name: str) -> dict:
-    """Function to process a given JWT to pull out the
-    expiry date and Users ID
+    """
+    Extract expiry date, user ID and expiry date from a JWT
 
     Args:
         jwt (str): Base64 encoded JWT string
-        user_name (str): Users username
+        user_name (str): User's username
 
     Returns:
-        dict: dict containing the Users name & ID, along with the JWT and expiry date
+        dict: Dictionary containing the user's name & ID, the JWT and the expiry date
+
+    Side effects:
+        JWT_FILENAME: Saves the dictionary to a file named JWT_FILENAME in the current
+        directory. This file contains the JWT login credentials for use by other parts
+        of the API.
     """
+    # JWT string components are separated by "." symbols
     claims = jwt.split(".")[1]
     claims_bytes = claims.encode("utf-8") + b"=="
     message_bytes = base64.b64decode(claims_bytes)
@@ -58,7 +74,7 @@ def process_jwt(jwt: str, user_name: str) -> dict:
         "expiry": dt.fromtimestamp(json_dict["exp"]).strftime(DATE_TIME_FORMAT),
         "user_id": json_dict["sub"],
         "user_name": user_name,
-        "jwt": "JWT " + jwt,
+        "jwt": "Bearer " + jwt,
     }
 
     with open(JWT_FILENAME, "w") as jwt_file:
@@ -68,8 +84,8 @@ def process_jwt(jwt: str, user_name: str) -> dict:
 
 
 def read_jwt_file() -> Optional[dict]:
-    """Function to check for and read a stored
-    DAFNI JWT file
+    """
+    Check for and read a stored DAFNI JWT file
 
     Returns:
         Optional[dict]: returns the dict from the stored file if available
@@ -85,8 +101,10 @@ def read_jwt_file() -> Optional[dict]:
 
 
 def request_login_details() -> dict:
-    """Function to prompt the user for their username and password
-    with the feedback that login has been completed and the username and UUID.
+    """
+    Prompt the user for their username and password. If login is successful,
+    notifies the user that login has been completed and displays the username
+    and UUID.
 
     :return: jwt_dict (dict): user_jwt returned by PROCESS_JWT
     """
@@ -103,9 +121,9 @@ def request_login_details() -> dict:
 
 
 def check_for_jwt_file() -> Tuple[dict, bool]:
-    """Function to read a DAFNI jwt file, if available
-    otherwise starts a fresh login process with associated
-    prompts
+    """
+    Reads a previously-saved DAFNI JWT file if available. Otherwise, starts a
+    fresh login process
 
     Returns:
         Tuple[dict, bool]: processed JWT, flag to indicate if new
@@ -126,12 +144,12 @@ def check_for_jwt_file() -> Tuple[dict, bool]:
 
 @click.command(help="Login to DAFNI")
 def login():
-    """Function to handle DAFNI authentication
-    The function will request a new JWT with the users
-    usersname and password if either there is no cached JWT
-    in the current working directory or the existing JWT has
-    expired.
-    Otherwise the cached JWT is returned
+    """
+    Log into the DAFNI CLI. The function requests a new JWT with the user's
+    user_name and password if either:
+        - there is no cached JWT file in the current working directory
+        - the existing JWT has expired
+    Otherwise, the cached JWT file is returned
     """
     jwt_dict, jwt_flag = check_for_jwt_file()
     if not jwt_flag:
@@ -145,9 +163,9 @@ def login():
 
 @click.command(help="Logout of DAFNI")
 def logout():
-    """Function to handle logging out of the DAFNI
-    CLI. This will involve removing the cached JWT
-    generated during the login process.
+    """
+    Log out of the DAFNI CLI. Any cached JWT file in the current directory that
+    has previously been generated through the login process will be deleted.
     """
     existing_jwt = read_jwt_file()
     if existing_jwt:

@@ -1,26 +1,25 @@
 import click
 from dateutil import parser
 
-from dafni_cli.model.model import Model
+from dafni_cli.workflow.workflow import Workflow
 from dafni_cli.consts import TAB_SPACE
 from dafni_cli.utils import print_json
 
 
-class ModelVersionHistory:
-    """
-    Contains the version history of a model.
+class WorkflowVersionHistory:
+    """Contains the version history of a workflow.
 
     Methods:
         output_version_history: Outputs version history to the command line
 
     Attributes:
-        dictionary: Dictionary returned from version_history key from model dictionary
-        history: list of model instances of the different versions of the model in reverse chronological order
+        dictionary: Dictionary returned from version_history key from workflow dictionary
+        history: list of workflow instances of the different versions of the workflow in reverse chronological order
     """
 
-    def __init__(self, jwt_string: str, latest_version: Model):
+    def __init__(self, jwt_string: str, latest_version: Workflow):
         if latest_version.id is None:
-            raise Exception("Model has no 'id' attribute")
+            raise Exception("Workflow must have version_id property")
         elif (
             latest_version.version_tags is None
             or latest_version.publication_date is None
@@ -36,14 +35,12 @@ class ModelVersionHistory:
 
         if len(self.dictionary) > 1:
             for version_dict in self.dictionary[1:]:
-                version = Model()
+                version = Workflow()
                 version.get_attributes_from_id(jwt_string, version_dict["id"])
                 self.history.append(version)
-        pass
 
     def output_version_history(self, json_flag: bool = False):
-        """
-        Prints the version history for the model to the command line.
+        """Prints the version history for the model to the command line.
 
         Args:
             json_flag (bool): Whether to print raw json or pretty print information. Defaults to False.
@@ -65,4 +62,3 @@ class ModelVersionHistory:
                 click.echo("")
         else:
             print_json(self.dictionary)
-        pass

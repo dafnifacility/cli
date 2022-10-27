@@ -12,7 +12,8 @@ from dafni_cli.api.dafni_api import (
 
 
 def get_models_dicts(jwt: str) -> List[dict]:
-    """Function to call the list models endpoint and return the resulting list of dictionaries.
+    """
+    Function to call the "models_list" endpoint and return the resulting list of dictionaries.
 
     Args:
         jwt (str): JWT
@@ -25,7 +26,8 @@ def get_models_dicts(jwt: str) -> List[dict]:
 
 
 def get_single_model_dict(jwt: str, model_version_id: str) -> dict:
-    """Function to call the get model details endpoint and return the resulting dictionary.
+    """
+    Function to call the "models_read" endpoint and return the resulting dictionary.
 
     Args:
         jwt (str): JWT
@@ -38,22 +40,24 @@ def get_single_model_dict(jwt: str, model_version_id: str) -> dict:
     return dafni_get_request(url, jwt)
 
 
-def get_model_metadata_dict(jwt: str, model_version_id: str) -> dict:
-    """Function to call the get model metadata endpoint and return the resulting dictionary.
-
-    Args:
-        jwt (str): JWT
-        model_version_id (str): model version ID for selected model
-
-    Returns:
-        dict: dictionary for the metadata of selected model
-    """
-    url = MODELS_API_URL + "/models/" + model_version_id + "/definition/"
-    return dafni_get_request(url, jwt)
+# TODO: Remove - deprecated
+#def get_model_metadata_dict(jwt: str, model_version_id: str) -> dict:
+#    """Function to call the get model metadata endpoint and return the resulting dictionary.
+#
+#    Args:
+#        jwt (str): JWT
+#        model_version_id (str): model version ID for selected model
+#
+#    Returns:
+#        dict: dictionary for the metadata of selected model
+#    """
+#    url = MODELS_API_URL + "/metadata/" + model_version_id + "/"
+#    return dafni_get_request(url, jwt)
 
 
 def validate_model_definition(jwt: str, model_definition: Path) -> Tuple[bool, str]:
-    """Validates the model definition file using a PUT to the DAFNI API
+    """
+    Validates the model definition file using the "models_validate_update" endpoint
 
     Args:
         jwt (str): JWT
@@ -64,7 +68,7 @@ def validate_model_definition(jwt: str, model_definition: Path) -> Tuple[bool, s
         List[str]: Errors encountered if the model definition file is not valid
     """
     content_type = VALIDATE_MODEL_CT
-    url = MODELS_API_URL + "/models/definition/validate/"
+    url = MODELS_API_URL + "/models/validate/"
     with open(model_definition, "rb") as md:
         response = dafni_put_request(url, jwt, md, content_type)
     if response.json()["valid"]:
@@ -74,7 +78,8 @@ def validate_model_definition(jwt: str, model_definition: Path) -> Tuple[bool, s
 
 
 def get_model_upload_urls(jwt: str) -> Tuple[str, dict]:
-    """Obtains the model upload urls from the DAFNI API
+    """
+    Obtains the model upload urls from the "models_upload_create" endpoint
 
     Args:
         jwt (str): JWT
@@ -94,7 +99,8 @@ def get_model_upload_urls(jwt: str) -> Tuple[str, dict]:
 def model_version_ingest(
     jwt: str, upload_id: str, version_message: str, model_id: str = None
 ) -> dict:
-    """Ingests a new version of a model to DAFNI
+    """
+    Ingests a new version of a model using the "models_upload_ingest_create" endpoint
 
     Args:
         jwt (str): JWT
@@ -116,7 +122,8 @@ def model_version_ingest(
 
 
 def delete_model(jwt: str, model_version_id: str) -> Response:
-    """Calls the delete model endpoint.
+    """
+    Calls the "models_delete" endpoint
 
     Args:
         jwt (str): JWT

@@ -70,9 +70,9 @@ def outputs_table_header(name_column_width: int) -> str:
     return header
 
 
-class ModelMetadata:
+class WorkflowMetadata:
     """
-    Contains metadata of a model uploaded to DAFNI.
+    Contains metadata of a workflow uploaded to DAFNI.
 
     Methods:
         format_parameters: Formats the parameter inputs to be displayed in a clear way
@@ -81,9 +81,9 @@ class ModelMetadata:
 
     Attributes:
         dictionary: Python dictionary with all the metadata obtained from the DAFNI API
-        inputs: Python dictionary containing the parameter and dataslot input details for the model
-        outputs: Python dictionary containing the output file details for the model
-        owner: User ID of the publisher of the model
+        inputs: Python dictionary containing the parameter and dataslot input details for the workflow
+        outputs: Python dictionary containing the output file details for the workflow
+        owner: User ID of the publisher of the workflow
     """
 
     def __init__(self, metadata_dict: dict):
@@ -102,15 +102,16 @@ class ModelMetadata:
         else:
             self.outputs = None
         self.owner = metadata_dict["owner"]
+        return
 
     def format_parameters(self) -> str:
         """
-        Formats input parameters for the model into a string which prints as a table
+        Formats input parameters for the workflow into a string which prints as a table
 
         Returns:
             str: Formatted string that will appear as a table when printed.
         """
-        parameters = self.inputs["parameters"]
+        parameters = self.inputs["env"]
         titles = [parameter["title"] for parameter in parameters] + ["title"]
         defaults = ["default"]
         for parameter in parameters:
@@ -130,7 +131,7 @@ class ModelMetadata:
                 parameter, "max", INPUT_MIN_MAX_COLUMN_WIDTH
             )
             params_table += optional_column(parameter, "default", default_column_width)
-            params_table += f"{parameter['description']}\n"
+            params_table += f"{parameter['desc']}\n"
         return params_table
 
     def format_dataslots(self) -> Optional[str]:
@@ -150,9 +151,9 @@ class ModelMetadata:
                 dataslots_list += "Default Datasets: \n"
                 for default in dataslot["default"]:
                     # TODO print name using API call to databases
-                    dataslots_list += "Name: " + default + TAB_SPACE
-#                    dataslots_list += f'ID: {default["uid"]}' + TAB_SPACE
-#                    dataslots_list += f'Version ID: {default["versionUid"]}' + TAB_SPACE
+                    dataslots_list += "Name: "
+                    dataslots_list += f'ID: {default["uid"]}' + TAB_SPACE
+                    dataslots_list += f'Version ID: {default["versionUid"]}' + TAB_SPACE
                 dataslots_list += "\n"
             return dataslots_list
         else:

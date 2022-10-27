@@ -22,7 +22,7 @@ def dafni_get_request(
     response = requests.get(
         url,
         headers={"Content-Type": "application/json", "authorization": jwt},
-        allow_redirects=allow_redirect,
+        allow_redirects=allow_redirect
     )
     response.raise_for_status()
 
@@ -57,7 +57,7 @@ def dafni_post_request(
         url,
         headers={"Content-Type": "application/json", "authorization": jwt},
         allow_redirects=allow_redirect,
-        json=data,
+        json=data
     )
     if raise_status:
         response.raise_for_status()

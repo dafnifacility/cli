@@ -2,16 +2,16 @@
 
 ## Installation
 
-The current method of distribution is via an executable program that can be run on the command line. This will take the form of a executable file called `dafni.exe`.
-Due to this, there is no installation at this stage from a user perspective, just a necessity to have a copy of the executable on the computer it is to be used on.
+The current method of distribution is via an executable program that can be run on the command line. This will take the form of a executable file called `dafni.exe` (Windows) or `dafni` (Linux). Due to this, there is no installation at this stage from a user perspective, just a necessity to have a copy of the executable on the computer it is to be used on.
 
 A pip package has also been produced on pypi: <INSERT LINK HERE> 
 This can be installed in the usual way and then called by using `dafni [command]`. 
-___
 
+___
 ## Commands
 
-There are several commands implemented for the dafni CLI, these are listed below with there associated sub-commands and options.
+There are several commands implemented for the dafni CLI, these are listed below with their associated sub-commands and options.
+
 ___
 ### Login
 

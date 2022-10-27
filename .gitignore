@@ -60,3 +60,9 @@ venv.bak/
 .idea/
 .vscode
 *.spec
+pyvenv.cfg
+**/bin
+**/lib64
+
+# CLI login
+**/dafni_jwt.txt

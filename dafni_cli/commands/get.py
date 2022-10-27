@@ -4,6 +4,7 @@ from typing import List, Optional
 
 from dafni_cli.api.datasets_api import get_all_datasets, get_latest_dataset_metadata
 from dafni_cli.api.models_api import get_models_dicts
+from dafni_cli.api.workflows_api import get_all_workflows_dicts
 from dafni_cli.datasets import (
     dataset_filtering,
     dataset_metadata,
@@ -13,7 +14,8 @@ from dafni_cli.datasets.dataset import Dataset
 from dafni_cli.commands.login import check_for_jwt_file
 from dafni_cli.model.model import Model
 from dafni_cli.model.version_history import ModelVersionHistory
-from dafni_cli.api.models_api import get_models_dicts
+from dafni_cli.workflow.workflow import Workflow
+from dafni_cli.workflow.version_history import WorkflowVersionHistory
 from dafni_cli.utils import (
     process_response_to_class_list,
     print_json
@@ -34,6 +36,9 @@ def get(ctx: Context):
     ctx.obj["jwt"] = jwt_dict["jwt"]
 
 
+###############################################################################
+# Models commands
+###############################################################################
 @get.command(help="List and filter models")
 @click.option(
     "--long/--short",
@@ -118,7 +123,7 @@ def model(ctx: Context, version_id: List[str], version_history: bool, json: bool
     """
     for vid in version_id:
         model = Model(vid)
-        model.get_details_from_id(ctx.obj["jwt"], vid)
+        model.get_attributes_from_id(ctx.obj["jwt"], vid)
         if version_history:
             history = ModelVersionHistory(ctx.obj["jwt"], model)
             history.output_version_history(json)
@@ -127,6 +132,9 @@ def model(ctx: Context, version_id: List[str], version_history: bool, json: bool
             model.output_metadata(json)
 
 
+###############################################################################
+# Datasets commands
+###############################################################################
 @get.command(help="List and filter datasets")
 @click.option(
     "--search",
@@ -161,7 +169,8 @@ def datasets(
     end_date: Optional[str],
     json: Optional[bool]
 ):
-    """Displays a list of all available datasets
+    """
+    Display a list of all available datasets
     \f
     Args:
         ctx (context): contains JWT for authentication
@@ -229,9 +238,103 @@ def dataset(ctx: Context, id: str, version_id: str, long: bool, version_history:
         version_history.process_version_history(json)
 
 
-@get.command()
-def workflows():
-    pass
+###############################################################################
+# Workflows commands
+###############################################################################
+@get.command(help="List and filter models")
+@click.option(
+    "--long/--short",
+    "-l/-s",
+    default=False,
+    help="Also displays the description of each workflow. Default: -s",
+    type=bool,
+)
+@click.option(
+    "--creation-date",
+    default=None,
+    help="Filter for workflows created since given date. Format: DD/MM/YYYY",
+    type=str,
+)
+@click.option(
+    "--publication-date",
+    default=None,
+    help="Filter for workflows published since given date. Format: DD/MM/YYYY",
+    type=str,
+)
+@click.option(
+    "--json/--pretty",
+    "-j/-p",
+    default=False,
+    help="Prints raw json returned from API. Default: -p",
+    type=bool
+)
+@click.pass_context
+def workflows(ctx: Context, long: bool, creation_date: str, publication_date: str, json: bool):
+    """
+    Display attributes of all workflows. Options allow more details to be listed,
+    the list of workflows to be filtered, and for the json to be displayed.
+    \f
+    Args:
+        ctx (context): contains JWT for authentication
+        long (bool): whether to print the description of each model as well
+        creation_date (str): for filtering by creation date. Format: DD/MM/YYYY
+        publication_date (str): for filtering by publication date. Format: DD/MM/YYYY
+        json (bool): whether to print the raw json returned by the DAFNI API
+    """
+    workflow_dict_list = get_all_workflows_dicts(ctx.obj["jwt"])
+    workflow_list = process_response_to_class_list(workflow_dict_list, Workflow)
+    filtered_workflow_dict_list = []
+    for workflow in workflow_list:
+        date_filter = True
+        if creation_date:
+            date_filter = workflow.filter_by_date("creation", creation_date)
+        if publication_date:
+            date_filter = workflow.filter_by_date("publication", publication_date)
+        if date_filter:
+            if json:
+                filtered_workflow_dict_list.append(workflow.dictionary)
+            else:
+                workflow.output_details(long)
+    if json:
+        print_json(filtered_workflow_dict_list)
+
+
+@get.command(help="Display metadata or version history of a particular workflow or workflows")
+@click.argument("version-id", nargs=-1, required=True)
+@click.option(
+    "--version-history/--metadata",
+    "-v/-m",
+    default=False,
+    help="Whether to display the version history of a workflow instead of the metadata. Default -m",
+)
+@click.option(
+    "--json/--pretty",
+    "-j/-p",
+    default=False,
+    help="Prints raw json returned from API. Default: -p",
+    type=bool
+)
+@click.pass_context
+def workflow(ctx: Context, version_id: List[str], version_history: bool, json: bool):
+    """
+    Displays the metadata for a workflow, for one or more versions of that workflow
+    from its version history.
+    \f
+    Args:
+        ctx (Context): contains JWT for authentication
+        version_id (list[str]): List of version IDs of the workflows to be displayed
+        version_history (bool): Whether to display version_history instead of metadata
+        json (bool): Whether to output raw json from API or pretty print metadata/version history. Defaults to False.
+    """
+    for vid in version_id:
+        workflow = Workflow(vid)
+        workflow.get_attributes_from_id(ctx.obj["jwt"], vid)
+        if version_history:
+            history = WorkflowVersionHistory(ctx.obj["jwt"], workflow)
+            history.output_version_history(json)
+        else:
+            workflow.get_metadata(ctx.obj["jwt"])
+            workflow.output_metadata(json)
 
 
 @get.command()
