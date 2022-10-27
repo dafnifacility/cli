@@ -49,16 +49,16 @@ class Workflow:
         owner: UUID of the workflow owner
         parameter_sets:
         parent: UUID of the workflow's parent
-        publication_date: Date and time the model was published
-        publisher: Organisation publishing the model
+        publication_date: Date and time the workflow was published
+        publisher: Organisation publishing the workflow
         spec: JSON description of the workflow steps
-        summary: One-line summary of what the model does
+        summary: One-line summary of what the workflow does
         version_history: A list of all versions of the workflow
-        version_message: Message attached when the model was updated to this model version
+        version_message: Message attached when the workflow was updated to this workflow version
         version_tags: Any tags created by the publisher for this version
 
-        dictionary: Full description of the model as retrieved from the API
-        metadata_obj: ModelMetadata object containing metadata for the model
+        dictionary: Full description of the workflow as retrieved from the API
+        metadata_obj: WorkflowMetadata object containing metadata for the workflow
     """
 
     def __init__(self, identifier=None):
