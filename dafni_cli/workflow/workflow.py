@@ -39,7 +39,7 @@ class Workflow:
         instances: A list of the workflow version run instances
         kind: The type of asset (will be 'W', workflow)
         metadata: a sub-group containing the workflow metadata:
-            description: More detailed information on the model
+            description: More detailed information on the workflow
             display_name: Name of the workflow used in the web app
             name: DAFNI workflow name
             publisher: Organisation publishing the model
