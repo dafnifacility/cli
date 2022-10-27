@@ -44,7 +44,6 @@ class Workflow:
             name: DAFNI workflow name
             publisher: Organisation publishing the model
             summary: One-line summary of what the workflow does
-            source_code: Generally, a link (e.g. Github) link to the project source
             status: ?
         name: DAFNI workflow name
         owner: UUID of the workflow owner
