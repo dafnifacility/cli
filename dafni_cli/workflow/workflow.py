@@ -18,7 +18,7 @@ from dafni_cli.auth import Auth
 
 class Workflow:
     """
-    Contains information about a DAFNI workflow DAFNI.
+    Contains information about a DAFNI workflow.
     The information (as attributes) for a workflow can be populated from a dictionary, or a DAFNI workflow UUID.
 
     Methods:
