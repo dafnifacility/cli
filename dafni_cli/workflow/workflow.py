@@ -147,7 +147,7 @@ class Workflow:
  
         Args:
             jwt_string (str): JWT for login purposes
-            version_id_string (str): Version ID of the model
+            version_id_string (str): Version ID of the workflow
         """
         workflow_dict = get_single_workflow_dict(jwt_string, version_id_string)
         self.set_attributes_from_dict(workflow_dict)
