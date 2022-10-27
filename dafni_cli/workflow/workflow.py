@@ -174,7 +174,7 @@ class Workflow:
             date (str): Date for which workflows are to be filtered on: format DD/MM/YYYY
 
         Returns:
-            bool: Whether to display the model based on the filter
+            bool: Whether to display the workflow based on the filter
         """
         day, month, year = date.split("/")
         date = dt.date(int(year), int(month), int(day))
