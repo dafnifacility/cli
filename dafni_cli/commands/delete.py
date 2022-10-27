@@ -128,7 +128,7 @@ def workflow(ctx: Context, version_id: List[str]):
         ctx.obj["jwt"], version_id
     )
     argument_confirmation(
-        [], [], "Confirm deletion of models?", workflow_version_details_list
+        [], [], "Confirm deletion of workflows?", workflow_version_details_list
     )
     for vid in version_id:
         delete_workflow(ctx.obj["jwt"], vid)
