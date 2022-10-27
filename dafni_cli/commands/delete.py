@@ -122,7 +122,7 @@ def workflow(ctx: Context, version_id: List[str]):
     \f
     Args:
         ctx (context): contains JWT for authentication
-        version_id (str): ID(s) of the model version(s) to be deleted
+        version_id (str): ID(s) of the workflow version(s) to be deleted
     """
     workflow_version_details_list = collate_workflow_version_details(
         ctx.obj["jwt"], version_id
