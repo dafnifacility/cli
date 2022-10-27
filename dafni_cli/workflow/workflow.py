@@ -43,7 +43,7 @@ class Workflow:
             display_name: Name of the workflow used in the web app
             name: DAFNI workflow name
             publisher: Organisation publishing the model
-            summary: One-line summary of what the model does
+            summary: One-line summary of what the workflow does
             source_code: Generally, a link (e.g. Github) link to the project source
             status: ?
         name: DAFNI workflow name
