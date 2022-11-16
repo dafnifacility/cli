@@ -3,6 +3,8 @@ from pathlib import Path
 from typing import Union, List
 
 from dafni_cli.consts import MINIO_UPLOAD_CT, DATA_UPLOAD_API_URL
+from dafni_cli.consts import DATA_DOWNLOAD_API_URL, DATA_DOWNLOAD_REDIRECT_API_URL
+
 from dafni_cli.api.dafni_api import (
     dafni_post_request,
     dafni_patch_request,
@@ -83,18 +85,26 @@ def minio_get_request(
 ) -> Union[List[dict], dict, bytes]:
     """
     GET data file from minio. If a status other than 200 is returned, an exception will be raised.
-    JWT token is not needed here because the authorisation is embedded in the URL
 
     Args:
         url (str): The url endpoint that is being queried
-        jwt (str): Not needed?
+        jwt (str): JWT
         allow_redirect (bool): Flag to allow redirects during API call. Defaults to False.
         content (bool): Flag to define if the response content is returned. default is the response json
 
     Returns:
         dict: For an endpoint returning one object, this will be a dictionary.
     """
-    response = requests.get(url, allow_redirects=allow_redirect)
+    # Substitute the minio URL returned in the request string with a 
+    file_url = url.replace(
+        DATA_DOWNLOAD_API_URL,
+        DATA_DOWNLOAD_REDIRECT_API_URL
+    )
+    response = requests.get(
+        file_url,
+        headers={"Content-Type": "application/json", "authorization": jwt},
+        allow_redirects=allow_redirect
+    )
     response.raise_for_status()
 
     if content:
