@@ -2,7 +2,7 @@ import click
 from typing import Optional, Tuple, List
 from io import BytesIO
 
-from dafni_cli.api.dafni_api import dafni_get_request
+from dafni_cli.api.minio_api import minio_get_request
 from dafni_cli.consts import CONSOLE_WIDTH, DATA_FORMATS, TAB_SPACE
 from dafni_cli.utils import (
     check_key_in_dict,
@@ -66,7 +66,7 @@ class DataFile:
         Args:
             jwt (str): Users JWT
         """
-        self.contents = BytesIO(dafni_get_request(self.download, jwt, content=True))
+        self.contents = BytesIO(minio_get_request(self.download, jwt, content=True))
 
 
 class DatasetMetadata:
