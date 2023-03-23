@@ -74,9 +74,11 @@ def process_date_filter(date_str: str) -> str:
     Returns:
         str: Processed date str to YYYY-MM-DDT00:00:00
     """
+    # TODO use this datetime format (ISO8601) and use as a constant here
     return dt.strptime(date_str, "%d/%m/%Y").strftime("%Y-%m-%dT%H:%M:%S")
 
 
+# TODO remove this whole function and use dict.get(key, default)
 def check_key_in_dict(
     input_dict: dict,
     keys: List[str],
@@ -108,6 +110,7 @@ def check_key_in_dict(
     return default
 
 
+# TODO change to process_datetime
 def process_dict_datetime(input_dict: dict, keys: List[str], default="N/A") -> str:
     """Utility function to check a nested dict for a given
     key and nested key if applicable. If the keys exist, the

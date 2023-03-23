@@ -7,12 +7,9 @@ from dafni_cli.workflow.workflow_metadata import WorkflowMetadata
 from dafni_cli.consts import CONSOLE_WIDTH, TAB_SPACE
 from dafni_cli.api.workflows_api import (
     get_single_workflow_dict,
-#    get_workflow_metadata_dict
+    #    get_workflow_metadata_dict
 )
-from dafni_cli.utils import (
-    prose_print,
-    print_json
-)
+from dafni_cli.utils import prose_print, print_json
 from dafni_cli.auth import Auth
 
 
@@ -67,7 +64,7 @@ class Workflow:
         self.auth = Auth()
         self.creation_date = None
         self.display_name = None
-        self.description = None # present??
+        self.description = None  # present??
         self.id = identifier
         self.instances = None
         self.kind = None
@@ -94,12 +91,11 @@ class Workflow:
 
         return
 
-
     def set_attributes_from_dict(self, workflow_dict: dict):
         """
         Attempts to store workflow details from a dictionary returned from the DAFNI API.
         Not all of the details need be present in workflow_dict.
- 
+
         Args:
             workflow_dict (dict): Dictionary returned from DAFNI API at /workflows endpoints
 
@@ -107,8 +103,8 @@ class Workflow:
             a set of attributes of Workflow that could not be set as they were not present in workflow_dict
         """
         workflow_attributes = self.workflow_attributes
-        #special_attributes = {"auth", "creation_date", "publication_date"}
-        #workflow_attributes = self.workflow_attributes.difference_update(special_attributes)
+        # special_attributes = {"auth", "creation_date", "publication_date"}
+        # workflow_attributes = self.workflow_attributes.difference_update(special_attributes)
 
         missing_workflow_attributes = set()
         for key in workflow_attributes:
@@ -140,11 +136,10 @@ class Workflow:
 
         return missing_workflow_attributes
 
-
     def get_attributes_from_id(self, jwt_string: str, version_id_string: str):
         """
         Retrieve workflow attributes from the DAFNI API using the /workflows/<version-id> endpoint.
- 
+
         Args:
             jwt_string (str): JWT for login purposes
             version_id_string (str): Version ID of the workflow
@@ -155,17 +150,15 @@ class Workflow:
         self.version_message = workflow_dict["version_message"]
         return
 
-
     def get_metadata(self, jwt_string: str):
         """
         Retrieve metadata for the workflow using the workflow details.
         Args:
             jwt_string (str): JWT for login purposes
         """
-#        metadata_dict = get_workflow_metadata_dict(jwt_string, self.id)
+        #        metadata_dict = get_workflow_metadata_dict(jwt_string, self.id)
         self.metadata_obj = WorkflowMetadata(self.dictionary)
         return
-
 
     def filter_by_date(self, key: str, date: str) -> bool:
         """Filters workflows based on the date given as an option.
@@ -184,7 +177,6 @@ class Workflow:
             return self.publication_date.date() >= date
         else:
             raise KeyError("Key should be CREATION or PUBLICATION")
-
 
     def output_details(self, long: bool = False):
         """
@@ -206,9 +198,6 @@ class Workflow:
             prose_print(self.description, CONSOLE_WIDTH)
         click.echo("")
         return
-
-#post /workflows/<parent_id>/upload
-#https://dafni-nims-api.secure.dafni.rl.ac.uk/swagger/
 
     def output_metadata(self, json_flag: bool = False):
         """
@@ -236,20 +225,20 @@ class Workflow:
             print_json(self.dictionary)
         return
 
-
     def output_version_details(self) -> str:
         """
         Prints version ID, display name, publication time and version message on one line
         """
-        return("ID: " +
-               self.id +
-               TAB_SPACE +
-               "Name: " +
-               self.metadata["display_name"] +
-               TAB_SPACE +
-               "Publication date: " +
-               self.publication_date.date().strftime("%B %d %Y") +
-               TAB_SPACE +
-               "Version message: " +
-               self.version_message
-               )
+        return (
+            "ID: "
+            + self.id
+            + TAB_SPACE
+            + "Name: "
+            + self.metadata["display_name"]
+            + TAB_SPACE
+            + "Publication date: "
+            + self.publication_date.date().strftime("%B %d %Y")
+            + TAB_SPACE
+            + "Version message: "
+            + self.version_message
+        )

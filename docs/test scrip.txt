@@ -1,3 +1,5 @@
+#TODO turn this into a proper script?
+
 Login:
     dafni login --help
     dafni login

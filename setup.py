@@ -1,6 +1,7 @@
 from setuptools import setup, find_packages
 from os import path
 
+# TODO use pathlib
 this_directory = path.abspath(path.dirname(__file__))
 with open(path.join(this_directory, "docs\\dafni_cli.md"), encoding="utf-8") as f:
     long_description = f.read()
@@ -10,6 +11,7 @@ with open(path.join(this_directory, "docs\\dafni_cli.md"), encoding="utf-8") as 
 
 setup(
     name="dafni-cli",
+    # TODO see if we can use dafni python packaging
     version="0.0.1",
     author="DAFNI Facility",
     author_email="support@dafni.ac.uk",

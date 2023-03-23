@@ -4,6 +4,7 @@ from dafni_cli.consts import DISCOVERY_API_URL
 from dafni_cli.api.dafni_api import dafni_get_request, dafni_post_request
 
 
+# TODO this should work with pagination - check
 def get_all_datasets(jwt: str, filters: dict) -> List[dict]:
     """Function to retrieve all datasets available to the
     given user
