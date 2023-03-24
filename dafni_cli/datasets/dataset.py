@@ -45,7 +45,7 @@ class Dataset:
         self.title = None
         self.version_id = None
 
-    def set_details_from_dict(self, dataset: dict):
+    def set_attributes_from_dict(self, dataset: dict):
         """Helper function to populate the Dataset details
         based on a given DAFNI Dataset client model
 

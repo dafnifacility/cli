@@ -9,6 +9,7 @@ import json
 from dafni_cli.consts import LOGIN_API_URL, JWT_FILENAME, JWT_KEY, DATE_TIME_FORMAT
 
 
+# TODO add use of refresh tokens for login
 def get_new_jwt(user_name: str, password: str) -> dict:
     """
     Get a JWT for the supplied user name for DAFNI access
@@ -28,11 +29,11 @@ def get_new_jwt(user_name: str, password: str) -> dict:
             "password": password,
             "client_id": "dafni-main",
             "grant_type": "password",
-            "scope": "openid"
-            },
+            "scope": "openid",
+        },
         # The following options cause a login failure.
-        #headers={"Content-Type": "application/json"},
-        #allow_redirects=False,
+        # headers={"Content-Type": "application/json"},
+        # allow_redirects=False,
     )
     # Get the JWT from the data returned from the login connection
     jwt = response.json()
@@ -49,7 +50,7 @@ def get_new_jwt(user_name: str, password: str) -> dict:
 
 def process_jwt(jwt: str, user_name: str) -> dict:
     """
-    Extract expiry date, user ID and expiry date from a JWT
+    Extract expiry date and user ID from a JWT
 
     Args:
         jwt (str): Base64 encoded JWT string
@@ -161,6 +162,7 @@ def login():
         )
 
 
+# TODO this should call to Keycloak to logout
 @click.command(help="Logout of DAFNI")
 def logout():
     """

@@ -1,3 +1,5 @@
+# TODO move to more sensible folder, trim down and update packages
+
 altgraph==0.17
 appdirs==1.4.4
 astroid==2.5.1

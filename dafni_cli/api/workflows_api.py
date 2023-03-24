@@ -23,6 +23,7 @@ from dafni_cli.api.dafni_api import (
 )
 
 
+# TODO align function naming
 def get_all_workflows_dicts(jwt: str) -> List[dict]:
     """
     Call the "workflows_list" endpoint and return the resulting list of dictionaries.
@@ -52,45 +53,9 @@ def get_single_workflow_dict(jwt: str, workflow_version_id: str) -> dict:
     return dafni_get_request(url, jwt)
 
 
-# TODO: Remove - deprecated
-#def get_workflow_metadata_dict(jwt: str, workflow_version_id: str) -> dict:
-#    """
-#    Call workflows_read endpoint and return the resulting dictionary.
-#
-#    Args:
-#        jwt (str): JWT
-#        workflow_version_id (str): model version ID for selected model
-#
-#    Returns:
-#        dict: dictionary for the metadata of selected workflow
-#    """
-#    url = WORKFLOWS_API_URL + "/workflows/" + workflow_version_id + "/"
-#    return dafni_get_request(url, jwt)
-
-
-#def validate_model_definition(jwt: str, workflow_definition: Path) -> Tuple[bool, str]:
-#    """Validates the workflow definition file using a PUT to the DAFNI API
-#
-#    Args:
-#        jwt (str): JWT
-#        model_definition (Path): Path to the model definition file
-#
-#    Returns:
-#        bool: Whether the model definition is valid or not
-#        List[str]: Errors encountered if the model definition file is not valid
-#    """
-#    content_type = VALIDATE_MODEL_CT
-#    url = WORKFLOWS_API_URL + "/models/definition/validate/"
-#    with open(workflow_definition, "rb") as md:
-#        response = dafni_put_request(url, jwt, md, content_type)
-#    if response.json()["valid"]:
-#        return True, ""
-#    else:
-#        return False, response.json()["errors"][0]
-
-
-#@multimethod
-def upload_workflow(jwt: str, file_path: Path, version_message: str, parent_id: str) -> Tuple[str, dict]:
+def upload_workflow(
+    jwt: str, file_path: Path, version_message: str, parent_id: str
+) -> Tuple[str, dict]:
     """
     Uploads a DAFNI workflow specified in a JSON file
 
@@ -115,8 +80,8 @@ def upload_workflow(jwt: str, file_path: Path, version_message: str, parent_id: 
         return dafni_post_request(url, jwt, workflow_description)
 
 
-#@multimethod
-#def upload_workflow(jwt: str, workflow_description: dict) -> Tuple[str, dict]:
+# TODO rename so different names and see if used
+# def upload_workflow(jwt: str, workflow_description: dict) -> Tuple[str, dict]:
 #    """
 #    Uploads a DAFNI workflow specified in a dictionary to the platform
 #
