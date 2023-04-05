@@ -25,7 +25,7 @@ Datasets:
 * View specific dataset latest metadata - DONE (But have to specify ID of the latest version)
 * View version history for specific dataset (format as datasets available list) - DONE
 * View specific historical dataset version metadata (format as specific datasets latest metadata) - DONE
-* Download dataset data and metadata - BROKEN (and dataset zip only)
+* Download dataset data and metadata - BROKEN (fixed in https://github.com/NewcastleRSE/dafni-cli, is dataset zip only - metadata accessed separately)
 * Upload a new dataset - BROKEN (BrokenPipeError, also not clear how to define the json definition file)
 * Update dataset metadata
 * Update dataset data files to create new version
