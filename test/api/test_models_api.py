@@ -10,14 +10,14 @@ from test.fixtures.jwt_fixtures import request_response_fixture, JWT
 
 @patch("dafni_cli.api.models_api.dafni_get_request")
 class TestGetModelsDicts:
-    """Test class to test the get_models_dicts functionality"""
+    """Test class to test the get_all_models functionality"""
 
     def test_dafni_get_request_called_correctly(self, mock_get):
         # SETUP
         mock_get.return_value = [{"key": "value"}]
 
         # CALL
-        result = models_api.get_models_dicts(JWT)
+        result = models_api.get_all_models(JWT)
 
         # ASSERT
         assert result == [{"key": "value"}]
@@ -26,7 +26,7 @@ class TestGetModelsDicts:
 
 @patch("dafni_cli.api.models_api.dafni_get_request")
 class TestGetSingleModelDict:
-    """Test class to test the get_single_model_dict functionality"""
+    """Test class to test the get_model functionality"""
 
     def test_dafni_get_request_called_correctly(self, mock_get):
         # SETUP
@@ -35,7 +35,7 @@ class TestGetSingleModelDict:
         model_version = "version_1"
 
         # CALL
-        result = models_api.get_single_model_dict(JWT, model_version)
+        result = models_api.get_model(JWT, model_version)
 
         # ASSERT
         assert result == {"key": "value"}

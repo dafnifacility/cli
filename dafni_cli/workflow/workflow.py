@@ -6,7 +6,7 @@ from dateutil import parser
 from dafni_cli.workflow.workflow_metadata import WorkflowMetadata
 from dafni_cli.consts import CONSOLE_WIDTH, TAB_SPACE
 from dafni_cli.api.workflows_api import (
-    get_single_workflow_dict,
+    get_workflow,
     #    get_workflow_metadata_dict
 )
 from dafni_cli.utils import prose_print, print_json
@@ -144,7 +144,7 @@ class Workflow:
             jwt_string (str): JWT for login purposes
             version_id_string (str): Version ID of the workflow
         """
-        workflow_dict = get_single_workflow_dict(jwt_string, version_id_string)
+        workflow_dict = get_workflow(jwt_string, version_id_string)
         self.set_attributes_from_dict(workflow_dict)
         # TODO: Check: Version message key appears on single workflow API response, but not list of all workflows response
         self.version_message = workflow_dict["version_message"]

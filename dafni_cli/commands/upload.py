@@ -11,7 +11,7 @@ from dafni_cli.api.models_api import (
     validate_model_definition,
     get_model_upload_urls,
     model_version_ingest,
-    get_models_dicts
+    get_all_models
 )
 from dafni_cli.api.workflows_api import upload_workflow
 from dafni_cli.api.minio_api import upload_file_to_minio
@@ -295,7 +295,7 @@ def workflow_params(
     click.echo("Validating workflow definition")
     with open(definition, "r") as f:
         workflow_description = json.load(f)
-    model_list = get_models_dicts(ctx.obj["jwt"])
+    model_list = get_all_models(ctx.obj["jwt"])
     for step in definition.spec:
         pass
 

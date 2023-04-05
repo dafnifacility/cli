@@ -90,7 +90,7 @@ class TestModel:
             assert instance.creation_time == dt(2021, 1, 1, tzinfo=tzutc())
             assert instance.publication_time == dt(2021, 1, 2, tzinfo=tzutc())
 
-    @patch("dafni_cli.model.model.get_single_model_dict")
+    @patch("dafni_cli.model.model.get_model")
     @patch.object(model.Model, "set_details_from_dict")
     class TestGetDetailsFromId:
         """Test class to test the Model.get_details_from_id() functionality"""

@@ -3,8 +3,8 @@ from click import Context
 from typing import List, Optional
 
 from dafni_cli.api.datasets_api import get_all_datasets, get_latest_dataset_metadata
-from dafni_cli.api.models_api import get_models_dicts
-from dafni_cli.api.workflows_api import get_all_workflows_dicts
+from dafni_cli.api.models_api import get_all_models
+from dafni_cli.api.workflows_api import get_all_workflows
 from dafni_cli.datasets import (
     dataset_filtering,
     dataset_metadata,
@@ -78,7 +78,7 @@ def models(ctx: Context, long: bool, creation_date: str, publication_date: str, 
         publication_date (str): for filtering by publication date. Format: DD/MM/YYYY
         json (bool): whether to print the raw json returned by the DAFNI API
     """
-    model_dict_list = get_models_dicts(ctx.obj["jwt"])
+    model_dict_list = get_all_models(ctx.obj["jwt"])
     model_list = process_response_to_class_list(model_dict_list, Model)
     filtered_model_dict_list = []
     for model in model_list:
@@ -281,7 +281,7 @@ def workflows(ctx: Context, long: bool, creation_date: str, publication_date: st
         publication_date (str): for filtering by publication date. Format: DD/MM/YYYY
         json (bool): whether to print the raw json returned by the DAFNI API
     """
-    workflow_dict_list = get_all_workflows_dicts(ctx.obj["jwt"])
+    workflow_dict_list = get_all_workflows(ctx.obj["jwt"])
     workflow_list = process_response_to_class_list(workflow_dict_list, Workflow)
     filtered_workflow_dict_list = []
     for workflow in workflow_list:

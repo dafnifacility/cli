@@ -11,7 +11,7 @@ from dafni_cli.api.dafni_api import (
 )
 
 
-def get_models_dicts(jwt: str) -> List[dict]:
+def get_all_models(jwt: str) -> List[dict]:
     """
     Function to call the "models_list" endpoint and return the resulting list of dictionaries.
 
@@ -25,7 +25,7 @@ def get_models_dicts(jwt: str) -> List[dict]:
     return dafni_get_request(url, jwt)
 
 
-def get_single_model_dict(jwt: str, model_version_id: str) -> dict:
+def get_model(jwt: str, model_version_id: str) -> dict:
     """
     Function to call the "models_read" endpoint and return the resulting dictionary.
 

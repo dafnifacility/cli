@@ -7,7 +7,7 @@ from dateutil import parser
 from dafni_cli.model.model_metadata import ModelMetadata
 from dafni_cli.consts import CONSOLE_WIDTH, TAB_SPACE
 from dafni_cli.api.models_api import (
-    get_single_model_dict,
+    get_model,
 #    get_model_metadata_dict,
 )
 from dafni_cli.utils import (
@@ -176,7 +176,7 @@ class Model:
             jwt_string (str): JWT for login purposes
             version_id_string (str): Version ID of the model
         """
-        model_dict = get_single_model_dict(jwt_string, version_id_string)
+        model_dict = get_model(jwt_string, version_id_string)
         self.set_attributes_from_dict(model_dict)
         # Version message key appears on single model API response, but not list of all models response
         self.version_message = model_dict["version_message"]
