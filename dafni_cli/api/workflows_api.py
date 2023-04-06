@@ -12,7 +12,6 @@ from tokenize import String
 from requests import Response
 from typing import List, Tuple
 from pathlib import Path
-from multimethod import multimethod
 
 from dafni_cli.consts import WORKFLOWS_API_URL
 from dafni_cli.api.dafni_api import (
