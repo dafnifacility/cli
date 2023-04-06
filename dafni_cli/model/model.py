@@ -31,7 +31,7 @@ class Model:
 
     Attributes:
         api_version: Version of the DAFNI API used to retrieve model data
-        auth: Authentication credentials used to retreive model data
+        auth: Authentication credentials used to retrieve model datad
         container: Location of the docker image the model should be run in
         container_version: Version of the docker image
         creation_date: Date and time the model was created
@@ -85,7 +85,6 @@ class Model:
 
         # Attributes that are not also workflow dictionary keys
         self.dictionary = None
-        pass
 
 
     def set_metadata_from_dict(self, model_dict: dict):
@@ -115,7 +114,6 @@ class Model:
                 self.metadata[key] =  model_dict[key]
             except:
                 missing_metadata_attributes.add(key)
-        pass
 
 
     def set_attributes_from_dict(self, model_dict: dict):
@@ -190,7 +188,6 @@ class Model:
         """
 #        metadata_dict = get_model_metadata_dict(jwt_string, self.id)
         self.metadata_obj = ModelMetadata(self.dictionary)
-        pass
 
 
     def filter_by_date(self, key: str, date: str) -> bool:

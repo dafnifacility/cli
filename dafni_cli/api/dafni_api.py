@@ -4,6 +4,7 @@ from requests import Response
 
 
 # TODO have same optional flags for each function
+# TODO Fix W3101:missing-timeout's
 def dafni_get_request(
     url: str, jwt: str, allow_redirect: bool = False, content: bool = False
 ) -> Union[List[dict], dict, bytes]:
