@@ -1,15 +1,17 @@
-from setuptools import setup, find_packages
-from os import path
+from pathlib import Path
 
-this_directory = path.abspath(path.dirname(__file__))
-with open(path.join(this_directory, "docs\\dafni_cli.md"), encoding="utf-8") as f:
+from setuptools import setup, find_packages
+
+with open(Path("docs", "dafni_cli.md"), encoding="utf-8") as f:
     long_description = f.read()
+
 # The dynamic metadata for the python pip distributable.
 # This is used as the build script for setuptools, telling it about the package and which files to include.
 # For more information, see https://packaging.python.org/tutorials/packaging-projects/
 
 setup(
     name="dafni-cli",
+    # TODO see if we can use dafni python packaging
     version="0.0.1",
     author="DAFNI Facility",
     author_email="support@dafni.ac.uk",

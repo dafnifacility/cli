@@ -1,5 +1,84 @@
 # The DAFNI CLI
 
+## Feature Priority
+From the use cases described above, the following list of features is defined. These are placed in priority order, taking in to account the use cases above as well as the work required to develop each feature. 
+
+Admin #1:
+* Log in (Log out should be automatic) - DONE 
+* See own user details  - DONE
+    + User Name
+    + User UUID
+
+Models:
+* List all models available to user - DONE
+* Filter list of models available to user - DONE
+* View specific model latest metadata (model definition file..?) - DONE
+* View version history for specific model (format as models available list) - DONE
+* View specific historical model version metadata (format as specific model latest metadata) - DONE
+* Upload a new model - DONE (But need to get parent ID from JSON output or UI)
+
+Python packaging of CLI
+
+Datasets:
+* List all datasets available to user - DONE
+* Filter list of datasets available to user. - DONE
+* View specific dataset latest metadata - DONE (But have to specify ID of the latest version)
+* View version history for specific dataset (format as datasets available list) - DONE
+* View specific historical dataset version metadata (format as specific datasets latest metadata) - DONE
+* Download dataset data and metadata - BROKEN (fixed in https://github.com/NewcastleRSE/dafni-cli, is dataset zip only - metadata accessed separately)
+* Upload a new dataset - BROKEN (BrokenPipeError, also not clear how to define the json definition file)
+* Update dataset metadata
+* Update dataset data files to create new version
+
+Deleting models and datasets
+* Delete a model - DONE
+* Delete a dataset
+* Delete a dataset version
+* Delete a workflow - DONE
+
+Workflows:
+* List all workflows available to user - DONE
+* Filter list of available workflows - DONE
+* View specific workflow metadata - DONE
+* List all workflow instances available to user
+* Filter list of available workflow instances
+* View specific workflow instance metadata
+* Create workflow (using workflow definition file) - BROKEN
+* Edit workflow env params and create new workflow
+* Edit workflow data slots and create new workflow
+
+Groups: 
+* List available groups
+* Create new group
+* View group information (all users and all shared assets with their permissions)
+* Add user(s) to a group (using id numbers?)
+* Remove user(s) from a group
+* Add a dataset to a group
+* Remove a dataset from a group
+* Add a model to a group
+* Remove a model from a group
+* Edit dataset permissions
+* Edit model permissions
+* Non-admin to leave a group
+* Edit group title
+* Edit group description
+
+Public:
+* Request global dataset permissions change -> Making them public / private (user P.O.V)
+
+Admin #2:
+* Search for another users' details
+
+Future:
+* Visualisation features (more thought needed here on what to pass back to the user - templates perhaps?)
+* Download models (not currently implemented)
+* Request a DAFNI account (not currently implemented)
+* Admin functions
+    + (e.g adding users? or confirming accounts?)
+    + managing assets - removing/changing asset visibility?
+    + service/outage message management?
+    + (far far future) billing/accounting
+​
 ## Use Cases
 The DAFNI CLI has been identified as requirement for in the following cases:
 ### 1. CERAF project
@@ -36,7 +115,7 @@ _For more information contact Bethan Perkins / James Hannah / Brian Matthews_
 
 In November 2019 a forum was held with DAFNI pilot modellers in order to ascertain their priority features for the DAFNI platform. A DAFNI CLI was seen as a very valuable asset by the group. The following summarise the [notes taken during the forum](https://wiki.dafni.rl.ac.uk/display/DAFNIDEV/Observations+and+Conclusions).
 
-* THE CLI was consistenly prioritised above other features by all modellers
+* THE CLI was consistently prioritised above other features by all modellers
 * Modellers want to use a CLI for smoothly transitioning models from their local development environments to runtime/compute environments.
 * A CLI is seen as more "trustworthy" than a github
 * Modellers would use a CLI for the following:
@@ -65,7 +144,7 @@ _For more information, see link_
 
 ### 4. Food Network users
 
-A food network group are currently onboarding to DAFNI would like to use the platform as an area to host large datasets to support their work. The aspect which relates to a CLI is that of being able to autmoatically download latest results into a local web-app. 
+A food network group are currently onboarding to DAFNI would like to use the platform as an area to host large datasets to support their work. The aspect which relates to a CLI is that of being able to automatically download latest results into a local web-app. 
 
 
 ##### Key priority in this case
@@ -73,85 +152,6 @@ A food network group are currently onboarding to DAFNI would like to use the pla
 
 _For more information, contact Tom Gowland / Marion Samler_
 
-## Feature Priority
-From the use cases described above, the following list of features is defined. These are placed in priority order, taking in to account the use cases above as well as the work required to develop each feature. 
-
-Admin #1:
-* Log in (Log out should be automatic) - DONE 
-* See own user details  - DONE
-    + User Name
-    + User UUID
-
-Models:
-* List all models available to user - DONE
-* Filter list of models available to user - DONE
-* View specific model latest metadata (model definition file..?) - DONE
-* View version history for specific model (format as models available list) - DONE
-* View specific historical model version metadata (format as specific model latest metadata) - DONE
-* Upload a new model - DONE
-
-Python packaging of CLI - DONE
-
-Datasets:
-* List all datasets available to user - DONE
-* Filter list of datasets available to user. - DONE
-* View specific dataset latest metadata - DONE
-* View version history for specific dataset (format as datasets available list) - DONE
-* View specific historical dataset version metadata (format as specific datasets latest metadata) - DONE
-* Download dataset data and metadata - DONE
-* Upload a new dataset - DONE
-* Update dataset metadata
-* Update dataset data files to create new version
-
-Deleting models and datasets
-* Delete a model - DONE
-* Delete a dataset
-* Delete a dataset version]
-
-Workflows:
-* List all workflows available to user
-* Filter list of available workflows
-* View specific workflow metadata
-* List all workflow instances available to user
-* Filter list of available workflow instances
-* View specific workflow instance metadata
-* Execute a workflow (without changing any properties of the workflow) to create a new instance
-* Create workflow (using workflow definition file)
-* Edit workflow env params and create new workflow 
-* Edit workflow data slots and create new workflow
-
-Groups: 
-* List available groups
-* Create new group
-* View group information (all users and all shared assets with their permissions)
-* Add user(s) to a group (using id numbers?)
-* Remove user(s) from a group
-* Add a dataset to a group
-* Remove a dataset from a group
-* Add a model to a group
-* Remove a model from a group
-* Edit dataset permissions
-* Edit model permissions
-* Non-admin to leave a group
-* Edit group title
-* Edit group description
-
-Public:
-* Request global dataset permissions change -> Making them public / private (user P.O.V)
-
-Admin #2:
-* Search for another users' details
-
-Future:
-* Visualsiation features (more thought needed here on what to pass back to the user - templates perhaps?)
-* Download models (not currently implemented)
-* Request a DAFNI account (not currently implemented)
-* Admin functions
-    + (e.g adding users? or confirming accounts?)
-    + managing assets - removing/changing asset visibility?
-    + service/outage message management?
-    + (far far future) billing/accounting
-​
 ## Functions
 * Will have to login to DAFNI with a `POST` to the login app with a username and password
 * When Keycloak comes in, there will be an OAuth flow to be able to do this in a better way
@@ -172,18 +172,7 @@ Future:
 * Probably think we should use [Click](https://github.com/pallets/click)
 * Need to keep in mind that the APIs are currently not fixed (we're making best efforts to not change them too much but they are liable to change) The CLI does need to be fixed so it probably needs to send a UserAgent API header to let us know which version of the API they're using so that in future we can know not to break stuff that's going to affect a lot of people.
 
+
 ## DAFNI Endpoint Information
-The Swagger documents for the DAFNI components are available at the following links:
-* [DSS](https://app.swaggerhub.com/apis/tg137/DSS-API/1.0.0)
-* [NIMS](https://app.swaggerhub.com/apis/tg137/NIMS-API/1.0.0)
-* [Search and Discovery](https://app.swaggerhub.com/apis/tg137/S-AND-D-API/1.0.0)
-* [NIVS](https://app.swaggerhub.com/apis/tg137/nivs-api/1.0.0)
-
-Unfortunately, due to a lack of understanding about Swagger auto-generation early in the project, there are known mistakes and omissions in the Swagger documents where the auto-generation has been mis-configured or not overridden in the correct way. However, the DAFNI web app makes all of the same calls that the CLI will need to and can be used as the true source of information about the endpoints.
-
-The web app code (in VueJS) is available [here](https://github.com/dafnifacility/web-app-mirror) and the front end itself can be accessed (with a DAFNI account) [here](https://facility.secure.dafni.rl.ac.uk/).
 
 ​Finally, a start has already been made to implementing a client library to allow for automatic upload to the NIMS as part of a GitHub action. This codebase can be used in order to get an idea of how some of the calls to login are made ([specific login code here](https://github.com/dafnifacility/command-line-interface/blob/main/dafni_cli/login.py)) as well as also having some of the [NIMS calls](https://github.com/dafnifacility/command-line-interface/blob/main/dafni_cli/nims.py) that will be required in this CLI.
-## Tasks
- - Bethan to firm up use cases and prioritise these
- - James to think about syntax of the CLI and make a decision for us to fight about

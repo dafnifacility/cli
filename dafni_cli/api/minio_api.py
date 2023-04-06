@@ -40,6 +40,7 @@ def get_data_upload_id(jwt: str) -> str:
     """
 
     url = f"{DATA_UPLOAD_API_URL}/nid/upload/"
+    # TODO remove this - no cancel tokens in cli - this is front-end-y
     data = {"cancelToken": {"promise": {}}}
 
     return dafni_post_request(url, jwt, data, allow_redirect=True)
