@@ -37,9 +37,9 @@ class Auth:
         self.view = False
 
         if auth_dict:
-            self.set_details_from_dict(auth_dict)
+            self.set_attributes_from_dict(auth_dict)
 
-    def set_details_from_dict(self, auth_dict: dict):
+    def set_attributes_from_dict(self, auth_dict: dict):
         """Function to set the Auth attributes based on a given auth dictionary
 
         Args:

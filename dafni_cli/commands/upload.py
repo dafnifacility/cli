@@ -102,7 +102,7 @@ def model(
             )
         else:
             click.echo(e)
-        raise SystemExit(1)
+        raise SystemExit(1) from e
     if not valid:
         click.echo(
             "Definition validation failed with the following errors: " + error_message

@@ -13,7 +13,7 @@ class DatasetVersionHistory:
 
     Methods:
         __init__(jwt (str), metadata (dict)): DatasetVersionHistory constructor
-        set_details_from_dict(metadata (dict)): Function to set the class details from a given dict
+        set_attributes_from_dict(metadata (dict)): Function to set the class details from a given dict
         process_version_history(jwt (str), dataset (dict)): Iterates through all versions and outputs details
 
     Attributes:
@@ -36,10 +36,10 @@ class DatasetVersionHistory:
         self.version_ids = None
 
         if metadata:
-            self.set_details_from_dict(metadata)
+            self.set_attributes_from_dict(metadata)
 
-    def set_details_from_dict(self, metadata: dict):
-        """Helper function to populate the DatasetVersionHistory details
+    def set_attributes_from_dict(self, metadata: dict):
+        """Helper function to populate the DatasetVersionHistory attributes
         based on a given DAFNI Dataset Metadata response
 
         Args:

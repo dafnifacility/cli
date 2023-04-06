@@ -41,9 +41,9 @@ class DataFile:
         self.contents = None
 
         if file_dict:
-            self.set_details_from_dict(file_dict)
+            self.set_attributes_from_dict(file_dict)
 
-    def set_details_from_dict(self, file_dict: dict):
+    def set_attributes_from_dict(self, file_dict: dict):
         """Function to set the DataFile attributes based on a given
         Dataset metadata client model
 
@@ -75,7 +75,7 @@ class DatasetMetadata:
 
     Methods:
         __init__(): DatasetMetadata constructor
-        set_details_from_dict(jwt (str), dataset (dict)): Sets the dataset metadata attributes from given client model dict
+        set_attributes_from_dict(jwt (str), dataset (dict)): Sets the dataset metadata attributes from given client model dict
         output_metadata_details(): Prints key information of the dataset metadata to console.
         output_datafiles_table(): Prints a table to the console of all File related information
         output_metadata_extra_details(): Prints extra details relating to the Dataset Metadata
@@ -124,9 +124,9 @@ class DatasetMetadata:
         self.version_id = None
 
         if dataset_dict:
-            self.set_details_from_dict(dataset_dict)
+            self.set_attributes_from_dict(dataset_dict)
 
-    def set_details_from_dict(self, dataset_dict: dict):
+    def set_attributes_from_dict(self, dataset_dict: dict):
         """Helper function to populate the DatasetMetadata details
         based on a given DAFNI Dataset metadata client model
 

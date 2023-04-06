@@ -73,7 +73,7 @@ class TestProsePrint:
 class TestProcessResponseToClassList:
     """Test class to test the process_response_to_class_list() functionality"""
 
-    @patch.object(Model, "set_details_from_dict")
+    @patch.object(Model, "set_attributes_from_dict")
     def test_model_created_and_details_from_dict_called_for_each_model(
         self, mock_set, get_models_list_fixture
     ):

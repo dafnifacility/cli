@@ -122,7 +122,7 @@ class Model:
     def set_attributes_from_dict(self, model_dict: dict):
         """
         Attempts to store model attributes from a dictionary returned from the DAFNI API.
-        Not all of the details need be present in model_dict. If the "metadata" key is
+        Not all of the attributes need be present in model_dict. If the "metadata" key is
         not present, attempt to create it
         
         Args:

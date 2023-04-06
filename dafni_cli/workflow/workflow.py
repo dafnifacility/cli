@@ -93,8 +93,8 @@ class Workflow:
 
     def set_attributes_from_dict(self, workflow_dict: dict):
         """
-        Attempts to store workflow details from a dictionary returned from the DAFNI API.
-        Not all of the details need be present in workflow_dict.
+        Attempts to store workflow attributes from a dictionary returned from the DAFNI API.
+        Not all of the attributes need be present in workflow_dict.
 
         Args:
             workflow_dict (dict): Dictionary returned from DAFNI API at /workflows endpoints

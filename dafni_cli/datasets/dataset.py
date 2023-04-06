@@ -12,7 +12,7 @@ class Dataset:
 
     Methods:
         __init__(): Dataset constructor
-        set_details_from_dict(jwt (str), dataset (dict)): Sets the dataset attributes from given client model dict
+        set_attributes_from_dict(jwt (str), dataset (dict)): Sets the dataset attributes from given client model dict
         output_dataset_details(): Prints key information of the dataset to console.
 
     Attributes:
@@ -46,7 +46,7 @@ class Dataset:
         self.version_id = None
 
     def set_attributes_from_dict(self, dataset: dict):
-        """Helper function to populate the Dataset details
+        """Helper function to populate the Dataset attributes
         based on a given DAFNI Dataset client model
 
         Args:

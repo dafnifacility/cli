@@ -15,7 +15,7 @@ from test.fixtures.dataset_fixtures import (
 class TestDataFile:
     """Test class to test the DataFile Class"""
 
-    @patch.object(DataFile, "set_details_from_dict")
+    @patch.object(DataFile, "set_attributes_from_dict")
     class TestInit:
         """Test class to test the DataFile constructor"""
 
@@ -27,7 +27,7 @@ class TestDataFile:
             # ASSERT
             assert all(getattr(instance, attr) is None for attr in expected_attr)
 
-        def test_set_details_from_dict_called_if_given_a_dict(self, mock_set):
+        def test_set_attributes_from_dict_called_if_given_a_dict(self, mock_set):
             # SETUP
             file_dict = {"key": "value"}
             # CALL
@@ -54,7 +54,7 @@ class TestDataFile:
             instance = DataFile()
 
             # CALL
-            instance.set_details_from_dict(file_dict)
+            instance.set_attributes_from_dict(file_dict)
 
             # ASSERT
             print(mock_process.call_args_list)
@@ -73,7 +73,7 @@ class TestDataFile:
             instance = DataFile()
 
             # CALL
-            instance.set_details_from_dict(file_dict)
+            instance.set_attributes_from_dict(file_dict)
 
             # ASSERT
             assert mock_check.call_args_list == [
@@ -110,7 +110,7 @@ class TestDataFile:
             instance = DataFile()
 
             # CALL
-            instance.set_details_from_dict(file_dict)
+            instance.set_attributes_from_dict(file_dict)
 
             # ASSERT
             assert instance.format == expected
@@ -175,8 +175,8 @@ class TestDatasetMeta:
             assert all(getattr(instance, key) is None for key in none_keys)
             assert all(getattr(instance, key) == [] for key in array_keys)
 
-        @patch.object(DatasetMetadata, "set_details_from_dict")
-        def test_set_details_from_dict_called_if_give_dict(self, mock_set):
+        @patch.object(DatasetMetadata, "set_attributes_from_dict")
+        def test_set_attributes_from_dict_called_if_give_dict(self, mock_set):
             # SETUP
             dataset_dict = {"key": "value"}
             # CALL
@@ -185,7 +185,7 @@ class TestDatasetMeta:
             mock_set.assert_called_once_with(dataset_dict)
 
     class TestSetDetailsFromDict:
-        """Test class to test the set_details_from_dict functionality"""
+        """Test class to test the set_attributes_from_dict functionality"""
 
         @patch.object(DataFile, "__init__")
         @patch("dafni_cli.datasets.dataset_metadata.check_key_in_dict")
@@ -222,7 +222,7 @@ class TestDatasetMeta:
             }
 
             # CALL
-            instance.set_details_from_dict(dataset_dict)
+            instance.set_attributes_from_dict(dataset_dict)
 
             # ASSERT
             assert mock_date.call_args_list == [
@@ -288,12 +288,12 @@ class TestDatasetMeta:
             }
 
             # CALL
-            instance.set_details_from_dict(dataset_dict)
+            instance.set_attributes_from_dict(dataset_dict)
 
             # ASSERT
             mock_datafile.assert_not_called()
 
-        def test_set_details_from_dict_sets_attributes_correctly(
+        def test_set_attributes_from_dict_sets_attributes_correctly(
             self, dataset_metadata_fixture
         ):
             # SETUP
@@ -301,7 +301,7 @@ class TestDatasetMeta:
             instance = DatasetMetadata()
 
             # CALL
-            instance.set_details_from_dict(dataset_dict)
+            instance.set_attributes_from_dict(dataset_dict)
 
             # ASSERT
             assert instance.created == "March 16 2021"

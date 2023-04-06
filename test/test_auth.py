@@ -75,7 +75,7 @@ class TestAuth:
 
     @patch("dafni_cli.auth.check_key_in_dict")
     class TestSetDetailsFromDict:
-        """Test class for auth.set_details_from_dict() functionality"""
+        """Test class for auth.set_attributes_from_dict() functionality"""
 
         def test_check_key_in_dict_called_with_correct_arguments(
                 self, mock_check
@@ -85,7 +85,7 @@ class TestAuth:
             dictionary = {}
 
             # CALL
-            instance.set_details_from_dict(dictionary)
+            instance.set_attributes_from_dict(dictionary)
 
             # ASSERT
             assert mock_check.call_args_list == [

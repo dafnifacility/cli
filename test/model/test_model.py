@@ -63,7 +63,7 @@ class TestModel:
             model_dict = get_models_list_fixture[0]
 
             # CALL
-            instance.set_details_from_dict(model_dict)
+            instance.set_attributes_from_dict(model_dict)
 
             # ASSERT
             assert instance.container == model_dict["container"]
@@ -84,14 +84,14 @@ class TestModel:
             model_dict = get_models_list_fixture[0]
 
             # CALL
-            instance.set_details_from_dict(model_dict)
+            instance.set_attributes_from_dict(model_dict)
 
             # ASSERT
             assert instance.creation_time == dt(2021, 1, 1, tzinfo=tzutc())
             assert instance.publication_time == dt(2021, 1, 2, tzinfo=tzutc())
 
     @patch("dafni_cli.model.model.get_model")
-    @patch.object(model.Model, "set_details_from_dict")
+    @patch.object(model.Model, "set_attributes_from_dict")
     class TestGetDetailsFromId:
         """Test class to test the Model.get_details_from_id() functionality"""
 
