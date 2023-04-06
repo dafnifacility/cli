@@ -39,7 +39,6 @@ class ModelVersionHistory:
                 version = Model()
                 version.get_attributes_from_id(jwt_string, version_dict["id"])
                 self.history.append(version)
-        pass
 
     def output_version_history(self, json_flag: bool = False):
         """
@@ -65,4 +64,3 @@ class ModelVersionHistory:
                 click.echo("")
         else:
             print_json(self.dictionary)
-        pass

@@ -37,7 +37,7 @@ def params_table_header(title_column_width: int, default_column_width: int) -> s
         f"{INPUT_MAX_HEADER:{INPUT_MIN_MAX_COLUMN_WIDTH}}"
         f"{INPUT_DEFAULT_HEADER:{default_column_width}}"
         f"{INPUT_DESCRIPTION_HEADER}\n"
-        + f"-"
+        + "-"
         * (
             title_column_width
             + INPUT_TYPE_COLUMN_WIDTH
@@ -63,7 +63,7 @@ def outputs_table_header(name_column_width: int) -> str:
         f"{OUTPUT_NAME_HEADER:{name_column_width}}"
         f"{OUTPUT_FORMAT_HEADER:{OUTPUT_FORMAT_COLUMN_WIDTH}}"
         f"{OUTPUT_SUMMARY_HEADER}\n"
-        + f"-"
+        + "-"
         * (name_column_width + OUTPUT_FORMAT_COLUMN_WIDTH + OUTPUT_SUMMARY_COLUMN_WIDTH)
         + "\n"
     )

@@ -1,7 +1,6 @@
-from xml.sax.xmlreader import InputSource
-import click
 import datetime as dt
 
+import click
 from dateutil import parser
 
 from dafni_cli.model.model_metadata import ModelMetadata
