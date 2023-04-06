@@ -4,7 +4,6 @@ from dafni_cli.commands.login import login, logout
 from dafni_cli.commands.delete import delete
 from dafni_cli.commands.upload import upload
 from dafni_cli.commands.download import download
-from dafni_cli.commands.execute import execute
 
 
 @click.group()
@@ -19,7 +18,6 @@ dafni.add_command(get)
 dafni.add_command(delete)
 dafni.add_command(upload)
 dafni.add_command(download)
-dafni.add_command(execute)
 
 if __name__ == "__main__":
     dafni()

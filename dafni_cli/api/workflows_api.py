@@ -107,19 +107,3 @@ def delete_workflow(jwt: str, workflow_version_id: str) -> Response:
     url = WORKFLOWS_API_URL + "/workflows/" + workflow_version_id
     return dafni_delete_request(url, jwt)
 
-
-def execute_workflow(jwt: str, workflow_version_id: str, parameter_set_id: str = None):
-    """
-    Executes a workflow, with an optional parameter set ID
-
-    Args:
-        jwt (str): JWT
-        workflow_version_id (str): workflow version ID to be executed
-    """
-    url = WORKFLOWS_API_URL + "/workflows/execute/" \
-        + workflow_version_id + "/" \
-        + parameter_set_id + "/"
-    data = {}
-    
-    return dafni_post_request(url, jwt, data, raise_status = False)
-    
