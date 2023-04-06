@@ -18,31 +18,46 @@ class TestModel:
     """Test class for the Model class"""
 
     class TestInit:
-        """Test class to test the Model.__init__() functionality"""
+        """
+        Test Model.__init__() behaviour
+        """
 
         def test_expected_attributes_found_on_class(self):
             # SETUP
-            expected_attributes = [
+            # These attributes should be None on __init__()
+            # "id" can be set as a parameter, it defaults to None
+            expected_attributes_none = [
+                "api_version",
                 "container",
-                "creation_time",
-                "description",
-                "dictionary",
-                "display_name",
+                "container_version",
+                "creation_date",
+                "ingest_completed_date",
+                "id",
+                "kind",
                 "metadata",
-                "publication_time",
-                "summary",
-                "version_id",
+                "owner",
+                "parent",
+                "publication_date",
+                "spec",
+                "type",
+                "version_history",
                 "version_message",
                 "version_tags",
+                "dictionary"
             ]
             # CALL
+            # Default parameter identifier = None
             instance = model.Model()
             # ASSERT
             assert isinstance(instance, model.Model)
+            # Check for None assignments
             assert all(
-                getattr(instance, value) is None for value in expected_attributes
+                getattr(instance, value) is None for value in expected_attributes_none
             )
-            assert isinstance(getattr(instance, "privileges"), auth.Auth)
+            # Check the "auth" field is set correctly
+            assert isinstance(getattr(instance, "auth"), auth.Auth)
+            # Check that the "model_attributes" field at least exists
+            assert isinstance(getattr(instance, "model_attributes"), set)
 
         def test_version_id_set_if_identifier_given(self):
             # SETUP
@@ -50,10 +65,12 @@ class TestModel:
             # CALL
             instance = model.Model(identifier=version_id)
             # ASSERT
-            assert instance.version_id == version_id
+            assert instance.id == version_id
 
     class TestSetDetailsFromDict:
-        """Test class to test the Model.get_details_from_dict() functionality"""
+        """
+        Test Model.get_attributes_from_dict() behaviour
+        """
 
         @patch.object(auth.Auth, "__init__")
         def test_non_date_fields_set_correctly(self, mock_auth, get_models_list_fixture):
@@ -63,19 +80,19 @@ class TestModel:
             model_dict = get_models_list_fixture[0]
 
             # CALL
-            instance.set_details_from_dict(model_dict)
+            instance.set_attributes_from_dict(model_dict)
 
             # ASSERT
             assert instance.container == model_dict["container"]
-            assert instance.description == model_dict["description"]
+            assert instance.metadata["description"] == model_dict["metadata"]["description"]
             assert instance.dictionary == model_dict
-            assert instance.display_name == model_dict["name"]
+            assert instance.metadata["name"] == model_dict["metadata"]["name"]
             assert mock_auth.call_args_list == [
                 call(),
                 call(model_dict["auth"])
             ]
-            assert instance.summary == model_dict["summary"]
-            assert instance.version_id == model_dict["id"]
+            assert instance.metadata["summary"] == model_dict["metadata"]["summary"]
+            assert instance.id == model_dict["id"]
             assert instance.version_tags == model_dict["version_tags"]
 
         def test_ISO_dates_are_converted_to_datetime(self, get_models_list_fixture):
@@ -84,16 +101,18 @@ class TestModel:
             model_dict = get_models_list_fixture[0]
 
             # CALL
-            instance.set_details_from_dict(model_dict)
+            instance.set_attributes_from_dict(model_dict)
 
             # ASSERT
-            assert instance.creation_time == dt(2021, 1, 1, tzinfo=tzutc())
-            assert instance.publication_time == dt(2021, 1, 2, tzinfo=tzutc())
+            assert instance.creation_date == dt(2021, 1, 1, tzinfo=tzutc())
+            assert instance.publication_date == dt(2021, 1, 2, tzinfo=tzutc())
 
     @patch("dafni_cli.model.model.get_single_model_dict")
-    @patch.object(model.Model, "set_details_from_dict")
+    @patch.object(model.Model, "set_attributes_from_dict")
     class TestGetDetailsFromId:
-        """Test class to test the Model.get_details_from_id() functionality"""
+        """
+        Test Model.get_attributes_from_id() behaviour
+        """
 
         def test_single_api_call_made_and_processed(
             self, mock_details, mock_get, get_single_model_fixture
@@ -107,15 +126,17 @@ class TestModel:
             version_id = "version_0.1"
 
             # CALL
-            instance.get_details_from_id(jwt_string, version_id)
+            instance.get_attributes_from_id(jwt_string, version_id)
 
             # ASSERT
             mock_get.assert_called_once_with(jwt_string, version_id)
             mock_details.assert_called_once_with(model_dict)
 
-    @patch("dafni_cli.model.model.get_model_metadata_dict")
+    @patch("dafni_cli.model.model.get_metadata")
     class TestGetMetadata:
-        """Test class to test the Model.get_metadata() functionality"""
+        """
+        Test Model.get_metadata() behaviour
+        """
 
         def test_single_api_call_made_and_metadata_processed(
             self, mock_get, get_model_metadata_fixture
@@ -131,7 +152,7 @@ class TestModel:
             instance.get_metadata(jwt_string)
 
             # ASSERT
-            mock_get.assert_called_once_with(jwt_string, instance.version_id)
+            mock_get.assert_called_once_with(jwt_string, instance.id)
             assert isinstance(instance.metadata, model.ModelMetadata)
 
     class TestFilterByDate:
@@ -163,8 +184,8 @@ class TestModel:
             #  SETUP
             instance = model.Model()
             date_time = dt(2021, 3, 3, 0, 0, 0, tzinfo=tzutc())
-            instance.creation_time = date_time
-            instance.publication_time = date_time
+            instance.creation_date = date_time
+            instance.publication_date = date_time
             # CALL
             result = instance.filter_by_date(key, date)
             # ASSERT
@@ -194,16 +215,19 @@ class TestModel:
 
     @patch("dafni_cli.model.model.click")
     class TestOutputModelDetails:
-        """Test class to test the Model.output_details() functionality"""
+        """
+        Test Model.output_details() behaviour
+        """
 
         def test_model_details_outputted_correctly(self, mock_click):
             # SETUP
             instance = model.Model()
             date_time = dt(2021, 3, 3, 0, 0, 0, tzinfo=tzutc())
-            instance.creation_time = date_time
-            instance.display_name = "display name"
-            instance.version_id = "version id"
-            instance.summary = "summary"
+            instance.creation_date = date_time
+            instance.metadata = {}
+            instance.metadata["display_name"] = "display name"
+            instance.id = "version id"
+            instance.metadata["summary"] = "summary"
 
             # CALL
             instance.output_details()
@@ -228,11 +252,12 @@ class TestModel:
             # SETUP
             instance = model.Model()
             date_time = dt(2021, 3, 3, 0, 0, 0, tzinfo=tzutc())
-            instance.creation_time = date_time
-            instance.display_name = "display name"
-            instance.version_id = "version id"
-            instance.summary = "summary"
-            instance.description = "description"
+            instance.creation_date = date_time
+            instance.metadata = {}
+            instance.metadata["display_name"] = "display name"
+            instance.id = "version id"
+            instance.metadata["summary"] = "summary"
+            instance.metadata["description"] = "description"
 
             # CALL
             instance.output_details(long=True)
@@ -255,7 +280,9 @@ class TestModel:
     @patch("dafni_cli.model.model.click")
     @patch("dafni_cli.model.model.prose_print")
     class TestOutputModelMetadataDetails:
-        """Test class to test the Model.output_metadata() functionality"""
+        """
+        Test Model.output_metadata() behaviour
+        """
 
         def test_output_correct_when_all_keys_present(self, mock_prose, mock_click):
             # SETUP
@@ -274,10 +301,11 @@ class TestModel:
             # mock model
             instance = model.Model()
             date_time = dt(2021, 3, 3, 0, 0, 0, tzinfo=tzutc())
-            instance.creation_time = date_time
-            instance.display_name = "display name"
-            instance.summary = "summary"
-            instance.description = "description"
+            instance.creation_date = date_time
+            instance.metadata = {}
+            instance.metadata["display_name"] = "display name"
+            instance.metadata["summary"] = "summary"
+            instance.metadata["description"] = "description"
             instance.metadata = metadata
 
             # CALL
@@ -450,9 +478,10 @@ class TestModel:
         def test_returned_string_is_as_expected(self):
             # SETUP
             instance = model.Model()
-            instance.version_id = "version-id"
-            instance.display_name = "Model name"
-            instance.publication_time = dt(2020, 1, 1, 00, 00, 00)
+            instance.id = "version-id"
+            instance.metadata = {}
+            instance.metadata["display_name"] = "Model name"
+            instance.publication_date = dt(2020, 1, 1, 00, 00, 00)
             instance.version_message = "Model version message"
 
             # CALL
