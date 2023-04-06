@@ -2,8 +2,11 @@ import requests
 from pathlib import Path
 from typing import Union, List
 
-from dafni_cli.consts import MINIO_UPLOAD_CT, DATA_UPLOAD_API_URL
-from dafni_cli.consts import DATA_DOWNLOAD_API_URL, DATA_DOWNLOAD_REDIRECT_API_URL
+from dafni_cli.consts import (
+    MINIO_UPLOAD_CT,
+    DATA_UPLOAD_API_URL,
+    DATA_DOWNLOAD_API_URL,
+    DATA_DOWNLOAD_REDIRECT_API_URL,
 
 from dafni_cli.api.dafni_api import (
     dafni_post_request,
