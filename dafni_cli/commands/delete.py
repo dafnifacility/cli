@@ -1,6 +1,6 @@
+from typing import List
 import click
 from click import Context
-from typing import List
 
 from dafni_cli.commands.login import check_for_jwt_file
 from dafni_cli.api.models_api import delete_model
@@ -17,7 +17,7 @@ from dafni_cli.utils import argument_confirmation
 @click.pass_context
 def delete(ctx: Context):
     """Delete entity from DAFNI.
-    \f
+
     Args:
         ctx (Context): Context containing JWT of the user.
     """
@@ -63,7 +63,7 @@ def collate_model_version_details(jwt_string: str, version_id_list: List[str]) -
 def model(ctx: Context, version_id: List[str]):
     """
     Delete one or more version(s) of model(s) from DAFNI.
-    \f
+
     Args:
         ctx (context): contains JWT for authentication
         version_id (str): ID(s) of the model version(s) to be deleted
@@ -119,7 +119,7 @@ def collate_workflow_version_details(
 def workflow(ctx: Context, version_id: List[str]):
     """
     Delete one or more version(s) of workflow(s) from DAFNI.
-    \f
+
     Args:
         ctx (context): contains JWT for authentication
         version_id (str): ID(s) of the workflow version(s) to be deleted

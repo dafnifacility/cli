@@ -34,7 +34,7 @@ def dataset(
     directory: Optional[click.Path],
 ):
     """Download all files associated with the given Dataset Version.
-    \f
+
     Args:
         ctx (Context): CLI context
         dataset_id (str): Dataset ID
