@@ -6,7 +6,7 @@ from datetime import datetime as dt
 from click.testing import CliRunner
 
 from dafni_cli.commands import login
-from dafni_cli.consts import LOGIN_API_URL, JWT_FILENAME, JWT_COOKIE, DATE_TIME_FORMAT
+from dafni_cli.consts import LOGIN_API_URL, JWT_FILENAME, JWT_KEY, DATE_TIME_FORMAT
 
 from test.fixtures.jwt_fixtures import (
     request_response_fixture,
@@ -74,7 +74,7 @@ class TestGetNewJwt:
 
         # ASSERT
         mock_process.assert_called_once_with(
-            request_response_fixture.cookies[JWT_COOKIE], user_name
+            request_response_fixture.cookies[JWT_KEY], user_name
         )
 
     @patch("dafni_cli.commands.login.click")
@@ -124,7 +124,7 @@ class TestProcessJwt:
             "expiry": "03/03/2021 15:43:14",
             "user_name": "john-doe",
             "user_id": "e1092c3e-be04-4c19-957f-cd884e53447e",
-            "jwt": "JWT " + JWT,
+            "jwt": "Bearer " + JWT,
         }
 
     def test_open_called_to_write_jwt_to_file(self, open_mock):
@@ -143,7 +143,7 @@ class TestProcessJwt:
                     "expiry": "03/03/2021 15:43:14",
                     "user_id": "e1092c3e-be04-4c19-957f-cd884e53447e",
                     "user_name": "john-doe",
-                    "jwt": "JWT " + JWT,
+                    "jwt": "Bearer " + JWT,
                 }
             )
         )
@@ -355,13 +355,13 @@ class TestLogout:
         # SETUP
         runner = CliRunner()
         mock_jwt.return_value = processed_jwt_fixture
-        mock_getcwd.return_value = "\\path\\to\\file"
+        mock_getcwd.return_value = os.path.join("path", "to", "file")
 
         # CALL
         runner.invoke(login.logout)
 
         # ASSERT
-        mock_remove.assert_called_once_with("\\path\\to\\file\\" + JWT_FILENAME)
+        mock_remove.assert_called_once_with(os.path.join("path", "to", "file", JWT_FILENAME))
 
     def test_cached_jwt_details_printed_after_file_removed(
         self, mock_jwt, mock_getcwd, mock_remove, processed_jwt_fixture
@@ -369,7 +369,7 @@ class TestLogout:
         # SETUP
         runner = CliRunner()
         mock_jwt.return_value = processed_jwt_fixture
-        mock_getcwd.return_value = "\\path\\to\\file"
+        mock_getcwd.return_value = os.path.join("path", "to", "file")
 
         # CALL
         result = runner.invoke(login.logout)

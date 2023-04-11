@@ -17,8 +17,7 @@ from dafni_cli.consts import WORKFLOWS_API_URL
 from dafni_cli.api.dafni_api import (
     dafni_get_request,
     dafni_post_request,
-    dafni_put_request,
-    dafni_delete_request,
+    dafni_delete_request
 )
 
 
@@ -43,10 +42,10 @@ def get_single_workflow_dict(jwt: str, workflow_version_id: str) -> dict:
 
     Args:
         jwt (str): JWT
-        workflow_version_id (str): model version ID for selected model
+        workflow_version_id (str): workflow version ID for selected workflow
 
     Returns:
-        dict: dictionary for the details of selected model
+        dict: dictionary for the details of selected workflow
     """
     url = WORKFLOWS_API_URL + "/workflows/" + workflow_version_id + "/"
     return dafni_get_request(url, jwt)
@@ -103,7 +102,8 @@ def delete_workflow(jwt: str, workflow_version_id: str) -> Response:
 
     Args:
         jwt (str): JWT
-        workflow_version_id (str): model version ID for selected model
+        workflow_version_id (str): version ID of workflow to be deleted
     """
     url = WORKFLOWS_API_URL + "/workflows/" + workflow_version_id
     return dafni_delete_request(url, jwt)
+
