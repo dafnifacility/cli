@@ -15,7 +15,7 @@ from dafni_cli.commands.login import check_for_jwt_file
 from dafni_cli.model.model import Model
 from dafni_cli.model.version_history import ModelVersionHistory
 from dafni_cli.workflow.workflow import Workflow
-from dafni_cli.workflow.workflow_version_history import WorkflowVersionHistory
+from dafni_cli.workflow.version_history import WorkflowVersionHistory
 from dafni_cli.utils import (
     process_response_to_class_list,
     print_json
