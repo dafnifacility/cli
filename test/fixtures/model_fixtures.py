@@ -16,14 +16,16 @@ def get_models_list_fixture() -> List[dict]:
     """
     models = [
         {
-            "name": "test model name",
-            "summary": "this model is for use in tests for the Model class",
-            "description": "This is a terribly long description of the test dictionary",
             "creation_date": "2021-01-01T00:00:00.000000Z",
             "publication_date": "2021-01-02T00:00:00.000000Z",
             "id": "0a0a0a0a-0a00-0a00-a000-0a0a0000000a",
             "version_tags": ["latest"],
             "container": "reg.dafni.rl.ac.uk/pilots/models/mobile-model/nims",
+            "metadata": {
+                "description": "This is a terribly long description of the test dictionary",
+                "name": "test model name",
+                "summary": "this model is for use in tests for the Model class"
+            },
             "auth": {
                 "asset_id": "0a0a0a0a-0a00-0a00-a000-0a0a0000000a",
                 "reason": "reason for accessing",
@@ -34,14 +36,16 @@ def get_models_list_fixture() -> List[dict]:
             }
         },
         {
-            "name": "test model name 2",
-            "summary": "another testing model",
-            "description": "Model 2 description",
             "creation_date": "2021-03-01T00:00:00.000000Z",
             "publication_date": "2021-05-02T00:00:00.000000Z",
             "id": "1a0a0a0a-0a00-0a00-a000-0a0a0000000a",
             "version_tags": [],
             "container": "reg.dafni.rl.ac.uk/pilots/models/mobile-model/nims",
+            "metadata": {
+                "description": "Model 2 description",
+                "name": "test model name 2",        
+                "summary": "another testing model"
+            },
             "auth": {
                 "asset_id": "1a0a0a0a-0a00-0a00-a000-0a0a0000000a",
                 "reason": "reason for accessing",
@@ -94,7 +98,8 @@ def get_single_model_fixture() -> dict:
 
 @pytest.fixture
 def get_model_metadata_fixture() -> dict:
-    """Test fixture for model metadata
+    """
+    Test fixture for model metadata
 
     Returns:
         dict: Example metadata response structure
@@ -160,6 +165,14 @@ def get_model_metadata_fixture() -> dict:
             },
             "image": "dreg.platform.dafni.rl.ac.uk/nims-prod/test-model:0a0a0a0a-0a00-0a00-a000-0a0a0000000a",
         },
+    }
+    metadata = {
+        "displayName": "model display name",
+        "name": "test-model",
+        "summary": "Model summary",
+        "description": "Model description",
+        "type": "Simulation",
+        "owner": "0a0a0a0a-0a00-0a00-a000-0a0a0000000a"
     }
 
     return metadata

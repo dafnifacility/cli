@@ -15,7 +15,7 @@ from dafni_cli.commands.login import check_for_jwt_file
 from dafni_cli.model.model import Model
 from dafni_cli.model.version_history import ModelVersionHistory
 from dafni_cli.workflow.workflow import Workflow
-from dafni_cli.workflow.version_history import WorkflowVersionHistory
+from dafni_cli.workflow.workflow_version_history import WorkflowVersionHistory
 from dafni_cli.utils import (
     process_response_to_class_list,
     print_json
@@ -124,6 +124,7 @@ def model(ctx: Context, version_id: List[str], version_history: bool, json: bool
     for vid in version_id:
         model = Model(vid)
         model.get_attributes_from_id(ctx.obj["jwt"], vid)
+        print(model.dictionary)
         if version_history:
             history = ModelVersionHistory(ctx.obj["jwt"], model)
             history.output_version_history(json)
@@ -329,6 +330,7 @@ def workflow(ctx: Context, version_id: List[str], version_history: bool, json: b
     for vid in version_id:
         workflow = Workflow(vid)
         workflow.get_attributes_from_id(ctx.obj["jwt"], vid)
+        print(workflow.dictionary)
         if version_history:
             history = WorkflowVersionHistory(ctx.obj["jwt"], workflow)
             history.output_version_history(json)

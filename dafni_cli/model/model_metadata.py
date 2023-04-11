@@ -168,9 +168,18 @@ class ModelMetadata:
         names = [output["name"] for output in self.outputs["datasets"]] + ["Name"]
         max_name_length = len(max(names, key=len)) + 2
         outputs_table = outputs_table_header(max_name_length)
+
+        # The dataset outputs fields are not mandatory and any or all of them might not
+        # exist. Unset fields will be reported as "Unknown" in the formatted output.
         for dataset in self.outputs["datasets"]:
-            outputs_table += f"{dataset['name']:{max_name_length}}"
-            outputs_table += f"{dataset['type']:{OUTPUT_FORMAT_COLUMN_WIDTH}}"
+            try:
+                outputs_table += f"{dataset['name']:{max_name_length}}"
+            except KeyError:
+                outputs_table += f"{'Unknown':{max_name_length}}"
+            try:
+                outputs_table += f"{dataset['type']:{OUTPUT_FORMAT_COLUMN_WIDTH}}"
+            except KeyError:
+                outputs_table += f"{'Unknown':{OUTPUT_FORMAT_COLUMN_WIDTH}}"
             outputs_table += optional_column(dataset, "description")
             outputs_table += "\n"
         return outputs_table

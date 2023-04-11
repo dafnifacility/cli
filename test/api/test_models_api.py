@@ -42,30 +42,33 @@ class TestGetSingleModelDict:
         mock_get.assert_called_once_with(MODELS_API_URL + "/models/version_1/", JWT)
 
 
-@patch("dafni_cli.api.models_api.dafni_get_request")
-class TestModelMetaDataDict:
-    """Test class to test the get_model_metadata_dict functionality"""
-
-    def test_dafni_get_request_called_correctly(self, mock_get):
-        # SETUP
-        mock_get.return_value = {"key": "value"}
-
-        model_version = "version_1"
-
-        # CALL
-        result = models_api.get_model_metadata_dict(JWT, model_version)
-
-        # ASSERT
-        assert result == {"key": "value"}
-        mock_get.assert_called_once_with(
-            MODELS_API_URL + "/models/version_1/definition/", JWT
-        )
+# TODO: Remove, function get_model_metadata_dict() no longer exists
+# as the API no longer returns metadata in this form
+#@patch("dafni_cli.api.models_api.dafni_get_request")
+#class TestModelMetaDataDict:
+#    """Test class to test the get_model_metadata_dict functionality"""
+#
+#    def test_dafni_get_request_called_correctly(self, mock_get):
+#        # SETUP
+#        mock_get.return_value = {"key": "value"}
+#
+#        model_version = "version_1"
+#
+#        # CALL
+#        result = models_api.get_model_metadata_dict(JWT, model_version)
+#
+#        # ASSERT
+#        assert result == {"key": "value"}
+#        mock_get.assert_called_once_with(
+#            MODELS_API_URL + "/models/version_1/definition/", JWT
+#        )
 
 
 @patch("dafni_cli.api.models_api.dafni_put_request")
 @patch("builtins.open", new_callable=mock_open, read_data="definition file")
 class TestValidateModelDefinition:
-    """Test class to test the validate_model_definition functionality"""
+    """
+    Test validate_model_definition() behaviour"""
 
     def test_valid_model_definition_file_processed_correctly(
         self, open_mock, mock_put, request_response_fixture
@@ -82,7 +85,7 @@ class TestValidateModelDefinition:
         # ASSERT
         open_mock.assert_called_once_with(mock_file, "rb")
         mock_put.assert_called_once_with(
-            MODELS_API_URL + "/models/definition/validate/",
+            MODELS_API_URL + "/models/validate/",
             jwt,
             open(mock_file, "rb"),
             VALIDATE_MODEL_CT,
@@ -108,7 +111,7 @@ class TestValidateModelDefinition:
         # ASSERT
         open_mock.assert_called_once_with(mock_file, "rb")
         mock_put.assert_called_once_with(
-            MODELS_API_URL + "/models/definition/validate/",
+            MODELS_API_URL + "/models/validate/",
             jwt,
             open(mock_file, "rb"),
             VALIDATE_MODEL_CT,
@@ -119,7 +122,9 @@ class TestValidateModelDefinition:
 
 @patch("dafni_cli.api.models_api.dafni_post_request")
 class TestGetModelUploadUrls:
-    """Test class to test the get_model_upload_urls functionality"""
+    """
+    Test get_model_upload_urls() behaviour
+    """
 
     def test_post_request_called_with_correct_arguments(self, mock_post):
         # SETUP
@@ -151,7 +156,9 @@ class TestGetModelUploadUrls:
 
 @patch("dafni_cli.api.models_api.dafni_post_request")
 class TestModelVersionIngest:
-    """Test class to test the model_ingest functionality"""
+    """
+    Test model_ingest() behaviour
+    """
 
     def test_post_request_called_with_correct_arguments_when_no_parent_model(
         self, mock_post
