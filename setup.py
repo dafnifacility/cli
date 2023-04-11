@@ -21,7 +21,7 @@ setup(
     long_description_content_type="text/markdown",
     packages=find_packages(exclude=["test"]),
     include_package_data=True,
-    install_requires=["click>=7.1.2", "requests>=2.25.1", "python-dateutil>=2.8.1"],
+    install_requires=["click>=8.1.3", "requests>=2.28.2", "python-dateutil>=2.8.2"],
     python_requires=">=3.9",
     classifiers=[
         "Programming Language :: Python :: 3",
