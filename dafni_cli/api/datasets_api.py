@@ -21,6 +21,7 @@ def get_all_datasets(jwt: str, filters: dict) -> List[dict]:
 
     return dafni_post_request(url, jwt, data, allow_redirect=True)
 
+
 # TODO: Make dataset_id optional? - Can search just by version ID now
 def get_latest_dataset_metadata(jwt: str, dataset_id: str, version_id: str) -> dict:
     """Function to get the dataset metadata for a given dataset

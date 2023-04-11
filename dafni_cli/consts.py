@@ -13,7 +13,7 @@ DATA_DOWNLOAD_REDIRECT_API_URL = "https://fwd.secure.dafni.rl.ac.uk/nidminio"
 # Authentication
 JWT_FILENAME = "dafni_jwt.txt"
 JWT_KEY = "access_token"
-#JWT_COOKIE = "__Secure-dafnijwt"
+# JWT_COOKIE = "__Secure-dafnijwt"
 
 # Content types
 MINIO_UPLOAD_CT = "multipart/form-data"

@@ -44,8 +44,8 @@ class TestGetSingleModelDict:
 
 # TODO: Remove, function get_model_metadata_dict() no longer exists
 # as the API no longer returns metadata in this form
-#@patch("dafni_cli.api.models_api.dafni_get_request")
-#class TestModelMetaDataDict:
+# @patch("dafni_cli.api.models_api.dafni_get_request")
+# class TestModelMetaDataDict:
 #    """Test class to test the get_model_metadata_dict functionality"""
 #
 #    def test_dafni_get_request_called_correctly(self, mock_get):

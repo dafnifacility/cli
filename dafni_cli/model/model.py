@@ -7,12 +7,9 @@ from dafni_cli.model.model_metadata import ModelMetadata
 from dafni_cli.consts import CONSOLE_WIDTH, TAB_SPACE
 from dafni_cli.api.models_api import (
     get_model,
-#    get_model_metadata_dict,
+    #    get_model_metadata_dict,
 )
-from dafni_cli.utils import (
-    prose_print,
-    print_json
-)
+from dafni_cli.utils import prose_print, print_json
 from dafni_cli.auth import Auth
 
 
@@ -86,7 +83,6 @@ class Model:
         # Attributes that are not also workflow dictionary keys
         self.dictionary = None
 
-
     def set_metadata_from_dict(self, model_dict: dict):
         """
         Sets the "metadata" property from fields in the main body of the
@@ -94,7 +90,7 @@ class Model:
 
         Args:
         model_dict (dict): Dictionary returned from DAFNI API at /models endpoints
-        
+
         Returns:
             a set of Model metadata attributes that could not be set as they were not present in model_dict
         """
@@ -105,32 +101,31 @@ class Model:
             "publisher",
             "summary",
             "source_code",
-            "status"
-            }
+            "status",
+        }
         missing_metadata_attributes = set()
         self.metadata = {}
         for key in metadata_attributes:
             try:
-                self.metadata[key] =  model_dict[key]
+                self.metadata[key] = model_dict[key]
             except:
                 missing_metadata_attributes.add(key)
-
 
     def set_attributes_from_dict(self, model_dict: dict):
         """
         Attempts to store model attributes from a dictionary returned from the DAFNI API.
         Not all of the attributes need be present in model_dict. If the "metadata" key is
         not present, attempt to create it
-        
+
         Args:
             model_dict (dict): Dictionary returned from DAFNI API at /models endpoints
-        
+
         Returns:
             a set of Model attributes that could not be set as they were not present in model_dict
         """
         model_attributes = self.model_attributes
-        #special_attributes = {"auth", "creation_date", "publication_date"}
-        #model_attributes = self.model_attributes.difference_update(special_attributes)
+        # special_attributes = {"auth", "creation_date", "publication_date"}
+        # model_attributes = self.model_attributes.difference_update(special_attributes)
 
         missing_model_attributes = set()
         for key in model_attributes:
@@ -164,7 +159,6 @@ class Model:
         self.dictionary = model_dict
         return missing_model_attributes
 
-
     def get_attributes_from_id(self, jwt_string: str, version_id_string: str):
         """
         Retrieve model details from the DAFNI API by calling /models/<version-id>/ endpoint.
@@ -178,7 +172,6 @@ class Model:
         # Version message key appears on single model API response, but not list of all models response
         self.version_message = model_dict["version_message"]
 
-
     def get_metadata(self, jwt_string: str):
         """
         Retrieve metadata for the model using the model details.
@@ -186,9 +179,8 @@ class Model:
         Args:
             jwt_string (str): JWT for login purposes
         """
-#        metadata_dict = get_model_metadata_dict(jwt_string, self.id)
+        #        metadata_dict = get_model_metadata_dict(jwt_string, self.id)
         self.metadata_obj = ModelMetadata(self.dictionary)
-
 
     def filter_by_date(self, key: str, date: str) -> bool:
         """
@@ -210,7 +202,6 @@ class Model:
         else:
             raise KeyError("Key should be CREATION or PUBLICATION")
 
-
     def output_details(self, long: bool = False):
         """
         Prints relevant model attributes to command line
@@ -230,7 +221,6 @@ class Model:
             click.echo("Description: ")
             prose_print(self.description, CONSOLE_WIDTH)
         click.echo("")
-
 
     def output_metadata(self, json_flag: bool = False):
         """
@@ -258,20 +248,20 @@ class Model:
         else:
             print_json(self.dictionary)
 
-
     def output_version_details(self) -> str:
         """
         Prints version ID, display name, publication date and version message on one line
         """
-        return("ID: " +
-               self.id +
-               TAB_SPACE +
-               "Name: " +
-               self.metadata["display_name"] +
-               TAB_SPACE +
-               "Publication date: " +
-               self.publication_date.date().strftime("%B %d %Y") +
-               TAB_SPACE +
-               "Version message: " +
-               self.version_message
-               )
+        return (
+            "ID: "
+            + self.id
+            + TAB_SPACE
+            + "Name: "
+            + self.metadata["display_name"]
+            + TAB_SPACE
+            + "Publication date: "
+            + self.publication_date.date().strftime("%B %d %Y")
+            + TAB_SPACE
+            + "Version message: "
+            + self.version_message
+        )

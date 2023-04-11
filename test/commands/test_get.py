@@ -183,14 +183,14 @@ class TestGet:
 
         @patch("dafni_cli.commands.get.print_json")
         def test_print_json_method_called_on_each_model_if_json_option_chosen_without_date_filter(
-                self,
-                mock_print,
-                mock_jwt,
-                mock_get,
-                mock_output,
-                mock_filter,
-                processed_jwt_fixture,
-                get_models_list_fixture,
+            self,
+            mock_print,
+            mock_jwt,
+            mock_get,
+            mock_output,
+            mock_filter,
+            processed_jwt_fixture,
+            get_models_list_fixture,
         ):
             # SETUP
             # setup get group command
@@ -216,16 +216,16 @@ class TestGet:
             [("--creation-date", "creation"), ("--publication-date", "publication")],
         )
         def test_empty_list_printed_if_filter_options_return_no_models_and_json_option_chosen(
-                self,
-                mock_print,
-                mock_jwt,
-                mock_get,
-                mock_output,
-                mock_filter,
-                option,
-                value,
-                processed_jwt_fixture,
-                get_models_list_fixture,
+            self,
+            mock_print,
+            mock_jwt,
+            mock_get,
+            mock_output,
+            mock_filter,
+            option,
+            value,
+            processed_jwt_fixture,
+            get_models_list_fixture,
         ):
             # SETUP
             date = "01/02/2021"
@@ -254,16 +254,16 @@ class TestGet:
             [("--creation-date", "creation"), ("--publication-date", "publication")],
         )
         def test_only_dictionaries_of_models_that_make_it_through_filter_are_printed_with_json_option(
-                self,
-                mock_print,
-                mock_jwt,
-                mock_get,
-                mock_output,
-                mock_filter,
-                option,
-                value,
-                processed_jwt_fixture,
-                get_models_list_fixture,
+            self,
+            mock_print,
+            mock_jwt,
+            mock_get,
+            mock_output,
+            mock_filter,
+            option,
+            value,
+            processed_jwt_fixture,
+            get_models_list_fixture,
         ):
             # SETUP
             date = "01/02/2021"
@@ -415,7 +415,9 @@ class TestGet:
             mock_initialise.return_value = None
 
             # CALL
-            result = runner.invoke(get.get, ["model", version_id, json_flag, "--version-history"])
+            result = runner.invoke(
+                get.get, ["model", version_id, json_flag, "--version-history"]
+            )
 
             # ASSERT
             assert mock_details.called_once_with(
@@ -459,7 +461,8 @@ class TestGet:
 
             # CALL
             result = runner.invoke(
-                get.get, ["model", version_id_1, version_id_2, json_flag, "--version-history"]
+                get.get,
+                ["model", version_id_1, version_id_2, json_flag, "--version-history"],
             )
 
             # ASSERT
@@ -468,7 +471,10 @@ class TestGet:
                 call(processed_jwt_fixture["jwt"], version_id_2),
             ]
             assert mock_initialise.call_count == 2
-            assert mock_output_version_history.call_args_list == [call(value), call(value)]
+            assert mock_output_version_history.call_args_list == [
+                call(value),
+                call(value),
+            ]
             assert result.exit_code == 0
 
     @patch.object(dataset.Dataset, "output_dataset_details")
@@ -694,7 +700,7 @@ class TestGet:
             assert result.exit_code == 0
 
         @pytest.mark.parametrize("json_flag", ["--pretty", "-p"])
-        @pytest.mark.parametrize("metadata", ["--metadata","-m"])
+        @pytest.mark.parametrize("metadata", ["--metadata", "-m"])
         @pytest.mark.parametrize(
             "option, long",
             [("--short", False), ("-s", False), ("-l", True), ("--long", True)],
@@ -794,14 +800,10 @@ class TestGet:
             mock_print.assert_called_once_with(response)
             assert result.exit_code == 0
 
-        @pytest.mark.parametrize("json_flag, json_value",
-                                 [
-                                     ("--pretty", False),
-                                     ("-p", False),
-                                     ("--json", True),
-                                     ("-j", True)
-                                 ]
-                                 )
+        @pytest.mark.parametrize(
+            "json_flag, json_value",
+            [("--pretty", False), ("-p", False), ("--json", True), ("-j", True)],
+        )
         @pytest.mark.parametrize("version_history", ["--version-history", "-v"])
         @patch.object(
             dataset_version_history.DatasetVersionHistory, "process_version_history"

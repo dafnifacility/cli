@@ -28,7 +28,6 @@ class TestGetAllDatasets:
         ],
     )
     def test_dafni_post_request_called_correctly(self, mock_post, filters):
-
         # SETUP
         mock_post.return_value = [{"key": "value"}]
 

@@ -16,10 +16,7 @@ from dafni_cli.model.model import Model
 from dafni_cli.model.version_history import ModelVersionHistory
 from dafni_cli.workflow.workflow import Workflow
 from dafni_cli.workflow.version_history import WorkflowVersionHistory
-from dafni_cli.utils import (
-    process_response_to_class_list,
-    print_json
-)
+from dafni_cli.utils import process_response_to_class_list, print_json
 
 
 @click.group(help="Lists entities available to the user")
@@ -64,10 +61,12 @@ def get(ctx: Context):
     "-j/-p",
     default=False,
     help="Prints raw json returned from API. Default: -p",
-    type=bool
+    type=bool,
 )
 @click.pass_context
-def models(ctx: Context, long: bool, creation_date: str, publication_date: str, json: bool):
+def models(
+    ctx: Context, long: bool, creation_date: str, publication_date: str, json: bool
+):
     """Displays list of model details with other options allowing
         more details to be listed, filters, and for the json to be displayed.
 
@@ -109,7 +108,7 @@ def models(ctx: Context, long: bool, creation_date: str, publication_date: str, 
     "-j/-p",
     default=False,
     help="Prints raw json returned from API. Default: -p",
-    type=bool
+    type=bool,
 )
 @click.pass_context
 def model(ctx: Context, version_id: List[str], version_history: bool, json: bool):
@@ -160,7 +159,7 @@ def model(ctx: Context, version_id: List[str], version_history: bool, json: bool
     "-j/-p",
     default=False,
     help="Prints raw json returned from API. Default: -p",
-    type=bool
+    type=bool,
 )
 @click.pass_context
 def datasets(
@@ -168,7 +167,7 @@ def datasets(
     search: Optional[str],
     start_date: Optional[str],
     end_date: Optional[str],
-    json: Optional[bool]
+    json: Optional[bool],
 ):
     """
     Display a list of all available datasets
@@ -185,7 +184,9 @@ def datasets(
     if json:
         print_json(datasets_response)
     else:
-        datasets = process_response_to_class_list(datasets_response["metadata"], Dataset)
+        datasets = process_response_to_class_list(
+            datasets_response["metadata"], Dataset
+        )
         for dataset_model in datasets:
             dataset_model.output_dataset_details()
 
@@ -209,12 +210,19 @@ def datasets(
     "-j/-p",
     default=False,
     help="Prints raw json returned from API. Default: -p",
-    type=bool
+    type=bool,
 )
 @click.argument("id", nargs=1, required=True, type=str)
 @click.argument("version-id", nargs=1, required=True, type=str)
 @click.pass_context
-def dataset(ctx: Context, id: str, version_id: str, long: bool, version_history: bool, json: bool):
+def dataset(
+    ctx: Context,
+    id: str,
+    version_id: str,
+    long: bool,
+    version_history: bool,
+    json: bool,
+):
     """Command to the the meta data relating to a given version of a dataset
 
     Args:
@@ -267,10 +275,12 @@ def dataset(ctx: Context, id: str, version_id: str, long: bool, version_history:
     "-j/-p",
     default=False,
     help="Prints raw json returned from API. Default: -p",
-    type=bool
+    type=bool,
 )
 @click.pass_context
-def workflows(ctx: Context, long: bool, creation_date: str, publication_date: str, json: bool):
+def workflows(
+    ctx: Context, long: bool, creation_date: str, publication_date: str, json: bool
+):
     """
     Display attributes of all workflows. Options allow more details to be listed,
     the list of workflows to be filtered, and for the json to be displayed.
@@ -300,7 +310,9 @@ def workflows(ctx: Context, long: bool, creation_date: str, publication_date: st
         print_json(filtered_workflow_dict_list)
 
 
-@get.command(help="Display metadata or version history of a particular workflow or workflows")
+@get.command(
+    help="Display metadata or version history of a particular workflow or workflows"
+)
 @click.argument("version-id", nargs=-1, required=True)
 @click.option(
     "--version-history/--metadata",
@@ -313,7 +325,7 @@ def workflows(ctx: Context, long: bool, creation_date: str, publication_date: st
     "-j/-p",
     default=False,
     help="Prints raw json returned from API. Default: -p",
-    type=bool
+    type=bool,
 )
 @click.pass_context
 def workflow(ctx: Context, version_id: List[str], version_history: bool, json: bool):

@@ -24,7 +24,7 @@ def get_models_list_fixture() -> List[dict]:
             "metadata": {
                 "description": "This is a terribly long description of the test dictionary",
                 "name": "test model name",
-                "summary": "this model is for use in tests for the Model class"
+                "summary": "this model is for use in tests for the Model class",
             },
             "auth": {
                 "asset_id": "0a0a0a0a-0a00-0a00-a000-0a0a0000000a",
@@ -32,8 +32,8 @@ def get_models_list_fixture() -> List[dict]:
                 "view": True,
                 "read": True,
                 "update": False,
-                "destroy": False
-            }
+                "destroy": False,
+            },
         },
         {
             "creation_date": "2021-03-01T00:00:00.000000Z",
@@ -43,8 +43,8 @@ def get_models_list_fixture() -> List[dict]:
             "container": "reg.dafni.rl.ac.uk/pilots/models/mobile-model/nims",
             "metadata": {
                 "description": "Model 2 description",
-                "name": "test model name 2",        
-                "summary": "another testing model"
+                "name": "test model name 2",
+                "summary": "another testing model",
             },
             "auth": {
                 "asset_id": "1a0a0a0a-0a00-0a00-a000-0a0a0000000a",
@@ -52,8 +52,8 @@ def get_models_list_fixture() -> List[dict]:
                 "view": True,
                 "read": True,
                 "update": False,
-                "destroy": False
-            }
+                "destroy": False,
+            },
         },
     ]
 
@@ -172,7 +172,7 @@ def get_model_metadata_fixture() -> dict:
         "summary": "Model summary",
         "description": "Model description",
         "type": "Simulation",
-        "owner": "0a0a0a0a-0a00-0a00-a000-0a0a0000000a"
+        "owner": "0a0a0a0a-0a00-0a00-a000-0a0a0000000a",
     }
 
     return metadata
@@ -187,20 +187,21 @@ def get_model_upload_urls_fixture() -> Tuple[str, dict]:
         dict: Example dict containing definition and image urls
     """
     upload_id = "00a0a000-00a0-0000-0000-00a0000a0000"
-    upload_urls = {"definition": "https://nims-io.secure.dafni.rl.ac.uk/" +
-                                 "78f9dfe8-dabe-404d-abfb-c4cd16b9ccab/" +
-                                 "definition?X-Amz-Algorithm=AWS4-HMAC-SHA256" +
-                                 "&X-Amz-Credential=3DCC953FC59AC3FB3AF5%2F20210319%2Fus-east-1%2Fs3%2Faws4_request" +
-                                 "&X-Amz-Date=20210319T114018Z&X-Amz-Expires=14400&X-Amz-SignedHeaders=host" +
-                                 "&X-Amz-Signature=5853a7e47b4e173c5e17ecfd799b2121f24809dae741ee95d93d040ddc14d1db",
-                   "image": "https://nims-io.secure.dafni.rl.ac.uk/" +
-                            "78f9dfe8-dabe-404d-abfb-c4cd16b9ccab/" +
-                            "image?X-Amz-Algorithm=AWS4-HMAC-SHA256" +
-                            "&X-Amz-Credential=3DCC953FC59AC3FB3AF5%2F20210319%2Fus-east-1%2Fs3%2Faws4_request" +
-                            "&X-Amz-Date=20210319T114018Z&X-Amz-Expires=14400" +
-                            "&X-Amz-SignedHeaders=host" +
-                            "&X-Amz-Signature=be49a3a8fbcee39d2c07197d3bd1b48ef28c637b36a1a00557fdee6f9be90ff1"
-                   }
+    upload_urls = {
+        "definition": "https://nims-io.secure.dafni.rl.ac.uk/"
+        + "78f9dfe8-dabe-404d-abfb-c4cd16b9ccab/"
+        + "definition?X-Amz-Algorithm=AWS4-HMAC-SHA256"
+        + "&X-Amz-Credential=3DCC953FC59AC3FB3AF5%2F20210319%2Fus-east-1%2Fs3%2Faws4_request"
+        + "&X-Amz-Date=20210319T114018Z&X-Amz-Expires=14400&X-Amz-SignedHeaders=host"
+        + "&X-Amz-Signature=5853a7e47b4e173c5e17ecfd799b2121f24809dae741ee95d93d040ddc14d1db",
+        "image": "https://nims-io.secure.dafni.rl.ac.uk/"
+        + "78f9dfe8-dabe-404d-abfb-c4cd16b9ccab/"
+        + "image?X-Amz-Algorithm=AWS4-HMAC-SHA256"
+        + "&X-Amz-Credential=3DCC953FC59AC3FB3AF5%2F20210319%2Fus-east-1%2Fs3%2Faws4_request"
+        + "&X-Amz-Date=20210319T114018Z&X-Amz-Expires=14400"
+        + "&X-Amz-SignedHeaders=host"
+        + "&X-Amz-Signature=be49a3a8fbcee39d2c07197d3bd1b48ef28c637b36a1a00557fdee6f9be90ff1",
+    }
     return upload_id, upload_urls
 
 
@@ -211,7 +212,7 @@ def auth_mock(
     read: bool = True,
     reason: str = "Auth reason",
     update: bool = True,
-    view: bool = True
+    view: bool = True,
 ) -> Auth:
     """Test fixture to generate an Auth object with given attributes
 
@@ -243,14 +244,14 @@ def model_mock(
     container: str = "Container name",
     creation_time: dt.datetime = dt.datetime(2020, 1, 1, 00, 00, 00),
     description: str = "Model description",
-    dictionary: dict = {'key': 'value'},
+    dictionary: dict = {"key": "value"},
     display_name: str = "Model name",
     privileges: Auth = auth_mock(),
     publication_time: dt.datetime = dt.datetime(2020, 1, 1, 00, 00, 00),
     summary: str = "Model summary",
     version_id: str = "0a0a0a0a-0a00-0a00-a000-0a0a0000000a",
     version_message: str = "Version message",
-    version_tags: List[str] = ["tag1", "tag2"]
+    version_tags: List[str] = ["tag1", "tag2"],
 ) -> Model:
     """Test fixture to generate a Model object with given attributes
 

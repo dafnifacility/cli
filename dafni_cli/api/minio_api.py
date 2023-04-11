@@ -100,15 +100,12 @@ def minio_get_request(
     Returns:
         dict: For an endpoint returning one object, this will be a dictionary.
     """
-    # Substitute the minio URL returned in the request string with a 
-    file_url = url.replace(
-        DATA_DOWNLOAD_API_URL,
-        DATA_DOWNLOAD_REDIRECT_API_URL
-    )
+    # Substitute the minio URL returned in the request string with a
+    file_url = url.replace(DATA_DOWNLOAD_API_URL, DATA_DOWNLOAD_REDIRECT_API_URL)
     response = requests.get(
         file_url,
         headers={"Content-Type": "application/json", "authorization": jwt},
-        allow_redirects=allow_redirect
+        allow_redirects=allow_redirect,
     )
     response.raise_for_status()
 

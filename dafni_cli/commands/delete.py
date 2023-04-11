@@ -29,7 +29,9 @@ def delete(ctx: Context):
 ###############################################################################
 # Models
 ###############################################################################
-def collate_model_version_details(jwt_string: str, version_id_list: List[str]) -> List[str]:
+def collate_model_version_details(
+    jwt_string: str, version_id_list: List[str]
+) -> List[str]:
     """
     Checks for destroy privileges for the user, and produces a list of the
     version details of each model to be deleted

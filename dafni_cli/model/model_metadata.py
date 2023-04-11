@@ -151,8 +151,8 @@ class ModelMetadata:
                 for default in dataslot["default"]:
                     # TODO print name using API call to databases
                     dataslots_list += "Name: " + default + TAB_SPACE
-#                    dataslots_list += f'ID: {default["uid"]}' + TAB_SPACE
-#                    dataslots_list += f'Version ID: {default["versionUid"]}' + TAB_SPACE
+                #                    dataslots_list += f'ID: {default["uid"]}' + TAB_SPACE
+                #                    dataslots_list += f'Version ID: {default["versionUid"]}' + TAB_SPACE
                 dataslots_list += "\n"
             return dataslots_list
         else:

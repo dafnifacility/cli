@@ -19,6 +19,7 @@ from dafni_cli.api.dafni_api import (
     dafni_delete_request,
 )
 
+
 def get_all_workflows(jwt: str) -> List[dict]:
     """
     Call the "workflows_list" endpoint and return the resulting list of dictionaries.
@@ -103,4 +104,3 @@ def delete_workflow(jwt: str, workflow_version_id: str) -> Response:
     """
     url = WORKFLOWS_API_URL + "/workflows/" + workflow_version_id
     return dafni_delete_request(url, jwt)
-

@@ -113,9 +113,7 @@ def request_login_details() -> dict:
     password = click.prompt("Password", hide_input=True)
     jwt_dict = get_new_jwt(user_name, password)
     click.echo("Login Complete")
-    click.echo(
-        f"user name: {jwt_dict['user_name']}, user id: {jwt_dict['user_id']}"
-    )
+    click.echo(f"user name: {jwt_dict['user_name']}, user id: {jwt_dict['user_id']}")
     return jwt_dict
 
 

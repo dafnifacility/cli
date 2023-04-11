@@ -130,13 +130,20 @@ class TestDatasetVersionHistory:
 
         @pytest.mark.parametrize(
             "version_ids, metadata_list",
-            [([], []),
-             (["version_1"], ["Meta data1"]),
-             (["version_1", "version_2"], ["Meta data1", "Meta data2"])
-            ]
+            [
+                ([], []),
+                (["version_1"], ["Meta data1"]),
+                (["version_1", "version_2"], ["Meta data1", "Meta data2"]),
+            ],
         )
         def test_helper_functions_called_correctly_with_true_json_flag(
-                self, mock_get, mock_init, mock_output, mock_print, version_ids, metadata_list
+            self,
+            mock_get,
+            mock_init,
+            mock_output,
+            mock_print,
+            version_ids,
+            metadata_list,
         ):
             # SETUP
             mock_get.side_effect = metadata_list

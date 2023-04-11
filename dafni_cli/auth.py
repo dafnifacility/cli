@@ -1,8 +1,6 @@
 from typing import Optional
 
-from dafni_cli.utils import (
-    check_key_in_dict
-)
+from dafni_cli.utils import check_key_in_dict
 
 
 class Auth:
@@ -20,6 +18,7 @@ class Auth:
         update (bool): Update access
         view (bool): View access
     """
+
     destroy = None
 
     def __init__(self, auth_dict: Optional[dict] = None):
