@@ -1,22 +1,13 @@
 from typing import Optional
 
-from dafni_cli.consts import (
-    INPUT_TITLE_HEADER,
-    INPUT_TYPE_HEADER,
-    INPUT_MIN_HEADER,
-    INPUT_MAX_HEADER,
-    INPUT_DEFAULT_HEADER,
-    INPUT_DESCRIPTION_HEADER,
-    INPUT_TYPE_COLUMN_WIDTH,
-    INPUT_MIN_MAX_COLUMN_WIDTH,
-    INPUT_DESCRIPTION_LINE_WIDTH,
-    OUTPUT_NAME_HEADER,
-    OUTPUT_FORMAT_HEADER,
-    OUTPUT_SUMMARY_HEADER,
-    OUTPUT_FORMAT_COLUMN_WIDTH,
-    OUTPUT_SUMMARY_COLUMN_WIDTH,
-    TAB_SPACE,
-)
+from dafni_cli.consts import (INPUT_DEFAULT_HEADER, INPUT_DESCRIPTION_HEADER,
+                              INPUT_DESCRIPTION_LINE_WIDTH, INPUT_MAX_HEADER,
+                              INPUT_MIN_HEADER, INPUT_MIN_MAX_COLUMN_WIDTH,
+                              INPUT_TITLE_HEADER, INPUT_TYPE_COLUMN_WIDTH,
+                              INPUT_TYPE_HEADER, OUTPUT_FORMAT_COLUMN_WIDTH,
+                              OUTPUT_FORMAT_HEADER, OUTPUT_NAME_HEADER,
+                              OUTPUT_SUMMARY_COLUMN_WIDTH,
+                              OUTPUT_SUMMARY_HEADER, TAB_SPACE)
 from dafni_cli.utils import optional_column
 
 

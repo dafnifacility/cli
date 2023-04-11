@@ -1,5 +1,5 @@
-from typing import List, Optional
 import os
+from typing import List, Optional
 
 import click
 from click import Context

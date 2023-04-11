@@ -1,8 +1,7 @@
-from dateutil import parser
 import click
-from typing import List
+from dateutil import parser
 
-from dafni_cli.consts import TAB_SPACE, CONSOLE_WIDTH
+from dafni_cli.consts import CONSOLE_WIDTH, TAB_SPACE
 from dafni_cli.utils import prose_print
 
 

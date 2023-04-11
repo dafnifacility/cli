@@ -1,16 +1,16 @@
-import pytest
-from mock import patch, call, MagicMock, PropertyMock, Mock
-from dateutil import parser
-from dateutil.tz import tzutc
 from datetime import datetime as dt
 
-from dafni_cli.model import model, version_history
-from test.fixtures.model_fixtures import (
-    get_models_list_fixture,
-    get_single_model_fixture,
-    get_model_metadata_fixture,
-)
+import pytest
+from dateutil import parser
+from dateutil.tz import tzutc
+from mock import MagicMock, Mock, PropertyMock, call, patch
+
 from dafni_cli.consts import TAB_SPACE
+from dafni_cli.model import model, version_history
+
+from test.fixtures.model_fixtures import (get_model_metadata_fixture,
+                                          get_models_list_fixture,
+                                          get_single_model_fixture)
 
 
 class TestVersionHistory:

@@ -1,12 +1,13 @@
-import requests
-from typing import Optional, Tuple
-from datetime import datetime as dt
 import base64
-import os
-import click
 import json
+import os
+from datetime import datetime as dt
+from typing import Optional, Tuple
 
-from dafni_cli.consts import LOGIN_API_URL, JWT_FILENAME, JWT_KEY, DATE_TIME_FORMAT
+import click
+import requests
+
+from dafni_cli.consts import DATE_TIME_FORMAT, JWT_FILENAME, JWT_KEY, LOGIN_API_URL
 
 
 # TODO add use of refresh tokens for login

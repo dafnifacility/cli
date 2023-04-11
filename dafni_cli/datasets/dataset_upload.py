@@ -1,17 +1,15 @@
-from os.path import normpath, basename
-from typing import List
 import json
+from os.path import basename, normpath
+from typing import List
+
 import click
 from requests.exceptions import HTTPError
 
-from dafni_cli.utils import prose_print
+from dafni_cli.api.minio_api import (get_data_upload_id, get_data_upload_urls,
+                                     upload_dataset_metadata,
+                                     upload_file_to_minio)
 from dafni_cli.consts import CONSOLE_WIDTH
-from dafni_cli.api.minio_api import (
-    get_data_upload_urls,
-    get_data_upload_id,
-    upload_file_to_minio,
-    upload_dataset_metadata,
-)
+from dafni_cli.utils import prose_print
 
 
 def upload_new_dataset_files(

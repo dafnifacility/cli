@@ -1,12 +1,12 @@
-from mock import patch, MagicMock, PropertyMock
-from click.testing import CliRunner
 import os
+
+from click.testing import CliRunner
+from mock import MagicMock, PropertyMock, patch
 
 from dafni_cli.commands.download import download
 
-from test.fixtures.jwt_fixtures import processed_jwt_fixture
 from test.fixtures.dataset_fixtures import dataset_metadata_fixture
-
+from test.fixtures.jwt_fixtures import processed_jwt_fixture
 
 class TestDownload:
     """test class to test the download() command functionality"""

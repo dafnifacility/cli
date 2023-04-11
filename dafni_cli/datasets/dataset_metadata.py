@@ -1,16 +1,13 @@
-import click
-from typing import Optional, Tuple, List
 from io import BytesIO
+from typing import List, Optional, Tuple
+
+import click
 
 from dafni_cli.api.minio_api import minio_get_request
 from dafni_cli.consts import CONSOLE_WIDTH, DATA_FORMATS, TAB_SPACE
-from dafni_cli.utils import (
-    check_key_in_dict,
-    process_dict_datetime,
-    prose_print,
-    output_table,
-    process_file_size,
-)
+from dafni_cli.utils import (check_key_in_dict, output_table,
+                             process_dict_datetime, process_file_size,
+                             prose_print)
 
 
 class DataFile:

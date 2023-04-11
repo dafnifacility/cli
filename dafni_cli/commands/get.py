@@ -1,22 +1,23 @@
+from typing import List, Optional
+
 import click
 from click import Context
-from typing import List, Optional
 
 from dafni_cli.api.datasets_api import get_all_datasets, get_latest_dataset_metadata
 from dafni_cli.api.models_api import get_all_models
 from dafni_cli.api.workflows_api import get_all_workflows
+from dafni_cli.commands.login import check_for_jwt_file
 from dafni_cli.datasets import (
     dataset_filtering,
     dataset_metadata,
     dataset_version_history,
 )
 from dafni_cli.datasets.dataset import Dataset
-from dafni_cli.commands.login import check_for_jwt_file
 from dafni_cli.model.model import Model
 from dafni_cli.model.version_history import ModelVersionHistory
-from dafni_cli.workflow.workflow import Workflow
+from dafni_cli.utils import print_json, process_response_to_class_list
 from dafni_cli.workflow.version_history import WorkflowVersionHistory
-from dafni_cli.utils import process_response_to_class_list, print_json
+from dafni_cli.workflow.workflow import Workflow
 
 
 @click.group(help="Lists entities available to the user")

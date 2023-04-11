@@ -1,20 +1,17 @@
 import json
+from pathlib import Path
+from typing import List
 
 import click
 from click import Context
-from pathlib import Path
 from requests.exceptions import HTTPError
-from typing import List
 
-from dafni_cli.commands.login import check_for_jwt_file
-from dafni_cli.api.models_api import (
-    validate_model_definition,
-    get_model_upload_urls,
-    model_version_ingest,
-    get_all_models,
-)
-from dafni_cli.api.workflows_api import upload_workflow
 from dafni_cli.api.minio_api import upload_file_to_minio
+from dafni_cli.api.models_api import (get_all_models, get_model_upload_urls,
+                                      model_version_ingest,
+                                      validate_model_definition)
+from dafni_cli.api.workflows_api import upload_workflow
+from dafni_cli.commands.login import check_for_jwt_file
 from dafni_cli.datasets.dataset_upload import upload_new_dataset_files
 from dafni_cli.utils import argument_confirmation
 

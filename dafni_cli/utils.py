@@ -1,9 +1,9 @@
-from datetime import datetime as dt
+import json
 import textwrap
+from datetime import datetime as dt
 from io import BytesIO
 from typing import List, Optional, Union
 from zipfile import ZipFile
-import json
 
 import click
 from dateutil.parser import isoparse

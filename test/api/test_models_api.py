@@ -1,11 +1,13 @@
-import pytest
-from mock import patch, mock_open
-from requests.exceptions import HTTPError
 from pathlib import Path
 
-from dafni_cli.consts import MODELS_API_URL, VALIDATE_MODEL_CT, MINIO_UPLOAD_CT
+import pytest
+from mock import mock_open, patch
+from requests.exceptions import HTTPError
+
 from dafni_cli.api import models_api
-from test.fixtures.jwt_fixtures import request_response_fixture, JWT
+from dafni_cli.consts import MINIO_UPLOAD_CT, MODELS_API_URL, VALIDATE_MODEL_CT
+
+from test.fixtures.jwt_fixtures import JWT, request_response_fixture
 
 
 @patch("dafni_cli.api.models_api.dafni_get_request")

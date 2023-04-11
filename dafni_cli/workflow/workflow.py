@@ -1,16 +1,13 @@
-import click
 import datetime as dt
 
+import click
 from dateutil import parser
 
-from dafni_cli.workflow.workflow_metadata import WorkflowMetadata
-from dafni_cli.consts import CONSOLE_WIDTH, TAB_SPACE
-from dafni_cli.api.workflows_api import (
-    get_workflow,
-    #    get_workflow_metadata_dict
-)
-from dafni_cli.utils import prose_print, print_json
+from dafni_cli.api.workflows_api import get_workflow  # get_workflow_metadata_dict
 from dafni_cli.auth import Auth
+from dafni_cli.consts import CONSOLE_WIDTH, TAB_SPACE
+from dafni_cli.utils import print_json, prose_print
+from dafni_cli.workflow.workflow_metadata import WorkflowMetadata
 
 
 class Workflow:

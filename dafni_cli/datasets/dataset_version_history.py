@@ -1,8 +1,8 @@
 from typing import Optional
 
+from dafni_cli.api.datasets_api import get_latest_dataset_metadata
 from dafni_cli.datasets.dataset_metadata import DatasetMetadata
 from dafni_cli.utils import check_key_in_dict, print_json
-from dafni_cli.api.datasets_api import get_latest_dataset_metadata
 
 
 class DatasetVersionHistory:

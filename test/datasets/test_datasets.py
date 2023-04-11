@@ -1,9 +1,11 @@
-from dateutil.tz import tzutc
 from datetime import datetime as dt
-from mock import patch, call
 
-from dafni_cli.consts import TAB_SPACE, CONSOLE_WIDTH
+from dateutil.tz import tzutc
+from mock import call, patch
+
+from dafni_cli.consts import CONSOLE_WIDTH, TAB_SPACE
 from dafni_cli.datasets import dataset
+
 from test.fixtures.dataset_fixtures import get_dataset_list_fixture
 
 

@@ -1,8 +1,9 @@
 import pytest
 from mock import patch, call
 
-from test.fixtures.auth_fixtures import model_auth_fixture, dataset_auth_fixture
 from dafni_cli.auth import Auth
+
+from test.fixtures.auth_fixtures import model_auth_fixture, dataset_auth_fixture
 
 
 class TestAuth:

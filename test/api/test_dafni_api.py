@@ -1,10 +1,12 @@
+from typing import BinaryIO
+
 import pytest
 from mock import patch
 from requests.exceptions import HTTPError
-from typing import BinaryIO
 
 from dafni_cli.api import dafni_api
-from test.fixtures.jwt_fixtures import request_response_fixture, JWT
+
+from test.fixtures.jwt_fixtures import JWT, request_response_fixture
 
 
 @patch("dafni_cli.api.dafni_api.requests")

@@ -1,8 +1,8 @@
 import click
 from dateutil import parser
 
-from dafni_cli.model.model import Model
 from dafni_cli.consts import TAB_SPACE
+from dafni_cli.model.model import Model
 from dafni_cli.utils import print_json
 
 

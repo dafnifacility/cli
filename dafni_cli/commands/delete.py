@@ -1,13 +1,14 @@
 from typing import List
+
 import click
 from click import Context
 
-from dafni_cli.commands.login import check_for_jwt_file
 from dafni_cli.api.models_api import delete_model
-from dafni_cli.model.model import Model
 from dafni_cli.api.workflows_api import delete_workflow
-from dafni_cli.workflow.workflow import Workflow
+from dafni_cli.commands.login import check_for_jwt_file
+from dafni_cli.model.model import Model
 from dafni_cli.utils import argument_confirmation
+from dafni_cli.workflow.workflow import Workflow
 
 
 ###############################################################################

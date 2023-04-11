@@ -1,17 +1,18 @@
-import pytest
-from mock import patch, PropertyMock, mock_open, call
 import json
 import os
 from datetime import datetime as dt
+
+import pytest
 from click.testing import CliRunner
+from mock import PropertyMock, call, mock_open, patch
 
 from dafni_cli.commands import login
-from dafni_cli.consts import LOGIN_API_URL, JWT_FILENAME, JWT_KEY, DATE_TIME_FORMAT
+from dafni_cli.consts import DATE_TIME_FORMAT, JWT_FILENAME, JWT_KEY, LOGIN_API_URL
 
 from test.fixtures.jwt_fixtures import (
-    request_response_fixture,
-    processed_jwt_fixture,
     JWT,
+    processed_jwt_fixture,
+    request_response_fixture,
 )
 
 

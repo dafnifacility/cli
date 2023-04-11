@@ -3,14 +3,11 @@ import datetime as dt
 import click
 from dateutil import parser
 
-from dafni_cli.model.model_metadata import ModelMetadata
-from dafni_cli.consts import CONSOLE_WIDTH, TAB_SPACE
-from dafni_cli.api.models_api import (
-    get_model,
-    #    get_model_metadata_dict,
-)
-from dafni_cli.utils import prose_print, print_json
+from dafni_cli.api.models_api import get_model  # get_model_metadata_dict,
 from dafni_cli.auth import Auth
+from dafni_cli.consts import CONSOLE_WIDTH, TAB_SPACE
+from dafni_cli.model.model_metadata import ModelMetadata
+from dafni_cli.utils import print_json, prose_print
 
 
 class Model:

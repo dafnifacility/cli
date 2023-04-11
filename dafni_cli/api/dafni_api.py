@@ -1,5 +1,6 @@
+from typing import BinaryIO, List, Union
+
 import requests
-from typing import Union, List, BinaryIO
 from requests import Response
 
 

@@ -1,7 +1,7 @@
 from typing import List
 
-from dafni_cli.consts import DISCOVERY_API_URL
 from dafni_cli.api.dafni_api import dafni_get_request, dafni_post_request
+from dafni_cli.consts import DISCOVERY_API_URL
 
 
 # TODO this should work with pagination - check

@@ -1,5 +1,5 @@
-from typing import Optional
 from datetime import datetime as dt
+from typing import Optional
 
 from dafni_cli.utils import process_date_filter
 

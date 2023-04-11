@@ -1,15 +1,15 @@
 import pytest
-from mock import patch, call
+from mock import call, patch
 
-from dafni_cli.datasets.dataset_metadata import DataFile, DatasetMetadata
 from dafni_cli.consts import CONSOLE_WIDTH, TAB_SPACE
+from dafni_cli.datasets.dataset_metadata import DataFile, DatasetMetadata
 
-from test.fixtures.jwt_fixtures import JWT
 from test.fixtures.dataset_fixtures import (
-    dataset_metadata_fixture,
     datafile_mock,
     dataset_meta_mock,
+    dataset_metadata_fixture,
 )
+from test.fixtures.jwt_fixtures import JWT
 
 
 class TestDataFile:

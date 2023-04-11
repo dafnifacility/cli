@@ -1,14 +1,11 @@
-from requests import Response
-from typing import List, Tuple
 from pathlib import Path
+from typing import List, Tuple
 
-from dafni_cli.consts import MODELS_API_URL, VALIDATE_MODEL_CT, MINIO_UPLOAD_CT
-from dafni_cli.api.dafni_api import (
-    dafni_get_request,
-    dafni_post_request,
-    dafni_put_request,
-    dafni_delete_request,
-)
+from requests import Response
+
+from dafni_cli.api.dafni_api import (dafni_delete_request, dafni_get_request,
+                                     dafni_post_request, dafni_put_request)
+from dafni_cli.consts import MINIO_UPLOAD_CT, MODELS_API_URL, VALIDATE_MODEL_CT
 
 
 def get_all_models(jwt: str) -> List[dict]:

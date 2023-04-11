@@ -1,10 +1,11 @@
 import pytest
-from mock import patch, call, MagicMock, PropertyMock, create_autospec
 from click.testing import CliRunner
+from mock import MagicMock, PropertyMock, call, create_autospec, patch
 
 from dafni_cli.commands import delete
-from test.fixtures.jwt_fixtures import processed_jwt_fixture
 from dafni_cli.model import model
+
+from test.fixtures.jwt_fixtures import processed_jwt_fixture
 
 
 @patch.object(model.Model, "get_details_from_id")

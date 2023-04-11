@@ -1,17 +1,17 @@
-import pytest
-from mock import patch, call, MagicMock, PropertyMock, Mock
 from datetime import datetime as dt
+
+import pytest
 from dateutil.tz import tzutc
+from mock import MagicMock, Mock, PropertyMock, call, patch
+
+from dafni_cli import auth
+from dafni_cli.consts import CONSOLE_WIDTH, DATE_TIME_FORMAT, TAB_SPACE
+from dafni_cli.model import model
 
 from test.fixtures.jwt_fixtures import JWT
-from test.fixtures.model_fixtures import (
-    get_models_list_fixture,
-    get_single_model_fixture,
-    get_model_metadata_fixture,
-)
-from dafni_cli import auth
-from dafni_cli.model import model
-from dafni_cli.consts import DATE_TIME_FORMAT, CONSOLE_WIDTH, TAB_SPACE
+from test.fixtures.model_fixtures import (get_model_metadata_fixture,
+                                          get_models_list_fixture,
+                                          get_single_model_fixture)
 
 
 class TestModel:

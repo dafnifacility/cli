@@ -1,9 +1,10 @@
-import pytest
-from typing import List, Tuple
 import datetime as dt
+from typing import List, Tuple
 
-from dafni_cli.model.model import Model
+import pytest
+
 from dafni_cli.auth import Auth
+from dafni_cli.model.model import Model
 
 
 @pytest.fixture
