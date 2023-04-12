@@ -3,15 +3,19 @@ from click.testing import CliRunner
 from mock import call, patch
 
 from dafni_cli.commands import get
-from dafni_cli.datasets import (dataset, dataset_metadata,
-                                dataset_version_history)
+from dafni_cli.datasets import dataset, dataset_metadata, dataset_version_history
 from dafni_cli.model import model, version_history
 
-from test.fixtures.dataset_fixtures import (dataset_metadata_fixture,
-                                            get_dataset_list_fixture)
+from test.fixtures.dataset_fixtures import (
+    dataset_metadata_fixture,
+    get_dataset_list_fixture,
+)
 from test.fixtures.jwt_fixtures import processed_jwt_fixture
-from test.fixtures.model_fixtures import (get_model_metadata_fixture,
-                                          get_models_list_fixture)
+from test.fixtures.model_fixtures import (
+    get_model_metadata_fixture,
+    get_models_list_fixture,
+)
+
 
 class TestGet:
     """test class to test the get() command functionality"""

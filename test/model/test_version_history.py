@@ -8,9 +8,11 @@ from mock import MagicMock, Mock, PropertyMock, call, patch
 from dafni_cli.consts import TAB_SPACE
 from dafni_cli.model import model, version_history
 
-from test.fixtures.model_fixtures import (get_model_metadata_fixture,
-                                          get_models_list_fixture,
-                                          get_single_model_fixture)
+from test.fixtures.model_fixtures import (
+    get_model_metadata_fixture,
+    get_models_list_fixture,
+    get_single_model_fixture,
+)
 
 
 class TestVersionHistory:

@@ -5,9 +5,12 @@ from typing import List
 import click
 from requests.exceptions import HTTPError
 
-from dafni_cli.api.minio_api import (get_data_upload_id, get_data_upload_urls,
-                                     upload_dataset_metadata,
-                                     upload_file_to_minio)
+from dafni_cli.api.minio_api import (
+    get_data_upload_id,
+    get_data_upload_urls,
+    upload_dataset_metadata,
+    upload_file_to_minio,
+)
 from dafni_cli.consts import CONSOLE_WIDTH
 from dafni_cli.utils import prose_print
 

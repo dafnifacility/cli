@@ -9,9 +9,11 @@ from dafni_cli.consts import CONSOLE_WIDTH, DATE_TIME_FORMAT, TAB_SPACE
 from dafni_cli.model import model
 
 from test.fixtures.jwt_fixtures import JWT
-from test.fixtures.model_fixtures import (get_model_metadata_fixture,
-                                          get_models_list_fixture,
-                                          get_single_model_fixture)
+from test.fixtures.model_fixtures import (
+    get_model_metadata_fixture,
+    get_models_list_fixture,
+    get_single_model_fixture,
+)
 
 
 class TestModel:

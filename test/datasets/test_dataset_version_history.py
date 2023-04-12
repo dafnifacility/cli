@@ -5,8 +5,11 @@ from dafni_cli.consts import CONSOLE_WIDTH, DATA_FORMATS, TAB_SPACE
 from dafni_cli.datasets.dataset_metadata import DatasetMetadata
 from dafni_cli.datasets.dataset_version_history import DatasetVersionHistory
 
-from test.fixtures.dataset_fixtures import (datafile_mock, dataset_meta_mock,
-                                            dataset_metadata_fixture)
+from test.fixtures.dataset_fixtures import (
+    datafile_mock,
+    dataset_meta_mock,
+    dataset_metadata_fixture,
+)
 from test.fixtures.jwt_fixtures import JWT
 
 

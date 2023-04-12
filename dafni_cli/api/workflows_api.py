@@ -13,8 +13,11 @@ from typing import List, Tuple
 
 from requests import Response
 
-from dafni_cli.api.dafni_api import (dafni_delete_request, dafni_get_request,
-                                     dafni_post_request)
+from dafni_cli.api.dafni_api import (
+    dafni_delete_request,
+    dafni_get_request,
+    dafni_post_request,
+)
 from dafni_cli.consts import WORKFLOWS_API_URL
 
 

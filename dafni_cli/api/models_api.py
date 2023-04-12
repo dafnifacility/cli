@@ -3,8 +3,12 @@ from typing import List, Tuple
 
 from requests import Response
 
-from dafni_cli.api.dafni_api import (dafni_delete_request, dafni_get_request,
-                                     dafni_post_request, dafni_put_request)
+from dafni_cli.api.dafni_api import (
+    dafni_delete_request,
+    dafni_get_request,
+    dafni_post_request,
+    dafni_put_request,
+)
 from dafni_cli.consts import MINIO_UPLOAD_CT, MODELS_API_URL, VALIDATE_MODEL_CT
 
 

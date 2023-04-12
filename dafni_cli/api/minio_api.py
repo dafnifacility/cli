@@ -3,11 +3,17 @@ from typing import List, Union
 
 import requests
 
-from dafni_cli.api.dafni_api import (dafni_patch_request, dafni_post_request,
-                                     dafni_put_request)
-from dafni_cli.consts import (DATA_DOWNLOAD_API_URL,
-                              DATA_DOWNLOAD_REDIRECT_API_URL,
-                              DATA_UPLOAD_API_URL, MINIO_UPLOAD_CT)
+from dafni_cli.api.dafni_api import (
+    dafni_patch_request,
+    dafni_post_request,
+    dafni_put_request,
+)
+from dafni_cli.consts import (
+    DATA_DOWNLOAD_API_URL,
+    DATA_DOWNLOAD_REDIRECT_API_URL,
+    DATA_UPLOAD_API_URL,
+    MINIO_UPLOAD_CT,
+)
 
 
 def upload_file_to_minio(jwt: str, url: str, file_path: Path) -> requests.Response:
