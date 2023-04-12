@@ -2,7 +2,7 @@ import base64
 from dataclasses import dataclass, fields
 import json
 from pathlib import Path
-from typing import Dict, Optional
+from typing import BinaryIO, Dict, Literal, Optional, Union
 import click
 import requests
 from dafni_cli.consts import LOGIN_API_URL
@@ -18,6 +18,9 @@ LOGOUT_API_ENDPOINT = (
 )
 
 LOGIN_SAVE_FILE = ".dafni-cli"
+
+# TODO: Ensure when refreshing if password wrong once, wont just end program
+# ideally want to detect wrong password and ask user to try again
 
 
 class LoginError(Exception):
@@ -150,13 +153,15 @@ class DAFNISession:
         if response.status_code == 400 and response.json()["error"] == "invalid_grant":
             # This means the refresh token has expired, so login again
             self._request_user_login()
+        else:
+            response.raise_for_status()
 
-        login_response = dataclass_from_dict(LoginResponse, response.json())
+            login_response = dataclass_from_dict(LoginResponse, response.json())
 
-        if not login_response.was_successful():
-            raise LoginError("Unable to refresh login.")
+            if not login_response.was_successful():
+                raise LoginError("Unable to refresh login.")
 
-        self._update_login(login_response)
+            self._update_login(login_response)
 
     def logout(self):
         """Logs out of keycloak"""
@@ -210,13 +215,243 @@ class DAFNISession:
         notifies the user that login has been completed and displays the username
         and UUID.
         """
-        username = click.prompt("User name")
+        username = click.prompt("Username")
         password = click.prompt("Password", hide_input=True)
 
         self._update_login(self._login(username, password))
 
         click.echo("Login Complete")
         click.echo(f"username: {username}, user id: {self._user_id}")
+
+    def _authenticated_request(
+        self,
+        method: Literal["get", "post", "put", "patch", "delete"],
+        url: str,
+        headers: dict,
+        data: Union[dict, BinaryIO],
+        allow_redirect: bool,
+        recursion_level: int = 0,
+    ):
+        """Performs a an authenticated request from the DAFNI API.
+
+        Args:
+            url (str): The url endpoint that is being queried
+            headers (dict): Headers to include in the request (authorisation will already be added)
+            data (dict or BinaryIO): Data to be include in the request
+            allow_redirect (bool): Flag to allow redirects during API call.
+            recursion_level (int): Used by this method to avoid infinite loop while attempting to
+                                   refresh the access token
+
+        Returns:
+            Response
+        """
+        response = requests.request(
+            method,
+            url=url,
+            headers={"authorization": self._login_response.access_token, **headers},
+            data={data},
+            allow_redirects=allow_redirect,
+            timeout=REQUESTS_TIMEOUT,
+        )
+
+        # Check for any kind of authentication error
+        if response.status_code == 401:
+            # Try again, but only once
+            if recursion_level > 1:
+                raise RuntimeError("Could not authenticate request")
+            else:
+                self._refresh_tokens()
+                response = self._authenticated_request(
+                    method,
+                    url,
+                    headers,
+                    data,
+                    allow_redirect,
+                    recursion_level=recursion_level + 1,
+                )
+
+        return response
+
+    def get_request(
+        self,
+        url: str,
+        headers: dict,
+        allow_redirect: bool = False,
+        content: bool = False,
+        raise_status: bool = True,
+    ):
+        """Performs a GET request from the DAFNI API.
+
+        Args:
+            url (str): The url endpoint that is being queried
+            headers (dict): Headers to include in the request (authorisation will already be added)
+            allow_redirect (bool): Flag to allow redirects during API call. Defaults to False.
+            content (bool): Flag to define if the response content is returned. default is the response json
+            raise_status (bool) Flag to define if failure status' should be raised as HttpErrors. Default is True.
+
+        Returns:
+            List[dict]: For an endpoint returning several objects, a list is returned (e.g. /models/).
+            dict: For an endpoint returning one object, this will be a dictionary (e.g. /models/<version_id>).
+        """
+        response = self._authenticated_request(
+            method="get",
+            url=url,
+            headers=headers,
+            data=None,
+            allow_redirect=allow_redirect,
+        )
+
+        if raise_status:
+            response.raise_for_status()
+        if content:
+            return response.content
+        return response.json()
+
+    def post_request(
+        self,
+        url: str,
+        headers: dict,
+        data: Union[dict, BinaryIO],
+        allow_redirect: bool = False,
+        content: bool = False,
+        raise_status: bool = True,
+    ):
+        """Performs a POST request to the DAFNI API.
+
+        Args:
+            url (str): The url endpoint that is being queried
+            headers (dict): Headers to include in the request (authorisation will already be added)
+            data (dict or BinaryIO): Data to be include in the request
+            allow_redirect (bool): Flag to allow redirects during API call. Defaults to False.
+            content (bool): Flag to define if the response content is returned. default is the response json
+            raise_status (bool) Flag to define if failure status' should be raised as HttpErrors. Default is True.
+
+        Returns:
+            List[dict]: For an endpoint returning several objects, a list is returned (e.g. /models/).
+            dict: For an endpoint returning one object, this will be a dictionary (e.g. /models/<version_id>).
+        """
+        response = self._authenticated_request(
+            method="post",
+            url=url,
+            headers=headers,
+            data=data,
+            allow_redirect=allow_redirect,
+        )
+
+        if raise_status:
+            response.raise_for_status()
+        if content:
+            return response.content
+        return response.json()
+
+    def put_request(
+        self,
+        url: str,
+        headers: dict,
+        data: Union[dict, BinaryIO],
+        allow_redirect: bool = False,
+        content: bool = False,
+        raise_status: bool = True,
+    ):
+        """Performs a PUT request to the DAFNI API.
+
+        Args:
+            url (str): The url endpoint that is being queried
+            headers (dict): Headers to include in the request (authorisation will already be added)
+            data (dict or BinaryIO): Data to be include in the request
+            allow_redirect (bool): Flag to allow redirects during API call. Defaults to False.
+            content (bool): Flag to define if the response content is returned. default is the response json
+            raise_status (bool) Flag to define if failure status' should be raised as HttpErrors. Default is True.
+
+        Returns:
+            List[dict]: For an endpoint returning several objects, a list is returned (e.g. /models/).
+            dict: For an endpoint returning one object, this will be a dictionary (e.g. /models/<version_id>).
+        """
+        response = self._authenticated_request(
+            method="put",
+            url=url,
+            headers=headers,
+            data=data,
+            allow_redirect=allow_redirect,
+        )
+
+        if raise_status:
+            response.raise_for_status()
+        if content:
+            return response.content
+        return response.json()
+
+    def patch_request(
+        self,
+        url: str,
+        headers: dict,
+        data: Union[dict, BinaryIO],
+        allow_redirect: bool = False,
+        content: bool = False,
+        raise_status: bool = True,
+    ):
+        """Performs a PATCH request to the DAFNI API.
+
+        Args:
+            url (str): The url endpoint that is being queried
+            headers (dict): Headers to include in the request (authorisation will already be added)
+            data (dict or BinaryIO): Data to be include in the request
+            allow_redirect (bool): Flag to allow redirects during API call. Defaults to False.
+            content (bool): Flag to define if the response content is returned. default is the response json
+            raise_status (bool) Flag to define if failure status' should be raised as HttpErrors. Default is True.
+
+        Returns:
+            List[dict]: For an endpoint returning several objects, a list is returned (e.g. /models/).
+            dict: For an endpoint returning one object, this will be a dictionary (e.g. /models/<version_id>).
+        """
+        response = self._authenticated_request(
+            method="patch",
+            url=url,
+            headers=headers,
+            data=data,
+            allow_redirect=allow_redirect,
+        )
+
+        if raise_status:
+            response.raise_for_status()
+        if content:
+            return response.content
+        return response.json()
+
+    def delete_request(
+        self,
+        url: str,
+        headers: dict,
+        allow_redirect: bool = False,
+        content: bool = False,
+        raise_status: bool = True,
+    ):
+        """Performs a PATCH request to the DAFNI API.
+
+        Args:
+            url (str): The url endpoint that is being queried
+            headers (dict): Headers to include in the request (authorisation will already be added)
+            allow_redirect (bool): Flag to allow redirects during API call. Defaults to False.
+            content (bool): Flag to define if the response content is returned. default is the response json
+            raise_status (bool) Flag to define if failure status' should be raised as HttpErrors. Default is True.
+
+        Returns:
+            List[dict]: For an endpoint returning several objects, a list is returned (e.g. /models/).
+            dict: For an endpoint returning one object, this will be a dictionary (e.g. /models/<version_id>).
+        """
+        response = self._authenticated_request(
+            method="delete",
+            url=url,
+            headers=headers,
+            data=None,
+            allow_redirect=allow_redirect,
+        )
+
+        if raise_status:
+            response.raise_for_status()
+        if content:
+            return response.content
+        return response.json()
 
 
 session = DAFNISession()
