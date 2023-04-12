@@ -19,9 +19,6 @@ LOGOUT_API_ENDPOINT = (
 
 LOGIN_SAVE_FILE = ".dafni-cli"
 
-# TODO: Ensure when refreshing if password wrong once, wont just end program
-# ideally want to detect wrong password and ask user to try again
-
 
 class LoginError(Exception):
     """Generic error to distinguish login failures"""
@@ -184,7 +181,16 @@ class DAFNISession:
     @staticmethod
     def _login(username: str, password: str) -> LoginResponse:
         """Returns a LoginResponse having logged in with a username and
-        password"""
+        password
+
+        Raises:
+            LoginError - If login fails and its likely down to something other
+                         than a bad password
+        Returns:
+            LoginResponse - If 'was_successful' is false, it means the username
+                            or password given was likely wrong
+        """
+
         response = requests.post(
             LOGIN_API_ENDPOINT,
             data={
@@ -196,18 +202,26 @@ class DAFNISession:
             },
             timeout=REQUESTS_TIMEOUT,
         )
-        response = dataclass_from_dict(LoginResponse, response.json())
 
-        if not response.was_successful():
-            raise LoginError("Unable to login. Please check your username and password")
+        # When status_code is 401 => The username or password is wrong and
+        # there has not been any other error
+        if response.status_code != 401:
+            response.raise_for_status()
 
-        return response
+        login_response = dataclass_from_dict(LoginResponse, response.json())
+
+        return login_response
 
     @staticmethod
     def login(username: str, password: str):
         """Returns a DAFNISession object after logging in with a username and
         password"""
-        return DAFNISession(DAFNISession._login(username, password))
+        login_response = DAFNISession._login(username, password)
+        if not login_response.was_successful():
+            raise LoginError(
+                "Failed to login. Please check your username and password and try again."
+            )
+        return DAFNISession(login_response)
 
     def _request_user_login(self):
         """
@@ -215,10 +229,22 @@ class DAFNISession:
         notifies the user that login has been completed and displays the username
         and UUID.
         """
-        username = click.prompt("Username")
-        password = click.prompt("Password", hide_input=True)
 
-        self._update_login(self._login(username, password))
+        # Continue requesting the username and password for as long as the
+        # login fails to recognise them
+        login_response = None
+        while login_response is None or not login_response.was_successful():
+            username = click.prompt("Username")
+            password = click.prompt("Password", hide_input=True)
+
+            login_response = self._login(username, password)
+
+            if not login_response.was_successful():
+                click.echo(
+                    "Failed to login. Please check your username and password and try again."
+                )
+
+        self._update_login(login_response)
 
         click.echo("Login Complete")
         click.echo(f"username: {username}, user id: {self._user_id}")
