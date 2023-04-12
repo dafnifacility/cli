@@ -25,7 +25,7 @@ class Model:
 
     Attributes:
         api_version: Version of the DAFNI API used to retrieve model data
-        auth: Authentication credentials used to retrieve model datad
+        auth: Authentication credentials used to retrieve model data
         container: Location of the docker image the model should be run in
         container_version: Version of the docker image
         creation_date: Date and time the model was created
