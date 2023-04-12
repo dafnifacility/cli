@@ -165,7 +165,7 @@ class DAFNISession:
             data={
                 "client_id": "dafni-main",
                 "grant_type": "refresh_token",
-                "refresh_token": self._login_response.refresh_token,
+                "refresh_token": self._session_data.refresh_token,
             },
             timeout=REQUESTS_TIMEOUT,
         )
@@ -181,7 +181,9 @@ class DAFNISession:
             if not login_response.was_successful():
                 raise LoginError("Unable to refresh login.")
 
-            self._update_login(login_response)
+            self._session_data = SessionData.from_login_response(
+                self._session_data.username, login_response
+            )
 
     def logout(self):
         """Logs out of keycloak"""
@@ -189,11 +191,11 @@ class DAFNISession:
             LOGOUT_API_ENDPOINT,
             headers={
                 "Content-Type": "application/x-www-form-urlencoded",
-                "Authorization": f"Bearer {self._login_response.access_token}",
+                "Authorization": f"Bearer {self._session_data.access_token}",
             },
             data={
                 "client_id": "dafni-main",
-                "refresh_token": self._login_response.refresh_token,
+                "refresh_token": self._session_data.refresh_token,
                 "scope": "openid",
             },
             timeout=REQUESTS_TIMEOUT,
@@ -249,6 +251,12 @@ class DAFNISession:
             )
         return DAFNISession(SessionData.from_login_response(username, login_response))
 
+    def output_user_info(self):
+        """Outputs info on the logged in user using click.echo"""
+        click.echo(
+            f"username: {self._session_data.user_id}, user id: {self._session_data.user_id}"
+        )
+
     def _request_user_login(self):
         """
         Prompts the user for their username and password. If login is successful,
@@ -273,7 +281,7 @@ class DAFNISession:
         self._session_data = SessionData.from_login_response(username, login_response)
 
         click.echo("Login Complete")
-        click.echo(f"username: {self._session_data.user_id}, user id: {self._session_data.user_id}")
+        self.output_user_info()
 
     def _authenticated_request(
         self,
