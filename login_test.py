@@ -55,6 +55,10 @@ class DAFNISession:
     # Last response from login (contains tokens)
     _login_response: LoginResponse
 
+    # Whether to delete the storage file on logout (only if above response
+    # loaded/saved from/to a file)
+    _delete_file_on_logout: bool = False
+
     # User ID derived from the access token
     _user_id: str
 
@@ -68,6 +72,7 @@ class DAFNISession:
         """
         if login_response is None:
             self._obtain_login()
+            self._delete_file_on_logout = True
         else:
             self._update_login(login_response)
 
@@ -117,11 +122,13 @@ class DAFNISession:
         with open(path, "r", encoding="utf-8") as file:
             dictionary = json.loads(file.read())
             self._update_login(dataclass_from_dict(LoginResponse, dictionary))
+            self._response_loaded_from_file = True
             return True
 
     def _obtain_login(self):
         """Tries to load a previously stored LoginResponse, or obtains a new
-        one by asking the user to login if the storage file was not found"""
+        one and saves it by asking the user to login if the storage file was
+        not found"""
 
         # Attempt to get from a file first
         if not self._load_login_response():
@@ -177,6 +184,9 @@ class DAFNISession:
         )
 
         response.raise_for_status()
+
+        if self._delete_file_on_logout:
+            self._get_login_save_path().unlink()
 
     @staticmethod
     def _login(username: str, password: str) -> LoginResponse:
@@ -481,4 +491,4 @@ class DAFNISession:
 
 
 session = DAFNISession()
-session.logout()
+# session.logout()
