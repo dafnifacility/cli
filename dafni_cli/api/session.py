@@ -144,8 +144,6 @@ class DAFNISession:
         but in the case it has expired will ask the user to login again.
         """
 
-        print("REFRESH TOKENS!!!")
-
         # Request a new refresh token
         response = requests.post(
             LOGIN_API_ENDPOINT,
@@ -158,7 +156,6 @@ class DAFNISession:
         )
 
         if response.status_code == 400 and response.json()["error"] == "invalid_grant":
-            print("CANNOT REFRESH!!!")
             # This means the refresh token has expired, so login again
             self._request_user_login()
         else:

@@ -123,7 +123,7 @@ def model(ctx: Context, version_id: List[str], version_history: bool, json: bool
     for vid in version_id:
         model = Model(vid)
         model.get_attributes_from_id(ctx.obj["session"], vid)
-        print(model.dictionary)
+
         if version_history:
             history = ModelVersionHistory(ctx.obj["session"], model)
             history.output_version_history(json)
@@ -342,7 +342,7 @@ def workflow(ctx: Context, version_id: List[str], version_history: bool, json: b
     for vid in version_id:
         workflow = Workflow(vid)
         workflow.get_attributes_from_id(ctx.obj["session"], vid)
-        print(workflow.dictionary)
+        
         if version_history:
             history = WorkflowVersionHistory(ctx.obj["session"], workflow)
             history.output_version_history(json)
