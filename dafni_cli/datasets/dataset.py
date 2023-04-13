@@ -11,7 +11,7 @@ class Dataset:
 
     Methods:
         __init__(): Dataset constructor
-        set_attributes_from_dict(jwt (str), dataset (dict)): Sets the dataset attributes from given client model dict
+        set_attributes_from_dict(session (DAFNISession), dataset (dict)): Sets the dataset attributes from given client model dict
         output_dataset_details(): Prints key information of the dataset to console.
 
     Attributes:

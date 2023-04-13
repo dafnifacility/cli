@@ -1,16 +1,17 @@
 from typing import List
 
 from dafni_cli.api.dafni_api import dafni_get_request, dafni_post_request
+from dafni_cli.api.session import DAFNISession
 from dafni_cli.consts import DISCOVERY_API_URL
 
 
 # TODO this should work with pagination - check
-def get_all_datasets(jwt: str, filters: dict) -> List[dict]:
+def get_all_datasets(session: DAFNISession, filters: dict) -> List[dict]:
     """Function to retrieve all datasets available to the
     given user
 
     Args:
-        jwt (str): Users JWT
+        session (DAFNISession): User session
         filters (dict): dict of filters to apply to the get datasets query
 
     Returns:
@@ -19,15 +20,17 @@ def get_all_datasets(jwt: str, filters: dict) -> List[dict]:
     url = DISCOVERY_API_URL + "/catalogue/"
     data = {"offset": {"start": 0, "size": 1000}, "sort_by": "recent", **filters}
 
-    return dafni_post_request(url, jwt, data, allow_redirect=True)
+    return dafni_post_request(url, session, data, allow_redirect=True)
 
 
 # TODO: Make dataset_id optional? - Can search just by version ID now
-def get_latest_dataset_metadata(jwt: str, dataset_id: str, version_id: str) -> dict:
+def get_latest_dataset_metadata(
+    session: DAFNISession, dataset_id: str, version_id: str
+) -> dict:
     """Function to get the dataset metadata for a given dataset
 
     Args:
-        jwt (str): Users JWT
+        session (str): User session
         dataset_id (str): Dataset ID
         version_id (str): Dataset Version ID
 
@@ -35,4 +38,4 @@ def get_latest_dataset_metadata(jwt: str, dataset_id: str, version_id: str) -> d
         dict: Dataset Version Metadata dict
     """
     url = f"{DISCOVERY_API_URL}/metadata/{dataset_id}/{version_id}"
-    return dafni_get_request(url, jwt, allow_redirect=True)
+    return dafni_get_request(url, session, allow_redirect=True)

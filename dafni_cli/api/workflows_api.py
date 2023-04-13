@@ -18,46 +18,47 @@ from dafni_cli.api.dafni_api import (
     dafni_get_request,
     dafni_post_request,
 )
+from dafni_cli.api.session import DAFNISession
 from dafni_cli.consts import WORKFLOWS_API_URL
 
 
-def get_all_workflows(jwt: str) -> List[dict]:
+def get_all_workflows(session: DAFNISession) -> List[dict]:
     """
     Call the "workflows_list" endpoint and return the resulting list of dictionaries.
 
     Args:
-        jwt (str): JWT
+        session (DAFNISession): User session
 
     Returns:
         List[dict]: list of dictionaries with raw response from API
     """
     url = WORKFLOWS_API_URL + "/workflows/"
-    return dafni_get_request(url, jwt)
+    return dafni_get_request(url, session)
 
 
-def get_workflow(jwt: str, workflow_version_id: str) -> dict:
+def get_workflow(session: DAFNISession, workflow_version_id: str) -> dict:
     """
     Call the "workflows" endpoint and return the resulting dictionary.
 
     Args:
-        jwt (str): JWT
+        session (DAFNISession): User session
         workflow_version_id (str): workflow version ID for selected workflow
 
     Returns:
         dict: dictionary for the details of selected workflow
     """
     url = WORKFLOWS_API_URL + "/workflows/" + workflow_version_id + "/"
-    return dafni_get_request(url, jwt)
+    return dafni_get_request(url, session)
 
 
 def upload_workflow(
-    jwt: str, file_path: Path, version_message: str, parent_id: str
+    session: DAFNISession, file_path: Path, version_message: str, parent_id: str
 ) -> Tuple[str, dict]:
     """
     Uploads a DAFNI workflow specified in a JSON file
 
     Args:
-        jwt (str): JWT
+        session (DAFNISession): User session
         file_path: Path to the workflow definition file (JSON)
         version_message: String describing the new version, which will overwrite any version message in the JSON description
         parent_id: The ID of the parent workflow, for updating an existing workflow
@@ -74,7 +75,7 @@ def upload_workflow(
         workflow_description = json.load(f)
         if version_message:
             workflow_description["version_message"] = version_message
-        return dafni_post_request(url, jwt, workflow_description)
+        return dafni_post_request(url, session, workflow_description)
 
 
 # TODO rename so different names and see if used
@@ -95,13 +96,13 @@ def upload_workflow(
 #    return dafni_post_request(url, jwt, workflow_description)
 
 
-def delete_workflow(jwt: str, workflow_version_id: str) -> Response:
+def delete_workflow(session: DAFNISession, workflow_version_id: str) -> Response:
     """
     Calls the workflows_delete endpoint
 
     Args:
-        jwt (str): JWT
+        session (DAFNISession): User session
         workflow_version_id (str): version ID of workflow to be deleted
     """
     url = WORKFLOWS_API_URL + "/workflows/" + workflow_version_id
-    return dafni_delete_request(url, jwt)
+    return dafni_delete_request(url, session)

@@ -1,5 +1,6 @@
 import click
 from dateutil import parser
+from dafni_cli.api.session import DAFNISession
 
 from dafni_cli.consts import TAB_SPACE
 from dafni_cli.model.model import Model
@@ -18,7 +19,7 @@ class ModelVersionHistory:
         history: list of model instances of the different versions of the model in reverse chronological order
     """
 
-    def __init__(self, jwt_string: str, latest_version: Model):
+    def __init__(self, session: DAFNISession, latest_version: Model):
         if latest_version.id is None:
             raise Exception("Model has no 'id' attribute")
         elif (
@@ -29,7 +30,7 @@ class ModelVersionHistory:
             or latest_version.version_message is None
             or "version_history" not in latest_version.dictionary
         ):
-            latest_version.get_attributes_from_id(jwt_string, latest_version.id)
+            latest_version.get_attributes_from_id(session, latest_version.id)
 
         self.dictionary = latest_version.dictionary["version_history"]
         self.history = [latest_version]
@@ -37,7 +38,7 @@ class ModelVersionHistory:
         if len(self.dictionary) > 1:
             for version_dict in self.dictionary[1:]:
                 version = Model()
-                version.get_attributes_from_id(jwt_string, version_dict["id"])
+                version.get_attributes_from_id(session, version_dict["id"])
                 self.history.append(version)
 
     def output_version_history(self, json_flag: bool = False):

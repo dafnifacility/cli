@@ -3,6 +3,7 @@ import datetime as dt
 import click
 from dateutil import parser
 
+from dafni_cli.api.session import DAFNISession
 from dafni_cli.api.workflows_api import get_workflow  # get_workflow_metadata_dict
 from dafni_cli.auth import Auth
 from dafni_cli.consts import CONSOLE_WIDTH, TAB_SPACE
@@ -17,8 +18,8 @@ class Workflow:
 
     Methods:
         get_details_from_dict(dict): populates attributes from the workflow dictionary from the DAFNI API
-        get_details_from_id(jwt (str), id (str)): populates attributes from the workflow version ID by calling DAFNI API.
-        get_metadata(jwt (str)): After details have been obtained, populate metadata attributes.
+        get_details_from_id(session (DAFNISession), id (str)): populates attributes from the workflow version ID by calling DAFNI API.
+        get_metadata(session (DAFNISession)): After details have been obtained, populate metadata attributes.
         filter_by_date(key (str), date (str)): calculates whether the workflow was created/published before a date.
         output_details(): Prints key information of workflow to console.
         output_metadata(): Prints key information of workflow metadata to console.
@@ -133,27 +134,28 @@ class Workflow:
 
         return missing_workflow_attributes
 
-    def get_attributes_from_id(self, jwt_string: str, version_id_string: str):
+    def get_attributes_from_id(self, session: str, version_id_string: str):
         """
         Retrieve workflow attributes from the DAFNI API using the /workflows/<version-id> endpoint.
 
         Args:
-            jwt_string (str): JWT for login purposes
+            session (DAFNISession): User session
             version_id_string (str): Version ID of the workflow
         """
-        workflow_dict = get_workflow(jwt_string, version_id_string)
+        workflow_dict = get_workflow(session, version_id_string)
         self.set_attributes_from_dict(workflow_dict)
         # TODO: Check: Version message key appears on single workflow API response, but not list of all workflows response
         self.version_message = workflow_dict["version_message"]
         return
 
-    def get_metadata(self, jwt_string: str):
+    def get_metadata(self, session: DAFNISession):
         """
         Retrieve metadata for the workflow using the workflow details.
+
         Args:
-            jwt_string (str): JWT for login purposes
+            session (DAFNISession): User session
         """
-        #        metadata_dict = get_workflow_metadata_dict(jwt_string, self.id)
+        #        metadata_dict = get_workflow_metadata_dict(session, self.id)
         self.metadata_obj = WorkflowMetadata(self.dictionary)
         return
 

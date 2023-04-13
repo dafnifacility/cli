@@ -5,7 +5,7 @@ import click
 from click import Context
 
 from dafni_cli.api.datasets_api import get_latest_dataset_metadata
-from dafni_cli.commands.login import check_for_jwt_file
+from dafni_cli.api.session import DAFNISession
 from dafni_cli.datasets.dataset_metadata import DatasetMetadata
 from dafni_cli.utils import write_files_to_zip
 
@@ -13,10 +13,13 @@ from dafni_cli.utils import write_files_to_zip
 @click.group(help="Download entity from DAFNI")
 @click.pass_context
 def download(ctx: Context):
-    """Download entity from DAFNI."""
+    """Download entity from DAFNI.
+
+    Args:
+        ctx (Context): Context containing the user session.
+    """
     ctx.ensure_object(dict)
-    jwt_dict, _ = check_for_jwt_file()
-    ctx.obj["jwt"] = jwt_dict["jwt"]
+    ctx.obj["session"] = DAFNISession()
 
 
 @download.command(help="Download all dataset files for given version")
@@ -42,12 +45,14 @@ def dataset(
         version_id (str): Dataset version ID
         directory (Optional[click.Path]): Directory to write zip folder to
     """
-    metadata = get_latest_dataset_metadata(ctx.obj["jwt"], dataset_id, version_id)
+    metadata = get_latest_dataset_metadata(ctx.obj["session"], dataset_id, version_id)
     dataset_meta = DatasetMetadata(metadata)
 
     if len(dataset_meta.files) > 0:
         # Download all files
-        file_names, file_contents = dataset_meta.download_dataset_files(ctx.obj["jwt"])
+        file_names, file_contents = dataset_meta.download_dataset_files(
+            ctx.obj["session"]
+        )
 
         # Setup file paths
         if not directory:
