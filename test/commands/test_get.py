@@ -1,26 +1,26 @@
 import pytest
-from mock import patch, call
 from click.testing import CliRunner
+from mock import call, patch
 
 from dafni_cli.commands import get
-from dafni_cli.model import (
-    model,
-    version_history,
-)
 from dafni_cli.datasets import dataset, dataset_metadata, dataset_version_history
-from test.fixtures.jwt_fixtures import processed_jwt_fixture
-from test.fixtures.model_fixtures import get_models_list_fixture
+from dafni_cli.model import model, version_history
+
 from test.fixtures.dataset_fixtures import (
-    get_dataset_list_fixture,
     dataset_metadata_fixture,
+    get_dataset_list_fixture,
 )
-from test.fixtures.model_fixtures import get_model_metadata_fixture
+from test.fixtures.jwt_fixtures import processed_jwt_fixture
+from test.fixtures.model_fixtures import (
+    get_model_metadata_fixture,
+    get_models_list_fixture,
+)
 
 
 class TestGet:
     """test class to test the get() command functionality"""
 
-    @patch("dafni_cli.commands.get.get_models_dicts")
+    @patch("dafni_cli.commands.get.get_all_models")
     @patch("dafni_cli.commands.get.check_for_jwt_file")
     class TestInit:
         """Test class to test the get() group processing of the
@@ -48,7 +48,7 @@ class TestGet:
 
     @patch.object(model.Model, "filter_by_date")
     @patch.object(model.Model, "output_details")
-    @patch("dafni_cli.commands.get.get_models_dicts")
+    @patch("dafni_cli.commands.get.get_all_models")
     @patch("dafni_cli.commands.get.check_for_jwt_file")
     class TestModels:
         """Test class to test the get.models command"""
@@ -67,7 +67,7 @@ class TestGet:
             # SETUP
             # setup get group command
             mock_jwt.return_value = processed_jwt_fixture, False
-            # setup get_models_dicts call
+            # setup get_all_models call
             models = get_models_list_fixture
             mock_get.return_value = models
             # setup create_model_list call
@@ -96,7 +96,7 @@ class TestGet:
             # SETUP
             # setup get group command
             mock_jwt.return_value = processed_jwt_fixture, False
-            # setup get_models_dicts call
+            # setup get_all_models call
             models = get_models_list_fixture
             mock_get.return_value = models
             # Setup click
@@ -130,7 +130,7 @@ class TestGet:
             date = "01/02/2021"
             # setup get group command
             mock_jwt.return_value = processed_jwt_fixture, False
-            # setup get_models_dicts call
+            # setup get_all_models call
             models = get_models_list_fixture
             mock_get.return_value = models
             # setup filter_by_date return so that no models are displayed
@@ -165,7 +165,7 @@ class TestGet:
             date = "01/02/2021"
             # setup get group command
             mock_jwt.return_value = processed_jwt_fixture, False
-            # setup get_models_dicts call
+            # setup get_all_models call
             models = get_models_list_fixture
             mock_get.return_value = models
             # setup filter_by_date return so that the second model is displayed
@@ -183,19 +183,19 @@ class TestGet:
 
         @patch("dafni_cli.commands.get.print_json")
         def test_print_json_method_called_on_each_model_if_json_option_chosen_without_date_filter(
-                self,
-                mock_print,
-                mock_jwt,
-                mock_get,
-                mock_output,
-                mock_filter,
-                processed_jwt_fixture,
-                get_models_list_fixture,
+            self,
+            mock_print,
+            mock_jwt,
+            mock_get,
+            mock_output,
+            mock_filter,
+            processed_jwt_fixture,
+            get_models_list_fixture,
         ):
             # SETUP
             # setup get group command
             mock_jwt.return_value = processed_jwt_fixture, False
-            # setup get_models_dicts call
+            # setup get_all_models call
             models = get_models_list_fixture
             mock_get.return_value = models
             # Setup click
@@ -216,22 +216,22 @@ class TestGet:
             [("--creation-date", "creation"), ("--publication-date", "publication")],
         )
         def test_empty_list_printed_if_filter_options_return_no_models_and_json_option_chosen(
-                self,
-                mock_print,
-                mock_jwt,
-                mock_get,
-                mock_output,
-                mock_filter,
-                option,
-                value,
-                processed_jwt_fixture,
-                get_models_list_fixture,
+            self,
+            mock_print,
+            mock_jwt,
+            mock_get,
+            mock_output,
+            mock_filter,
+            option,
+            value,
+            processed_jwt_fixture,
+            get_models_list_fixture,
         ):
             # SETUP
             date = "01/02/2021"
             # setup get group command
             mock_jwt.return_value = processed_jwt_fixture, False
-            # setup get_models_dicts call
+            # setup get_all_models call
             models = get_models_list_fixture
             mock_get.return_value = models
             # setup filter_by_date return so that no models are displayed
@@ -254,22 +254,22 @@ class TestGet:
             [("--creation-date", "creation"), ("--publication-date", "publication")],
         )
         def test_only_dictionaries_of_models_that_make_it_through_filter_are_printed_with_json_option(
-                self,
-                mock_print,
-                mock_jwt,
-                mock_get,
-                mock_output,
-                mock_filter,
-                option,
-                value,
-                processed_jwt_fixture,
-                get_models_list_fixture,
+            self,
+            mock_print,
+            mock_jwt,
+            mock_get,
+            mock_output,
+            mock_filter,
+            option,
+            value,
+            processed_jwt_fixture,
+            get_models_list_fixture,
         ):
             # SETUP
             date = "01/02/2021"
             # setup get group command
             mock_jwt.return_value = processed_jwt_fixture, False
-            # setup get_models_dicts call
+            # setup get_all_models call
             models = get_models_list_fixture
             mock_get.return_value = models
             # setup filter_by_date return so that the second model is displayed
@@ -287,7 +287,7 @@ class TestGet:
             assert result.exit_code == 0
 
     @patch.object(model.Model, "get_details_from_id")
-    @patch("dafni_cli.model.model.get_single_model_dict")
+    @patch("dafni_cli.model.model.get_model")
     @patch("dafni_cli.commands.get.check_for_jwt_file")
     class TestModel:
         """Test class to test the get.models command"""
@@ -415,7 +415,9 @@ class TestGet:
             mock_initialise.return_value = None
 
             # CALL
-            result = runner.invoke(get.get, ["model", version_id, json_flag, "--version-history"])
+            result = runner.invoke(
+                get.get, ["model", version_id, json_flag, "--version-history"]
+            )
 
             # ASSERT
             assert mock_details.called_once_with(
@@ -459,7 +461,8 @@ class TestGet:
 
             # CALL
             result = runner.invoke(
-                get.get, ["model", version_id_1, version_id_2, json_flag, "--version-history"]
+                get.get,
+                ["model", version_id_1, version_id_2, json_flag, "--version-history"],
             )
 
             # ASSERT
@@ -468,7 +471,10 @@ class TestGet:
                 call(processed_jwt_fixture["jwt"], version_id_2),
             ]
             assert mock_initialise.call_count == 2
-            assert mock_output_version_history.call_args_list == [call(value), call(value)]
+            assert mock_output_version_history.call_args_list == [
+                call(value),
+                call(value),
+            ]
             assert result.exit_code == 0
 
     @patch.object(dataset.Dataset, "output_dataset_details")
@@ -694,7 +700,7 @@ class TestGet:
             assert result.exit_code == 0
 
         @pytest.mark.parametrize("json_flag", ["--pretty", "-p"])
-        @pytest.mark.parametrize("metadata", ["--metadata","-m"])
+        @pytest.mark.parametrize("metadata", ["--metadata", "-m"])
         @pytest.mark.parametrize(
             "option, long",
             [("--short", False), ("-s", False), ("-l", True), ("--long", True)],
@@ -794,14 +800,10 @@ class TestGet:
             mock_print.assert_called_once_with(response)
             assert result.exit_code == 0
 
-        @pytest.mark.parametrize("json_flag, json_value",
-                                 [
-                                     ("--pretty", False),
-                                     ("-p", False),
-                                     ("--json", True),
-                                     ("-j", True)
-                                 ]
-                                 )
+        @pytest.mark.parametrize(
+            "json_flag, json_value",
+            [("--pretty", False), ("-p", False), ("--json", True), ("-j", True)],
+        )
         @pytest.mark.parametrize("version_history", ["--version-history", "-v"])
         @patch.object(
             dataset_version_history.DatasetVersionHistory, "process_version_history"

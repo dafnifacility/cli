@@ -1,20 +1,20 @@
 from typing import Optional
 
 from dafni_cli.consts import (
-    INPUT_TITLE_HEADER,
-    INPUT_TYPE_HEADER,
-    INPUT_MIN_HEADER,
-    INPUT_MAX_HEADER,
     INPUT_DEFAULT_HEADER,
     INPUT_DESCRIPTION_HEADER,
-    INPUT_TYPE_COLUMN_WIDTH,
-    INPUT_MIN_MAX_COLUMN_WIDTH,
     INPUT_DESCRIPTION_LINE_WIDTH,
-    OUTPUT_NAME_HEADER,
-    OUTPUT_FORMAT_HEADER,
-    OUTPUT_SUMMARY_HEADER,
+    INPUT_MAX_HEADER,
+    INPUT_MIN_HEADER,
+    INPUT_MIN_MAX_COLUMN_WIDTH,
+    INPUT_TITLE_HEADER,
+    INPUT_TYPE_COLUMN_WIDTH,
+    INPUT_TYPE_HEADER,
     OUTPUT_FORMAT_COLUMN_WIDTH,
+    OUTPUT_FORMAT_HEADER,
+    OUTPUT_NAME_HEADER,
     OUTPUT_SUMMARY_COLUMN_WIDTH,
+    OUTPUT_SUMMARY_HEADER,
     TAB_SPACE,
 )
 from dafni_cli.utils import optional_column
@@ -37,7 +37,7 @@ def params_table_header(title_column_width: int, default_column_width: int) -> s
         f"{INPUT_MAX_HEADER:{INPUT_MIN_MAX_COLUMN_WIDTH}}"
         f"{INPUT_DEFAULT_HEADER:{default_column_width}}"
         f"{INPUT_DESCRIPTION_HEADER}\n"
-        + f"-"
+        + "-"
         * (
             title_column_width
             + INPUT_TYPE_COLUMN_WIDTH
@@ -63,7 +63,7 @@ def outputs_table_header(name_column_width: int) -> str:
         f"{OUTPUT_NAME_HEADER:{name_column_width}}"
         f"{OUTPUT_FORMAT_HEADER:{OUTPUT_FORMAT_COLUMN_WIDTH}}"
         f"{OUTPUT_SUMMARY_HEADER}\n"
-        + f"-"
+        + "-"
         * (name_column_width + OUTPUT_FORMAT_COLUMN_WIDTH + OUTPUT_SUMMARY_COLUMN_WIDTH)
         + "\n"
     )
@@ -151,8 +151,8 @@ class ModelMetadata:
                 for default in dataslot["default"]:
                     # TODO print name using API call to databases
                     dataslots_list += "Name: " + default + TAB_SPACE
-#                    dataslots_list += f'ID: {default["uid"]}' + TAB_SPACE
-#                    dataslots_list += f'Version ID: {default["versionUid"]}' + TAB_SPACE
+                #                    dataslots_list += f'ID: {default["uid"]}' + TAB_SPACE
+                #                    dataslots_list += f'Version ID: {default["versionUid"]}' + TAB_SPACE
                 dataslots_list += "\n"
             return dataslots_list
         else:

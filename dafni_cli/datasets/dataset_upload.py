@@ -1,17 +1,18 @@
-from os.path import normpath, basename
-from typing import List
-import click
 import json
+from os.path import basename, normpath
+from typing import List
+
+import click
 from requests.exceptions import HTTPError
-from dafni_cli.utils import prose_print
-from dafni_cli.consts import CONSOLE_WIDTH
 
 from dafni_cli.api.minio_api import (
-    get_data_upload_urls,
     get_data_upload_id,
-    upload_file_to_minio,
+    get_data_upload_urls,
     upload_dataset_metadata,
+    upload_file_to_minio,
 )
+from dafni_cli.consts import CONSOLE_WIDTH
+from dafni_cli.utils import prose_print
 
 
 def upload_new_dataset_files(
@@ -79,9 +80,9 @@ def upload_metadata(jwt, definition: click.Path, upload_id: str) -> dict:
                 jwt, upload_id, json.load(definition_file)
             )
             response.raise_for_status()
-        except HTTPError:
+        except HTTPError as e:
             click.echo("\nMetadata Upload Failed")
             prose_print("\n".join(response.json()), CONSOLE_WIDTH)
-            raise SystemExit(1)
+            raise SystemExit(1) from e
 
     return response.json()

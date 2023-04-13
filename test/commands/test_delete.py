@@ -1,10 +1,11 @@
 import pytest
-from mock import patch, call, MagicMock, PropertyMock, create_autospec
 from click.testing import CliRunner
+from mock import MagicMock, PropertyMock, call, create_autospec, patch
 
 from dafni_cli.commands import delete
-from test.fixtures.jwt_fixtures import processed_jwt_fixture
 from dafni_cli.model import model
+
+from test.fixtures.jwt_fixtures import processed_jwt_fixture
 
 
 @patch.object(model.Model, "get_details_from_id")
@@ -14,7 +15,7 @@ class TestCollateModelVersionDetails:
     """Test class to test the collate_model_version_details method"""
 
     def test_single_model_with_valid_permissions_returns_single_model_details(
-            self, mock_destroy, mock_output, mock_get
+        self, mock_destroy, mock_output, mock_get
     ):
         # SETUP
         mock_output.return_value = "Model 1 details"
@@ -32,7 +33,7 @@ class TestCollateModelVersionDetails:
         assert result == ["Model 1 details"]
 
     def test_multiple_models_both_with_valid_permissions_returns_multiple_model_details(
-            self, mock_destroy, mock_output, mock_get
+        self, mock_destroy, mock_output, mock_get
     ):
         # SETUP
         mock_output.side_effect = ["Model 1 details", "Model 2 details"]
@@ -48,14 +49,14 @@ class TestCollateModelVersionDetails:
         # ASSERT
         assert mock_get.call_args_list == [
             call(jwt, version_id1),
-            call(jwt, version_id2)
+            call(jwt, version_id2),
         ]
         assert mock_output.call_count == 2
         assert result == ["Model 1 details", "Model 2 details"]
 
     @patch("dafni_cli.commands.delete.click")
     def test_single_model_without_permission_exits_with_code_1(
-            self, mock_click, mock_destroy, mock_output, mock_get
+        self, mock_click, mock_destroy, mock_output, mock_get
     ):
         # SETUP
         mock_output.return_value = "Model 1 details"
@@ -73,13 +74,13 @@ class TestCollateModelVersionDetails:
         mock_output.assert_called_once()
         assert mock_click.echo.call_args_list == [
             call("You do not have sufficient permissions to delete model version:"),
-            call("Model 1 details")
+            call("Model 1 details"),
         ]
         assert cn.value.code == 1
 
     @patch("dafni_cli.commands.delete.click")
     def test_first_model_with_permissions_but_second_without_exits_and_shows_model_without_permissions(
-            self, mock_click, mock_destroy, mock_output, mock_get
+        self, mock_click, mock_destroy, mock_output, mock_get
     ):
         # SETUP
         mock_output.side_effect = ["Model 1 details", "Model 2 details"]
@@ -99,12 +100,12 @@ class TestCollateModelVersionDetails:
         print(mock_destroy.call_count)
         assert mock_get.call_args_list == [
             call(jwt, version_id1),
-            call(jwt, version_id2)
+            call(jwt, version_id2),
         ]
         assert mock_output.call_count == 2
         assert mock_click.echo.call_args_list == [
             call("You do not have sufficient permissions to delete model version:"),
-            call("Model 2 details")
+            call("Model 2 details"),
         ]
         assert cn.value.code == 1
 
@@ -121,13 +122,13 @@ class TestDelete:
         @patch("dafni_cli.commands.delete.argument_confirmation")
         @patch("dafni_cli.commands.delete.delete_model")
         def test_jwt_retrieved_and_set_on_context(
-                self,
-                mock_model,
-                mock_confirm,
-                mock_collate,
-                mock_click,
-                mock_jwt,
-                processed_jwt_fixture
+            self,
+            mock_model,
+            mock_confirm,
+            mock_collate,
+            mock_click,
+            mock_jwt,
+            processed_jwt_fixture,
         ):
             # SETUP
             mock_jwt.return_value = processed_jwt_fixture, False
@@ -151,13 +152,13 @@ class TestDelete:
         """Test class to test the delete.model command"""
 
         def test_methods_called_once_each_for_single_model(
-                self,
-                mock_model,
-                mock_confirm,
-                mock_collate,
-                mock_click,
-                mock_jwt,
-                processed_jwt_fixture
+            self,
+            mock_model,
+            mock_confirm,
+            mock_collate,
+            mock_click,
+            mock_jwt,
+            processed_jwt_fixture,
         ):
             # SETUP
             mock_jwt.return_value = processed_jwt_fixture, False
@@ -171,29 +172,22 @@ class TestDelete:
             # ASSERT
             assert result.exit_code == 0
             mock_collate.assert_called_once_with(
-                processed_jwt_fixture["jwt"],
-                (version_id,)
+                processed_jwt_fixture["jwt"], (version_id,)
             )
             mock_confirm.assert_called_once_with(
-                [],
-                [],
-                "Confirm deletion of models?",
-                ["model 1 details"]
+                [], [], "Confirm deletion of models?", ["model 1 details"]
             )
-            mock_model.assert_called_once_with(
-                processed_jwt_fixture["jwt"],
-                version_id
-            )
+            mock_model.assert_called_once_with(processed_jwt_fixture["jwt"], version_id)
             mock_click.echo.assert_called_once_with("Model versions deleted")
 
         def test_methods_called_once_each_other_than_delete_model_for_multiple_models(
-                self,
-                mock_model,
-                mock_confirm,
-                mock_collate,
-                mock_click,
-                mock_jwt,
-                processed_jwt_fixture
+            self,
+            mock_model,
+            mock_confirm,
+            mock_collate,
+            mock_click,
+            mock_jwt,
+            processed_jwt_fixture,
         ):
             # SETUP
             mock_jwt.return_value = processed_jwt_fixture, False
@@ -209,22 +203,19 @@ class TestDelete:
             assert result.exit_code == 0
             mock_collate.assert_called_once_with(
                 processed_jwt_fixture["jwt"],
-                (version_id1, version_id2,)
+                (
+                    version_id1,
+                    version_id2,
+                ),
             )
             mock_confirm.assert_called_once_with(
                 [],
                 [],
                 "Confirm deletion of models?",
-                ["model 1 details", "model 2 details"]
+                ["model 1 details", "model 2 details"],
             )
             assert mock_model.call_args_list == [
-                call(
-                    processed_jwt_fixture["jwt"],
-                    version_id1
-                ),
-                call(
-                    processed_jwt_fixture["jwt"],
-                    version_id2
-                )
+                call(processed_jwt_fixture["jwt"], version_id1),
+                call(processed_jwt_fixture["jwt"], version_id2),
             ]
             mock_click.echo.assert_called_once_with("Model versions deleted")

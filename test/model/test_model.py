@@ -1,17 +1,19 @@
-import pytest
-from mock import patch, call, MagicMock, PropertyMock, Mock
 from datetime import datetime as dt
+
+import pytest
 from dateutil.tz import tzutc
+from mock import MagicMock, Mock, PropertyMock, call, patch
+
+from dafni_cli import auth
+from dafni_cli.consts import CONSOLE_WIDTH, DATE_TIME_FORMAT, TAB_SPACE
+from dafni_cli.model import model
 
 from test.fixtures.jwt_fixtures import JWT
 from test.fixtures.model_fixtures import (
+    get_model_metadata_fixture,
     get_models_list_fixture,
     get_single_model_fixture,
-    get_model_metadata_fixture,
 )
-from dafni_cli import auth
-from dafni_cli.model import model
-from dafni_cli.consts import DATE_TIME_FORMAT, CONSOLE_WIDTH, TAB_SPACE
 
 
 class TestModel:
@@ -43,7 +45,7 @@ class TestModel:
                 "version_history",
                 "version_message",
                 "version_tags",
-                "dictionary"
+                "dictionary",
             ]
             # CALL
             # Default parameter identifier = None
@@ -73,7 +75,9 @@ class TestModel:
         """
 
         @patch.object(auth.Auth, "__init__")
-        def test_non_date_fields_set_correctly(self, mock_auth, get_models_list_fixture):
+        def test_non_date_fields_set_correctly(
+            self, mock_auth, get_models_list_fixture
+        ):
             # SETUP
             mock_auth.return_value = None
             instance = model.Model()
@@ -84,13 +88,13 @@ class TestModel:
 
             # ASSERT
             assert instance.container == model_dict["container"]
-            assert instance.metadata["description"] == model_dict["metadata"]["description"]
+            assert (
+                instance.metadata["description"]
+                == model_dict["metadata"]["description"]
+            )
             assert instance.dictionary == model_dict
             assert instance.metadata["name"] == model_dict["metadata"]["name"]
-            assert mock_auth.call_args_list == [
-                call(),
-                call(model_dict["auth"])
-            ]
+            assert mock_auth.call_args_list == [call(), call(model_dict["auth"])]
             assert instance.metadata["summary"] == model_dict["metadata"]["summary"]
             assert instance.id == model_dict["id"]
             assert instance.version_tags == model_dict["version_tags"]
@@ -107,7 +111,7 @@ class TestModel:
             assert instance.creation_date == dt(2021, 1, 1, tzinfo=tzutc())
             assert instance.publication_date == dt(2021, 1, 2, tzinfo=tzutc())
 
-    @patch("dafni_cli.model.model.get_single_model_dict")
+    @patch("dafni_cli.model.model.get_model")
     @patch.object(model.Model, "set_attributes_from_dict")
     class TestGetDetailsFromId:
         """
@@ -453,7 +457,7 @@ class TestModel:
 
         @patch("dafni_cli.model.model.print_json")
         def test_output_correct_when_json_flag_true(
-                self, mock_print, mock_prose, mock_click, get_model_metadata_fixture
+            self, mock_print, mock_prose, mock_click, get_model_metadata_fixture
         ):
             # SETUP
             # mock outputs from metadata
@@ -488,10 +492,13 @@ class TestModel:
             result = instance.output_version_details()
 
             # ASSERT
-            assert result == "ID: version-id" + \
-                   TAB_SPACE + \
-                   "Name: Model name" + \
-                   TAB_SPACE + \
-                   "Publication date: January 01 2020" + \
-                   TAB_SPACE + \
-                   "Version message: Model version message"
+            assert (
+                result
+                == "ID: version-id"
+                + TAB_SPACE
+                + "Name: Model name"
+                + TAB_SPACE
+                + "Publication date: January 01 2020"
+                + TAB_SPACE
+                + "Version message: Model version message"
+            )

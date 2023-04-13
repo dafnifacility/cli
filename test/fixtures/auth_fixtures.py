@@ -10,12 +10,12 @@ def model_auth_fixture() -> dict:
         dict: Mock auth dictionary
     """
     auth = {
-      "asset_id": "0a0a0a0a-0a00-0a00-a000-0a0a0000000a",
-      "reason": "reason for access",
-      "view": True,
-      "read": True,
-      "update": False,
-      "destroy": False
+        "asset_id": "0a0a0a0a-0a00-0a00-a000-0a0a0000000a",
+        "reason": "reason for access",
+        "view": True,
+        "read": True,
+        "update": False,
+        "destroy": False,
     }
     return auth
 
@@ -29,11 +29,11 @@ def dataset_auth_fixture() -> dict:
         dict: Mock auth dictionary
     """
     auth = {
-      "name": "Executor",
-      "reason": "reason for access",
-      "view": True,
-      "read": True,
-      "update": False,
-      "destroy": False
+        "name": "Executor",
+        "reason": "reason for access",
+        "view": True,
+        "read": True,
+        "update": False,
+        "destroy": False,
     }
     return auth

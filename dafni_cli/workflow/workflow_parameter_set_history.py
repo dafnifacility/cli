@@ -1,5 +1,6 @@
 from dafni_cli.workflow.workflow import Workflow
 
+
 class WorkflowParameterSet:
     """
     Contains parameter set data
@@ -17,7 +18,7 @@ class WorkflowParameterSet:
             or "version_history" not in latest_version.dictionary
         ):
             latest_version.get_attributes_from_id(jwt_string, latest_version.id)
-        
+
         self.dictionary = latest_version.dictionary["parameter_sets"]
         if len(self.dictionary) > 1:
             for parameter_set_dict in self.dictionary[1:]:

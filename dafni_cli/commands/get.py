@@ -1,25 +1,23 @@
-import click
-from click import Context
 from typing import List, Optional
 
+import click
+from click import Context
+
 from dafni_cli.api.datasets_api import get_all_datasets, get_latest_dataset_metadata
-from dafni_cli.api.models_api import get_models_dicts
-from dafni_cli.api.workflows_api import get_all_workflows_dicts
+from dafni_cli.api.models_api import get_all_models
+from dafni_cli.api.workflows_api import get_all_workflows
+from dafni_cli.commands.login import check_for_jwt_file
 from dafni_cli.datasets import (
     dataset_filtering,
     dataset_metadata,
     dataset_version_history,
 )
 from dafni_cli.datasets.dataset import Dataset
-from dafni_cli.commands.login import check_for_jwt_file
 from dafni_cli.model.model import Model
 from dafni_cli.model.version_history import ModelVersionHistory
+from dafni_cli.utils import print_json, process_response_to_class_list
+from dafni_cli.workflow.version_history import WorkflowVersionHistory
 from dafni_cli.workflow.workflow import Workflow
-from dafni_cli.workflow.workflow_version_history import WorkflowVersionHistory
-from dafni_cli.utils import (
-    process_response_to_class_list,
-    print_json
-)
 
 
 @click.group(help="Lists entities available to the user")
@@ -27,7 +25,7 @@ from dafni_cli.utils import (
 def get(ctx: Context):
     """Lists entities available to the user from
     models, datasets, workflows, groups, depending on command.
-    \f
+
     Args:
         ctx (Context): Context containing JWT of the user.
     """
@@ -64,13 +62,15 @@ def get(ctx: Context):
     "-j/-p",
     default=False,
     help="Prints raw json returned from API. Default: -p",
-    type=bool
+    type=bool,
 )
 @click.pass_context
-def models(ctx: Context, long: bool, creation_date: str, publication_date: str, json: bool):
+def models(
+    ctx: Context, long: bool, creation_date: str, publication_date: str, json: bool
+):
     """Displays list of model details with other options allowing
         more details to be listed, filters, and for the json to be displayed.
-    \f
+
     Args:
         ctx (context): contains JWT for authentication
         long (bool): whether to print the description of each model as well
@@ -78,7 +78,7 @@ def models(ctx: Context, long: bool, creation_date: str, publication_date: str, 
         publication_date (str): for filtering by publication date. Format: DD/MM/YYYY
         json (bool): whether to print the raw json returned by the DAFNI API
     """
-    model_dict_list = get_models_dicts(ctx.obj["jwt"])
+    model_dict_list = get_all_models(ctx.obj["jwt"])
     model_list = process_response_to_class_list(model_dict_list, Model)
     filtered_model_dict_list = []
     for model in model_list:
@@ -109,12 +109,12 @@ def models(ctx: Context, long: bool, creation_date: str, publication_date: str, 
     "-j/-p",
     default=False,
     help="Prints raw json returned from API. Default: -p",
-    type=bool
+    type=bool,
 )
 @click.pass_context
 def model(ctx: Context, version_id: List[str], version_history: bool, json: bool):
     """Displays the metadata for one or more model versions
-    \f
+
     Args:
         ctx (Context): contains JWT for authentication
         version_id (list[str]): List of version IDs of the models to be displayed
@@ -160,7 +160,7 @@ def model(ctx: Context, version_id: List[str], version_history: bool, json: bool
     "-j/-p",
     default=False,
     help="Prints raw json returned from API. Default: -p",
-    type=bool
+    type=bool,
 )
 @click.pass_context
 def datasets(
@@ -168,11 +168,11 @@ def datasets(
     search: Optional[str],
     start_date: Optional[str],
     end_date: Optional[str],
-    json: Optional[bool]
+    json: Optional[bool],
 ):
     """
     Display a list of all available datasets
-    \f
+
     Args:
         ctx (context): contains JWT for authentication
         search (Optional[str]): Search terms for elastic search. Format: "search terms"
@@ -185,7 +185,9 @@ def datasets(
     if json:
         print_json(datasets_response)
     else:
-        datasets = process_response_to_class_list(datasets_response["metadata"], Dataset)
+        datasets = process_response_to_class_list(
+            datasets_response["metadata"], Dataset
+        )
         for dataset_model in datasets:
             dataset_model.output_dataset_details()
 
@@ -209,14 +211,21 @@ def datasets(
     "-j/-p",
     default=False,
     help="Prints raw json returned from API. Default: -p",
-    type=bool
+    type=bool,
 )
 @click.argument("id", nargs=1, required=True, type=str)
 @click.argument("version-id", nargs=1, required=True, type=str)
 @click.pass_context
-def dataset(ctx: Context, id: str, version_id: str, long: bool, version_history: bool, json: bool):
+def dataset(
+    ctx: Context,
+    id: str,
+    version_id: str,
+    long: bool,
+    version_history: bool,
+    json: bool,
+):
     """Command to the the meta data relating to a given version of a dataset
-    \f
+
     Args:
         ctx (Context): CLI context
         id (str): Dataset ID
@@ -267,14 +276,16 @@ def dataset(ctx: Context, id: str, version_id: str, long: bool, version_history:
     "-j/-p",
     default=False,
     help="Prints raw json returned from API. Default: -p",
-    type=bool
+    type=bool,
 )
 @click.pass_context
-def workflows(ctx: Context, long: bool, creation_date: str, publication_date: str, json: bool):
+def workflows(
+    ctx: Context, long: bool, creation_date: str, publication_date: str, json: bool
+):
     """
     Display attributes of all workflows. Options allow more details to be listed,
     the list of workflows to be filtered, and for the json to be displayed.
-    \f
+
     Args:
         ctx (context): contains JWT for authentication
         long (bool): whether to print the description of each model as well
@@ -282,7 +293,7 @@ def workflows(ctx: Context, long: bool, creation_date: str, publication_date: st
         publication_date (str): for filtering by publication date. Format: DD/MM/YYYY
         json (bool): whether to print the raw json returned by the DAFNI API
     """
-    workflow_dict_list = get_all_workflows_dicts(ctx.obj["jwt"])
+    workflow_dict_list = get_all_workflows(ctx.obj["jwt"])
     workflow_list = process_response_to_class_list(workflow_dict_list, Workflow)
     filtered_workflow_dict_list = []
     for workflow in workflow_list:
@@ -300,7 +311,9 @@ def workflows(ctx: Context, long: bool, creation_date: str, publication_date: st
         print_json(filtered_workflow_dict_list)
 
 
-@get.command(help="Display metadata or version history of a particular workflow or workflows")
+@get.command(
+    help="Display metadata or version history of a particular workflow or workflows"
+)
 @click.argument("version-id", nargs=-1, required=True)
 @click.option(
     "--version-history/--metadata",
@@ -313,14 +326,14 @@ def workflows(ctx: Context, long: bool, creation_date: str, publication_date: st
     "-j/-p",
     default=False,
     help="Prints raw json returned from API. Default: -p",
-    type=bool
+    type=bool,
 )
 @click.pass_context
 def workflow(ctx: Context, version_id: List[str], version_history: bool, json: bool):
     """
     Displays the metadata for a workflow, for one or more versions of that workflow
     from its version history.
-    \f
+
     Args:
         ctx (Context): contains JWT for authentication
         version_id (list[str]): List of version IDs of the workflows to be displayed

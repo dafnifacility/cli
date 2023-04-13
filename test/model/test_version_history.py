@@ -1,16 +1,18 @@
-import pytest
-from mock import patch, call, MagicMock, PropertyMock, Mock
-from dateutil import parser
-from dateutil.tz import tzutc
 from datetime import datetime as dt
 
+import pytest
+from dateutil import parser
+from dateutil.tz import tzutc
+from mock import MagicMock, Mock, PropertyMock, call, patch
+
+from dafni_cli.consts import TAB_SPACE
 from dafni_cli.model import model, version_history
+
 from test.fixtures.model_fixtures import (
+    get_model_metadata_fixture,
     get_models_list_fixture,
     get_single_model_fixture,
-    get_model_metadata_fixture,
 )
-from dafni_cli.consts import TAB_SPACE
 
 
 class TestVersionHistory:
@@ -21,7 +23,9 @@ class TestVersionHistory:
         """Test class to test the VersionHistory.__init__() functionality"""
 
         def test_expected_attributes_found_on_class_and_dictionary_is_expected_value(
-            self, mock_get_details, get_single_model_fixture,
+            self,
+            mock_get_details,
+            get_single_model_fixture,
         ):
             # SETUP
             expected_attributes = [
@@ -43,7 +47,9 @@ class TestVersionHistory:
             assert instance.dictionary == get_single_model_fixture["version_history"]
 
         def test_models_added_to_history_in_correct_order(
-            self, mock_get_details, get_single_model_fixture,
+            self,
+            mock_get_details,
+            get_single_model_fixture,
         ):
             # SETUP
             model_instance = model.Model()
@@ -66,7 +72,9 @@ class TestVersionHistory:
             assert isinstance(instance.history[1], model.Model)
 
         def test_latest_model_does_not_call_get_details_if_details_filled_in(
-            self, mock_get_details, get_single_model_fixture,
+            self,
+            mock_get_details,
+            get_single_model_fixture,
         ):
             # SETUP
             model_instance = model.Model()
@@ -78,7 +86,9 @@ class TestVersionHistory:
             model_instance.publication_time = "time"
             model_instance.version_message = "version message"
             jwt = "jwt"
-            previous_model_version_id = get_single_model_fixture["version_history"][1]["id"]
+            previous_model_version_id = get_single_model_fixture["version_history"][1][
+                "id"
+            ]
 
             # CALL
             instance = version_history.ModelVersionHistory(jwt, model_instance)
@@ -88,13 +98,17 @@ class TestVersionHistory:
             assert mock_get_details.called_once_with(jwt, previous_model_version_id)
 
         def test_model_with_no_previous_versions_only_returns_one_entry_and_does_not_enter_loop(
-            self, mock_get_details, get_single_model_fixture,
+            self,
+            mock_get_details,
+            get_single_model_fixture,
         ):
             # SETUP
             model_instance = model.Model()
             # Use second model dictionary fixture as there is only 1 version
             model_instance.dictionary = get_single_model_fixture
-            model_instance.dictionary["version_history"] = [model_instance.dictionary["version_history"][0]]
+            model_instance.dictionary["version_history"] = [
+                model_instance.dictionary["version_history"][0]
+            ]
             model_instance.version_id = "vid_2"
             model_instance.version_tags = ["latest", "new_param"]
             model_instance.display_name = "test model name"
@@ -119,12 +133,17 @@ class TestVersionHistory:
         """Test class to test the VersionHistory.output_version_history() functionality"""
 
         def test_single_version_displayed_correctly(
-            self, mock_get_details, mock_click, get_single_model_fixture,
+            self,
+            mock_get_details,
+            mock_click,
+            get_single_model_fixture,
         ):
             # SETUP
             model_instance = model.Model()
             # Remove first value of the version history
-            get_single_model_fixture["version_history"] = [get_single_model_fixture["version_history"][0]]
+            get_single_model_fixture["version_history"] = [
+                get_single_model_fixture["version_history"][0]
+            ]
             # Populate the dictionary of the model so the version history dictionary can be accessed
             model_instance.dictionary = get_single_model_fixture
             model_instance.version_id = "id"
@@ -151,12 +170,17 @@ class TestVersionHistory:
             ]
 
         def test_multiple_versions_displayed_correctly(
-            self, mock_get_details, mock_click, get_single_model_fixture,
+            self,
+            mock_get_details,
+            mock_click,
+            get_single_model_fixture,
         ):
             # SETUP
             init_model_instance = model.Model()
             # Remove first value of the version history
-            get_single_model_fixture["version_history"] = [get_single_model_fixture["version_history"][0]]
+            get_single_model_fixture["version_history"] = [
+                get_single_model_fixture["version_history"][0]
+            ]
             # Populate the dictionary of the model so the version history dictionary can be accessed
             init_model_instance.dictionary = get_single_model_fixture
             jwt = "jwt"
@@ -205,7 +229,7 @@ class TestVersionHistory:
 
         @patch("dafni_cli.model.version_history.print_json")
         def test_print_json_called_with_dictionary_when_json_flag_true(
-                self, mock_print, mock_get_details, mock_click, get_single_model_fixture
+            self, mock_print, mock_get_details, mock_click, get_single_model_fixture
         ):
             # SETUP
             model_instance = model.Model()

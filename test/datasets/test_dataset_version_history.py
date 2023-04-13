@@ -1,16 +1,16 @@
 import pytest
-from mock import patch, call
+from mock import call, patch
 
-from dafni_cli.datasets.dataset_version_history import DatasetVersionHistory
-from dafni_cli.datasets.dataset_metadata import DatasetMetadata
 from dafni_cli.consts import CONSOLE_WIDTH, DATA_FORMATS, TAB_SPACE
+from dafni_cli.datasets.dataset_metadata import DatasetMetadata
+from dafni_cli.datasets.dataset_version_history import DatasetVersionHistory
 
-from test.fixtures.jwt_fixtures import JWT
 from test.fixtures.dataset_fixtures import (
-    dataset_metadata_fixture,
     datafile_mock,
     dataset_meta_mock,
+    dataset_metadata_fixture,
 )
+from test.fixtures.jwt_fixtures import JWT
 
 
 class TestDatasetVersionHistory:
@@ -29,7 +29,7 @@ class TestDatasetVersionHistory:
                 getattr(instance, value) is None for value in expected_attributes
             )
 
-        @patch.object(DatasetVersionHistory, "set_details_from_dict")
+        @patch.object(DatasetVersionHistory, "set_attributes_from_dict")
         def test_helper_functions_called_correctly(
             self, mock_set, dataset_metadata_fixture
         ):
@@ -43,7 +43,7 @@ class TestDatasetVersionHistory:
             mock_set.assert_called_once_with(metadata)
 
     class TestSetDetailsFromDict:
-        """Test class to test the set_details_from_dict functionality"""
+        """Test class to test the set_attributes_from_dict functionality"""
 
         @patch("dafni_cli.datasets.dataset_version_history.check_key_in_dict")
         def test_helper_functions_called_correctly(
@@ -55,7 +55,7 @@ class TestDatasetVersionHistory:
             instance = DatasetVersionHistory()
 
             # CALL
-            instance.set_details_from_dict(dataset_metadata_fixture)
+            instance.set_attributes_from_dict(dataset_metadata_fixture)
 
             # ASSERT
             assert mock_check.call_args_list == [
@@ -74,7 +74,7 @@ class TestDatasetVersionHistory:
             # SETUP
             instance = DatasetVersionHistory()
             # CALL
-            instance.set_details_from_dict(dataset_metadata_fixture)
+            instance.set_attributes_from_dict(dataset_metadata_fixture)
             # ASSERT
 
             assert (
@@ -130,13 +130,20 @@ class TestDatasetVersionHistory:
 
         @pytest.mark.parametrize(
             "version_ids, metadata_list",
-            [([], []),
-             (["version_1"], ["Meta data1"]),
-             (["version_1", "version_2"], ["Meta data1", "Meta data2"])
-            ]
+            [
+                ([], []),
+                (["version_1"], ["Meta data1"]),
+                (["version_1", "version_2"], ["Meta data1", "Meta data2"]),
+            ],
         )
         def test_helper_functions_called_correctly_with_true_json_flag(
-                self, mock_get, mock_init, mock_output, mock_print, version_ids, metadata_list
+            self,
+            mock_get,
+            mock_init,
+            mock_output,
+            mock_print,
+            version_ids,
+            metadata_list,
         ):
             # SETUP
             mock_get.side_effect = metadata_list

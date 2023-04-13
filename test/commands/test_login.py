@@ -1,17 +1,18 @@
-import pytest
-from mock import patch, PropertyMock, mock_open, call
 import json
 import os
 from datetime import datetime as dt
+
+import pytest
 from click.testing import CliRunner
+from mock import PropertyMock, call, mock_open, patch
 
 from dafni_cli.commands import login
-from dafni_cli.consts import LOGIN_API_URL, JWT_FILENAME, JWT_KEY, DATE_TIME_FORMAT
+from dafni_cli.consts import DATE_TIME_FORMAT, JWT_FILENAME, JWT_KEY, LOGIN_API_URL
 
 from test.fixtures.jwt_fixtures import (
-    request_response_fixture,
-    processed_jwt_fixture,
     JWT,
+    processed_jwt_fixture,
+    request_response_fixture,
 )
 
 
@@ -361,7 +362,9 @@ class TestLogout:
         runner.invoke(login.logout)
 
         # ASSERT
-        mock_remove.assert_called_once_with(os.path.join("path", "to", "file", JWT_FILENAME))
+        mock_remove.assert_called_once_with(
+            os.path.join("path", "to", "file", JWT_FILENAME)
+        )
 
     def test_cached_jwt_details_printed_after_file_removed(
         self, mock_jwt, mock_getcwd, mock_remove, processed_jwt_fixture

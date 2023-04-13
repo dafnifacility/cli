@@ -1,11 +1,12 @@
+import os
+from typing import List, Optional
+
 import click
 from click import Context
-from typing import List, Optional
-import os
 
-from dafni_cli.datasets.dataset_metadata import DatasetMetadata
-from dafni_cli.commands.login import check_for_jwt_file
 from dafni_cli.api.datasets_api import get_latest_dataset_metadata
+from dafni_cli.commands.login import check_for_jwt_file
+from dafni_cli.datasets.dataset_metadata import DatasetMetadata
 from dafni_cli.utils import write_files_to_zip
 
 
@@ -34,7 +35,7 @@ def dataset(
     directory: Optional[click.Path],
 ):
     """Download all files associated with the given Dataset Version.
-    \f
+
     Args:
         ctx (Context): CLI context
         dataset_id (str): Dataset ID

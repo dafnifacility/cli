@@ -1,12 +1,14 @@
-import pytest
-from mock import patch, call
-from dateutil import parser
+import os
 from io import BytesIO
 from zipfile import ZipFile
-import os
+
+import pytest
+from dateutil import parser
+from mock import call, patch
 
 from dafni_cli import utils
 from dafni_cli.model.model import Model
+
 from test.fixtures.model_fixtures import get_models_list_fixture
 
 
@@ -73,7 +75,7 @@ class TestProsePrint:
 class TestProcessResponseToClassList:
     """Test class to test the process_response_to_class_list() functionality"""
 
-    @patch.object(Model, "set_details_from_dict")
+    @patch.object(Model, "set_attributes_from_dict")
     def test_model_created_and_details_from_dict_called_for_each_model(
         self, mock_set, get_models_list_fixture
     ):

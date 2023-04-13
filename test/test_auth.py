@@ -1,11 +1,9 @@
 import pytest
 from mock import patch, call
 
-from test.fixtures.auth_fixtures import (
-    model_auth_fixture,
-    dataset_auth_fixture
-)
 from dafni_cli.auth import Auth
+
+from test.fixtures.auth_fixtures import model_auth_fixture, dataset_auth_fixture
 
 
 class TestAuth:
@@ -16,31 +14,18 @@ class TestAuth:
 
         def test_expected_attributes_found_on_class_when_no_dict_given(self):
             # SETUP
-            string_attributes = [
-                "asset_id",
-                "name",
-                "reason"
-            ]
-            bool_attributes = [
-                "destroy",
-                "read",
-                "update",
-                "view"
-            ]
+            string_attributes = ["asset_id", "name", "reason"]
+            bool_attributes = ["destroy", "read", "update", "view"]
 
             # CALL
             instance = Auth()
             # ASSERT
             assert isinstance(instance, Auth)
-            assert all(
-                getattr(instance, value) is None for value in string_attributes
-            )
-            assert all(
-                getattr(instance, value) is False for value in bool_attributes
-            )
+            assert all(getattr(instance, value) is None for value in string_attributes)
+            assert all(getattr(instance, value) is False for value in bool_attributes)
 
         def test_attributes_have_expected_values_when_model_auth_dict_used(
-                self, model_auth_fixture
+            self, model_auth_fixture
         ):
             # SETUP
             auth_dict = model_auth_fixture
@@ -57,7 +42,7 @@ class TestAuth:
             assert instance.view == auth_dict["view"]
 
         def test_attributes_have_expected_values_when_dataset_auth_dict_used(
-                self, dataset_auth_fixture
+            self, dataset_auth_fixture
         ):
             # SETUP
             auth_dict = dataset_auth_fixture
@@ -75,17 +60,15 @@ class TestAuth:
 
     @patch("dafni_cli.auth.check_key_in_dict")
     class TestSetDetailsFromDict:
-        """Test class for auth.set_details_from_dict() functionality"""
+        """Test class for auth.set_attributes_from_dict() functionality"""
 
-        def test_check_key_in_dict_called_with_correct_arguments(
-                self, mock_check
-        ):
+        def test_check_key_in_dict_called_with_correct_arguments(self, mock_check):
             # SETUP
             instance = Auth()
             dictionary = {}
 
             # CALL
-            instance.set_details_from_dict(dictionary)
+            instance.set_attributes_from_dict(dictionary)
 
             # ASSERT
             assert mock_check.call_args_list == [

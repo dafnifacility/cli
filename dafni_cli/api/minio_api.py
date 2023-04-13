@@ -1,17 +1,18 @@
-import requests
 from pathlib import Path
-from typing import Union, List
+from typing import List, Union
 
-from dafni_cli.consts import (
-    MINIO_UPLOAD_CT,
-    DATA_UPLOAD_API_URL,
-    DATA_DOWNLOAD_API_URL,
-    DATA_DOWNLOAD_REDIRECT_API_URL,
+import requests
 
 from dafni_cli.api.dafni_api import (
-    dafni_post_request,
     dafni_patch_request,
+    dafni_post_request,
     dafni_put_request,
+)
+from dafni_cli.consts import (
+    DATA_DOWNLOAD_API_URL,
+    DATA_DOWNLOAD_REDIRECT_API_URL,
+    DATA_UPLOAD_API_URL,
+    MINIO_UPLOAD_CT,
 )
 
 
@@ -99,15 +100,12 @@ def minio_get_request(
     Returns:
         dict: For an endpoint returning one object, this will be a dictionary.
     """
-    # Substitute the minio URL returned in the request string with a 
-    file_url = url.replace(
-        DATA_DOWNLOAD_API_URL,
-        DATA_DOWNLOAD_REDIRECT_API_URL
-    )
+    # Substitute the minio URL returned in the request string with a
+    file_url = url.replace(DATA_DOWNLOAD_API_URL, DATA_DOWNLOAD_REDIRECT_API_URL)
     response = requests.get(
         file_url,
         headers={"Content-Type": "application/json", "authorization": jwt},
-        allow_redirects=allow_redirect
+        allow_redirects=allow_redirect,
     )
     response.raise_for_status()
 

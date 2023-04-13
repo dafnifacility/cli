@@ -1,13 +1,15 @@
-import pytest
-from mock import patch, call
-from click.testing import CliRunner
-from requests import HTTPError, Response
 import json
 
+import pytest
+from click.testing import CliRunner
+from mock import call, patch
+from requests import HTTPError, Response
+
 from dafni_cli.commands import upload
+
+from test.fixtures.dataset_fixtures import upload_metadata_fixture
 from test.fixtures.jwt_fixtures import processed_jwt_fixture
 from test.fixtures.model_fixtures import get_model_upload_urls_fixture
-from test.fixtures.dataset_fixtures import upload_metadata_fixture
 
 
 class TestUpload:

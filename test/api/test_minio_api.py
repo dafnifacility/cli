@@ -1,8 +1,10 @@
-from mock import patch, mock_open
 from pathlib import Path
 
-from dafni_cli.consts import MINIO_UPLOAD_CT, DATA_UPLOAD_API_URL
+from mock import mock_open, patch
+
 from dafni_cli.api import minio_api
+from dafni_cli.consts import DATA_UPLOAD_API_URL, MINIO_UPLOAD_CT
+
 from test.fixtures.dataset_fixtures import upload_metadata_fixture
 
 

@@ -1,6 +1,7 @@
-import pytest
-from typing import List
 from io import BytesIO
+from typing import List
+
+import pytest
 
 from dafni_cli.datasets.dataset_metadata import DataFile, DatasetMetadata
 
