@@ -1,7 +1,7 @@
 from typing import List
 
-from dafni_cli.consts import DISCOVERY_API_URL
 from dafni_cli.api.dafni_api import dafni_get_request, dafni_post_request
+from dafni_cli.consts import DISCOVERY_API_URL
 
 
 # TODO this should work with pagination - check
@@ -22,6 +22,7 @@ def get_all_datasets(jwt: str, filters: dict) -> List[dict]:
     return dafni_post_request(url, jwt, data, allow_redirect=True)
 
 
+# TODO: Make dataset_id optional? - Can search just by version ID now
 def get_latest_dataset_metadata(jwt: str, dataset_id: str, version_id: str) -> dict:
     """Function to get the dataset metadata for a given dataset
 

@@ -1,11 +1,13 @@
-import pytest
-from mock import patch, call, MagicMock
 import json
 import os
+
+import pytest
+from mock import MagicMock, call, patch
 from requests.exceptions import HTTPError
 
-from dafni_cli.datasets import dataset_upload as upload
 from dafni_cli.consts import CONSOLE_WIDTH
+from dafni_cli.datasets import dataset_upload as upload
+
 from test.fixtures.dataset_fixtures import upload_metadata_fixture
 
 

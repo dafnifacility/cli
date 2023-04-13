@@ -1,23 +1,25 @@
-import pytest
-from mock import patch, mock_open
-from requests.exceptions import HTTPError
 from pathlib import Path
 
-from dafni_cli.consts import MODELS_API_URL, VALIDATE_MODEL_CT, MINIO_UPLOAD_CT
+import pytest
+from mock import mock_open, patch
+from requests.exceptions import HTTPError
+
 from dafni_cli.api import models_api
-from test.fixtures.jwt_fixtures import request_response_fixture, JWT
+from dafni_cli.consts import MINIO_UPLOAD_CT, MODELS_API_URL, VALIDATE_MODEL_CT
+
+from test.fixtures.jwt_fixtures import JWT, request_response_fixture
 
 
 @patch("dafni_cli.api.models_api.dafni_get_request")
 class TestGetModelsDicts:
-    """Test class to test the get_models_dicts functionality"""
+    """Test class to test the get_all_models functionality"""
 
     def test_dafni_get_request_called_correctly(self, mock_get):
         # SETUP
         mock_get.return_value = [{"key": "value"}]
 
         # CALL
-        result = models_api.get_models_dicts(JWT)
+        result = models_api.get_all_models(JWT)
 
         # ASSERT
         assert result == [{"key": "value"}]
@@ -26,7 +28,7 @@ class TestGetModelsDicts:
 
 @patch("dafni_cli.api.models_api.dafni_get_request")
 class TestGetSingleModelDict:
-    """Test class to test the get_single_model_dict functionality"""
+    """Test class to test the get_model functionality"""
 
     def test_dafni_get_request_called_correctly(self, mock_get):
         # SETUP
@@ -35,7 +37,7 @@ class TestGetSingleModelDict:
         model_version = "version_1"
 
         # CALL
-        result = models_api.get_single_model_dict(JWT, model_version)
+        result = models_api.get_model(JWT, model_version)
 
         # ASSERT
         assert result == {"key": "value"}
@@ -44,8 +46,8 @@ class TestGetSingleModelDict:
 
 # TODO: Remove, function get_model_metadata_dict() no longer exists
 # as the API no longer returns metadata in this form
-#@patch("dafni_cli.api.models_api.dafni_get_request")
-#class TestModelMetaDataDict:
+# @patch("dafni_cli.api.models_api.dafni_get_request")
+# class TestModelMetaDataDict:
 #    """Test class to test the get_model_metadata_dict functionality"""
 #
 #    def test_dafni_get_request_called_correctly(self, mock_get):

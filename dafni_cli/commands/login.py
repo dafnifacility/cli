@@ -1,12 +1,13 @@
-import requests
-from typing import Optional, Tuple
-from datetime import datetime as dt
 import base64
-import os
-import click
 import json
+import os
+from datetime import datetime as dt
+from typing import Optional, Tuple
 
-from dafni_cli.consts import LOGIN_API_URL, JWT_FILENAME, JWT_KEY, DATE_TIME_FORMAT
+import click
+import requests
+
+from dafni_cli.consts import DATE_TIME_FORMAT, JWT_FILENAME, JWT_KEY, LOGIN_API_URL
 
 
 # TODO add use of refresh tokens for login
@@ -78,7 +79,7 @@ def process_jwt(jwt: str, user_name: str) -> dict:
         "jwt": "Bearer " + jwt,
     }
 
-    with open(JWT_FILENAME, "w") as jwt_file:
+    with open(JWT_FILENAME, "w", encoding="utf-8") as jwt_file:
         jwt_file.write(json.dumps(user_jwt))
 
     return user_jwt
@@ -95,7 +96,7 @@ def read_jwt_file() -> Optional[dict]:
     if not os.path.exists(path):
         return None
 
-    with open(JWT_FILENAME, "r") as jwt_file:
+    with open(JWT_FILENAME, "r", encoding="utf-8") as jwt_file:
         jwt_dict = json.loads(jwt_file.read())
 
     return jwt_dict
@@ -113,11 +114,7 @@ def request_login_details() -> dict:
     password = click.prompt("Password", hide_input=True)
     jwt_dict = get_new_jwt(user_name, password)
     click.echo("Login Complete")
-    click.echo(
-        "user name: {0}, user id: {1}".format(
-            jwt_dict["user_name"], jwt_dict["user_id"]
-        )
-    )
+    click.echo(f"user name: {jwt_dict['user_name']}, user id: {jwt_dict['user_id']}")
     return jwt_dict
 
 
@@ -156,9 +153,7 @@ def login():
     if not jwt_flag:
         click.echo("Already logged in as: ")
         click.echo(
-            "user name: {0}, user id: {1}".format(
-                jwt_dict["user_name"], jwt_dict["user_id"]
-            )
+            f"user name: {jwt_dict['user_name']}, user id: {jwt_dict['user_id']}"
         )
 
 
@@ -175,9 +170,7 @@ def logout():
         os.remove(path)
         click.echo("Logout Complete")
         click.echo(
-            "user name: {0}, user id: {1}".format(
-                existing_jwt["user_name"], existing_jwt["user_id"]
-            )
+            f"user name: {existing_jwt['user_name']}, user id: {existing_jwt['user_id']}"
         )
     else:
         click.echo("Already logged out")

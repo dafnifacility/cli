@@ -1,9 +1,11 @@
-from dateutil.tz import tzutc
 from datetime import datetime as dt
-from mock import patch, call
 
-from dafni_cli.consts import TAB_SPACE, CONSOLE_WIDTH
+from dateutil.tz import tzutc
+from mock import call, patch
+
+from dafni_cli.consts import CONSOLE_WIDTH, TAB_SPACE
 from dafni_cli.datasets import dataset
+
 from test.fixtures.dataset_fixtures import get_dataset_list_fixture
 
 
@@ -36,7 +38,7 @@ class TestDataset:
             assert all(getattr(instance, key) is None for key in expected_keys)
 
     class TestSetDetailsFromDict:
-        """Test class to test the Dataset.set_details_from_dict() functionality"""
+        """Test class to test the Dataset.set_attributes_from_dict() functionality"""
 
         def test_dataset_details_set_correctly_when_no_date_range_dates(
             self, get_dataset_list_fixture
@@ -48,7 +50,7 @@ class TestDataset:
             instance = dataset.Dataset()
 
             # CALL
-            instance.set_details_from_dict(dataset_dict)
+            instance.set_attributes_from_dict(dataset_dict)
 
             # ASSERT
             assert instance.asset_id == dataset_dict["id"]["asset_id"]
@@ -74,7 +76,7 @@ class TestDataset:
             instance = dataset.Dataset()
 
             # CALL
-            instance.set_details_from_dict(dataset_dict)
+            instance.set_attributes_from_dict(dataset_dict)
 
             # ASSERT
             assert instance.date_range_end == dt(2021, 1, 1, 12, 0, tzinfo=tzutc())
@@ -91,7 +93,7 @@ class TestDataset:
             # SETUP
             dataset_dict = get_dataset_list_fixture["metadata"][0]
             instance = dataset.Dataset()
-            instance.set_details_from_dict(dataset_dict)
+            instance.set_attributes_from_dict(dataset_dict)
 
             # CALL
             instance.output_dataset_details()
@@ -114,7 +116,7 @@ class TestDataset:
             # SETUP
             dataset_dict = get_dataset_list_fixture["metadata"][1]
             instance = dataset.Dataset()
-            instance.set_details_from_dict(dataset_dict)
+            instance.set_attributes_from_dict(dataset_dict)
             # setup expected date strings
             start = instance.date_range_start.date().strftime("%B %d %Y")
             end = instance.date_range_end.date().strftime("%B %d %Y")

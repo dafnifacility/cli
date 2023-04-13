@@ -1,8 +1,8 @@
 import click
 from dateutil import parser
 
-from dafni_cli.model.model import Model
 from dafni_cli.consts import TAB_SPACE
+from dafni_cli.model.model import Model
 from dafni_cli.utils import print_json
 
 
@@ -39,7 +39,6 @@ class ModelVersionHistory:
                 version = Model()
                 version.get_attributes_from_id(jwt_string, version_dict["id"])
                 self.history.append(version)
-        pass
 
     def output_version_history(self, json_flag: bool = False):
         """
@@ -65,4 +64,3 @@ class ModelVersionHistory:
                 click.echo("")
         else:
             print_json(self.dictionary)
-        pass

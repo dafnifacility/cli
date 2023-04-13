@@ -8,21 +8,20 @@
 
 
 import json
-from tokenize import String
-from requests import Response
-from typing import List, Tuple
 from pathlib import Path
+from typing import List, Tuple
 
-from dafni_cli.consts import WORKFLOWS_API_URL
+from requests import Response
+
 from dafni_cli.api.dafni_api import (
+    dafni_delete_request,
     dafni_get_request,
     dafni_post_request,
-    dafni_delete_request
 )
+from dafni_cli.consts import WORKFLOWS_API_URL
 
 
-# TODO align function naming
-def get_all_workflows_dicts(jwt: str) -> List[dict]:
+def get_all_workflows(jwt: str) -> List[dict]:
     """
     Call the "workflows_list" endpoint and return the resulting list of dictionaries.
 
@@ -36,9 +35,9 @@ def get_all_workflows_dicts(jwt: str) -> List[dict]:
     return dafni_get_request(url, jwt)
 
 
-def get_single_workflow_dict(jwt: str, workflow_version_id: str) -> dict:
+def get_workflow(jwt: str, workflow_version_id: str) -> dict:
     """
-    Call the "workflows_read" endpoint and return the resulting dictionary.
+    Call the "workflows" endpoint and return the resulting dictionary.
 
     Args:
         jwt (str): JWT
@@ -106,4 +105,3 @@ def delete_workflow(jwt: str, workflow_version_id: str) -> Response:
     """
     url = WORKFLOWS_API_URL + "/workflows/" + workflow_version_id
     return dafni_delete_request(url, jwt)
-

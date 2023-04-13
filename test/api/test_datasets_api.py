@@ -2,9 +2,10 @@ import pytest
 from mock import patch
 from requests.exceptions import HTTPError
 
-from dafni_cli.consts import DISCOVERY_API_URL
 from dafni_cli.api import datasets_api
-from test.fixtures.jwt_fixtures import request_response_fixture, JWT
+from dafni_cli.consts import DISCOVERY_API_URL
+
+from test.fixtures.jwt_fixtures import JWT, request_response_fixture
 
 
 @patch("dafni_cli.api.datasets_api.dafni_post_request")
@@ -28,7 +29,6 @@ class TestGetAllDatasets:
         ],
     )
     def test_dafni_post_request_called_correctly(self, mock_post, filters):
-
         # SETUP
         mock_post.return_value = [{"key": "value"}]
 

@@ -1,16 +1,13 @@
-import click
 import datetime as dt
 
+import click
 from dateutil import parser
 
-from dafni_cli.workflow.workflow_metadata import WorkflowMetadata
-from dafni_cli.consts import CONSOLE_WIDTH, TAB_SPACE
-from dafni_cli.api.workflows_api import (
-    get_single_workflow_dict,
-    #    get_workflow_metadata_dict
-)
-from dafni_cli.utils import prose_print, print_json
+from dafni_cli.api.workflows_api import get_workflow  # get_workflow_metadata_dict
 from dafni_cli.auth import Auth
+from dafni_cli.consts import CONSOLE_WIDTH, TAB_SPACE
+from dafni_cli.utils import print_json, prose_print
+from dafni_cli.workflow.workflow_metadata import WorkflowMetadata
 
 
 class Workflow:
@@ -93,8 +90,8 @@ class Workflow:
 
     def set_attributes_from_dict(self, workflow_dict: dict):
         """
-        Attempts to store workflow details from a dictionary returned from the DAFNI API.
-        Not all of the details need be present in workflow_dict.
+        Attempts to store workflow attributes from a dictionary returned from the DAFNI API.
+        Not all of the attributes need be present in workflow_dict.
 
         Args:
             workflow_dict (dict): Dictionary returned from DAFNI API at /workflows endpoints
@@ -144,7 +141,7 @@ class Workflow:
             jwt_string (str): JWT for login purposes
             version_id_string (str): Version ID of the workflow
         """
-        workflow_dict = get_single_workflow_dict(jwt_string, version_id_string)
+        workflow_dict = get_workflow(jwt_string, version_id_string)
         self.set_attributes_from_dict(workflow_dict)
         # TODO: Check: Version message key appears on single workflow API response, but not list of all workflows response
         self.version_message = workflow_dict["version_message"]

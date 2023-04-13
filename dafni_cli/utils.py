@@ -1,11 +1,12 @@
-import click
-import textwrap
-from typing import List, Optional, Union
-from datetime import datetime as dt
-from dateutil.parser import isoparse
-from io import BytesIO
-from zipfile import ZipFile
 import json
+import textwrap
+from datetime import datetime as dt
+from io import BytesIO
+from typing import List, Optional, Union
+from zipfile import ZipFile
+
+import click
+from dateutil.parser import isoparse
 
 
 def prose_print(prose: str, width: int):
@@ -23,6 +24,7 @@ def prose_print(prose: str, width: int):
 def process_response_to_class_list(response: List[dict], class_instance: object):
     """
     Produces a list of objects of a specified class from a list of dictionaries obtained from the DAFNI API.
+
     Args:
         response (list[dict]): List of dictionaries returned from the DAFNI API.
         class_instance (object): Class to create a list of.
@@ -43,6 +45,7 @@ def optional_column(
 ):
     """Adds a value to a column, if the key exists in the dictionary
     and adds spaces of the appropriate width if not.
+
     Args:
          dictionary (dict): Dictionary with data inside
          key (str): Key of the data that is to be checked and added if present
@@ -60,7 +63,7 @@ def optional_column(
         else:
             raise ValueError("Column width for optional column must be non-negative")
     else:
-        entry = f" " * column_width
+        entry = " " * column_width
     return entry
 
 
