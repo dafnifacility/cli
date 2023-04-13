@@ -3,11 +3,6 @@ from typing import List, Union
 
 import requests
 
-from dafni_cli.api.dafni_api import (
-    dafni_patch_request,
-    dafni_post_request,
-    dafni_put_request,
-)
 from dafni_cli.api.session import DAFNISession
 from dafni_cli.consts import (
     DATA_DOWNLOAD_API_URL,
@@ -17,7 +12,9 @@ from dafni_cli.consts import (
 )
 
 
-def upload_file_to_minio(session: DAFNISession, url: str, file_path: Path) -> requests.Response:
+def upload_file_to_minio(
+    session: DAFNISession, url: str, file_path: Path
+) -> requests.Response:
     """Function to upload definition or image files to DAFNI
 
     Args:
@@ -28,9 +25,10 @@ def upload_file_to_minio(session: DAFNISession, url: str, file_path: Path) -> re
     Returns:
         Response: Response returned from the put request
     """
-    content_type = MINIO_UPLOAD_CT
     with open(file_path, "rb") as file_data:
-        return dafni_put_request(url, session, file_data, content_type)
+        return session.put_request(
+            url=url, content_type=MINIO_UPLOAD_CT, data=file_data
+        )
 
 
 def get_data_upload_id(session: DAFNISession) -> str:
@@ -48,7 +46,7 @@ def get_data_upload_id(session: DAFNISession) -> str:
     # TODO remove this - no cancel tokens in cli - this is front-end-y
     data = {"cancelToken": {"promise": {}}}
 
-    return dafni_post_request(url, session, data, allow_redirect=True)
+    return session.post_request(url=url, json=data, allow_redirect=True)
 
 
 def get_data_upload_urls(
@@ -69,7 +67,7 @@ def get_data_upload_urls(
     url = f"{DATA_UPLOAD_API_URL}/nid/upload/"
     data = {"bucketId": upload_id, "datafiles": file_names}
 
-    return dafni_patch_request(url, session, data, allow_redirect=True)
+    return session.patch_request(url=url, data=data, allow_redirect=True)
 
 
 def upload_dataset_metadata(
@@ -87,7 +85,7 @@ def upload_dataset_metadata(
     """
     url = f"{DATA_UPLOAD_API_URL}/nid/dataset/"
     data = {"bucketId": upload_id, "metadata": metadata}
-    return dafni_post_request(url, session, data, raise_status=False)
+    return session.post_request(url=url, json=data, raise_status=False)
 
 
 def minio_get_request(

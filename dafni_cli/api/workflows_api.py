@@ -13,11 +13,6 @@ from typing import List, Tuple
 
 from requests import Response
 
-from dafni_cli.api.dafni_api import (
-    dafni_delete_request,
-    dafni_get_request,
-    dafni_post_request,
-)
 from dafni_cli.api.session import DAFNISession
 from dafni_cli.consts import WORKFLOWS_API_URL
 
@@ -33,7 +28,7 @@ def get_all_workflows(session: DAFNISession) -> List[dict]:
         List[dict]: list of dictionaries with raw response from API
     """
     url = WORKFLOWS_API_URL + "/workflows/"
-    return dafni_get_request(url, session)
+    return session.get_request(url)
 
 
 def get_workflow(session: DAFNISession, workflow_version_id: str) -> dict:
@@ -48,7 +43,7 @@ def get_workflow(session: DAFNISession, workflow_version_id: str) -> dict:
         dict: dictionary for the details of selected workflow
     """
     url = WORKFLOWS_API_URL + "/workflows/" + workflow_version_id + "/"
-    return dafni_get_request(url, session)
+    return session.get_request(url)
 
 
 def upload_workflow(
@@ -75,7 +70,7 @@ def upload_workflow(
         workflow_description = json.load(f)
         if version_message:
             workflow_description["version_message"] = version_message
-        return dafni_post_request(url, session, workflow_description)
+        return session.post_request(url=url, json=workflow_description)
 
 
 # TODO rename so different names and see if used
@@ -105,4 +100,4 @@ def delete_workflow(session: DAFNISession, workflow_version_id: str) -> Response
         workflow_version_id (str): version ID of workflow to be deleted
     """
     url = WORKFLOWS_API_URL + "/workflows/" + workflow_version_id
-    return dafni_delete_request(url, session)
+    return session.delete_request(url)

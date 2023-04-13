@@ -133,9 +133,8 @@ class DAFNISession:
 
         # Attempt to get from a file first
         if not self._load_session_data():
-            # Couldn't so request a login and save
+            # Couldn't so request a login
             self._request_user_login()
-            self._save_session_data()
 
     def _refresh_tokens(self):
         """Obtains a new access token and stores it
@@ -267,6 +266,8 @@ class DAFNISession:
                 )
 
         self._session_data = SessionData.from_login_response(username, login_response)
+        if self._use_session_data_file:
+            self._save_session_data()
 
         click.echo("Login Complete")
         self.output_user_info()
@@ -328,10 +329,11 @@ class DAFNISession:
 
         return response
 
+    # TODO have same optional flags for each function
     def get_request(
         self,
         url: str,
-        headers: dict,
+        content_type: str = "application/json",
         allow_redirect: bool = False,
         content: bool = False,
         raise_status: bool = True,
@@ -340,7 +342,7 @@ class DAFNISession:
 
         Args:
             url (str): The url endpoint that is being queried
-            headers (dict): Headers to include in the request (authorisation will already be added)
+            content_type (str): Content type to put in request header
             allow_redirect (bool): Flag to allow redirects during API call. Defaults to False.
             content (bool): Flag to define if the response content is returned. default is the response json
             raise_status (bool) Flag to define if failure status' should be raised as HttpErrors. Default is True.
@@ -352,7 +354,7 @@ class DAFNISession:
         response = self._authenticated_request(
             method="get",
             url=url,
-            headers=headers,
+            headers={"Content-Type": content_type},
             data=None,
             json=None,
             allow_redirect=allow_redirect,
@@ -367,7 +369,7 @@ class DAFNISession:
     def post_request(
         self,
         url: str,
-        headers: dict,
+        content_type: str = "application/json",
         data: Optional[Union[dict, BinaryIO]] = None,
         json=None,
         allow_redirect: bool = False,
@@ -378,7 +380,7 @@ class DAFNISession:
 
         Args:
             url (str): The url endpoint that is being queried
-            headers (dict): Headers to include in the request (authorisation will already be added)
+            content_type (str): Content type to put in request header
             data (dict or BinaryIO): Data to be include in the request
             json: Any JSON serialisable object to include in the request
             allow_redirect (bool): Flag to allow redirects during API call. Defaults to False.
@@ -392,7 +394,7 @@ class DAFNISession:
         response = self._authenticated_request(
             method="post",
             url=url,
-            headers=headers,
+            headers={"Content-Type": content_type},
             data=data,
             json=json,
             allow_redirect=allow_redirect,
@@ -407,8 +409,8 @@ class DAFNISession:
     def put_request(
         self,
         url: str,
-        headers: dict,
-        data: Union[dict, BinaryIO],
+        content_type: str = "application/json",
+        data: Optional[Union[dict, BinaryIO]] = None,
         json=None,
         allow_redirect: bool = False,
         content: bool = False,
@@ -418,7 +420,7 @@ class DAFNISession:
 
         Args:
             url (str): The url endpoint that is being queried
-            headers (dict): Headers to include in the request (authorisation will already be added)
+            content_type (str): Content type to put in request header
             data (dict or BinaryIO): Data to be include in the request
             json: Any JSON serialisable object to include in the request
             allow_redirect (bool): Flag to allow redirects during API call. Defaults to False.
@@ -432,7 +434,7 @@ class DAFNISession:
         response = self._authenticated_request(
             method="put",
             url=url,
-            headers=headers,
+            headers={"Content-Type": content_type},
             data=data,
             json=json,
             allow_redirect=allow_redirect,
@@ -447,8 +449,8 @@ class DAFNISession:
     def patch_request(
         self,
         url: str,
-        headers: dict,
-        data: Union[dict, BinaryIO],
+        content_type: str = "application/json",
+        data: Optional[Union[dict, BinaryIO]] = None,
         json=None,
         allow_redirect: bool = False,
         content: bool = False,
@@ -458,7 +460,7 @@ class DAFNISession:
 
         Args:
             url (str): The url endpoint that is being queried
-            headers (dict): Headers to include in the request (authorisation will already be added)
+            content_type (str): Content type to put in request header
             data (dict or BinaryIO): Data to be include in the request
             json: Any JSON serialisable object to include in the request
             allow_redirect (bool): Flag to allow redirects during API call. Defaults to False.
@@ -472,7 +474,7 @@ class DAFNISession:
         response = self._authenticated_request(
             method="patch",
             url=url,
-            headers=headers,
+            headers={"Content-Type": content_type},
             data=data,
             json=json,
             allow_redirect=allow_redirect,
@@ -487,7 +489,6 @@ class DAFNISession:
     def delete_request(
         self,
         url: str,
-        headers: dict,
         allow_redirect: bool = False,
         content: bool = False,
         raise_status: bool = True,
@@ -496,7 +497,6 @@ class DAFNISession:
 
         Args:
             url (str): The url endpoint that is being queried
-            headers (dict): Headers to include in the request (authorisation will already be added)
             allow_redirect (bool): Flag to allow redirects during API call. Defaults to False.
             content (bool): Flag to define if the response content is returned. default is the response json
             raise_status (bool) Flag to define if failure status' should be raised as HttpErrors. Default is True.
@@ -508,8 +508,9 @@ class DAFNISession:
         response = self._authenticated_request(
             method="delete",
             url=url,
-            headers=headers,
+            headers={},
             data=None,
+            json=None,
             allow_redirect=allow_redirect,
         )
 

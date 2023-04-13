@@ -1,6 +1,5 @@
 from typing import List
 
-from dafni_cli.api.dafni_api import dafni_get_request, dafni_post_request
 from dafni_cli.api.session import DAFNISession
 from dafni_cli.consts import DISCOVERY_API_URL
 
@@ -20,7 +19,7 @@ def get_all_datasets(session: DAFNISession, filters: dict) -> List[dict]:
     url = DISCOVERY_API_URL + "/catalogue/"
     data = {"offset": {"start": 0, "size": 1000}, "sort_by": "recent", **filters}
 
-    return dafni_post_request(url, session, data, allow_redirect=True)
+    return session.post_request(url=url, json=data, allow_redirect=True)
 
 
 # TODO: Make dataset_id optional? - Can search just by version ID now
@@ -38,4 +37,4 @@ def get_latest_dataset_metadata(
         dict: Dataset Version Metadata dict
     """
     url = f"{DISCOVERY_API_URL}/metadata/{dataset_id}/{version_id}"
-    return dafni_get_request(url, session, allow_redirect=True)
+    return session.get_request(url, allow_redirect=True)
