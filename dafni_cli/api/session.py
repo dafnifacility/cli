@@ -445,7 +445,7 @@ class DAFNISession:
             response.raise_for_status()
         if content:
             return response.content
-        return response.json()
+        return response
 
     def patch_request(
         self,
