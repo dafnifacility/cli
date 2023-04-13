@@ -1,39 +1,23 @@
 import base64
 import json
-from dataclasses import dataclass, fields
+from dataclasses import dataclass
 from pathlib import Path
-from typing import BinaryIO, Dict, Literal, Optional, Union
+from typing import BinaryIO, Literal, Optional, Union
 
 import click
 import requests
 
-from dafni_cli.consts import LOGIN_API_URL
-
-# 100 seconds
-REQUESTS_TIMEOUT = 100
-
-LOGIN_API_ENDPOINT = (
-    f"{LOGIN_API_URL}/auth/realms/Production/protocol/openid-connect/token/"
+from dafni_cli.consts import (
+    LOGIN_API_ENDPOINT,
+    LOGOUT_API_ENDPOINT,
+    REQUESTS_TIMEOUT,
+    SESSION_SAVE_FILE,
 )
-LOGOUT_API_ENDPOINT = (
-    f"{LOGIN_API_URL}/auth/realms/Production/protocol/openid-connect/logout"
-)
-
-LOGIN_SAVE_FILE = ".dafni-cli"
+from dafni_cli.utils import dataclass_from_dict
 
 
 class LoginError(Exception):
     """Generic error to distinguish login failures"""
-
-
-def dataclass_from_dict(class_type: dataclass, dictionary: Dict):
-    """
-    Converts a dictionary of values into a particular dataclass type
-    """
-
-    field_set = {f.name for f in fields(class_type) if f.init}
-    filtered_arg_dict = {k: v for k, v in dictionary.items() if k in field_set}
-    return class_type(**filtered_arg_dict)
 
 
 @dataclass
@@ -111,7 +95,7 @@ class DAFNISession:
     @staticmethod
     def _get_login_save_path():
         """Returns the filepath to save login responses to"""
-        return Path().home() / LOGIN_SAVE_FILE
+        return Path().home() / SESSION_SAVE_FILE
 
     @staticmethod
     def is_logged_in():
@@ -309,7 +293,7 @@ class DAFNISession:
             method,
             url=url,
             headers={
-                "authorization": f"Bearer {self._login_response.access_token}",
+                "authorization": f"Bearer {self._session_data.access_token}",
                 **headers,
             },
             data={data},

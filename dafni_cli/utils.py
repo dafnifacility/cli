@@ -1,11 +1,13 @@
-import click
-import textwrap
-from typing import List, Optional, Union
-from datetime import datetime as dt
-from dateutil.parser import isoparse
-from io import BytesIO
-from zipfile import ZipFile
 import json
+import textwrap
+from dataclasses import fields
+from datetime import datetime as dt
+from io import BytesIO
+from typing import List, Optional, Type, Union
+from zipfile import ZipFile
+
+import click
+from dateutil.parser import isoparse
 
 
 def prose_print(prose: str, width: int):
@@ -261,3 +263,18 @@ def print_json(response: Union[dict, List[dict]]) -> None:
         response (Union[dict, List[dict]]): Dictionary or list of dictionaries to pretty print
     """
     click.echo(json.dumps(response, indent=2, sort_keys=True))
+
+
+def dataclass_from_dict(class_type: Type, dictionary: dict):
+    """
+    Converts a dictionary of values into a particular dataclass type
+
+    Args:
+        class_type (Type): Class type to convert the dictionary to
+        dictionary (dict): Dictionary containing the parameters needed for the
+                           dataclass
+    """
+
+    field_set = {f.name for f in fields(class_type) if f.init}
+    filtered_arg_dict = {k: v for k, v in dictionary.items() if k in field_set}
+    return class_type(**filtered_arg_dict)
