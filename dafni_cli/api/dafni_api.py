@@ -25,7 +25,7 @@ def dafni_get_request(
     return session.get_request(
         url,
         headers={"Content-Type": "application/json"},
-        allow_redirects=allow_redirect,
+        allow_redirect=allow_redirect,
         content=content,
         raise_status=True,
     )
@@ -56,7 +56,7 @@ def dafni_post_request(
     return session.post_request(
         url,
         headers={"Content-Type": "application/json"},
-        data=data,
+        json=data,
         allow_redirect=allow_redirect,
         raise_status=raise_status,
     )
@@ -104,7 +104,7 @@ def dafni_patch_request(
     return session.patch_request(
         url,
         headers={"Content-Type": "application/json"},
-        allow_redirects=allow_redirect,
+        allow_redirect=allow_redirect,
         data=data,
         raise_status=True,
     )

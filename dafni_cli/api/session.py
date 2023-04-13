@@ -73,9 +73,10 @@ class DAFNISession:
     # Session data
     _session_data: SessionData
 
-    # Whether to delete the storage file on logout (only if above response
-    # loaded/saved from/to a file)
-    _delete_file_on_logout: bool = False
+    # Whether the session data was loaded/saved from/to a file
+    # (avoids creating/deleting the file if using as a library
+    # instead of through the CLI)
+    _use_session_data_file: bool = False
 
     def __init__(self, session_data: Optional[SessionData] = None):
         """DAFNISession constructor
@@ -88,7 +89,7 @@ class DAFNISession:
         """
         if session_data is None:
             self._obtain_session_data()
-            self._delete_file_on_logout = True
+            self._use_session_data_file = True
         else:
             self._session_data = session_data
 
@@ -143,6 +144,8 @@ class DAFNISession:
         but in the case it has expired will ask the user to login again.
         """
 
+        print("REFRESH TOKENS!!!")
+
         # Request a new refresh token
         response = requests.post(
             LOGIN_API_ENDPOINT,
@@ -155,6 +158,7 @@ class DAFNISession:
         )
 
         if response.status_code == 400 and response.json()["error"] == "invalid_grant":
+            print("CANNOT REFRESH!!!")
             # This means the refresh token has expired, so login again
             self._request_user_login()
         else:
@@ -168,6 +172,9 @@ class DAFNISession:
             self._session_data = SessionData.from_login_response(
                 self._session_data.username, login_response
             )
+
+            if self._use_session_data_file:
+                self._save_session_data()
 
     def logout(self):
         """Logs out of keycloak"""
@@ -187,7 +194,7 @@ class DAFNISession:
 
         response.raise_for_status()
 
-        if self._delete_file_on_logout:
+        if self._use_session_data_file:
             self._get_login_save_path().unlink()
 
     @staticmethod
@@ -238,7 +245,7 @@ class DAFNISession:
     def output_user_info(self):
         """Outputs info on the logged in user using click.echo"""
         click.echo(
-            f"username: {self._session_data.user_id}, user id: {self._session_data.user_id}"
+            f"username: {self._session_data.username}, user id: {self._session_data.user_id}"
         )
 
     def _request_user_login(self):
@@ -273,6 +280,7 @@ class DAFNISession:
         url: str,
         headers: dict,
         data: Union[dict, BinaryIO],
+        json,
         allow_redirect: bool,
         recursion_level: int = 0,
     ):
@@ -282,6 +290,7 @@ class DAFNISession:
             url (str): The url endpoint that is being queried
             headers (dict): Headers to include in the request (authorisation will already be added)
             data (dict or BinaryIO): Data to be include in the request
+            json: Any JSON serialisable object to include in the request
             allow_redirect (bool): Flag to allow redirects during API call.
             recursion_level (int): Used by this method to avoid infinite loop while attempting to
                                    refresh the access token
@@ -289,20 +298,22 @@ class DAFNISession:
         Returns:
             Response
         """
+
         response = requests.request(
             method,
             url=url,
             headers={
-                "authorization": f"Bearer {self._session_data.access_token}",
+                "Authorization": f"Bearer {self._session_data.access_token}",
                 **headers,
             },
-            data={data},
+            data=data,
+            json=json,
             allow_redirects=allow_redirect,
             timeout=REQUESTS_TIMEOUT,
         )
 
         # Check for any kind of authentication error
-        if response.status_code == 401:
+        if response.status_code == 403:
             # Try again, but only once
             if recursion_level > 1:
                 raise RuntimeError("Could not authenticate request")
@@ -313,6 +324,7 @@ class DAFNISession:
                     url,
                     headers,
                     data,
+                    json,
                     allow_redirect,
                     recursion_level=recursion_level + 1,
                 )
@@ -345,6 +357,7 @@ class DAFNISession:
             url=url,
             headers=headers,
             data=None,
+            json=None,
             allow_redirect=allow_redirect,
         )
 
@@ -358,7 +371,8 @@ class DAFNISession:
         self,
         url: str,
         headers: dict,
-        data: Union[dict, BinaryIO],
+        data: Optional[Union[dict, BinaryIO]] = None,
+        json=None,
         allow_redirect: bool = False,
         content: bool = False,
         raise_status: bool = True,
@@ -369,6 +383,7 @@ class DAFNISession:
             url (str): The url endpoint that is being queried
             headers (dict): Headers to include in the request (authorisation will already be added)
             data (dict or BinaryIO): Data to be include in the request
+            json: Any JSON serialisable object to include in the request
             allow_redirect (bool): Flag to allow redirects during API call. Defaults to False.
             content (bool): Flag to define if the response content is returned. default is the response json
             raise_status (bool) Flag to define if failure status' should be raised as HttpErrors. Default is True.
@@ -382,6 +397,7 @@ class DAFNISession:
             url=url,
             headers=headers,
             data=data,
+            json=json,
             allow_redirect=allow_redirect,
         )
 
@@ -396,6 +412,7 @@ class DAFNISession:
         url: str,
         headers: dict,
         data: Union[dict, BinaryIO],
+        json=None,
         allow_redirect: bool = False,
         content: bool = False,
         raise_status: bool = True,
@@ -406,6 +423,7 @@ class DAFNISession:
             url (str): The url endpoint that is being queried
             headers (dict): Headers to include in the request (authorisation will already be added)
             data (dict or BinaryIO): Data to be include in the request
+            json: Any JSON serialisable object to include in the request
             allow_redirect (bool): Flag to allow redirects during API call. Defaults to False.
             content (bool): Flag to define if the response content is returned. default is the response json
             raise_status (bool) Flag to define if failure status' should be raised as HttpErrors. Default is True.
@@ -419,6 +437,7 @@ class DAFNISession:
             url=url,
             headers=headers,
             data=data,
+            json=json,
             allow_redirect=allow_redirect,
         )
 
@@ -433,6 +452,7 @@ class DAFNISession:
         url: str,
         headers: dict,
         data: Union[dict, BinaryIO],
+        json=None,
         allow_redirect: bool = False,
         content: bool = False,
         raise_status: bool = True,
@@ -443,6 +463,7 @@ class DAFNISession:
             url (str): The url endpoint that is being queried
             headers (dict): Headers to include in the request (authorisation will already be added)
             data (dict or BinaryIO): Data to be include in the request
+            json: Any JSON serialisable object to include in the request
             allow_redirect (bool): Flag to allow redirects during API call. Defaults to False.
             content (bool): Flag to define if the response content is returned. default is the response json
             raise_status (bool) Flag to define if failure status' should be raised as HttpErrors. Default is True.
@@ -456,6 +477,7 @@ class DAFNISession:
             url=url,
             headers=headers,
             data=data,
+            json=json,
             allow_redirect=allow_redirect,
         )
 
