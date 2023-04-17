@@ -1,383 +1,65 @@
-import json
-import os
-from datetime import datetime as dt
+from unittest import TestCase
+from unittest.mock import patch
 
-import pytest
 from click.testing import CliRunner
-from mock import PropertyMock, call, mock_open, patch
 
 from dafni_cli.commands import login
-from dafni_cli.consts import DATE_TIME_FORMAT, JWT_FILENAME, JWT_KEY, LOGIN_API_URL
-
-from test.fixtures.jwt_fixtures import (
-    JWT,
-    processed_jwt_fixture,
-    request_response_fixture,
-)
 
 
-@patch("dafni_cli.commands.login.process_jwt")
-@patch("dafni_cli.commands.login.requests")
-class TestGetNewJwt:
-    """Test class to test the get_new_jwt functionality"""
+@patch("dafni_cli.commands.login.DAFNISession")
+class TestLogin(TestCase):
+    """Test class to test the login command"""
 
-    def test_requests_called_with_correct_values(
-        self,
-        mock_request,
-        mock_process,
-        request_response_fixture,
-        processed_jwt_fixture,
-    ):
-        # SETUP
-        # setup return value for requests call
-        mock_request.post.return_value = request_response_fixture
-        # setup return value for process_jwt
-        mock_process.return_value = processed_jwt_fixture
+    def test_when_logged_in(self, mock_session):
+        """Tests login behaves appropriately when already logged in"""
 
-        # setup data for call
-        user_name = "john-doe"
-        password = "password"
-
-        # CALL
-        result = login.get_new_jwt(user_name, password)
-
-        # ASSERT
-        assert result == processed_jwt_fixture
-
-        mock_request.post.assert_called_once_with(
-            LOGIN_API_URL + "/login/",
-            json={"username": user_name, "password": password},
-            headers={
-                "Content-Type": "application/json",
-            },
-            allow_redirects=False,
-        )
-
-    def test_process_jwt_called_with_correct_values(
-        self,
-        mock_request,
-        mock_process,
-        request_response_fixture,
-        processed_jwt_fixture,
-    ):
-        # SETUP
-        # setup return value for requests call
-        mock_request.post.return_value = request_response_fixture
-        # setup return value for process_jwt
-        mock_process.return_value = processed_jwt_fixture
-
-        # setup data for call
-        user_name = "john-doe"
-        password = "password"
-
-        # CALL
-        login.get_new_jwt(user_name, password)
-
-        # ASSERT
-        mock_process.assert_called_once_with(
-            request_response_fixture.cookies[JWT_KEY], user_name
-        )
-
-    @patch("dafni_cli.commands.login.click")
-    def test_exit_called_if_no_jwt_returned_by_api(
-        self,
-        mock_click,
-        mock_request,
-        mock_process,
-        request_response_fixture,
-        processed_jwt_fixture,
-    ):
-        # SETUP
-        # setup return value for requests call
-        cookies = PropertyMock(return_value={})
-        type(request_response_fixture).cookies = cookies
-        mock_request.post.return_value = request_response_fixture
-
-        # setup data for call
-        user_name = "john-doe"
-        password = "password"
-
-        # CALL
-        with pytest.raises(SystemExit, match="1"):
-            login.get_new_jwt(user_name, password)
-
-        # ASSERT
-        mock_process.assert_not_called()
-        mock_click.echo.assert_called_once_with(
-            "Login Failed: Please check your username and password"
-        )
-
-
-@patch("builtins.open", new_callable=mock_open)
-class TestProcessJwt:
-    """Test class to test the ProcessJwt functionality"""
-
-    def test_jwt_processed_correctly(self, open_mock):
-        # SETUP
-        jwt = JWT
-        user_name = "john-doe"
-
-        # CALL
-        result = login.process_jwt(jwt, user_name)
-
-        # ASSERT
-        assert result == {
-            "expiry": "03/03/2021 15:43:14",
-            "user_name": "john-doe",
-            "user_id": "e1092c3e-be04-4c19-957f-cd884e53447e",
-            "jwt": "Bearer " + JWT,
-        }
-
-    def test_open_called_to_write_jwt_to_file(self, open_mock):
-        # SETUP
-        jwt = JWT
-        user_name = "john-doe"
-
-        # CALL
-        login.process_jwt(jwt, user_name)
-
-        # ASSERT
-        open_mock.assert_called_once_with(JWT_FILENAME, "w")
-        open_mock.return_value.write.assert_called_once_with(
-            json.dumps(
-                {
-                    "expiry": "03/03/2021 15:43:14",
-                    "user_id": "e1092c3e-be04-4c19-957f-cd884e53447e",
-                    "user_name": "john-doe",
-                    "jwt": "Bearer " + JWT,
-                }
-            )
-        )
-
-
-@patch("dafni_cli.commands.login.os.path.exists")
-@patch(
-    "builtins.open", new_callable=mock_open, read_data=json.dumps({"jwt": "JWT String"})
-)
-class TestReadJwtFile:
-    """Test class to test the read_jwt_file functionality"""
-
-    def test_none_returned_if_file_not_found(self, open_mock, mock_os):
-        # SETUP
-        mock_os.return_value = False
-        # CALL
-        result = login.read_jwt_file()
-
-        # ASSERT
-        assert result is None
-
-        mock_os.assert_called_once_with(os.path.join(os.getcwd(), JWT_FILENAME))
-
-    def test_jwt_dict_loaded_correctly(self, open_mock, mock_os):
-        # SETUP
-        mock_os.return_value = True
-
-        # CALL
-        result = login.read_jwt_file()
-
-        # ASSERT
-        open_mock.assert_called_once_with(JWT_FILENAME, "r")
-        assert result == {"jwt": "JWT String"}
-
-
-@patch("dafni_cli.commands.login.get_new_jwt")
-@patch("dafni_cli.commands.login.click")
-class TestRequestLoginDetails:
-    """Test class to test the request_login_details functionality"""
-
-    def test_the_correct_prompts_and_echos_occur_with_click(
-        self, mock_click, mock_jwt, processed_jwt_fixture
-    ):
-        # SETUP
-        # setup click.prompt return
-        mock_click.prompt.side_effect = ("user_name", "pwd")
-        # setup get_new_jet return
-        mock_jwt.return_value = processed_jwt_fixture
-
-        # CALL
-        login.request_login_details()
-
-        # ASSERT
-        assert mock_click.prompt.call_args_list == [
-            call("User name"),
-            call("Password", hide_input=True),
-        ]
-
-        assert mock_click.echo.call_args_list == [
-            call("Login Complete"),
-            call(
-                "user name: {0}, user id: {1}".format(
-                    processed_jwt_fixture["user_name"], processed_jwt_fixture["user_id"]
-                )
-            ),
-        ]
-
-    def test_the_correct_jwt_dict_returned(
-        self, mock_click, mock_jwt, processed_jwt_fixture
-    ):
-        # SETUP
-        # setup click.prompt return
-        mock_click.prompt.side_effect = ("user_name", "pwd")
-        # setup get_new_jet return
-        mock_jwt.return_value = processed_jwt_fixture
-
-        # CALL
-        result = login.request_login_details()
-
-        # ASSERT
-        assert result == processed_jwt_fixture
-
-        mock_jwt.assert_called_once_with("user_name", "pwd")
-
-
-@patch("dafni_cli.commands.login.request_login_details")
-@patch("dafni_cli.commands.login.read_jwt_file")
-@patch("dafni_cli.commands.login.dt")
-class TestCheckForJwtFile:
-    """Test class to test the check_for_jwt_file functionality"""
-
-    def test_new_jwt_returned_if_no_existing_jwt_found(
-        self, mock_dt, mock_read, mock_login, processed_jwt_fixture
-    ):
-        # SETUP
-        # simulate no JWT file found
-        mock_read.return_value = None
-        # setup request_login_details return
-        mock_login.return_value = processed_jwt_fixture
-
-        # CALL
-        jwt_dict, new_jwt = login.check_for_jwt_file()
-
-        # ASSERT
-        assert jwt_dict == processed_jwt_fixture
-        assert new_jwt is True
-
-    def test_new_jwt_returned_if_existing_jwt_has_expired(
-        self, mock_dt, mock_read, mock_login, processed_jwt_fixture
-    ):
-        # SETUP
-        # setup return for dt so token has expired
-        mock_dt.now.return_value = dt(2021, 3, 3, 2)
-        expiry_date = dt(2021, 3, 3, 1)
-        mock_dt.strptime.return_value = expiry_date
-
-        # simulate JWT file found
-        mock_read.return_value = {"expiry": expiry_date.strftime(DATE_TIME_FORMAT)}
-        # setup request_login_details return
-        mock_login.return_value = processed_jwt_fixture
-
-        # CALL
-        jwt_dict, new_jwt = login.check_for_jwt_file()
-
-        # ASSERT
-        assert jwt_dict == processed_jwt_fixture
-        assert new_jwt is True
-
-        mock_dt.strptime.assert_called_once_with(
-            expiry_date.strftime(DATE_TIME_FORMAT), DATE_TIME_FORMAT
-        )
-
-    def test_existing_jwt_returned_if_existing_jwt_has_not_expired(
-        self, mock_dt, mock_read, mock_login, processed_jwt_fixture
-    ):
-        # SETUP
-        # setup return for dt so token has not expired
-        mock_dt.now.return_value = dt(2021, 3, 3, 2)
-        expiry_date = dt(2021, 3, 3, 3)
-        mock_dt.strptime.return_value = expiry_date
-
-        # simulate JWT file found
-        mock_read.return_value = {"expiry": expiry_date.strftime(DATE_TIME_FORMAT)}
-        # setup request_login_details return
-        mock_login.return_value = processed_jwt_fixture
-
-        # CALL
-        jwt_dict, new_jwt = login.check_for_jwt_file()
-
-        # ASSERT
-        assert jwt_dict == {"expiry": expiry_date.strftime(DATE_TIME_FORMAT)}
-        assert new_jwt is False
-
-
-@patch("dafni_cli.commands.login.check_for_jwt_file")
-class TestLogin:
-    """Test class to test the login functionality"""
-
-    def test_echo_not_called_if_new_jwt_created(self, mock_jwt, processed_jwt_fixture):
-        # SETUP
+        mock_session.is_logged_in.return_value = True
         runner = CliRunner()
-        mock_jwt.return_value = processed_jwt_fixture, True
 
-        # CALL
         result = runner.invoke(login.login)
 
-        # ASSERT
-        assert result.stdout == ""
+        mock_session.assert_called_once_with()
+        mock_session_inst = mock_session.return_value
 
-    def test_echo_called_if_existing_jwt_valid(self, mock_jwt, processed_jwt_fixture):
-        # SETUP
+        self.assertEqual(result.stdout, "Already logged in as: \n")
+        mock_session_inst.output_user_info.assert_called_once()
+
+    def test_when_not_logged_in(self, mock_session):
+        """Tests login behaves appropriately when not logged in"""
+
+        mock_session.is_logged_in.return_value = False
         runner = CliRunner()
-        mock_jwt.return_value = processed_jwt_fixture, False
 
-        # CALL
-        result = runner.invoke(login.login)
+        runner.invoke(login.login)
 
-        # ASSERT
-        assert (
-            result.stdout
-            == "Already logged in as: \nuser name: {0}, user id: {1}\n".format(
-                processed_jwt_fixture["user_name"], processed_jwt_fixture["user_id"]
-            )
-        )
+        mock_session.assert_called_once_with()
 
 
-@patch("dafni_cli.commands.login.os.remove")
-@patch("dafni_cli.commands.login.os.getcwd")
-@patch("dafni_cli.commands.login.read_jwt_file")
-class TestLogout:
+@patch("dafni_cli.commands.login.DAFNISession")
+class TestLogout(TestCase):
     """Test class to test the logout command"""
 
-    def test_user_informed_already_logged_out_if_no_cached_jwt_found(
-        self, mock_jwt, mock_getcwd, mock_remove
-    ):
-        # SETUP
-        runner = CliRunner()
-        mock_jwt.return_value = None
+    def test_when_logged_in(self, mock_session):
+        """Tests login behaves appropriately when already logged in"""
 
-        # CALL
+        mock_session.is_logged_in.return_value = True
+        runner = CliRunner()
+
         result = runner.invoke(login.logout)
 
-        # ASSERT
-        assert result.stdout == "Already logged out\n"
+        mock_session.assert_called_once_with()
+        mock_session_inst = mock_session.return_value
 
-    def test_cached_jwt_file_removed_if_jwt_file_found(
-        self, mock_jwt, mock_getcwd, mock_remove, processed_jwt_fixture
-    ):
-        # SETUP
+        mock_session_inst.logout.assert_called_once()
+        self.assertEqual(result.stdout, "Logout complete\n")
+        mock_session_inst.output_user_info.assert_called_once()
+
+    def test_when_not_logged_in(self, mock_session):
+        """Tests login behaves appropriately when not logged in"""
+
+        mock_session.is_logged_in.return_value = False
         runner = CliRunner()
-        mock_jwt.return_value = processed_jwt_fixture
-        mock_getcwd.return_value = os.path.join("path", "to", "file")
 
-        # CALL
-        runner.invoke(login.logout)
-
-        # ASSERT
-        mock_remove.assert_called_once_with(
-            os.path.join("path", "to", "file", JWT_FILENAME)
-        )
-
-    def test_cached_jwt_details_printed_after_file_removed(
-        self, mock_jwt, mock_getcwd, mock_remove, processed_jwt_fixture
-    ):
-        # SETUP
-        runner = CliRunner()
-        mock_jwt.return_value = processed_jwt_fixture
-        mock_getcwd.return_value = os.path.join("path", "to", "file")
-
-        # CALL
         result = runner.invoke(login.logout)
 
-        # ASSERT
-        assert result.stdout == (
-            "Logout Complete\nuser name: john-doe, user id: e1092c3e-be04-4c19-957f-cd884e53447e\n"
-        )
+        self.assertEqual(result.stdout, "Already logged out\n")

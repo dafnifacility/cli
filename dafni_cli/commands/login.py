@@ -31,7 +31,7 @@ def logout():
         session = DAFNISession()
         session.logout()
 
-        click.echo("Logout Complete")
+        click.echo("Logout complete")
         session.output_user_info()
     else:
         click.echo("Already logged out")

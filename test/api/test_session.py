@@ -1,6 +1,6 @@
 import json
-import unittest
 from pathlib import Path
+from unittest import TestCase
 from unittest.mock import MagicMock, call, mock_open, patch
 
 from dafni_cli.api.session import DAFNISession, LoginError, SessionData
@@ -17,7 +17,7 @@ TEST_SESSION_FILE = f"{json.dumps(TEST_SESSION_DATA.__dict__)}"
 
 
 @patch("dafni_cli.api.session.requests")
-class TestDAFNISession(unittest.TestCase):
+class TestDAFNISession(TestCase):
     """Tests the DAFNISession class"""
 
     def create_mock_session(self, use_file: bool, return_mock_file=False):
@@ -116,9 +116,7 @@ class TestDAFNISession(unittest.TestCase):
 
         # Attempt login
         with self.assertRaises(LoginError):
-            DAFNISession.login(
-                username="test_username", password="test_password"
-            )
+            DAFNISession.login(username="test_username", password="test_password")
 
     def test_load_from_file(self, mock_requests):
         """Tests can load existing session from a file"""
@@ -333,7 +331,7 @@ class TestDAFNISession(unittest.TestCase):
         self.assertEqual(mock_requests.request.call_count, 2)
 
     def test_refresh_error(self, mock_requests):
-        """Tests appropriate error is thrown if refreshing a token fails."""
+        """Tests appropriate error is thrown if refreshing a token fails"""
 
         session = self.create_mock_session(True)
 
@@ -348,7 +346,11 @@ class TestDAFNISession(unittest.TestCase):
         mock_requests.post.return_value = self.create_mock_access_token_response()
 
         with self.assertRaises(RuntimeError) as error:
-            session.get_request(url="some_test_url")
+            # Avoid creating any local files
+            with patch(
+                "builtins.open", new_callable=mock_open, read_data=TEST_SESSION_FILE
+            ):
+                session.get_request(url="some_test_url")
 
         self.assertEqual(str(error.exception), "Could not authenticate request")
 
@@ -420,3 +422,14 @@ class TestDAFNISession(unittest.TestCase):
         # Ensure get request is attempted again (should be successful the
         # second time here)
         self.assertEqual(mock_requests.request.call_count, 2)
+
+    @patch("click.echo")
+    def test_output(self, mock_echo, mock_requests):
+        """Tests refresh token expiry is handled correctly."""
+
+        session = self.create_mock_session(True)
+        session.output_user_info()
+
+        mock_echo.assert_called_once_with(
+            "username: test_username, user id: e1092c3e-be04-4c19-957f-cd884e53447e"
+        )
