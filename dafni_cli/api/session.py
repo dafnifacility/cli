@@ -88,8 +88,8 @@ class DAFNISession:
                             otherwise will request the user to login.
         """
         if session_data is None:
-            self._obtain_session_data()
             self._use_session_data_file = True
+            self._obtain_session_data()
         else:
             self._session_data = session_data
 
