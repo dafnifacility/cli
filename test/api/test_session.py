@@ -71,6 +71,17 @@ class TestDAFNISession(TestCase):
         }
         return mock_response
 
+    def create_mock_invalid_password_response(self):
+        """Returns a mock response when logging in with an invalid username or
+        password"""
+        mock_response = MagicMock()
+        mock_response.status_code = 401
+        mock_response.json.return_value = {
+            "error": "invalid_grant",
+            "error_message": "Some error message",
+        }
+        return mock_response
+
     def create_mock_success_response(self):
         """Returns a mock response indicating an access token as become invalid"""
         mock_response = MagicMock()
@@ -152,6 +163,66 @@ class TestDAFNISession(TestCase):
                 "scope": "openid",
             },
             timeout=REQUESTS_TIMEOUT,
+        )
+
+        self.assertEqual(session._session_data.__dict__, TEST_SESSION_DATA.__dict__)
+
+        # Ensure session file is written
+        mock_file.write.assert_called_once_with(
+            json.dumps(session._session_data.__dict__)
+        )
+
+    @patch("click.prompt")
+    def test_load_from_user_repeated(
+        self,
+        mock_click_prompt,
+        mock_requests,
+    ):
+        """Tests loading of a new session requiring input from the user, while
+        they get the username or password wrong initially."""
+
+        # Setup
+        mock_click_prompt.side_effect = [
+            "test_username_wrong",
+            "test_password_wrong",
+            "test_username",
+            "test_password",
+        ]
+        mock_requests.post.side_effect = [
+            self.create_mock_invalid_password_response(),
+            self.create_mock_access_token_response(),
+        ]
+
+        # Create session using input from user
+        session, mock_file = self.create_mock_session(False, return_mock_file=True)
+
+        # Expect post to be called, and appropriate session data to have
+        # been loaded from the obtained JWT
+        mock_requests.post.assert_has_calls(
+            [
+                call(
+                    LOGIN_API_ENDPOINT,
+                    data={
+                        "username": "test_username_wrong",
+                        "password": "test_password_wrong",
+                        "client_id": "dafni-main",
+                        "grant_type": "password",
+                        "scope": "openid",
+                    },
+                    timeout=REQUESTS_TIMEOUT,
+                ),
+                call(
+                    LOGIN_API_ENDPOINT,
+                    data={
+                        "username": "test_username",
+                        "password": "test_password",
+                        "client_id": "dafni-main",
+                        "grant_type": "password",
+                        "scope": "openid",
+                    },
+                    timeout=REQUESTS_TIMEOUT,
+                ),
+            ]
         )
 
         self.assertEqual(session._session_data.__dict__, TEST_SESSION_DATA.__dict__)

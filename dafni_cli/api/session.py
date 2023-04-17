@@ -286,12 +286,13 @@ class DAFNISession:
 
         Args:
             url (str): The url endpoint that is being queried
-            headers (dict): Headers to include in the request (authorisation will already be added)
+            headers (dict): Headers to include in the request (authorisation
+                            will already be added)
             data (dict or BinaryIO): Data to be include in the request
             json: Any JSON serialisable object to include in the request
             allow_redirect (bool): Flag to allow redirects during API call.
-            recursion_level (int): Used by this method to avoid infinite loop while attempting to
-                                   refresh the access token
+            recursion_level (int): Used by this method to avoid infinite loop
+                                   while attempting to refresh the access token
 
         Returns:
             Response
@@ -343,13 +344,18 @@ class DAFNISession:
         Args:
             url (str): The url endpoint that is being queried
             content_type (str): Content type to put in request header
-            allow_redirect (bool): Flag to allow redirects during API call. Defaults to False.
-            content (bool): Flag to define if the response content is returned. default is the response json
-            raise_status (bool) Flag to define if failure status' should be raised as HttpErrors. Default is True.
+            allow_redirect (bool): Flag to allow redirects during API call.
+                                   Defaults to False.
+            content (bool): Flag to define if the response content is
+                            returned. default is the response json
+            raise_status (bool): Flag to define if failure status' should be
+                                 raised as HttpErrors. Default is True.
 
         Returns:
-            List[dict]: For an endpoint returning several objects, a list is returned (e.g. /models/).
-            dict: For an endpoint returning one object, this will be a dictionary (e.g. /models/<version_id>).
+            List[dict]: For an endpoint returning several objects, a list is
+                        returned (e.g. /models/).
+            dict: For an endpoint returning one object, this will be a
+                  dictionary (e.g. /models/<version_id>).
         """
         response = self._authenticated_request(
             method="get",
@@ -383,13 +389,18 @@ class DAFNISession:
             content_type (str): Content type to put in request header
             data (dict or BinaryIO): Data to be include in the request
             json: Any JSON serialisable object to include in the request
-            allow_redirect (bool): Flag to allow redirects during API call. Defaults to False.
-            content (bool): Flag to define if the response content is returned. default is the response json
-            raise_status (bool) Flag to define if failure status' should be raised as HttpErrors. Default is True.
+            allow_redirect (bool): Flag to allow redirects during API call.
+                                   Defaults to False.
+            content (bool): Flag to define if the response content is
+                            returned. default is the response json
+            raise_status (bool): Flag to define if failure status' should be
+                                 raised as HttpErrors. Default is True.
 
         Returns:
-            List[dict]: For an endpoint returning several objects, a list is returned (e.g. /models/).
-            dict: For an endpoint returning one object, this will be a dictionary (e.g. /models/<version_id>).
+            List[dict]: For an endpoint returning several objects, a list is
+                        returned (e.g. /models/).
+            dict: For an endpoint returning one object, this will be a
+                  dictionary (e.g. /models/<version_id>).
         """
         response = self._authenticated_request(
             method="post",
@@ -423,13 +434,18 @@ class DAFNISession:
             content_type (str): Content type to put in request header
             data (dict or BinaryIO): Data to be include in the request
             json: Any JSON serialisable object to include in the request
-            allow_redirect (bool): Flag to allow redirects during API call. Defaults to False.
-            content (bool): Flag to define if the response content is returned. default is the response json
-            raise_status (bool) Flag to define if failure status' should be raised as HttpErrors. Default is True.
+            allow_redirect (bool): Flag to allow redirects during API call.
+                                   Defaults to False.
+            content (bool): Flag to define if the response content is
+                            returned. default is the response json
+            raise_status (bool): Flag to define if failure status' should be
+                                 raised as HttpErrors. Default is True.
 
         Returns:
-            List[dict]: For an endpoint returning several objects, a list is returned (e.g. /models/).
-            dict: For an endpoint returning one object, this will be a dictionary (e.g. /models/<version_id>).
+            List[dict]: For an endpoint returning several objects, a list is
+                        returned (e.g. /models/).
+            dict: For an endpoint returning one object, this will be a
+                  dictionary (e.g. /models/<version_id>).
         """
         response = self._authenticated_request(
             method="put",
@@ -463,13 +479,18 @@ class DAFNISession:
             content_type (str): Content type to put in request header
             data (dict or BinaryIO): Data to be include in the request
             json: Any JSON serialisable object to include in the request
-            allow_redirect (bool): Flag to allow redirects during API call. Defaults to False.
-            content (bool): Flag to define if the response content is returned. default is the response json
-            raise_status (bool) Flag to define if failure status' should be raised as HttpErrors. Default is True.
+            allow_redirect (bool): Flag to allow redirects during API call.
+                                   Defaults to False.
+            content (bool): Flag to define if the response content is
+                            returned. default is the response json
+            raise_status (bool): Flag to define if failure status' should be
+                                 raised as HttpErrors. Default is True.
 
         Returns:
-            List[dict]: For an endpoint returning several objects, a list is returned (e.g. /models/).
-            dict: For an endpoint returning one object, this will be a dictionary (e.g. /models/<version_id>).
+            List[dict]: For an endpoint returning several objects, a list is
+                        returned (e.g. /models/).
+            dict: For an endpoint returning one object, this will be a
+                  dictionary (e.g. /models/<version_id>).
         """
         response = self._authenticated_request(
             method="patch",
@@ -497,13 +518,18 @@ class DAFNISession:
 
         Args:
             url (str): The url endpoint that is being queried
-            allow_redirect (bool): Flag to allow redirects during API call. Defaults to False.
-            content (bool): Flag to define if the response content is returned. default is the response json
-            raise_status (bool) Flag to define if failure status' should be raised as HttpErrors. Default is True.
+            allow_redirect (bool): Flag to allow redirects during API call.
+                                   Defaults to False.
+            content (bool): Flag to define if the response content is
+                            returned. default is the response json
+            raise_status (bool): Flag to define if failure status' should be
+                                 raised as HttpErrors. Default is True.
 
         Returns:
-            List[dict]: For an endpoint returning several objects, a list is returned (e.g. /models/).
-            dict: For an endpoint returning one object, this will be a dictionary (e.g. /models/<version_id>).
+            List[dict]: For an endpoint returning several objects, a list is
+                        returned (e.g. /models/).
+            dict: For an endpoint returning one object, this will be a
+                  dictionary (e.g. /models/<version_id>).
         """
         response = self._authenticated_request(
             method="delete",
