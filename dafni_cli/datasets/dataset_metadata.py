@@ -4,6 +4,7 @@ from typing import List, Optional, Tuple
 import click
 
 from dafni_cli.api.minio_api import minio_get_request
+from dafni_cli.api.session import DAFNISession
 from dafni_cli.consts import CONSOLE_WIDTH, DATA_FORMATS, TAB_SPACE
 from dafni_cli.utils import (
     check_key_in_dict,
@@ -60,14 +61,14 @@ class DataFile:
         )
         self.download = check_key_in_dict(file_dict, ["dcat:downloadURL"], default=None)
 
-    def download_contents(self, jwt: str):
+    def download_contents(self, session: DAFNISession):
         """Function downloads the file using the download url,
         and saves the contents as a BytesIO object to self.contents
 
         Args:
-            jwt (str): Users JWT
+            session (DAFNISession): User session
         """
-        self.contents = BytesIO(minio_get_request(self.download, jwt, content=True))
+        self.contents = BytesIO(minio_get_request(self.download, session, content=True))
 
 
 class DatasetMetadata:
@@ -76,7 +77,7 @@ class DatasetMetadata:
 
     Methods:
         __init__(): DatasetMetadata constructor
-        set_attributes_from_dict(jwt (str), dataset (dict)): Sets the dataset metadata attributes from given client model dict
+        set_attributes_from_dict(session (DAFNISession), dataset (dict)): Sets the dataset metadata attributes from given client model dict
         output_metadata_details(): Prints key information of the dataset metadata to console.
         output_datafiles_table(): Prints a table to the console of all File related information
         output_metadata_extra_details(): Prints extra details relating to the Dataset Metadata
@@ -238,12 +239,14 @@ class DatasetMetadata:
         click.echo("Description: ")
         prose_print(self.description, CONSOLE_WIDTH)
 
-    def download_dataset_files(self, jwt: str) -> Tuple[List[str], List[BytesIO]]:
+    def download_dataset_files(
+        self, session: DAFNISession
+    ) -> Tuple[List[str], List[BytesIO]]:
         """Function downloads all associated Files, and returns a tuple with
         containing a list of all file names, and a list of all file contents
 
         Args:
-            jwt (str): Users JWT
+            session (str): User session
 
         Returns:
             Tuple[List[str], List[BytesIO]]: Tuple of all File names and File contents
@@ -251,7 +254,7 @@ class DatasetMetadata:
         file_names = []
         file_contents = []
         for data_file in self.files:
-            data_file.download_contents(jwt)
+            data_file.download_contents(session)
             file_names.append(data_file.name)
             file_contents.append(data_file.contents)
 

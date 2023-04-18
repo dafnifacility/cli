@@ -4,8 +4,8 @@ import click
 from click import Context
 
 from dafni_cli.api.models_api import delete_model
+from dafni_cli.api.session import DAFNISession
 from dafni_cli.api.workflows_api import delete_workflow
-from dafni_cli.commands.login import check_for_jwt_file
 from dafni_cli.model.model import Model
 from dafni_cli.utils import argument_confirmation
 from dafni_cli.workflow.workflow import Workflow
@@ -20,25 +20,24 @@ def delete(ctx: Context):
     """Delete entity from DAFNI.
 
     Args:
-        ctx (Context): Context containing JWT of the user.
+        ctx (Context): Context containing the user session.
     """
     ctx.ensure_object(dict)
-    jwt_dict, _ = check_for_jwt_file()
-    ctx.obj["jwt"] = jwt_dict["jwt"]
+    ctx.obj["session"] = DAFNISession()
 
 
 ###############################################################################
 # Models
 ###############################################################################
 def collate_model_version_details(
-    jwt_string: str, version_id_list: List[str]
+    session: DAFNISession, version_id_list: List[str]
 ) -> List[str]:
     """
     Checks for destroy privileges for the user, and produces a list of the
     version details of each model to be deleted
 
     Args:
-        jwt_string (str): JWT
+        session (DAFNISession): User session
         version_id_list (List[str]): List of the version IDs of each model to be deleted
 
     Returns:
@@ -48,7 +47,7 @@ def collate_model_version_details(
     for vid in version_id_list:
         # Find details of each model version that will be deleted
         model_version = Model(vid)
-        model_version.get_attributes_from_id(jwt_string, vid)
+        model_version.get_attributes_from_id(session, vid)
         # Exit if user doesn't have necessary permissions
         if not model_version.auth.destroy:
             click.echo(
@@ -68,17 +67,17 @@ def model(ctx: Context, version_id: List[str]):
     Delete one or more version(s) of model(s) from DAFNI.
 
     Args:
-        ctx (context): contains JWT for authentication
+        ctx (context): contains user session for authentication
         version_id (str): ID(s) of the model version(s) to be deleted
     """
     model_version_details_list = collate_model_version_details(
-        ctx.obj["jwt"], version_id
+        ctx.obj["session"], version_id
     )
     argument_confirmation(
         [], [], "Confirm deletion of models?", model_version_details_list
     )
     for vid in version_id:
-        delete_model(ctx.obj["jwt"], vid)
+        delete_model(ctx.obj["session"], vid)
     # Confirm action
     click.echo("Model versions deleted")
 
@@ -87,14 +86,14 @@ def model(ctx: Context, version_id: List[str]):
 # Workflows
 ###############################################################################
 def collate_workflow_version_details(
-    jwt_string: str, version_id_list: List[str]
+    session: DAFNISession, version_id_list: List[str]
 ) -> List[str]:
     """
     Checks for destroy privileges for the user, and produces a list of the version details
     of each workflow to be deleted
 
     Args:
-        jwt_string (str): JWT
+        session (DAFNISession): User session
         version_id_list (List[str]): List of the version IDs of each workflow to be deleted
 
     Returns:
@@ -104,7 +103,7 @@ def collate_workflow_version_details(
     for vid in version_id_list:
         # Find details of each workflow version that will be deleted
         workflow_version = Workflow(vid)
-        workflow_version.get_attributes_from_id(jwt_string, vid)
+        workflow_version.get_attributes_from_id(session, vid)
         # Exit if user doesn't have necessary permissions
         if not workflow_version.auth.destroy:
             click.echo(
@@ -124,16 +123,16 @@ def workflow(ctx: Context, version_id: List[str]):
     Delete one or more version(s) of workflow(s) from DAFNI.
 
     Args:
-        ctx (context): contains JWT for authentication
+        ctx (context): contains user session for authentication
         version_id (str): ID(s) of the workflow version(s) to be deleted
     """
     workflow_version_details_list = collate_workflow_version_details(
-        ctx.obj["jwt"], version_id
+        ctx.obj["session"], version_id
     )
     argument_confirmation(
         [], [], "Confirm deletion of workflows?", workflow_version_details_list
     )
     for vid in version_id:
-        delete_workflow(ctx.obj["jwt"], vid)
+        delete_workflow(ctx.obj["session"], vid)
     # Confirm action
     click.echo("Workflow versions deleted")

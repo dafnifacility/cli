@@ -13,8 +13,8 @@ from dafni_cli.api.models_api import (
     model_version_ingest,
     validate_model_definition,
 )
+from dafni_cli.api.session import DAFNISession
 from dafni_cli.api.workflows_api import upload_workflow
-from dafni_cli.commands.login import check_for_jwt_file
 from dafni_cli.datasets.dataset_upload import upload_new_dataset_files
 from dafni_cli.utils import argument_confirmation
 
@@ -28,11 +28,10 @@ def upload(ctx: Context):
     """Uploads entities (models, datasets, workflows, groups) to DAFNI.
 
     Args:
-        ctx (Context): Context containing JWT of the user.
+        ctx (Context): Context containing the user session.
     """
     ctx.ensure_object(dict)
-    jwt_dict, _ = check_for_jwt_file()
-    ctx.obj["jwt"] = jwt_dict["jwt"]
+    ctx.obj["session"] = DAFNISession()
 
 
 ###############################################################################
@@ -66,7 +65,7 @@ def model(
     """Uploads model to DAFNI from metadata and image files.
 
     Args:
-        ctx (Context): contains JWT for authentication
+        ctx (Context): contains user session for authentication
         definition (click.Path): File path to the model definition file
         image (click.Path): File path to the image file
         version_message (str): Version message to be included with this model version
@@ -92,7 +91,7 @@ def model(
     click.echo("Validating model definition")
     # Print helpful message when 500 error returned
     try:
-        valid, error_message = validate_model_definition(ctx.obj["jwt"], definition)
+        valid, error_message = validate_model_definition(ctx.obj["session"], definition)
     except HTTPError as e:
         if e.response.status_code == 500:
             click.echo(
@@ -110,16 +109,16 @@ def model(
         raise SystemExit(1)
 
     click.echo("Getting urls")
-    upload_id, urls = get_model_upload_urls(ctx.obj["jwt"])
+    upload_id, urls = get_model_upload_urls(ctx.obj["session"])
     definition_url = urls["definition"]
     image_url = urls["image"]
 
     click.echo("Uploading model definition and image")
-    upload_file_to_minio(ctx.obj["jwt"], definition_url, definition)
-    upload_file_to_minio(ctx.obj["jwt"], image_url, image)
+    upload_file_to_minio(ctx.obj["session"], definition_url, definition)
+    upload_file_to_minio(ctx.obj["session"], image_url, image)
 
     click.echo("Ingesting model")
-    model_version_ingest(ctx.obj["jwt"], upload_id, version_message, parent_id)
+    model_version_ingest(ctx.obj["session"], upload_id, version_message, parent_id)
 
     click.echo("Model upload complete")
 
@@ -135,7 +134,7 @@ def dataset(ctx: Context, definition: click.Path, files: List[click.Path]):
     """Uploads a Dataset to DAFNI from metadata and dataset files.
 
     Args:
-        ctx (Context): contains JWT for authentication
+        ctx (Context): contains user session for authentication
         definition (click.Path): Dataset metadata file
         files (List[click.Path]): Dataset data files
     """
@@ -148,7 +147,7 @@ def dataset(ctx: Context, definition: click.Path, files: List[click.Path]):
     argument_confirmation(argument_names, arguments, confirmation_message)
 
     # Upload all files
-    upload_new_dataset_files(ctx.obj["jwt"], definition, files)
+    upload_new_dataset_files(ctx.obj["session"], definition, files)
 
 
 ###############################################################################
@@ -184,7 +183,7 @@ def workflow(
     Uploads a workflow in JSON form to DAFNI.
 
     Args:
-        ctx (Context): contains JWT for authentication
+        ctx (Context): contains user session for authentication
         definition (click.Path): File path to the workflow definition file
         version_message (str): Version message to be included with this workflow version
         parent_id (str): ID of the parent workflow that this is an update of
@@ -208,7 +207,7 @@ def workflow(
     # click.echo("Validating workflow definition")
     # Print helpful message when 500 error returned
     # try:
-    #    valid, error_message = validate_model_definition(ctx.obj["jwt"], definition)
+    #    valid, error_message = validate_model_definition(ctx.obj["session"], definition)
     # except HTTPError as e:
     #    if e.response.status_code == 500:
     #        click.echo(
@@ -226,17 +225,17 @@ def workflow(
     #    raise SystemExit(1)
 
     # click.echo("Getting urls")
-    # upload_id, urls = get_model_upload_urls(ctx.obj["jwt"])
+    # upload_id, urls = get_model_upload_urls(ctx.obj["session"])
     # definition_url = urls["definition"]
 
     # click.echo("Uploading model definition and image")
-    # upload_file_to_minio(ctx.obj["jwt"], definition_url, definition)
+    # upload_file_to_minio(ctx.obj["session"], definition_url, definition)
 
     # click.echo("Ingesting model")
-    # model_version_ingest(ctx.obj["jwt"], upload_id, version_message, parent_model)
+    # model_version_ingest(ctx.obj["session"], upload_id, version_message, parent_model)
 
     click.echo("Uploading workflow")
-    upload_workflow(ctx.obj["jwt"], definition, version_message, parent_id)
+    upload_workflow(ctx.obj["session"], definition, version_message, parent_id)
 
     click.echo("Workflow upload complete")
 
@@ -271,7 +270,7 @@ def workflow_params(
     Uploads a workflow in JSON form to DAFNI.
 
     Args:
-        ctx (Context): contains JWT for authentication
+        ctx (Context): contains user session for authentication
         definition (click.Path): File path to the workflow definition file
         version_message (str): Version message to be included with this model version
         parent_model (str): ID of the parent model that this is an update of
@@ -295,12 +294,12 @@ def workflow_params(
     click.echo("Validating workflow definition")
     with open(definition, "r") as f:
         workflow_description = json.load(f)
-    model_list = get_all_models(ctx.obj["jwt"])
+    model_list = get_all_models(ctx.obj["session"])
     for step in definition.spec:
         pass
 
     click.echo("Uploading workflow")
-    upload_workflow(ctx.obj["jwt"], workflow_description)
+    upload_workflow(ctx.obj["session"], workflow_description)
 
     click.echo("Workflow upload complete")
 

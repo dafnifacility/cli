@@ -1,6 +1,7 @@
 from typing import Optional
 
 from dafni_cli.api.datasets_api import get_latest_dataset_metadata
+from dafni_cli.api.session import DAFNISession
 from dafni_cli.datasets.dataset_metadata import DatasetMetadata
 from dafni_cli.utils import check_key_in_dict, print_json
 
@@ -9,25 +10,27 @@ class DatasetVersionHistory:
     """Class for processing Dataset Version History,
 
     Methods:
-        __init__(jwt (str), metadata (dict)): DatasetVersionHistory constructor
+        __init__(session (DAFNISession), metadata (dict)): DatasetVersionHistory constructor
         set_attributes_from_dict(metadata (dict)): Function to set the class details from a given dict
-        process_version_history(jwt (str), dataset (dict)): Iterates through all versions and outputs details
+        process_version_history(session (DAFNISession), dataset (dict)): Iterates through all versions and outputs details
 
     Attributes:
-        jwt (str): Users DAFNI JWT
+        session (DAFNISession): User session
         dataset_id (str): Dataset ID
         versions (List[dict]): List of associated Version dicts
         version_ids (List[str]): List of Version IDs
     """
 
-    def __init__(self, jwt: Optional[str] = None, metadata: Optional[dict] = None):
+    def __init__(
+        self, session: Optional[DAFNISession] = None, metadata: Optional[dict] = None
+    ):
         """DatasetVersionHistory constructor
 
         Args:
-            jwt (Optional[str], optional): Users DAFNI JWT. Defaults to None.
+            session (Optional[DAFNISession], optional): User session. Defaults to None.
             metadata (Optional[dict], optional): Dataset Metadata response. Defaults to None.
         """
-        self.jwt = jwt
+        self.session = session
         self.dataset_id = None
         self.versions = None
         self.version_ids = None
@@ -62,7 +65,7 @@ class DatasetVersionHistory:
         json_list = []
         for version_id in self.version_ids:
             metadata = get_latest_dataset_metadata(
-                self.jwt, self.dataset_id, version_id
+                self.session, self.dataset_id, version_id
             )
             if json_flag:
                 json_list.append(metadata)

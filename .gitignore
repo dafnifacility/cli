@@ -63,6 +63,3 @@ venv.bak/
 pyvenv.cfg
 **/bin
 **/lib64
-
-# CLI login
-**/dafni_jwt.txt

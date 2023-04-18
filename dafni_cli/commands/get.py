@@ -5,8 +5,8 @@ from click import Context
 
 from dafni_cli.api.datasets_api import get_all_datasets, get_latest_dataset_metadata
 from dafni_cli.api.models_api import get_all_models
+from dafni_cli.api.session import DAFNISession
 from dafni_cli.api.workflows_api import get_all_workflows
-from dafni_cli.commands.login import check_for_jwt_file
 from dafni_cli.datasets import (
     dataset_filtering,
     dataset_metadata,
@@ -27,11 +27,10 @@ def get(ctx: Context):
     models, datasets, workflows, groups, depending on command.
 
     Args:
-        ctx (Context): Context containing JWT of the user.
+        ctx (Context): Context containing the user session.
     """
     ctx.ensure_object(dict)
-    jwt_dict, _ = check_for_jwt_file()
-    ctx.obj["jwt"] = jwt_dict["jwt"]
+    ctx.obj["session"] = DAFNISession()
 
 
 ###############################################################################
@@ -72,13 +71,13 @@ def models(
         more details to be listed, filters, and for the json to be displayed.
 
     Args:
-        ctx (context): contains JWT for authentication
+        ctx (context): contains user session for authentication
         long (bool): whether to print the description of each model as well
         creation_date (str): for filtering by creation date. Format: DD/MM/YYYY
         publication_date (str): for filtering by publication date. Format: DD/MM/YYYY
         json (bool): whether to print the raw json returned by the DAFNI API
     """
-    model_dict_list = get_all_models(ctx.obj["jwt"])
+    model_dict_list = get_all_models(ctx.obj["session"])
     model_list = process_response_to_class_list(model_dict_list, Model)
     filtered_model_dict_list = []
     for model in model_list:
@@ -116,20 +115,20 @@ def model(ctx: Context, version_id: List[str], version_history: bool, json: bool
     """Displays the metadata for one or more model versions
 
     Args:
-        ctx (Context): contains JWT for authentication
+        ctx (Context): contains user session for authentication
         version_id (list[str]): List of version IDs of the models to be displayed
         version_history (bool): Whether to display version_history instead of metadata
         json (bool): Whether to output raw json from API or pretty print metadata/version history. Defaults to False.
     """
     for vid in version_id:
         model = Model(vid)
-        model.get_attributes_from_id(ctx.obj["jwt"], vid)
-        print(model.dictionary)
+        model.get_attributes_from_id(ctx.obj["session"], vid)
+
         if version_history:
-            history = ModelVersionHistory(ctx.obj["jwt"], model)
+            history = ModelVersionHistory(ctx.obj["session"], model)
             history.output_version_history(json)
         else:
-            model.get_metadata(ctx.obj["jwt"])
+            model.get_metadata()
             model.output_metadata(json)
 
 
@@ -174,14 +173,14 @@ def datasets(
     Display a list of all available datasets
 
     Args:
-        ctx (context): contains JWT for authentication
+        ctx (context): contains user session for authentication
         search (Optional[str]): Search terms for elastic search. Format: "search terms"
         start_date (Optional[str]): Filter for datasets with a start date since given date. Format: DD/MM/YYYY
         end_date (Optional[str]): Filter for datasets with a end date up to given date. Format: DD/MM/YYYY
         json (Optional[bool]): Whether to output raw json from API or pretty print information. Defaults to False.
     """
     filters = dataset_filtering.process_datasets_filters(search, start_date, end_date)
-    datasets_response = get_all_datasets(ctx.obj["jwt"], filters)
+    datasets_response = get_all_datasets(ctx.obj["session"], filters)
     if json:
         print_json(datasets_response)
     else:
@@ -234,7 +233,7 @@ def dataset(
         version_history (bool): Flag to view version history in place of metadata
         json (bool): Flag to view json returned from API
     """
-    metadata = get_latest_dataset_metadata(ctx.obj["jwt"], id, version_id)
+    metadata = get_latest_dataset_metadata(ctx.obj["session"], id, version_id)
     if not version_history:
         if json:
             print_json(metadata)
@@ -243,7 +242,7 @@ def dataset(
             dataset_meta.output_metadata_details(long)
     else:
         version_history = dataset_version_history.DatasetVersionHistory(
-            ctx.obj["jwt"], metadata
+            ctx.obj["session"], metadata
         )
         version_history.process_version_history(json)
 
@@ -287,13 +286,13 @@ def workflows(
     the list of workflows to be filtered, and for the json to be displayed.
 
     Args:
-        ctx (context): contains JWT for authentication
+        ctx (context): contains user session for authentication
         long (bool): whether to print the description of each model as well
         creation_date (str): for filtering by creation date. Format: DD/MM/YYYY
         publication_date (str): for filtering by publication date. Format: DD/MM/YYYY
         json (bool): whether to print the raw json returned by the DAFNI API
     """
-    workflow_dict_list = get_all_workflows(ctx.obj["jwt"])
+    workflow_dict_list = get_all_workflows(ctx.obj["session"])
     workflow_list = process_response_to_class_list(workflow_dict_list, Workflow)
     filtered_workflow_dict_list = []
     for workflow in workflow_list:
@@ -335,20 +334,20 @@ def workflow(ctx: Context, version_id: List[str], version_history: bool, json: b
     from its version history.
 
     Args:
-        ctx (Context): contains JWT for authentication
+        ctx (Context): contains user session for authentication
         version_id (list[str]): List of version IDs of the workflows to be displayed
         version_history (bool): Whether to display version_history instead of metadata
         json (bool): Whether to output raw json from API or pretty print metadata/version history. Defaults to False.
     """
     for vid in version_id:
         workflow = Workflow(vid)
-        workflow.get_attributes_from_id(ctx.obj["jwt"], vid)
-        print(workflow.dictionary)
+        workflow.get_attributes_from_id(ctx.obj["session"], vid)
+
         if version_history:
-            history = WorkflowVersionHistory(ctx.obj["jwt"], workflow)
+            history = WorkflowVersionHistory(ctx.obj["session"], workflow)
             history.output_version_history(json)
         else:
-            workflow.get_metadata(ctx.obj["jwt"])
+            workflow.get_metadata(ctx.obj["session"])
             workflow.output_metadata(json)
 
 

@@ -11,23 +11,24 @@ from dafni_cli.api.minio_api import (
     upload_dataset_metadata,
     upload_file_to_minio,
 )
+from dafni_cli.api.session import DAFNISession
 from dafni_cli.consts import CONSOLE_WIDTH
 from dafni_cli.utils import prose_print
 
 
 def upload_new_dataset_files(
-    jwt, definition: click.Path, files: List[click.Path]
+    session: DAFNISession, definition: click.Path, files: List[click.Path]
 ) -> None:
     """Function to upload all files associated with a new Dataset
 
     Args:
-        jwt ([type]): Users JWT
+        session (DAFNISession): User session
         definition (click.Path): Path to Dataset metadata file
         files (List[click.Path]): List of Paths to dataset data files
     """
     # Upload all files
-    upload_id = upload_files(jwt, files)
-    details = upload_metadata(jwt, definition, upload_id)
+    upload_id = upload_files(session, files)
+    details = upload_metadata(session, definition, upload_id)
 
     # Output Details
     click.echo("\nUpload Successful")
@@ -36,37 +37,37 @@ def upload_new_dataset_files(
     click.echo(f"Metadata ID: {details['metadataId']}")
 
 
-def upload_files(jwt, files: List[click.Path]) -> str:
+def upload_files(session: DAFNISession, files: List[click.Path]) -> str:
     """Function to get a temporary Upload ID, and upload all given
     files to the Minio API
 
     Args:
-        jwt ([type]): Users JWT
+        session (DAFNISession): User session
         files (List[click.Path]): List of Paths to dataset data files
 
     Returns:
         str: Minio Temporary Upload ID
     """
     click.echo("\nRetrieving Temporary Upload ID")
-    upload_id = get_data_upload_id(jwt)
+    upload_id = get_data_upload_id(session)
 
     click.echo("Retrieving File Upload URls")
     file_names = {basename(normpath(file_path)): file_path for file_path in files}
-    upload_urls = get_data_upload_urls(jwt, upload_id, list(file_names.keys()))
+    upload_urls = get_data_upload_urls(session, upload_id, list(file_names.keys()))
 
     click.echo("Uploading Files")
     for key, value in upload_urls["URLs"].items():
-        upload_file_to_minio(jwt, value, file_names[key])
+        upload_file_to_minio(session, value, file_names[key])
 
     return upload_id
 
 
-def upload_metadata(jwt, definition: click.Path, upload_id: str) -> dict:
+def upload_metadata(session: DAFNISession, definition: click.Path, upload_id: str) -> dict:
     """Function to upload the Metadata to the Minio API, with the
     given Minio Temporary Upload ID
 
     Args:
-        jwt ([type]): Users JWT
+        session ([type]): User session
         definition (click.Path): Path to Metadata file
         upload_id (str): Minio Temporary Upload ID
 
@@ -77,7 +78,7 @@ def upload_metadata(jwt, definition: click.Path, upload_id: str) -> dict:
     with open(definition, "r") as definition_file:
         try:
             response = upload_dataset_metadata(
-                jwt, upload_id, json.load(definition_file)
+                session, upload_id, json.load(definition_file)
             )
             response.raise_for_status()
         except HTTPError as e:
