@@ -9,7 +9,6 @@ from dafni_cli.consts import LOGIN_API_ENDPOINT, LOGOUT_API_ENDPOINT, REQUESTS_T
 TEST_ACCESS_TOKEN = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJsb2dpbi1hcHAtand0IiwiZXhwIjoxNjE0Nzg2MTk0LCJzdWIiOiJlMTA5MmMzZS1iZTA0LTRjMTktOTU3Zi1jZDg4NGU1MzQ0N2UifQ.EZ7dIoMR9e-M1Zm2YavswHrfOMKpq1EJmw_B_m78FkA"
 TEST_SESSION_DATA = SessionData(
     username="test_username",
-    user_id="e1092c3e-be04-4c19-957f-cd884e53447e",
     access_token=TEST_ACCESS_TOKEN,
     refresh_token="some_refresh_token",
 )
@@ -493,14 +492,3 @@ class TestDAFNISession(TestCase):
         # Ensure get request is attempted again (should be successful the
         # second time here)
         self.assertEqual(mock_requests.request.call_count, 2)
-
-    @patch("click.echo")
-    def test_output(self, mock_echo, mock_requests):
-        """Tests refresh token expiry is handled correctly."""
-
-        session = self.create_mock_session(True)
-        session.output_user_info()
-
-        mock_echo.assert_called_once_with(
-            "username: test_username, user id: e1092c3e-be04-4c19-957f-cd884e53447e"
-        )

@@ -14,8 +14,7 @@ def login():
     if DAFNISession.has_session_file():
         # Output current stored session's username and user id
         session = DAFNISession()
-        click.echo("Already logged in as: ")
-        session.output_user_info()
+        click.echo(f"Already logged in as {session.username}")
     else:
         # Creating a new session will request authentication anyway
         DAFNISession()
@@ -32,6 +31,5 @@ def logout():
         session.logout()
 
         click.echo("Logout complete")
-        session.output_user_info()
     else:
         click.echo("Already logged out")

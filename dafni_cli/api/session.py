@@ -41,27 +41,22 @@ class SessionData:
     be stored for session persistence)"""
 
     username: str
-    user_id: str
     access_token: str
     refresh_token: str
 
     @staticmethod
     def from_login_response(username: str, login_response: LoginResponse):
         """
-        Extracts information from the access_token and stores it
+        Constructs a session data object and returns it
+
+        Args:
+            username (str): Username to identify the session with
+            login_response (LoginResponse): Structure containing the response
+                                            from logging in
         """
-        # JWT string is Base64 encoded and its components are separated by
-        # "." symbols
-        jwt = login_response.access_token
-        claims = jwt.split(".")[1]
-        claims_bytes = claims.encode("utf-8") + b"=="
-        message_bytes = base64.b64decode(claims_bytes)
-        message = message_bytes.decode("utf-8")
-        json_dict = json.loads(message)
 
         return SessionData(
             username=username,
-            user_id=json_dict["sub"],
             access_token=login_response.access_token,
             refresh_token=login_response.refresh_token,
         )
@@ -104,6 +99,11 @@ class DAFNISession:
         still logged in
         """
         return DAFNISession._get_login_save_path().is_file()
+
+    @property
+    def username(self):
+        """Username associated with the current session"""
+        return self._session_data.username
 
     def _save_session_data(self):
         """Saves the SessionData instance to a storage file to persist the session"""
@@ -240,12 +240,6 @@ class DAFNISession:
             )
         return DAFNISession(SessionData.from_login_response(username, login_response))
 
-    def output_user_info(self):
-        """Outputs info on the logged in user using click.echo"""
-        click.echo(
-            f"username: {self._session_data.username}, user id: {self._session_data.user_id}"
-        )
-
     def _request_user_login(self):
         """
         Prompts the user for their username and password. If login is successful,
@@ -271,8 +265,7 @@ class DAFNISession:
         if self._use_session_data_file:
             self._save_session_data()
 
-        click.echo("Login Complete")
-        self.output_user_info()
+        click.echo(f"Logged in as {self.username}")
 
     def _authenticated_request(
         self,

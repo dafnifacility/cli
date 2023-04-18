@@ -21,8 +21,10 @@ class TestLogin(TestCase):
         mock_session.assert_called_once_with()
         mock_session_inst = mock_session.return_value
 
-        self.assertEqual(result.stdout, "Already logged in as: \n")
-        mock_session_inst.output_user_info.assert_called_once()
+        self.assertEqual(
+            result.stdout,
+            f"Already logged in as {mock_session_inst.username}\n",
+        )
 
     def test_when_not_logged_in(self, mock_session):
         """Tests login behaves appropriately when not logged in"""
@@ -52,7 +54,6 @@ class TestLogout(TestCase):
 
         mock_session_inst.logout.assert_called_once()
         self.assertEqual(result.stdout, "Logout complete\n")
-        mock_session_inst.output_user_info.assert_called_once()
 
     def test_when_not_logged_in(self, mock_session):
         """Tests login behaves appropriately when not logged in"""
