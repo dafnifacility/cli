@@ -1,4 +1,3 @@
-import base64
 import json
 from dataclasses import dataclass
 from pathlib import Path
@@ -266,6 +265,9 @@ class DAFNISession:
             self._save_session_data()
 
         click.echo(f"Logged in as {self.username}")
+
+    # Listed below this point are various methods for performing specific HTTP
+    # requests using the session data
 
     def _authenticated_request(
         self,
