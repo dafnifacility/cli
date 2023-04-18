@@ -99,8 +99,8 @@ class DAFNISession:
         return Path().home() / SESSION_SAVE_FILE
 
     @staticmethod
-    def is_logged_in():
-        """Returns whether the login file exists and hence whether the user's
+    def has_session_file():
+        """Returns whether the session file exists and hence whether the user's
         still logged in
         """
         return DAFNISession._get_login_save_path().is_file()
@@ -198,9 +198,6 @@ class DAFNISession:
         """Returns a LoginResponse having logged in with a username and
         password
 
-        Raises:
-            LoginError - If login fails and its likely down to something other
-                         than a bad password
         Returns:
             LoginResponse - If 'was_successful' is false, it means the username
                             or password given was likely wrong
@@ -230,7 +227,12 @@ class DAFNISession:
     @staticmethod
     def login(username: str, password: str):
         """Returns a DAFNISession object after logging in with a username and
-        password"""
+        password
+
+        Raises:
+            LoginError - If login fails and its likely down to something other
+                         than a bad password
+        """
         login_response = DAFNISession._login(username, password)
         if not login_response.was_successful():
             raise LoginError(
@@ -330,7 +332,6 @@ class DAFNISession:
 
         return response
 
-    # TODO have same optional flags for each function
     def get_request(
         self,
         url: str,

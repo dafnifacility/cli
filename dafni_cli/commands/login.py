@@ -11,7 +11,7 @@ def login():
     output the current logged in username and user_id.
     """
 
-    if DAFNISession.is_logged_in():
+    if DAFNISession.has_session_file():
         # Output current stored session's username and user id
         session = DAFNISession()
         click.echo("Already logged in as: ")
@@ -27,7 +27,7 @@ def logout():
     Log out of the DAFNI CLI. Removes any cached session data.
     """
 
-    if DAFNISession.is_logged_in():
+    if DAFNISession.has_session_file():
         session = DAFNISession()
         session.logout()
 

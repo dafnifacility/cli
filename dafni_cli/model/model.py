@@ -4,7 +4,7 @@ import click
 from dateutil import parser
 
 from dafni_cli.api.models_api import get_model
-from dafni_cli.api.session import DAFNISession  # get_model_metadata_dict,
+from dafni_cli.api.session import DAFNISession
 from dafni_cli.auth import Auth
 from dafni_cli.consts import CONSOLE_WIDTH, TAB_SPACE
 from dafni_cli.model.model_metadata import ModelMetadata
@@ -19,7 +19,7 @@ class Model:
     Methods:
         get_attributes_from_dict(dict): populates attributes from the model dictionary from the DAFNI API
         get_attributes_from_id(session (DAFNISession), id (str)): populates attributes from the model version ID by calling DAFNI API.
-        get_metadata(session (DAFNISession)): After details have been obtained, populate metadata attributes by calling API.
+        get_metadata(): After details have been obtained, populate metadata attributes by calling API.
         filter_by_date(key (str), date (str)): calculates whether the model was created/published before a date.
         output_details(): Prints key information of model to console.
         output_metadata(): Prints key information of model metadata to console.
@@ -87,7 +87,7 @@ class Model:
         dictionary
 
         Args:
-        model_dict (dict): Dictionary returned from DAFNI API at /models endpoints
+            model_dict (dict): Dictionary returned from DAFNI API at /models endpoints
 
         Returns:
             a set of Model metadata attributes that could not be set as they were not present in model_dict
@@ -170,14 +170,11 @@ class Model:
         # Version message key appears on single model API response, but not list of all models response
         self.version_message = model_dict["version_message"]
 
-    def get_metadata(self, session: str):
+    def get_metadata(self):
         """
         Retrieve metadata for the model using the model details.
-
-        Args:
-            session (DAFNISession): User session
         """
-        #        metadata_dict = get_model_metadata_dict(session, self.id)
+
         self.metadata_obj = ModelMetadata(self.dictionary)
 
     def filter_by_date(self, key: str, date: str) -> bool:

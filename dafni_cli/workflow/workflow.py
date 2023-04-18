@@ -17,8 +17,8 @@ class Workflow:
     The information (as attributes) for a workflow can be populated from a dictionary, or a DAFNI workflow UUID.
 
     Methods:
-        get_details_from_dict(dict): populates attributes from the workflow dictionary from the DAFNI API
-        get_details_from_id(session (DAFNISession), id (str)): populates attributes from the workflow version ID by calling DAFNI API.
+        get_attributes_from_dict(dict): populates attributes from the workflow dictionary from the DAFNI API
+        get_attributes_from_id(session (DAFNISession), id (str)): populates attributes from the workflow version ID by calling DAFNI API.
         get_metadata(session (DAFNISession)): After details have been obtained, populate metadata attributes.
         filter_by_date(key (str), date (str)): calculates whether the workflow was created/published before a date.
         output_details(): Prints key information of workflow to console.

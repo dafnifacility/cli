@@ -128,7 +128,7 @@ def model(ctx: Context, version_id: List[str], version_history: bool, json: bool
             history = ModelVersionHistory(ctx.obj["session"], model)
             history.output_version_history(json)
         else:
-            model.get_metadata(ctx.obj["session"])
+            model.get_metadata()
             model.output_metadata(json)
 
 
@@ -342,7 +342,7 @@ def workflow(ctx: Context, version_id: List[str], version_history: bool, json: b
     for vid in version_id:
         workflow = Workflow(vid)
         workflow.get_attributes_from_id(ctx.obj["session"], vid)
-        
+
         if version_history:
             history = WorkflowVersionHistory(ctx.obj["session"], workflow)
             history.output_version_history(json)

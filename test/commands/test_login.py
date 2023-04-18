@@ -13,7 +13,7 @@ class TestLogin(TestCase):
     def test_when_logged_in(self, mock_session):
         """Tests login behaves appropriately when already logged in"""
 
-        mock_session.is_logged_in.return_value = True
+        mock_session.has_session_file.return_value = True
         runner = CliRunner()
 
         result = runner.invoke(login.login)
@@ -27,7 +27,7 @@ class TestLogin(TestCase):
     def test_when_not_logged_in(self, mock_session):
         """Tests login behaves appropriately when not logged in"""
 
-        mock_session.is_logged_in.return_value = False
+        mock_session.has_session_file.return_value = False
         runner = CliRunner()
 
         runner.invoke(login.login)
@@ -42,7 +42,7 @@ class TestLogout(TestCase):
     def test_when_logged_in(self, mock_session):
         """Tests login behaves appropriately when already logged in"""
 
-        mock_session.is_logged_in.return_value = True
+        mock_session.has_session_file.return_value = True
         runner = CliRunner()
 
         result = runner.invoke(login.logout)
@@ -57,7 +57,7 @@ class TestLogout(TestCase):
     def test_when_not_logged_in(self, mock_session):
         """Tests login behaves appropriately when not logged in"""
 
-        mock_session.is_logged_in.return_value = False
+        mock_session.has_session_file.return_value = False
         runner = CliRunner()
 
         result = runner.invoke(login.logout)
