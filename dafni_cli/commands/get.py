@@ -5,6 +5,7 @@ from click import Context
 
 from dafni_cli.api.datasets_api import get_all_datasets, get_latest_dataset_metadata
 from dafni_cli.api.models_api import get_all_models
+from dafni_cli.api.parser import ParserBaseObject
 from dafni_cli.api.session import DAFNISession
 from dafni_cli.api.workflows_api import get_all_workflows
 from dafni_cli.datasets import (
@@ -238,7 +239,7 @@ def dataset(
         if json:
             print_json(metadata)
         else:
-            dataset_meta = dataset_metadata.DatasetMetadata(metadata)
+            dataset_meta = ParserBaseObject.parse_from_dict(dataset_metadata.DatasetMetadata, metadata)
             dataset_meta.output_metadata_details(long)
     else:
         version_history = dataset_version_history.DatasetVersionHistory(
