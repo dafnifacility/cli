@@ -1,53 +1,12 @@
-from abc import abstractmethod
 from dataclasses import dataclass
-from typing import Any, ClassVar, List, Optional, Type, Union
-from dafni_cli.api.datasets_api import get_latest_dataset_metadata
-from dafni_cli.api.session import DAFNISession
+from datetime import datetime
+from typing import ClassVar, List, Optional
 
 from dateutil.parser import isoparse
-from datetime import datetime
 
-
-@dataclass
-class ParserParam:
-    name: str
-    keys: Union[str, List[str]]
-    datatype: Optional[Union[type, callable]] = None
-
-
-class ParserBaseObject:
-    _parser_params: ClassVar[List[ParserParam]] = []
-
-    @staticmethod
-    def parse_from_dict(dataclass_type: type, dictionary):
-        # Parse the dictionary using the given params
-        parsed_params = {}
-        for param in dataclass_type._parser_params:
-            # When keys is a list, want to obtain the nested values instead if possible
-            if isinstance(param.keys, list):
-                parsed_param = dictionary
-                for key in param.keys:
-                    parsed_param = parsed_param.get(key)
-                    if parsed_param is None:
-                        break
-            else:
-                parsed_param = dictionary.get(param.keys)
-
-            if parsed_param is not None:
-                if param.datatype is not None:
-                    if isinstance(param.datatype, type) and issubclass(
-                        param.datatype, ParserBaseObject
-                    ):
-                        parsed_param = ParserBaseObject.parse_from_dict(
-                            param.datatype, parsed_param
-                        )
-                    else:
-                        parsed_param = param.datatype(parsed_param)
-
-                parsed_params[param.name] = parsed_param
-
-        # Convert to the dataclass type
-        return dataclass_type(**parsed_params)
+from dafni_cli.api.datasets_api import get_latest_dataset_metadata
+from dafni_cli.api.parser import ParserBaseObject, ParserParam
+from dafni_cli.api.session import DAFNISession
 
 
 def parse_datetime(value: str):
