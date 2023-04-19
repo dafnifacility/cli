@@ -13,7 +13,7 @@ from dafni_cli.api.parser import (
     parse_datetime,
 )
 from dafni_cli.api.session import DAFNISession
-from dafni_cli.consts import CONSOLE_WIDTH, TAB_SPACE
+from dafni_cli.consts import CONSOLE_WIDTH, DATA_FORMATS, TAB_SPACE
 from dafni_cli.utils import (
     output_table,
     process_file_size,
@@ -48,7 +48,9 @@ class DataFile(ParserBaseObject):
     _parser_params: ClassVar[List[ParserParam]] = [
         ParserParam("name", "spdx:fileName", str),
         ParserParam("size", "dcat:byteSize", process_file_size),
-        ParserParam("format", "dcat:mediaType", str),
+        ParserParam(
+            "format", "dcat:mediaType", lambda value: DATA_FORMATS.get(value, "Unknown")
+        ),
         ParserParam("download_url", "dcat:downloadURL", str),
     ]
 

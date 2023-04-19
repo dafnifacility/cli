@@ -1,6 +1,7 @@
 from typing import Optional
 
 from dafni_cli.api.datasets_api import get_latest_dataset_metadata
+from dafni_cli.api.parser import ParserBaseObject
 from dafni_cli.api.session import DAFNISession
 from dafni_cli.datasets.dataset_metadata import DatasetMetadata
 from dafni_cli.utils import check_key_in_dict, print_json
@@ -70,7 +71,9 @@ class DatasetVersionHistory:
             if json_flag:
                 json_list.append(metadata)
             else:
-                dataset_meta = DatasetMetadata(metadata)
+                dataset_meta = ParserBaseObject.parse_from_dict(
+                    DatasetMetadata, metadata
+                )
                 dataset_meta.output_version_details()
         if json_flag:
             print_json(json_list)
