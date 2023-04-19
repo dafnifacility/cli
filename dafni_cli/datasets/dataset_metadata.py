@@ -172,10 +172,11 @@ class DatasetMetadata(ParserBaseObject):
         language (str): The language used for the dataset
         standard (Standard): Any related standards associated
         asset_id (str): Asset identifier for dataset
-        dataset_uuid (str): Dataset UUID
-        version_uuid (str): Version UUID of the latest version of this dataset
-        metadata_uuid (str): Metadata UUID of the latest metadata for this
-                            dataset
+        dataset_id (str): Dataset identifier
+        version_id (str): Version identifier of the latest version of this
+                          dataset
+        metadata_id (str): Metadata identifier of the latest metadata for this
+                           dataset
         files (List[DataFile]): Files associated with the dataset
         rights (List[str] or None): The user rights linked to the Dataset
         update_frequency (str or None): Update frequency if applicable
@@ -257,8 +258,12 @@ class DatasetMetadata(ParserBaseObject):
             " ".join(self.identifiers) if self.identifiers else "None", CONSOLE_WIDTH
         )
         click.echo(f"Location: {self.location.label}")
-        click.echo(f"Start date: {self.start_date}")
-        click.echo(f"End date: {self.end_date}")
+        click.echo(
+            f"Start date: {self.start_date.strftime('%B %d %Y') if self.start_date else 'None'}"
+        )
+        click.echo(
+            f"End date: {self.end_date.strftime('%B %d %Y') if self.end_date else 'None'}"
+        )
         click.echo(f"Key Words:\n {self.keywords}")
 
         # DataFiles table

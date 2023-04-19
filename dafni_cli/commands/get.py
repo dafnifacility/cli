@@ -185,8 +185,8 @@ def datasets(
     if json:
         print_json(datasets_response)
     else:
-        datasets = process_response_to_class_list(
-            datasets_response["metadata"], Dataset
+        datasets = ParserBaseObject.parse_from_dict_list(
+            Dataset, datasets_response["metadata"]
         )
         for dataset_model in datasets:
             dataset_model.output_dataset_details()
@@ -239,7 +239,9 @@ def dataset(
         if json:
             print_json(metadata)
         else:
-            dataset_meta = ParserBaseObject.parse_from_dict(dataset_metadata.DatasetMetadata, metadata)
+            dataset_meta = ParserBaseObject.parse_from_dict(
+                dataset_metadata.DatasetMetadata, metadata
+            )
             dataset_meta.output_metadata_details(long)
     else:
         version_history = dataset_version_history.DatasetVersionHistory(

@@ -138,25 +138,43 @@ class ParserBaseObject:
                 "'None' but doesn't have a default value."
             ) from err
 
+    @staticmethod
+    def parse_from_dict_list(dataclass_type: type, dictionaries: List[dict]) -> List:
+        """Parses a list of dictionaries to a list of objects
+
+        Args:
+            dataclass_type (Type[ParserBaseObject]): Dataclass type to parse
+                                                     the dictionary to
+            dictionaries (dict): List of dictionaries containing the data to
+                                 be parsed
+        """
+        return [
+            ParserBaseObject.parse_from_dict(dataclass_type, dictionary)
+            for dictionary in dictionaries
+        ]
+
 
 # Below follows some utility functions for parsing types
 
+
 def parse_datetime(value: str):
     """Converts a datetime string to a datetime object using isoparse"""
-    return isoparse(value).strftime("%B %d %Y")
+    return isoparse(value)
+
 
 def create_object_from_list_parser(dataclass_type: Type[ParserBaseObject]):
     """Returns a parser function for parsing a list of dictionaries to a
        list of objects with a particular datatype inheriting from
        ParserBaseObject
-       
+
     Args:
         dataclass_type (Type[ParserBaseObject]): Type of object to parse.
                                 Should be a subclass of ParserBaseObject
     """
+
     def parse_object_from_list(dictionaries: List[dict]):
         """This function takes a list of dictionaries (presumably obtained
-        from another dict) and converts them to a list of objects with a 
+        from another dict) and converts them to a list of objects with a
         specific dataclass type"""
         return [
             ParserBaseObject.parse_from_dict(dataclass_type, dictionary)
