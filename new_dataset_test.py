@@ -18,40 +18,36 @@ class ParserParam:
 class ParserBaseObject:
     _parser_params: ClassVar[List[ParserParam]] = []
 
+    @staticmethod
+    def parse_from_dict(dataclass_type: type, dictionary):
+        # Parse the dictionary using the given params
+        parsed_params = {}
+        for param in dataclass_type._parser_params:
+            # When keys is a list, want to obtain the nested values instead if possible
+            if isinstance(param.keys, list):
+                parsed_param = dictionary
+                for key in param.keys:
+                    parsed_param = parsed_param.get(key)
+                    if parsed_param is None:
+                        break
+            else:
+                parsed_param = dictionary.get(param.keys)
 
-def parse_dict(dataclass_type: type, params: List[ParserParam], dictionary):
-    # Parse the dictionary using the given params
-    parsed_params = {}
-    for param in params:
-        # When keys is a list, want to obtain the nested values instead if possible
-        if isinstance(param.keys, list):
-            parsed_param = dictionary
-            for key in param.keys:
-                parsed_param = parsed_param.get(key)
-                if parsed_param is None:
-                    break
-        else:
-            parsed_param = dictionary.get(param.keys)
+            if parsed_param is not None:
+                if param.datatype is not None:
+                    if isinstance(param.datatype, type) and issubclass(
+                        param.datatype, ParserBaseObject
+                    ):
+                        parsed_param = ParserBaseObject.parse_from_dict(
+                            param.datatype, parsed_param
+                        )
+                    else:
+                        parsed_param = param.datatype(parsed_param)
 
-        if parsed_param is not None:
-            if param.datatype is not None:
-                if isinstance(param.datatype, type) and issubclass(
-                    param.datatype, ParserBaseObject
-                ):
-                    parsed_param = parse_dict(
-                        param.datatype, param.datatype._parser_params, parsed_param
-                    )
-                else:
-                    parsed_param = param.datatype(parsed_param)
+                parsed_params[param.name] = parsed_param
 
-            parsed_params[param.name] = parsed_param
-
-    # Convert to the dataclass type
-    return dataclass_type(**parsed_params)
-
-
-def parse_object(dataclass_type: Type[ParserBaseObject], dictionary: dict):
-    return parse_dict(dataclass_type, dataclass_type._parser_params, dictionary)
+        # Convert to the dataclass type
+        return dataclass_type(**parsed_params)
 
 
 def parse_datetime(value: str):
@@ -120,4 +116,4 @@ data = get_latest_dataset_metadata(
     "0bd05eea-886a-47f3-983d-6fe47b7fd1a0",
 )
 
-print(parse_object(DatasetMetadata, data))
+print(ParserBaseObject.parse_from_dict(DatasetMetadata, data))
