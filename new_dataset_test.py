@@ -1,5 +1,6 @@
+from abc import abstractmethod
 from dataclasses import dataclass
-from typing import Any, ClassVar, List, Optional, Union
+from typing import Any, ClassVar, List, Optional, Type, Union
 from dafni_cli.api.datasets_api import get_latest_dataset_metadata
 from dafni_cli.api.session import DAFNISession
 
@@ -12,6 +13,10 @@ class ParserParam:
     name: str
     keys: Union[str, List[str]]
     datatype: Optional[Union[type, callable]] = None
+
+
+class ParserBaseObject:
+    _parser_params: ClassVar[List[ParserParam]] = []
 
 
 def parse_dict(dataclass_type: type, params: List[ParserParam], dictionary):
@@ -29,12 +34,24 @@ def parse_dict(dataclass_type: type, params: List[ParserParam], dictionary):
             parsed_param = dictionary.get(param.keys)
 
         if parsed_param is not None:
-            parsed_params[param.name] = (
-                parsed_param if param.datatype is None else param.datatype(parsed_param)
-            )
+            if param.datatype is not None:
+                if isinstance(param.datatype, type) and issubclass(
+                    param.datatype, ParserBaseObject
+                ):
+                    parsed_param = parse_dict(
+                        param.datatype, param.datatype._parser_params, parsed_param
+                    )
+                else:
+                    parsed_param = param.datatype(parsed_param)
+
+            parsed_params[param.name] = parsed_param
 
     # Convert to the dataclass type
     return dataclass_type(**parsed_params)
+
+
+def parse_object(dataclass_type: Type[ParserBaseObject], dictionary: dict):
+    return parse_dict(dataclass_type, dataclass_type._parser_params, dictionary)
 
 
 def parse_datetime(value: str):
@@ -42,7 +59,7 @@ def parse_datetime(value: str):
 
 
 @dataclass
-class Contact:
+class Contact(ParserBaseObject):
     type: str
     name: str
     email: str
@@ -53,17 +70,9 @@ class Contact:
         ParserParam("email", "vcard:hasEmail", str),
     ]
 
-    @staticmethod
-    def parse_func(dictionary):
-        return parse_dict(
-            Contact,
-            Contact._parser_params,
-            dictionary,
-        )
-
 
 @dataclass
-class Location:
+class Location(ParserBaseObject):
     id: str
     type: str
     label: str
@@ -74,17 +83,9 @@ class Location:
         ParserParam("label", "rdfs:label", str),
     ]
 
-    @staticmethod
-    def parse_func(dictionary):
-        return parse_dict(
-            Location,
-            Location._parser_params,
-            dictionary,
-        )
-
 
 @dataclass
-class DatasetMetadata:
+class DatasetMetadata(ParserBaseObject):
     title: str
     description: str
     subject: str
@@ -101,23 +102,15 @@ class DatasetMetadata:
         ParserParam("description", "dct:description", str),
         ParserParam("subject", "dct:subject", str),
         ParserParam("created", "dct:created", parse_datetime),
-        ParserParam("contact", "dcat:contactPoint", Contact.parse_func),
+        ParserParam("contact", "dcat:contactPoint", Contact),
         ParserParam("identifier", "dct:identifier", str),
-        ParserParam("location", "dct:spatial", Location.parse_func),
+        ParserParam("location", "dct:spatial", Location),
         ParserParam(
             "start_date", ["dct:PeriodOfTime", "time:hasBeginning"], parse_datetime
         ),
         ParserParam("end_date", ["dct:PeriodOfTime", "time:hasEnd"], parse_datetime),
         ParserParam("keywords", "dcat:keyword"),
     ]
-
-    @staticmethod
-    def parse_func(dictionary):
-        return parse_dict(
-            DatasetMetadata,
-            DatasetMetadata._parser_params,
-            dictionary,
-        )
 
 
 session = DAFNISession()
@@ -127,4 +120,4 @@ data = get_latest_dataset_metadata(
     "0bd05eea-886a-47f3-983d-6fe47b7fd1a0",
 )
 
-print(DatasetMetadata.parse_func(data))
+print(parse_object(DatasetMetadata, data))
