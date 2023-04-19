@@ -1,5 +1,7 @@
 from dataclasses import dataclass
-from typing import ClassVar, List, Optional, Union
+from typing import ClassVar, List, Optional, Type, Union
+
+from dateutil.parser import isoparse
 
 
 @dataclass
@@ -135,3 +137,30 @@ class ParserBaseObject:
                 "was either missing from the dictionary or was parsed to be "
                 "'None' but doesn't have a default value."
             ) from err
+
+
+# Below follows some utility functions for parsing types
+
+def parse_datetime(value: str):
+    """Converts a datetime string to a datetime object using isoparse"""
+    return isoparse(value).strftime("%B %d %Y")
+
+def create_object_from_list_parser(dataclass_type: Type[ParserBaseObject]):
+    """Returns a parser function for parsing a list of dictionaries to a
+       list of objects with a particular datatype inheriting from
+       ParserBaseObject
+       
+    Args:
+        dataclass_type (Type[ParserBaseObject]): Type of object to parse.
+                                Should be a subclass of ParserBaseObject
+    """
+    def parse_object_from_list(dictionaries: List[dict]):
+        """This function takes a list of dictionaries (presumably obtained
+        from another dict) and converts them to a list of objects with a 
+        specific dataclass type"""
+        return [
+            ParserBaseObject.parse_from_dict(dataclass_type, dictionary)
+            for dictionary in dictionaries
+        ]
+
+    return parse_object_from_list
