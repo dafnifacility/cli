@@ -65,4 +65,4 @@ pyvenv.cfg
 **/lib64
 
 # Just for temporary testing
-test_output.json
+test_output.py

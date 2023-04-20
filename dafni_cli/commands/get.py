@@ -10,10 +10,9 @@ from dafni_cli.api.session import DAFNISession
 from dafni_cli.api.workflows_api import get_all_workflows
 from dafni_cli.datasets import (
     dataset_filtering,
-    dataset_metadata,
-    dataset_version_history,
 )
 from dafni_cli.datasets.dataset import Dataset
+from dafni_cli.datasets.dataset_metadata import DatasetMetadata
 from dafni_cli.model.model import Model
 from dafni_cli.model.version_history import ModelVersionHistory
 from dafni_cli.utils import print_json, process_response_to_class_list
@@ -235,19 +234,17 @@ def dataset(
         json (bool): Flag to view json returned from API
     """
     metadata = get_latest_dataset_metadata(ctx.obj["session"], id, version_id)
+
+    if json:
+        print_json(metadata)
+        return
+
+    metadata = ParserBaseObject.parse_from_dict(DatasetMetadata, metadata)
+
     if not version_history:
-        if json:
-            print_json(metadata)
-        else:
-            dataset_meta = ParserBaseObject.parse_from_dict(
-                dataset_metadata.DatasetMetadata, metadata
-            )
-            dataset_meta.output_metadata_details(long)
+        metadata.output_metadata_details(long)
     else:
-        version_history = dataset_version_history.DatasetVersionHistory(
-            ctx.obj["session"], metadata
-        )
-        version_history.process_version_history(json)
+        metadata.version_history.process_version_history(ctx.obj["session"])
 
 
 ###############################################################################

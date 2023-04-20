@@ -4,12 +4,13 @@ from io import BytesIO
 from typing import ClassVar, List, Optional, Tuple
 
 import click
+from dafni_cli.api.datasets_api import get_latest_dataset_metadata
 
 from dafni_cli.api.minio_api import minio_get_request
 from dafni_cli.api.parser import ParserBaseObject, ParserParam, parse_datetime
 from dafni_cli.api.session import DAFNISession
 from dafni_cli.consts import CONSOLE_WIDTH, DATA_FORMATS, TAB_SPACE
-from dafni_cli.utils import output_table, process_file_size, prose_print
+from dafni_cli.utils import output_table, print_json, process_file_size, prose_print
 
 
 @dataclass
@@ -139,6 +140,78 @@ class Standard(ParserBaseObject):
 
 
 @dataclass
+class DatasetMetadataVersion(ParserBaseObject):
+    metadata_id: str
+    label: str
+    modified_date: datetime
+
+    _parser_params: ClassVar[List[ParserParam]] = [
+        ParserParam("metadata_id", "metadata_uuid", str),
+        ParserParam("label", "dafni_version_note", str),
+        ParserParam("modified_date", "modified_date", parse_datetime),
+    ]
+
+
+@dataclass
+class DatasetVersion(ParserBaseObject):
+    version_id: str
+    metadata_versions: List[DatasetMetadataVersion]
+
+    _parser_params: ClassVar[List[ParserParam]] = [
+        ParserParam("version_id", "version_uuid", str),
+        ParserParam("metadata_versions", "metadata_versions", DatasetMetadataVersion),
+    ]
+
+
+@dataclass
+class DatasetVersionHistory(ParserBaseObject):
+    """Dataclass for processing the version history of a dataset
+
+    Methods:
+        __init__(session (DAFNISession), metadata (dict)): DatasetVersionHistory constructor
+        set_attributes_from_dict(metadata (dict)): Function to set the class details from a given dict
+        process_version_history(session (DAFNISession), dataset (dict)): Iterates through all versions and outputs details
+
+    Attributes:
+        session (DAFNISession): User session
+        dataset_id (str): Dataset ID
+        versions (List[dict]): List of associated Version dicts
+        version_ids (List[str]): List of Version IDs
+    """
+
+    dataset_id: str
+    versions: List[DatasetVersion]
+
+    _parser_params: ClassVar[List[ParserParam]] = [
+        ParserParam("dataset_id", "dataset_uuid", str),
+        ParserParam("versions", "versions", DatasetVersion),
+    ]
+
+    def process_version_history(self, session: DAFNISession, json_flag: bool = False):
+        """Function iterates through all Version History ID's,
+        retrieves the associated Dataset Metadata, and outputs the Version details
+        or Dataset metadata json for each version to the command line
+
+        Args:
+            json_flag (bool): Whether to print the Dataset metadata json for each version, or the version details
+        """
+        json_list = []
+        for version in self.versions:
+            metadata = get_latest_dataset_metadata(
+                session, self.dataset_id, version.version_id
+            )
+            if json_flag:
+                json_list.append(metadata)
+            else:
+                dataset_meta = ParserBaseObject.parse_from_dict(
+                    DatasetMetadata, metadata
+                )
+                dataset_meta.output_version_details()
+        if json_flag:
+            print_json(json_list)
+
+
+@dataclass
 class DatasetMetadata(ParserBaseObject):
     """Dataclass representing a DAFNI dataset's metadata
 
@@ -194,6 +267,7 @@ class DatasetMetadata(ParserBaseObject):
     version_id: str
     metadata_id: str
     files: List[DataFile]
+    version_history: DatasetVersionHistory
     rights: Optional[str] = None
     update_frequency: Optional[str] = None
     start_date: Optional[datetime] = None
@@ -219,6 +293,7 @@ class DatasetMetadata(ParserBaseObject):
         ParserParam("version_id", ["@id", "version_uuid"], str),
         ParserParam("metadata_id", ["@id", "metadata_uuid"], str),
         ParserParam("files", "dcat:distribution", DataFile),
+        ParserParam("version_history", "version_history", DatasetVersionHistory),
         ParserParam("rights", "dct:rights", str),
         ParserParam("update_frequency", "dct:accrualPeriodicity", str),
         ParserParam("end_date", ["dct:PeriodOfTime", "time:hasEnd"], parse_datetime),
