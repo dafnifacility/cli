@@ -3,7 +3,7 @@ import textwrap
 from dataclasses import fields
 from datetime import datetime as dt
 from io import BytesIO
-from typing import List, Optional, Type, Union
+from typing import Any, List, Optional, Type, Union
 from zipfile import ZipFile
 
 import click
@@ -40,6 +40,32 @@ def process_response_to_class_list(response: List[dict], class_instance: object)
         class_list.append(instance)
     return class_list
 
+
+# TODO: Replace original (optional_column below) with this once fully refactored
+def optional_column_new(
+    value: Optional[Any], column_width: int = 0, alignment: str = "<"
+):
+    """Adds a value to a column, if the key exists in the dictionary
+    and adds spaces of the appropriate width if not.
+
+    Args:
+         value (Optional[Any]): Data that is to be checked and added if present
+         column_width (int): Number of spaces to be returned instead if the key is not present
+         alignment (str): Specified alignment of column
+    Returns:
+        entry (str): Either the value of the entry to be put into the table, column_width number of spaces
+    """
+    if value is not None:
+        entry_string = str(value)
+        if column_width > 0:
+            entry = f"{entry_string:{alignment}{column_width}}"
+        elif column_width == 0:
+            entry = entry_string
+        else:
+            raise ValueError("Column width for optional column must be non-negative")
+    else:
+        entry = " " * column_width
+    return entry
 
 def optional_column(
     dictionary: dict, key: str, column_width: int = 0, alignment: str = "<"

@@ -4,7 +4,7 @@ import click
 from click import Context
 
 from dafni_cli.api.datasets_api import get_all_datasets, get_latest_dataset_metadata
-from dafni_cli.api.models_api import get_all_models
+from dafni_cli.api.models_api import get_all_models, get_model
 from dafni_cli.api.parser import ParserBaseObject
 from dafni_cli.api.session import DAFNISession
 from dafni_cli.api.workflows_api import get_all_workflows
@@ -119,16 +119,17 @@ def model(ctx: Context, version_id: List[str], version_history: bool, json: bool
         json (bool): Whether to output raw json from API or pretty print metadata/version history. Defaults to False.
     """
     for vid in version_id:
-        model = Model(vid)
-        model.get_attributes_from_id(ctx.obj["session"], vid)
+        model_dictionary = get_model(ctx.obj["session"], vid)
 
         if version_history:
             history = ModelVersionHistory(ctx.obj["session"], model)
             history.output_version_history(json)
         else:
-            model.get_metadata()
-            model.output_metadata(json)
-
+            if json:
+                print_json(model_dictionary)
+            else:
+                model_inst = ParserBaseObject.parse_from_dict(Model, model_dictionary)
+                model_inst.output_info()
 
 ###############################################################################
 # Datasets commands
