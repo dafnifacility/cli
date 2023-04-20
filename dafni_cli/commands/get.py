@@ -235,16 +235,15 @@ def dataset(
     """
     metadata = get_latest_dataset_metadata(ctx.obj["session"], id, version_id)
 
-    if json:
-        print_json(metadata)
-        return
-
-    metadata = ParserBaseObject.parse_from_dict(DatasetMetadata, metadata)
-
     if not version_history:
-        metadata.output_metadata_details(long)
+        if json:
+            print_json(metadata)
+        else:
+            dataset_meta = ParserBaseObject.parse_from_dict(DatasetMetadata, metadata)
+            dataset_meta.output_metadata_details(long)
     else:
-        metadata.version_history.process_version_history(ctx.obj["session"])
+        dataset_meta = ParserBaseObject.parse_from_dict(DatasetMetadata, metadata)
+        dataset_meta.version_history.process_version_history(ctx.obj["session"], json)
 
 
 ###############################################################################

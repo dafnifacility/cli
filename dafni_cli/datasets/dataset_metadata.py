@@ -60,6 +60,15 @@ class DataFile(ParserBaseObject):
 
 @dataclass
 class Creator(ParserBaseObject):
+    """Dataclass representing a creator listed in a dataset's metadata
+
+    Attributes:
+        type (str): Creator type
+        name (str): Creator name
+        id (str or None): Creator id
+        internal_id (str or None): Internal id
+    """
+
     type: str
     name: str
     id: Optional[str] = None
@@ -75,6 +84,14 @@ class Creator(ParserBaseObject):
 
 @dataclass
 class Contact(ParserBaseObject):
+    """Dataclass representing the contact listed in a dataset's metadata
+
+    Attributes:
+        type (str): Contact type
+        name (str): Contact name
+        email (str): Contact email
+    """
+
     type: str
     name: str
     email: str
@@ -92,6 +109,14 @@ class Contact(ParserBaseObject):
 
 @dataclass
 class Location(ParserBaseObject):
+    """Dataclass representing the contact listed in a dataset's metadata
+
+    Attributes:
+        id (str): Location id
+        type (str): Location type
+        label (str): Location label
+    """
+
     id: str
     type: str
     label: str
@@ -105,6 +130,15 @@ class Location(ParserBaseObject):
 
 @dataclass
 class Publisher(ParserBaseObject):
+    """Dataclass representing the publisher listed in a dataset's metadata
+
+    Attributes:
+        type (str or None): Publisher type
+        id (str or None): Publisher id
+        name (str or None): Publisher name
+        internal_id (str or None): Publisher internal id
+    """
+
     type: str
     id: Optional[str] = None
     name: Optional[str] = None
@@ -124,6 +158,14 @@ class Publisher(ParserBaseObject):
 
 @dataclass
 class Standard(ParserBaseObject):
+    """Dataclass representing the standard listed in a dataset's metadata
+
+    Attributes:
+        type (str): Standard type
+        id (str or None): Standard id
+        label (str or None): Standard label
+    """
+
     type: str
     id: Optional[str] = None
     label: Optional[str] = None
@@ -141,6 +183,16 @@ class Standard(ParserBaseObject):
 
 @dataclass
 class DatasetMetadataVersion(ParserBaseObject):
+    """Dataclass representing a metadata version listed in a dataset's
+    version_history
+
+    Attributes:
+        metadata_id (str): ID of this version of the metadata
+        label (str): Label of the metadata version
+        modified_date (datetime): Time and date of last modification of this
+                                  version
+    """
+
     metadata_id: str
     label: str
     modified_date: datetime
@@ -154,6 +206,15 @@ class DatasetMetadataVersion(ParserBaseObject):
 
 @dataclass
 class DatasetVersion(ParserBaseObject):
+    """Dataclass representing a specific dataset version listed under a
+       dataset's metadata version_history
+
+    Attributes:
+        version_id (str): ID of this version of the dataset
+        metadata_versions (List[DatasetMetadataVersion): List of metadata
+                              versions under this version of the dataset
+    """
+
     version_id: str
     metadata_versions: List[DatasetMetadataVersion]
 
@@ -168,9 +229,7 @@ class DatasetVersionHistory(ParserBaseObject):
     """Dataclass for processing the version history of a dataset
 
     Methods:
-        __init__(session (DAFNISession), metadata (dict)): DatasetVersionHistory constructor
-        set_attributes_from_dict(metadata (dict)): Function to set the class details from a given dict
-        process_version_history(session (DAFNISession), dataset (dict)): Iterates through all versions and outputs details
+        process_version_history(session: DAFNISession, json_flag: bool): Iterates through all versions and outputs details
 
     Attributes:
         session (DAFNISession): User session
@@ -188,12 +247,14 @@ class DatasetVersionHistory(ParserBaseObject):
     ]
 
     def process_version_history(self, session: DAFNISession, json_flag: bool = False):
-        """Function iterates through all Version History ID's,
-        retrieves the associated Dataset Metadata, and outputs the Version details
-        or Dataset metadata json for each version to the command line
+        """Iterates through all version history ID's, retrieves the associated
+        dataset metadata, and outputs the version details or Dataset metadata
+        json for each version to the command line.
 
         Args:
-            json_flag (bool): Whether to print the Dataset metadata json for each version, or the version details
+            json_flag (bool): Whether to print the Dataset metadata json for
+                              each version, or the version details.
+                              Default: False
         """
         json_list = []
         for version in self.versions:
