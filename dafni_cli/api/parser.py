@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import ClassVar, List, Optional, Type, Union
+from typing import ClassVar, List, Optional, Union
 
 from dateutil.parser import isoparse
 
@@ -25,9 +25,11 @@ class ParserParam:
 
             type:  The __init__ function will be called by the parser using data
                    found with the given key(s). E.g. str => str(data).
+
                    If the type is a subclass of ParserBaseObject then the parser
                    will parse and return this object assuming the data at the
-                   given key is a dictionary itself. (This is recursive)
+                   given key is a dictionary itself or in the case the data is
+                   a list, then a list of dictionaries representing this type.
             function: The function will be applied on the data e.g.
                       parse_datetime => parse_datetime(data)
             None: When None it is assumed no processing should be applied e.g.
@@ -68,7 +70,10 @@ class ParserBaseObject:
 
         Generally this function goes through each _parser_param in turn and
         assigning the attributes in the returned 'dataclass_type' instance
-        by applying them as described in the docstring for ParserParam.
+        by applying them as described in the docstring for ParserParam. If
+        a particular ParserParam type inherits from ParserBaseObject and
+        the corresponding dictionary data is a list, it will be assumed that
+        each element in that list should be parsed to the type.
 
         Any default values in the dataclass will be used if either the key
         for a particular ParserParam is not found in the dictionary, or its
@@ -118,9 +123,15 @@ class ParserBaseObject:
                     if isinstance(param.datatype, type) and issubclass(
                         param.datatype, ParserBaseObject
                     ):
-                        parsed_param = ParserBaseObject.parse_from_dict(
-                            param.datatype, parsed_param
-                        )
+                        # Automatically parse lists to lists of structures
+                        if isinstance(parsed_param, list):
+                            parsed_param = ParserBaseObject.parse_from_dict_list(
+                                param.datatype, parsed_param
+                            )
+                        else:
+                            parsed_param = ParserBaseObject.parse_from_dict(
+                                param.datatype, parsed_param
+                            )
                     else:
                         # Apply any constructor/function as required
                         parsed_param = param.datatype(parsed_param)
@@ -160,25 +171,3 @@ class ParserBaseObject:
 def parse_datetime(value: str):
     """Converts a datetime string to a datetime object using isoparse"""
     return isoparse(value)
-
-
-def create_object_from_list_parser(dataclass_type: Type[ParserBaseObject]):
-    """Returns a parser function for parsing a list of dictionaries to a
-       list of objects with a particular datatype inheriting from
-       ParserBaseObject
-
-    Args:
-        dataclass_type (Type[ParserBaseObject]): Type of object to parse.
-                                Should be a subclass of ParserBaseObject
-    """
-
-    def parse_object_from_list(dictionaries: List[dict]):
-        """This function takes a list of dictionaries (presumably obtained
-        from another dict) and converts them to a list of objects with a
-        specific dataclass type"""
-        return [
-            ParserBaseObject.parse_from_dict(dataclass_type, dictionary)
-            for dictionary in dictionaries
-        ]
-
-    return parse_object_from_list

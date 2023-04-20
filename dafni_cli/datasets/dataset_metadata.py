@@ -6,19 +6,10 @@ from typing import ClassVar, List, Optional, Tuple
 import click
 
 from dafni_cli.api.minio_api import minio_get_request
-from dafni_cli.api.parser import (
-    ParserBaseObject,
-    ParserParam,
-    create_object_from_list_parser,
-    parse_datetime,
-)
+from dafni_cli.api.parser import ParserBaseObject, ParserParam, parse_datetime
 from dafni_cli.api.session import DAFNISession
 from dafni_cli.consts import CONSOLE_WIDTH, DATA_FORMATS, TAB_SPACE
-from dafni_cli.utils import (
-    output_table,
-    process_file_size,
-    prose_print,
-)
+from dafni_cli.utils import output_table, process_file_size, prose_print
 
 
 @dataclass
@@ -213,7 +204,7 @@ class DatasetMetadata(ParserBaseObject):
         ParserParam("description", "dct:description", str),
         ParserParam("subject", "dct:subject", str),
         ParserParam("created", "dct:created", parse_datetime),
-        ParserParam("creators", "dct:creator", create_object_from_list_parser(Creator)),
+        ParserParam("creators", "dct:creator", Creator),
         ParserParam("contact", "dcat:contactPoint", Contact),
         ParserParam("identifiers", "dct:identifier"),
         ParserParam("location", "dct:spatial", Location),
@@ -227,9 +218,7 @@ class DatasetMetadata(ParserBaseObject):
         ParserParam("dataset_id", ["@id", "dataset_uuid"], str),
         ParserParam("version_id", ["@id", "version_uuid"], str),
         ParserParam("metadata_id", ["@id", "metadata_uuid"], str),
-        ParserParam(
-            "files", "dcat:distribution", create_object_from_list_parser(DataFile)
-        ),
+        ParserParam("files", "dcat:distribution", DataFile),
         ParserParam("rights", "dct:rights", str),
         ParserParam("update_frequency", "dct:accrualPeriodicity", str),
         ParserParam("end_date", ["dct:PeriodOfTime", "time:hasEnd"], parse_datetime),
