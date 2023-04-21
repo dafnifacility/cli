@@ -18,24 +18,30 @@ class WorkflowMetadata(ParserBaseObject):
     """Dataclass representing a DAFNI workflows's metadata
 
     Attributes:
-        description (str): A rich description of the Model's function
-        display_name (str): The display name of the Model
-        name (str): Name of the model
-        publisher_id (str): The id of the person or organisation who has
-                            published the Model
-        summary (str): A short summary of the Model's function
+        display_name (str): The display name of the Workflow
+        name (str): Name of the Workflow
+        summary (str): A short summary of the Workflow
+
+        The following are only present for the /workflow/<version_id> endpoint
+        (but are guaranteed for it)
+        --------
+        publisher_id (Optional[str]): The name of the person or organisation who has
+                            published the Workflow
+        description (Optional[str]): A rich description of the Workflow
     """
 
-    description: str
     display_name: str
     name: str
-    publisher_id: str
     summary: str
 
+    publisher_id: Optional[str] = None
+    description: Optional[str] = None
+
     _parser_params: ClassVar[List[ParserParam]] = [
-        ParserParam("description", "description", str),
         ParserParam("display_name", "display_name", str),
         ParserParam("name", "name", str),
+        ParserParam("summary", "summary", str),
+        ParserParam("description", "description", str),
         ParserParam("publisher_id", "publisher", str),
         ParserParam("summary", "summary", str),
     ]
@@ -263,17 +269,10 @@ class Workflow(ParserBaseObject):
 
     Attributes:
         workflow_id (str): Workflow ID
-        metadata (WorkflowMetadata): Metadata of the workflow
         version_history (List[WorkflowVersion]): Full version history of the
                                                  workflow
         auth (WorkflowAuth): Authentication credentials giving the permissions
                              the current user has on the model
-        instances (List[WorkflowInstance]): Workflow instances (executions of
-                                            this workflow)
-        parameter_sets (List[WorkflowInstance]): Parameter sets that can be
-                                                 run with this workflow
-        api_version (Optional[str]): Version of the DAFNI API used to retrieve
-                                     the model data
         kind (str): Type of DAFNI object (should be "W" for workflow)
         creation_date (datetime): Date and time the workflow was created
         publication_date (datetime): Date and time the workflow was published
@@ -282,45 +281,99 @@ class Workflow(ParserBaseObject):
                                   workflow version
         version_message (str): Message attached when the workflow was updated
                                to this model version
-        spec (dict): Specification of the workflow (contains the steps of the
-                     workflow)
         parent_id (str): Parent workflow ID
+        metadata (WorkflowMetadata): Metadata of the workflow
+
+
+        The following are only present for the /model/<version_id> endpoint
+        (but are guaranteed for it)
+        --------
+        instances (Optional[List[WorkflowInstance]]): Workflow instances
+                                (executions of this workflow)
+        parameter_sets (Optional[List[WorkflowInstance]]): Parameter sets that
+                                can be run with this workflow
+        api_version (Optional[str]): Version of the DAFNI API used to retrieve
+                                     the workflow data
+        spec (Optional[dict]): Specification of the workflow (contains the
+                              steps of the workflow)
     """
 
     workflow_id: str
-    metadata: WorkflowMetadata
     version_history: List[WorkflowVersion]
     auth: WorkflowAuth
-    instances: List[WorkflowInstance]
-    parameter_sets: List[WorkflowParameterSet]
-    api_version: str
     kind: str
     creation_date: datetime
     publication_date: datetime
     owner_id: str
     version_tags: List[str]
     version_message: str
-    # TODO: Left as a dict for now, would just need its own parsing function
-    spec: dict
     parent_id: str
+
+    instances: Optional[List[WorkflowInstance]] = None
+    parameter_sets: Optional[List[WorkflowParameterSet]] = None
+    api_version: Optional[str] = None
+    # TODO: Left as a dict for now, would just need its own parsing function
+    spec: Optional[dict] = None
+
+    # Internal metadata storage - Defined explicitly for the
+    # /workflow/<version_id> endpoint but is None otherwise, the property
+    # 'metadata' handles this discrepancy
+    _metadata: Optional[WorkflowMetadata] = None
+
+    # These are found in ModelMetadata but appear here when using the
+    # /workflows endpoint, the property 'metadata' handles this discrepancy
+    _display_name: Optional[str] = None
+    _name: Optional[str] = None
+    _summary: Optional[str] = None
 
     _parser_params: ClassVar[List[ParserParam]] = [
         ParserParam("workflow_id", "id", str),
-        ParserParam("metadata", "metadata", WorkflowMetadata),
         ParserParam("version_history", "version_history", WorkflowVersion),
         ParserParam("auth", "auth", WorkflowAuth),
-        ParserParam("instances", "instances", WorkflowInstance),
-        ParserParam("parameter_sets", "parameter_sets", WorkflowParameterSet),
-        ParserParam("api_version", "api_version", str),
         ParserParam("kind", "kind", str),
         ParserParam("creation_date", "creation_date", parse_datetime),
         ParserParam("publication_date", "publication_date", parse_datetime),
         ParserParam("owner_id", "owner", str),
         ParserParam("version_tags", "version_tags"),
         ParserParam("version_message", "version_message", str),
-        ParserParam("spec", "spec"),
         ParserParam("parent_id", "parent", str),
+        ParserParam("instances", "instances", WorkflowInstance),
+        ParserParam("parameter_sets", "parameter_sets", WorkflowParameterSet),
+        ParserParam("api_version", "api_version", str),
+        ParserParam("spec", "spec"),
+        ParserParam("_metadata", "metadata", WorkflowMetadata),
+        ParserParam("_display_name", "display_name", str),
+        ParserParam("_name", "name", str),
+        ParserParam("_summary", "summary", str),
     ]
+
+    @property
+    def metadata(self) -> WorkflowMetadata:
+        """WorkflowMetadata: Metadata of the workflow
+
+        In the case of loading a Workflow from the /workflow/<version_id>
+        endpoint this will just return the metadata loaded directly from the
+        json. In the case of the /workflows endpoint this will create and
+        return a new instance containing most of the parameters as described in
+        WorkflowMetadata, having obtained them from their locations that are
+        different for this endpoint.
+
+        Returns:
+            WorkflowMetadata: Metadata of the workflow
+        """
+
+        # Return what already exists if possible
+        if self._metadata is not None:
+            return self._metadata
+        # In the case of the /models endpoint, _metadata won't be assigned but
+        # most of the parameters will be assigned in model, so create the
+        # metadata instance here to ensure consistency in the rest of the code
+        self._metadata = WorkflowMetadata(
+            display_name=self._display_name,
+            name=self._name,
+            summary=self._summary,
+        )
+        return self._metadata
 
     # TODO: Unify with Model
     def filter_by_date(self, key: str, date_str: str) -> bool:
@@ -377,7 +430,7 @@ class Workflow(ParserBaseObject):
         click.echo(self.metadata.summary)
         prose_print(self.metadata.description, CONSOLE_WIDTH)
         click.echo("")
-        
+
         # TODO: Update this so can view inputs and outputs?
         # if self.metadata_obj.inputs:
         #     click.echo("Input Parameters: ")
@@ -390,7 +443,7 @@ class Workflow(ParserBaseObject):
 
     def output_version_details(self) -> str:
         """Prints workflow ID, display name, publication time and version
-           message on one line
+        message on one line
         """
         return (
             "ID: "
@@ -405,7 +458,7 @@ class Workflow(ParserBaseObject):
             + "Version message: "
             + self.version_message
         )
-    
+
     def output_version_history(self):
         """Prints the version history for the workflow to the command line"""
         for version in self.version_history:

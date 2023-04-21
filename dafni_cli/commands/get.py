@@ -306,19 +306,22 @@ def workflows(
         json (bool): whether to print the raw json returned by the DAFNI API
     """
     workflow_dict_list = get_all_workflows(ctx.obj["session"])
-    workflow_list = process_response_to_class_list(workflow_dict_list, Workflow)
+    workflow_list: List[Workflow] = ParserBaseObject.parse_from_dict_list(
+        Workflow, workflow_dict_list
+    )
+
     filtered_workflow_dict_list = []
-    for workflow in workflow_list:
+    for workflow_inst, workflow_dict in zip(workflow_list, workflow_dict_list):
         date_filter = True
         if creation_date:
-            date_filter = workflow.filter_by_date("creation", creation_date)
+            date_filter = workflow_inst.filter_by_date("creation", creation_date)
         if publication_date:
-            date_filter = workflow.filter_by_date("publication", publication_date)
+            date_filter = workflow_inst.filter_by_date("publication", publication_date)
         if date_filter:
             if json:
-                filtered_workflow_dict_list.append(workflow.dictionary)
+                filtered_workflow_dict_list.append(workflow_dict)
             else:
-                workflow.output_details(long)
+                workflow_inst.output_details(long)
     if json:
         print_json(filtered_workflow_dict_list)
 
