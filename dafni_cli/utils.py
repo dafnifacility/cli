@@ -7,7 +7,6 @@ from typing import Any, List, Optional, Type, Union
 from zipfile import ZipFile
 
 import click
-from dateutil.parser import isoparse
 
 
 def prose_print(prose: str, width: int):
@@ -67,6 +66,7 @@ def optional_column_new(
         entry = " " * column_width
     return entry
 
+
 def optional_column(
     dictionary: dict, key: str, column_width: int = 0, alignment: str = "<"
 ):
@@ -106,64 +106,6 @@ def process_date_filter(date_str: str) -> str:
     """
     # TODO use this datetime format (ISO8601) and use as a constant here
     return dt.strptime(date_str, "%d/%m/%Y").strftime("%Y-%m-%dT%H:%M:%S")
-
-
-# TODO remove this whole function and use dict.get(key, default)
-def check_key_in_dict(
-    input_dict: dict,
-    keys: List[str],
-    default: Optional[Union[str, int, dict, bool]] = "N/A",
-) -> Optional[Union[str, int, dict, bool]]:
-    """Utility function to check a nested dict for a given
-    key and nested keys if applicable. If the keys exist, the
-    associated value is returned, otherwise the default value is returned.
-
-    Args:
-        input_dict (dict): dict to check in for keys
-        keys (List[str]): keys to check for, with nested keys being subsequent elements of the list
-        default (Union[str, int, dict, bool], optional): default value if key(s) not found. Defaults to "N/A".
-
-    Returns:
-        Union[str, int, dict, bool], optional: Value associated with given dict and key(s)
-    """
-    _element = None
-    if isinstance(input_dict, dict):
-        _element = input_dict
-        for key in keys:
-            try:
-                _element = _element[key]
-            except BaseException:
-                return default
-
-    if _element is not None:
-        return _element
-    return default
-
-
-# TODO change to process_datetime
-def process_dict_datetime(input_dict: dict, keys: List[str], default="N/A") -> str:
-    """Utility function to check a nested dict for a given
-    key and nested key if applicable. If the keys exist, the
-    associated value is parsed to a datetime and then formatted to an
-    applicable datetime string, otherwise the default value is returned.
-    This function will only parse datetimes in the ISO date format
-
-    Args:
-        input_dict (dict): dict to check in for keys
-        keys (List[str]): keys to check for
-        nested_key (Optional[str], optional): A nested key to check for. Defaults to None.
-        default (Optional[str], optional): default value if key(s) not found. Defaults to "N/A".
-
-    Returns:
-        str: Parsed datetime associated with given dict and key(s)
-    """
-    value = check_key_in_dict(input_dict, keys, None)
-    if value:
-        try:
-            return isoparse(value).strftime("%B %d %Y")
-        except ValueError:
-            return value
-    return default
 
 
 def output_table_row(
