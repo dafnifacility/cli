@@ -3,12 +3,11 @@ from typing import List, Optional
 import click
 from click import Context
 
-from dafni_cli.api.datasets_api import (get_all_datasets,
-                                        get_latest_dataset_metadata)
+from dafni_cli.api.datasets_api import get_all_datasets, get_latest_dataset_metadata
 from dafni_cli.api.models_api import get_all_models, get_model
 from dafni_cli.api.parser import ParserBaseObject
 from dafni_cli.api.session import DAFNISession
-from dafni_cli.api.workflows_api import get_all_workflows
+from dafni_cli.api.workflows_api import get_all_workflows, get_workflow
 from dafni_cli.datasets import dataset_filtering
 from dafni_cli.datasets.dataset import Dataset
 from dafni_cli.datasets.dataset_metadata import DatasetMetadata
@@ -354,15 +353,25 @@ def workflow(ctx: Context, version_id: List[str], version_history: bool, json: b
         json (bool): Whether to output raw json from API or pretty print metadata/version history. Defaults to False.
     """
     for vid in version_id:
-        workflow = Workflow(vid)
-        workflow.get_attributes_from_id(ctx.obj["session"], vid)
+        workflow_dictionary = get_workflow(ctx.obj["session"], vid)
 
         if version_history:
-            history = WorkflowVersionHistory(ctx.obj["session"], workflow)
-            history.output_version_history(json)
+            if json:
+                for version_json in workflow_dictionary["version_history"]:
+                    print_json(version_json)
+            else:
+                workflow_inst: Workflow = ParserBaseObject.parse_from_dict(
+                    Workflow, workflow_dictionary
+                )
+                workflow_inst.output_version_history()
         else:
-            workflow.get_metadata(ctx.obj["session"])
-            workflow.output_metadata(json)
+            if json:
+                print_json(workflow_dictionary)
+            else:
+                workflow_inst: Workflow = ParserBaseObject.parse_from_dict(
+                    Workflow, workflow_dictionary
+                )
+                workflow_inst.output_info()
 
 
 @get.command()
