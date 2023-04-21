@@ -1,5 +1,5 @@
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import datetime, date
 from typing import Any, ClassVar, List, Optional
 
 import click
@@ -545,26 +545,26 @@ class Model(ParserBaseObject):
         return self._metadata
 
     # TODO: Replace with .filter???
-    def filter_by_date(self, key: str, date: str) -> bool:
+    def filter_by_date(self, key: str, date_str: str) -> bool:
         """Returns whether a particular date is greater than or equal to the
            creation/publication date of this model.
 
         Args:
             key (str): Key for which date to check must be either 'creation'
                        or 'publication'
-            date (str): Date for which models are to be filtered on - format
-                        DD/MM/YYYY
+            date_str (str): Date for which models are to be filtered on - format
+                            DD/MM/YYYY
 
         Returns:
             bool: Whether the given date is greater than or equal to the
                   chosen date
         """
-        day, month, year = date.split("/")
-        date = datetime.date(int(year), int(month), int(day))
+        day, month, year = date_str.split("/")
+        date_val = date(int(year), int(month), int(day))
         if key.lower() == "creation":
-            return self.creation_date.date() >= date
+            return self.creation_date.date() >= date_val
         if key.lower() == "publication":
-            return self.publication_date.date() >= date
+            return self.publication_date.date() >= date_val
         raise KeyError("Key should be 'creation' or 'publication'")
 
     def output_details(self, long: bool = False):
