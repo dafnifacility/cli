@@ -455,3 +455,11 @@ class DatasetMetadata(ParserBaseObject):
             file_contents.append(data_file.contents)
 
         return file_names, file_contents
+
+
+# The following methods mostly exists to get round current python limitations
+# with typing (see https://stackoverflow.com/questions/33533148/how-do-i-type-hint-a-method-with-the-type-of-the-enclosing-class)
+def parse_dataset_metadata(dataset_dictionary: dict) -> DatasetMetadata:
+    """Parses the output of get_latest_dataset_metadata and returns a
+    DatasetMetadata instance"""
+    return ParserBaseObject.parse_from_dict(DatasetMetadata, dataset_dictionary)

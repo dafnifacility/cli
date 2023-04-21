@@ -5,14 +5,17 @@ from click import Context
 
 from dafni_cli.api.datasets_api import get_all_datasets, get_latest_dataset_metadata
 from dafni_cli.api.models_api import get_all_models, get_model
-from dafni_cli.api.parser import ParserBaseObject
 from dafni_cli.api.session import DAFNISession
-from dafni_cli.api.workflows_api import get_all_workflows, get_workflow
+from dafni_cli.api.workflows_api import (
+    get_all_workflows,
+    get_workflow,
+)
 from dafni_cli.datasets import dataset_filtering
-from dafni_cli.datasets.dataset import Dataset
-from dafni_cli.datasets.dataset_metadata import DatasetMetadata
-from dafni_cli.model.model import Model
-from dafni_cli.workflow.workflow import Workflow
+from dafni_cli.datasets.dataset import parse_datasets
+from dafni_cli.datasets.dataset_metadata import parse_dataset_metadata
+from dafni_cli.model.model import parse_model, parse_models
+from dafni_cli.utils import print_json
+from dafni_cli.workflow.workflow import parse_workflow, parse_workflows
 
 
 @click.group(help="Lists entities available to the user")
@@ -73,9 +76,7 @@ def models(
         json (bool): whether to print the raw json returned by the DAFNI API
     """
     model_dict_list = get_all_models(ctx.obj["session"])
-    model_list: List[Model] = ParserBaseObject.parse_from_dict_list(
-        Model, model_dict_list
-    )
+    model_list = parse_models(model_dict_list)
 
     filtered_model_dict_list = []
     for model_inst, model_dict in zip(model_list, model_dict_list):
@@ -126,17 +127,13 @@ def model(ctx: Context, version_id: List[str], version_history: bool, json: bool
                 for version_json in model_dictionary["version_history"]:
                     print_json(version_json)
             else:
-                model_inst: Model = ParserBaseObject.parse_from_dict(
-                    Model, model_dictionary
-                )
+                model_inst = parse_model(model_dictionary)
                 model_inst.output_version_history()
         else:
             if json:
                 print_json(model_dictionary)
             else:
-                model_inst: Model = ParserBaseObject.parse_from_dict(
-                    Model, model_dictionary
-                )
+                model_inst = parse_model(model_dictionary)
                 model_inst.output_info()
 
 
@@ -188,15 +185,13 @@ def datasets(
         json (Optional[bool]): Whether to output raw json from API or pretty print information. Defaults to False.
     """
     filters = dataset_filtering.process_datasets_filters(search, start_date, end_date)
-    datasets_response = get_all_datasets(ctx.obj["session"], filters)
+    dataset_dict_list = get_all_datasets(ctx.obj["session"], filters)
     if json:
-        print_json(datasets_response)
+        print_json(dataset_dict_list)
     else:
-        dataset_list = ParserBaseObject.parse_from_dict_list(
-            Dataset, datasets_response["metadata"]
-        )
-        for dataset_model in dataset_list:
-            dataset_model.output_dataset_details()
+        dataset_list = parse_datasets(dataset_dict_list)
+        for dataset_inst in dataset_list:
+            dataset_inst.output_dataset_details()
 
 
 @get.command(help="Prints metadata or version history of a dataset version")
@@ -247,15 +242,11 @@ def dataset(
         if json:
             print_json(metadata)
         else:
-            dataset_meta: DatasetMetadata = ParserBaseObject.parse_from_dict(
-                DatasetMetadata, metadata
-            )
-            dataset_meta.output_metadata_details(long)
+            metadata_inst = parse_dataset_metadata(metadata)
+            metadata_inst.output_metadata_details(long)
     else:
-        dataset_meta: DatasetMetadata = ParserBaseObject.parse_from_dict(
-            DatasetMetadata, metadata
-        )
-        dataset_meta.version_history.process_version_history(ctx.obj["session"], json)
+        metadata_inst = parse_dataset_metadata(metadata)
+        metadata_inst.version_history.process_version_history(ctx.obj["session"], json)
 
 
 ###############################################################################
@@ -304,9 +295,7 @@ def workflows(
         json (bool): whether to print the raw json returned by the DAFNI API
     """
     workflow_dict_list = get_all_workflows(ctx.obj["session"])
-    workflow_list: List[Workflow] = ParserBaseObject.parse_from_dict_list(
-        Workflow, workflow_dict_list
-    )
+    workflow_list = parse_workflows(workflow_dict_list)
 
     filtered_workflow_dict_list = []
     for workflow_inst, workflow_dict in zip(workflow_list, workflow_dict_list):
@@ -361,17 +350,13 @@ def workflow(ctx: Context, version_id: List[str], version_history: bool, json: b
                 for version_json in workflow_dictionary["version_history"]:
                     print_json(version_json)
             else:
-                workflow_inst: Workflow = ParserBaseObject.parse_from_dict(
-                    Workflow, workflow_dictionary
-                )
+                workflow_inst = parse_workflow(workflow_dictionary)
                 workflow_inst.output_version_history()
         else:
             if json:
                 print_json(workflow_dictionary)
             else:
-                workflow_inst: Workflow = ParserBaseObject.parse_from_dict(
-                    Workflow, workflow_dictionary
-                )
+                workflow_inst = parse_workflow(workflow_dictionary)
                 workflow_inst.output_info()
 
 

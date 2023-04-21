@@ -23,12 +23,12 @@ class Dataset(ParserBaseObject):
                           dataset
         metadata_id (str): Metadata identifier of the latest metadata for this
                            dataset
-        description (str): Description of the dataset
         formats (List[str]): The file formats related to the dataset
         modified_date (datetime): Date for when the dataset was last modified
         source (str): Publisher of the dataset e.g. DAFNI
         subject (str): Subject relating to the dataset e.g. Transportation
         title (str): Title of the dataset
+        description (Optional[str]): Description of the dataset
         date_range_start (datetime or None): Start of date range
         date_range_end (datetime or None): End of date range
     """
@@ -37,12 +37,12 @@ class Dataset(ParserBaseObject):
     dataset_id: str
     version_id: str
     metadata_id: str
-    description: str
     formats: List[str]
     modified_date: datetime
     source: str
     subject: str
     title: str
+    description: Optional[str] = None
     date_range_start: Optional[datetime] = None
     date_range_end: Optional[datetime] = None
 
@@ -80,5 +80,19 @@ class Dataset(ParserBaseObject):
         date_range_str = f"From: {start}{TAB_SPACE}To: {end}"
         click.echo(date_range_str)
         click.echo("Description: ")
-        prose_print(self.description, CONSOLE_WIDTH)
+        prose_print(self.description or "", CONSOLE_WIDTH)
         click.echo("")
+
+
+# The following methods mostly exists to get round current python limitations
+# with typing (see https://stackoverflow.com/questions/33533148/how-do-i-type-hint-a-method-with-the-type-of-the-enclosing-class)
+def parse_datasets(dataset_dictionary_list: List[dict]) -> List[Dataset]:
+    """Parses the output of get_all_datasets and returns a list of Dataset
+    instances"""
+
+    # "metadata" is used here as the endpoint get_all_datasets
+    # actually used the catalogue endpoint where the search results are
+    # under this key
+    return ParserBaseObject.parse_from_dict_list(
+        Dataset, dataset_dictionary_list["metadata"]
+    )
