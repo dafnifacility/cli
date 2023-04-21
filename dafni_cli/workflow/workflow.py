@@ -3,14 +3,10 @@ from datetime import date, datetime
 from typing import ClassVar, List, Optional
 
 import click
-from dateutil import parser
 
 from dafni_cli.api.parser import ParserBaseObject, ParserParam, parse_datetime
-from dafni_cli.api.session import DAFNISession
-from dafni_cli.api.workflows_api import get_workflow
-from dafni_cli.auth import Auth
 from dafni_cli.consts import CONSOLE_WIDTH, TAB_SPACE
-from dafni_cli.utils import print_json, prose_print
+from dafni_cli.utils import prose_print
 
 
 @dataclass

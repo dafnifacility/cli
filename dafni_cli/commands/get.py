@@ -12,8 +12,6 @@ from dafni_cli.datasets import dataset_filtering
 from dafni_cli.datasets.dataset import Dataset
 from dafni_cli.datasets.dataset_metadata import DatasetMetadata
 from dafni_cli.model.model import Model
-from dafni_cli.utils import print_json, process_response_to_class_list
-from dafni_cli.workflow.version_history import WorkflowVersionHistory
 from dafni_cli.workflow.workflow import Workflow
 
 
