@@ -1,5 +1,5 @@
 from dataclasses import dataclass, field
-from datetime import datetime, date
+from datetime import date, datetime
 from typing import Any, ClassVar, List, Optional
 
 import click
@@ -23,7 +23,7 @@ from dafni_cli.consts import (
     OUTPUT_SUMMARY_HEADER,
     TAB_SPACE,
 )
-from dafni_cli.utils import optional_column_new, print_json, prose_print
+from dafni_cli.utils import optional_column_new, prose_print
 
 
 @dataclass
@@ -627,3 +627,20 @@ class Model(ParserBaseObject):
             + "Version message: "
             + self.version_message
         )
+
+    def output_version_history(self):
+        """Prints the version history for the model to the command line"""
+        for version in self.version_history:
+            click.echo(
+                "Name: "
+                + self.metadata.display_name
+                + TAB_SPACE
+                + "ID: "
+                + version.version_id
+                + TAB_SPACE
+                + "Date: "
+                + version.publication_date.strftime("%B %d %Y")
+            )
+            click.echo(f"Version message: {version.version_message}")
+            click.echo(f"Version tags: {', '.join(version.version_tags)}")
+            click.echo("")

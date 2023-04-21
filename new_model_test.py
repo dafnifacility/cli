@@ -8,13 +8,13 @@ from dafni_cli.model.model import Model
 
 session = DAFNISession()
 
-# data = get_model(
-#     session,
-#     "94e5726f-40f9-44d3-aa6b-70de18ae0bfe",  # Mine
-#     # "9de4ad50-fd98-4def-9bfc-39378854e6a1",  # Test
-# )
-# model: Model = ParserBaseObject.parse_from_dict(Model, data)
-# print(model)
+data = get_model(
+    session,
+    "94e5726f-40f9-44d3-aa6b-70de18ae0bfe",  # Mine
+    # "9de4ad50-fd98-4def-9bfc-39378854e6a1",  # Test
+)
+model: Model = ParserBaseObject.parse_from_dict(Model, data)
+print(model.version_history)
 
 # data = get_all_models(session)
 
@@ -33,6 +33,6 @@ session = DAFNISession()
 # print("Parsing models: ", time.time() - start_t)
 
 
-data = get_all_models(session)
-models: List[Model] = ParserBaseObject.parse_from_dict_list(Model, data)
-print(models[0].metadata)
+# data = get_all_models(session)
+# models: List[Model] = ParserBaseObject.parse_from_dict_list(Model, data)
+# print(models[0].metadata)

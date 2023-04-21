@@ -3,7 +3,8 @@ from typing import List, Optional
 import click
 from click import Context
 
-from dafni_cli.api.datasets_api import get_all_datasets, get_latest_dataset_metadata
+from dafni_cli.api.datasets_api import (get_all_datasets,
+                                        get_latest_dataset_metadata)
 from dafni_cli.api.models_api import get_all_models, get_model
 from dafni_cli.api.parser import ParserBaseObject
 from dafni_cli.api.session import DAFNISession
@@ -12,7 +13,6 @@ from dafni_cli.datasets import dataset_filtering
 from dafni_cli.datasets.dataset import Dataset
 from dafni_cli.datasets.dataset_metadata import DatasetMetadata
 from dafni_cli.model.model import Model
-from dafni_cli.model.version_history import ModelVersionHistory
 from dafni_cli.utils import print_json, process_response_to_class_list
 from dafni_cli.workflow.version_history import WorkflowVersionHistory
 from dafni_cli.workflow.workflow import Workflow
@@ -125,13 +125,21 @@ def model(ctx: Context, version_id: List[str], version_history: bool, json: bool
         model_dictionary = get_model(ctx.obj["session"], vid)
 
         if version_history:
-            history = ModelVersionHistory(ctx.obj["session"], model)
-            history.output_version_history(json)
+            if json:
+                for version_json in model_dictionary["version_history"]:
+                    print_json(version_json)
+            else:
+                model_inst: Model = ParserBaseObject.parse_from_dict(
+                    Model, model_dictionary
+                )
+                model_inst.output_version_history()
         else:
             if json:
                 print_json(model_dictionary)
             else:
-                model_inst = ParserBaseObject.parse_from_dict(Model, model_dictionary)
+                model_inst: Model = ParserBaseObject.parse_from_dict(
+                    Model, model_dictionary
+                )
                 model_inst.output_info()
 
 
@@ -187,10 +195,10 @@ def datasets(
     if json:
         print_json(datasets_response)
     else:
-        datasets = ParserBaseObject.parse_from_dict_list(
+        dataset_list = ParserBaseObject.parse_from_dict_list(
             Dataset, datasets_response["metadata"]
         )
-        for dataset_model in datasets:
+        for dataset_model in dataset_list:
             dataset_model.output_dataset_details()
 
 
@@ -242,10 +250,14 @@ def dataset(
         if json:
             print_json(metadata)
         else:
-            dataset_meta = ParserBaseObject.parse_from_dict(DatasetMetadata, metadata)
+            dataset_meta: DatasetMetadata = ParserBaseObject.parse_from_dict(
+                DatasetMetadata, metadata
+            )
             dataset_meta.output_metadata_details(long)
     else:
-        dataset_meta = ParserBaseObject.parse_from_dict(DatasetMetadata, metadata)
+        dataset_meta: DatasetMetadata = ParserBaseObject.parse_from_dict(
+            DatasetMetadata, metadata
+        )
         dataset_meta.version_history.process_version_history(ctx.obj["session"], json)
 
 
