@@ -31,37 +31,42 @@ class ModelMetadata(ParserBaseObject):
     """Dataclass representing a DAFNI model's metadata
 
     Attributes:
-        description (str): A rich description of the Model's function
         display_name (str): The display name of the Model
         name (str): Name of the model
+        summary (str): A short summary of the Model's function
+        status (str): Status of model ingest
+            P - Pending
+            F - Failed
+            L - Live
+            S - Superseded
+            D - Deprecated
+
+        The following are only present for the /model/<version_id> endpoint
+        (but are guaranteed for it)
+        --------
+        description (str): A rich description of the Model's function
         publisher (str): The name of the person or organisation who has
                          published the Model
-        summary (str): A short summary of the Model's function
-        source_code: A URL pointing to the source code for this Model
-        status: Status of model ingest
-                    P - Pending
-                    F - Failed
-                    L - Live
-                    S - Superseded
-                    D - Deprecated
+        source_code (str): A URL pointing to the source code for this Model
     """
 
-    description: str
     display_name: str
     name: str
-    publisher: str
     summary: str
-    source_code: str
     status: str
 
+    description: Optional[str] = None
+    publisher: Optional[str] = None
+    source_code: Optional[str] = None
+
     _parser_params: ClassVar[List[ParserParam]] = [
-        ParserParam("description", "description", str),
         ParserParam("display_name", "display_name", str),
         ParserParam("name", "name", str),
-        ParserParam("publisher", "publisher", str),
         ParserParam("summary", "summary", str),
-        ParserParam("source_code", "source_code", str),
         ParserParam("status", "status", str),
+        ParserParam("description", "description", str),
+        ParserParam("publisher", "publisher", str),
+        ParserParam("source_code", "source_code", str),
     ]
 
 
@@ -70,28 +75,42 @@ class ModelAuth(ParserBaseObject):
     """Dataclass representing the access the user has for a DAFNI model
 
     Attributes:
-        asset_id (str): ID of the model
         view (bool): View access
         read (bool): Read access
         update (bool): Update access
         destroy (bool): Deletion access
         reason (str): Reason user has access to view this model
+
+
+        The following are only present for the /model/<version_id> endpoint
+        (but are guaranteed for it)
+        --------
+        asset_id (Optional[str]): ID of the model
+
+
+        The following are only present for the /models endpoint
+        (but are guaranteed for it)
+        --------
+        role_id (Optional[str]): Role ID of the user
+        name (Optional[str]): Name associated with the auth type
     """
 
-    asset_id: str
     view: bool
     read: bool
     update: bool
     destroy: bool
     reason: str
 
+    asset_id: Optional[str] = None
+    name: Optional[str] = None
+
     _parser_params: ClassVar[List[ParserParam]] = [
-        ParserParam("asset_id", "asset_id", str),
         ParserParam("view", "view"),
         ParserParam("read", "read"),
         ParserParam("update", "update"),
         ParserParam("destroy", "destroy"),
         ParserParam("reason", "reason", str),
+        ParserParam("asset_id", "asset_id", str),
     ]
 
 
@@ -105,21 +124,21 @@ class ModelDataslot(ParserBaseObject):
         path (str): Path of the file expected in the container
         defaults (List[str]): List of default dataset ids
         required (str): Whether the slot is required
-        description (str): Description of the slot
+        description (Optional[str]): Description of the slot if applicable
     """
 
     name: str
     path: str
     defaults: List[str]
     required: bool
-    description: str
+    description: Optional[str] = None
 
     _parser_params: ClassVar[List[ParserParam]] = [
         ParserParam("name", "name", str),
         ParserParam("path", "path", str),
         ParserParam("defaults", "default"),
         ParserParam("required", "required"),
-        ParserParam("description", "description"),
+        ParserParam("description", "description", str),
     ]
 
 
@@ -401,19 +420,20 @@ class ModelVersion(ParserBaseObject):
 class Model(ParserBaseObject):
     """Dataclass representing a DAFNI model
 
+    Inconsistencies in the metadata storage in the /models and
+    /model/<version_id> endpoints are handled here by internally storing the
+    metadata as _metadata om the latter case, but defining a property named
+    'metadata' that will automatically assign it using the data from the
+    former endpoint before returning it. Between these two points the
+    additional parameters are all stored with underscores e.g. _display_name.
+
     Attributes:
-        api_version(str): Version of the DAFNI API used to retrieve model data
         model_id (str): Model version ID
-        container (str): Name of the docker image the model should be run in
-        container_version (str): Version of the docker image
         kind (str): Type of DAFNI object (should be "M" for model)
         owner_id (str): ID of the model owner
         parent (str): Parent model ID
-        type (str): Type of dafni object ("model")
         creation_date (datetime): Date and time the model was created
         publication_date (datetime): Date and time the model was published
-        ingest_completed_date (datetime): Date and time the model finished
-                                          ingesting
         version_message (str): Message attached when the model was updated to
                                this model version
         version_tags (List[str]): Any tags created by the publisher for this
@@ -422,48 +442,107 @@ class Model(ParserBaseObject):
                                               model
         auth (ModelAuth): Authentication credentials giving the permissions
                           the current user has on the model
+        ingest_completed_date (datetime or None): Date and time the model
+                                           finished ingesting if applicable
         metadata (ModelMetadata): Metadata of the model
-        spec (ModelSpec): Model specification - includes the image url and its
-                          inputs
+
+
+        The following are only present for the /model/<version_id> endpoint
+        (but are guaranteed for it)
+        --------
+        api_version (Optional[str]): Version of the DAFNI API used to retrieve
+                                   the model data
+        container (Optional[str]): Name of the docker image the model should
+                                   be run in
+        container_version (Optional[str]): Version of the docker image
+        type (Optional[str]): Type of DAFNI object ("model")
+        spec (Optional[ModelSpec]): Model specification - includes the image
+                                    url and its inputs
     """
 
-    api_version: str
     model_id: str
-    container: str
-    container_version: str
     kind: str
     owner_id: str
     parent_id: str
-    type: str
     creation_date: datetime
     publication_date: datetime
-    ingest_completed_date: datetime
     version_message: str
     version_tags: List[str]
     version_history: List[ModelVersion]
     auth: ModelAuth
-    metadata: ModelMetadata
-    spec: ModelSpec
+    ingest_completed_date: Optional[datetime] = None
+
+    api_version: Optional[str] = None
+    container: Optional[str] = None
+    container_version: Optional[str] = None
+    type: Optional[str] = None
+    spec: Optional[ModelSpec] = None
+
+    # Internal metadata storage - Defined explicitly for the
+    # /model/<version_id> endpoint but is None otherwise, the property
+    # 'metadata' handles this discrepancy
+    _metadata: Optional[ModelMetadata] = None
+
+    # These are found in ModelMetadata but appear here when using the /models
+    # endpoint, the property 'metadata' handles this discrepancy
+    _display_name: Optional[str] = None
+    _name: Optional[str] = None
+    _summary: Optional[str] = None
+    _status: Optional[str] = None
 
     _parser_params: ClassVar[List[ParserParam]] = [
-        ParserParam("api_version", "api_version", str),
         ParserParam("model_id", "id", str),
-        ParserParam("container", "container", str),
-        ParserParam("container_version", "container_version", str),
         ParserParam("kind", "kind", str),
         ParserParam("owner_id", "owner", str),
         ParserParam("parent_id", "parent", str),
         ParserParam("type", "api_version", str),
         ParserParam("creation_date", "creation_date", parse_datetime),
         ParserParam("publication_date", "publication_date", parse_datetime),
-        ParserParam("ingest_completed_date", "ingest_completed_date", parse_datetime),
         ParserParam("version_message", "version_message", str),
         ParserParam("version_tags", "version_tags"),
         ParserParam("version_history", "version_history", ModelVersion),
         ParserParam("auth", "auth", ModelAuth),
-        ParserParam("metadata", "metadata", ModelMetadata),
+        ParserParam("ingest_completed_date", "ingest_completed_date", parse_datetime),
+        ParserParam("_metadata", "metadata", ModelMetadata),
+        ParserParam("api_version", "api_version", str),
+        ParserParam("container", "container", str),
+        ParserParam("container_version", "container_version", str),
+        ParserParam("type", "api_version", str),
         ParserParam("spec", "spec", ModelSpec),
+        ParserParam("_display_name", "display_name", str),
+        ParserParam("_name", "name", str),
+        ParserParam("_summary", "summary", str),
+        ParserParam("_status", "status", str),
     ]
+
+    @property
+    def metadata(self) -> ModelMetadata:
+        """ModelMetadata: Metadata of the model
+
+        In the case of loading a Model from the /model/<version_id> endpoint
+        this will just return the metadata loaded directly from the json. In
+        the case of the /models endpoint this will create and return a new
+        instance containing most of the parameters as described in
+        ModelMetadata, having obtained them from their locations that are
+        different for this endpoint.
+
+        Returns:
+            ModelMetadata: Metadata of the model
+        """
+
+        # Return what already exists if possible
+        if self._metadata is not None:
+            return self._metadata
+        # In the case of the /models endpoint, _metadata won't be assigned but
+        # most of the parameters will be assigned in model, so create the
+        # metadata instance here to ensure consistency in the rest of the code
+        self._metadata = ModelMetadata(
+            display_name=self._display_name,
+            name=self._name,
+            summary=self._summary,
+            status=self._status,
+        )
+        return self._metadata
 
     # TODO: Replace with .filter???
     def filter_by_date(self, key: str, date: str) -> bool:
@@ -493,8 +572,9 @@ class Model(ParserBaseObject):
 
         Args:
             long (bool): Whether to print with the (potentially long)
-                         description
+                         description (ignored if description is None)
         """
+
         click.echo(
             "Name: "
             + self.metadata.display_name
@@ -505,15 +585,14 @@ class Model(ParserBaseObject):
             + "Date: "
             + self.creation_date.date().strftime("%B %d %Y")
         )
-        click.echo("Summary: " + self.metadata["summary"])
-        if long:
+        click.echo("Summary: " + self.metadata.summary)
+        if long and self.metadata.description is not None:
             click.echo("Description: ")
             prose_print(self.metadata.description, CONSOLE_WIDTH)
         click.echo("")
 
     def output_info(self):
-        """Prints information about the model to command line
-        """
+        """Prints information about the model to command line"""
 
         click.echo("Name: " + self.metadata.display_name)
         click.echo("Date: " + self.creation_date.strftime("%B %d %Y"))

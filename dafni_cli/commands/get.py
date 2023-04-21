@@ -76,19 +76,22 @@ def models(
         json (bool): whether to print the raw json returned by the DAFNI API
     """
     model_dict_list = get_all_models(ctx.obj["session"])
-    model_list = process_response_to_class_list(model_dict_list, Model)
+    model_list: List[Model] = ParserBaseObject.parse_from_dict_list(
+        Model, model_dict_list
+    )
+
     filtered_model_dict_list = []
-    for model in model_list:
+    for model_inst, model_dict in zip(model_list, model_dict_list):
         date_filter = True
         if creation_date:
-            date_filter = model.filter_by_date("creation", creation_date)
+            date_filter = model_inst.filter_by_date("creation", creation_date)
         if publication_date:
-            date_filter = model.filter_by_date("publication", publication_date)
+            date_filter = model_inst.filter_by_date("publication", publication_date)
         if date_filter:
             if json:
-                filtered_model_dict_list.append(model.dictionary)
+                filtered_model_dict_list.append(model_dict)
             else:
-                model.output_details(long)
+                model_inst.output_details(long)
     if json:
         print_json(filtered_model_dict_list)
 
@@ -130,6 +133,7 @@ def model(ctx: Context, version_id: List[str], version_history: bool, json: bool
             else:
                 model_inst = ParserBaseObject.parse_from_dict(Model, model_dictionary)
                 model_inst.output_info()
+
 
 ###############################################################################
 # Datasets commands
