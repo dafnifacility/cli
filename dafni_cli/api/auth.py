@@ -37,6 +37,8 @@ class Auth(ParserBaseObject):
     reason: str
 
     asset_id: Optional[str] = None
+
+    role_id: Optional[str] = None
     name: Optional[str] = None
 
     _parser_params: ClassVar[List[ParserParam]] = [
@@ -46,4 +48,6 @@ class Auth(ParserBaseObject):
         ParserParam("destroy", "destroy"),
         ParserParam("reason", "reason", str),
         ParserParam("asset_id", "asset_id", str),
+        ParserParam("role_id", "role_id", str),
+        ParserParam("name", "name", str),
     ]
