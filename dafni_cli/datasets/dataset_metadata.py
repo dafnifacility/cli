@@ -65,8 +65,8 @@ class Creator(ParserBaseObject):
     Attributes:
         type (str): Creator type
         name (str): Creator name
-        id (str or None): Creator id
-        internal_id (str or None): Internal id
+        id (Optional[str]): Creator id
+        internal_id (Optional[str]): Internal id
     """
 
     type: str
@@ -145,8 +145,8 @@ class Publisher(ParserBaseObject):
     internal_id: Optional[str] = None
 
     _parser_params: ClassVar[List[ParserParam]] = [
-        ParserParam("id", "@id", str),
         ParserParam("type", "@type", str),
+        ParserParam("id", "@id", str),
         ParserParam("name", "foaf:name", str),
         ParserParam("internal_id", "internalID", str),
     ]
@@ -171,8 +171,8 @@ class Standard(ParserBaseObject):
     label: Optional[str] = None
 
     _parser_params: ClassVar[List[ParserParam]] = [
-        ParserParam("id", "@id", str),
         ParserParam("type", "@type", str),
+        ParserParam("id", "@id", str),
         ParserParam("label", "label", str),
     ]
 

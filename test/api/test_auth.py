@@ -3,7 +3,7 @@ from unittest import TestCase
 from dafni_cli.api.auth import Auth
 from dafni_cli.api.parser import ParserBaseObject
 
-# Example auth objects from either the model or workflow endpoints
+# Example auth dictionaries from either the model or workflow endpoints
 TEST_AUTH_DATA_OBJECT: dict = {
     "asset_id": "0a0a0a0a-0a00-0a00-a000-0a0a0000000a",
     "view": True,
@@ -13,7 +13,7 @@ TEST_AUTH_DATA_OBJECT: dict = {
     "reason": "Accessed as part of the Public group",
 }
 
-# Example auth objects from either the models or workflows endpoints
+# Example auth dictionaries from either the models or workflows endpoints
 TEST_AUTH_DATA_OBJECTS: dict = {
     "reason": "Accessed as part of the Public group",
     "role_id": "0a0a0a0a-0a00-0a00-a000-0a0a0000000a",

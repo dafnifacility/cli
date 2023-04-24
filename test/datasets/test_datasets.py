@@ -1,137 +1,200 @@
-from datetime import datetime as dt
+from datetime import datetime
+from unittest import TestCase
+from unittest.mock import call, patch
 
 from dateutil.tz import tzutc
-from mock import call, patch
 
 from dafni_cli.consts import CONSOLE_WIDTH, TAB_SPACE
-from dafni_cli.datasets import dataset
+from dafni_cli.datasets.dataset import parse_datasets
 
-from test.fixtures.dataset_fixtures import get_dataset_list_fixture
+# Example response from the API for getting all datasets
+TEST_DATASETS_DATA: dict = {
+    "metadata": [
+        {
+            "id": {
+                "dataset_uuid": "0a0a0a0a-0a00-0a00-a000-0a0a0000000a",
+                "version_uuid": "0a0a0a0a-0a00-0a00-a000-0a0a0000000b",
+                "metadata_uuid": "0a0a0a0a-0a00-0a00-a000-0a0a0000000c",
+                "asset_id": "0a0a0a0a-0a00-0a00-a000-0a0a0000000a:0a0a0a0a-0a00-0a00-a000-0a0a0000000b:0a0a0a0a-0a00-0a00-a000-0a0a0000000c",
+            },
+            "title": "Title 1",
+            "description": None,
+            "subject": "Planning / Cadastre",
+            "source": "DAFNI",
+            "date_range": {"begin": None, "end": None},
+            "modified_date": "2021-03-04T15:59:26+00:00",
+            "formats": [None],
+            "auth": {
+                "name": "Executor",
+                "view": True,
+                "read": True,
+                "update": False,
+                "destroy": False,
+                "reason": "Accessed as part of the Public group",
+            },
+        },
+        {
+            "id": {
+                "dataset_uuid": "1a0a0a0a-0a00-0a00-a000-0a0a0000000a",
+                "version_uuid": "1a0a0a0a-0a00-0a00-a000-0a0a0000000b",
+                "metadata_uuid": "1a0a0a0a-0a00-0a00-a000-0a0a0000000c",
+                "asset_id": "1a0a0a0a-0a00-0a00-a000-0a0a0000000a:1a0a0a0a-0a00-0a00-a000-0a0a0000000b:1a0a0a0a-0a00-0a00-a000-0a0a0000000c",
+            },
+            "title": "Title 2",
+            "description": "Description 2",
+            "subject": "Environment",
+            "source": "DAFNI Workflows",
+            "date_range": {
+                "begin": "2019-01-01T12:00:00.000Z",
+                "end": "2021-01-01T12:00:00.000Z",
+            },
+            "modified_date": "2020-08-26T13:21:18.522Z",
+            "formats": ["application/zip", None, "text/csv", "text/plain"],
+            "auth": {
+                "name": "Executor",
+                "view": True,
+                "read": True,
+                "update": False,
+                "destroy": False,
+                "reason": "Accessed as part of the Public group",
+            },
+        },
+    ],
+    "filters": {
+        "sources": {
+            "Companies House": 1,
+            "DAFNI": 1,
+            "DAFNI Workflows": 1,
+            "Newcastle University": 28,
+            "Office for National Statistics": 455,
+            "Office of Rail and Road": 2,
+        },
+        "subjects": {
+            "Climatology / Meteorology / Atmosphere": 16,
+            "Economy": 1,
+            "Environment": 1,
+            "Oceans": 2,
+            "Planning / Cadastre": 1,
+            "Society": 455,
+            "Transportation": 10,
+            "Utilities / Communication": 2,
+        },
+        "formats": {
+            "text/plain": 1,
+            "text/csv": 483,
+            "application/zip": 2,
+            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": 3,
+            "application/vnd.ms-excel": 1,
+            "application/pdf": 1,
+            "application/octet-stream": 3,
+        },
+    },
+}
 
 
-class TestDataset:
-    """Test class to test the Dataset class"""
+class TestDataset(TestCase):
+    """Tests the Dataset dataclass"""
 
-    class TestInit:
-        """Test class to test Dataset.__init__() functionality"""
+    def test_parse_datasets(self):
+        """Tests parsing of a list of datasets"""
+        datasets = parse_datasets(TEST_DATASETS_DATA)
 
-        def test_constructor_creates_class_with_correct_values(self):
-            # SETUP
-            expected_keys = [
-                "asset_id",
-                "date_range_end",
-                "date_range_start",
-                "description",
-                "formats",
-                "id",
-                "metadata_id",
-                "modified",
-                "source",
-                "subject",
-                "title",
-                "version_id",
-            ]
+        self.assertEqual(len(datasets), 2)
 
-            # CALL
-            instance = dataset.Dataset()
+        # This dataset is missing the optional values
+        dataset1 = datasets[0]
+        dataset1_metadata = TEST_DATASETS_DATA["metadata"][0]
 
-            assert all(getattr(instance, key) is None for key in expected_keys)
+        self.assertEqual(dataset1.asset_id, dataset1_metadata["id"]["asset_id"])
+        self.assertEqual(dataset1.dataset_id, dataset1_metadata["id"]["dataset_uuid"])
+        self.assertEqual(dataset1.version_id, dataset1_metadata["id"]["version_uuid"])
+        self.assertEqual(dataset1.metadata_id, dataset1_metadata["id"]["metadata_uuid"])
+        self.assertEqual(dataset1.formats, dataset1_metadata["formats"])
+        self.assertEqual(
+            dataset1.modified_date,
+            datetime(2021, 3, 4, 15, 59, 26, tzinfo=tzutc()),
+        )
+        self.assertEqual(dataset1.source, dataset1_metadata["source"])
+        self.assertEqual(dataset1.subject, dataset1_metadata["subject"])
+        self.assertEqual(dataset1.title, dataset1_metadata["title"])
+        self.assertEqual(dataset1.description, None)
+        self.assertEqual(dataset1.date_range_start, None)
+        self.assertEqual(dataset1.date_range_end, None)
 
-    class TestSetDetailsFromDict:
-        """Test class to test the Dataset.set_attributes_from_dict() functionality"""
+        # This dataset is not missing the optional values
+        dataset2 = datasets[1]
+        dataset2_metadata = TEST_DATASETS_DATA["metadata"][1]
 
-        def test_dataset_details_set_correctly_when_no_date_range_dates(
-            self, get_dataset_list_fixture
-        ):
-            # SETUP
-            # First dataset has no date range dates set
-            dataset_dict = get_dataset_list_fixture["metadata"][0]
-
-            instance = dataset.Dataset()
-
-            # CALL
-            instance.set_attributes_from_dict(dataset_dict)
-
-            # ASSERT
-            assert instance.asset_id == dataset_dict["id"]["asset_id"]
-            assert instance.description == dataset_dict["description"]
-            assert instance.formats == dataset_dict["formats"]
-            assert instance.id == dataset_dict["id"]["dataset_uuid"]
-            assert instance.metadata_id == dataset_dict["id"]["metadata_uuid"]
-            assert instance.modified == dataset_dict["modified_date"]
-            assert instance.source == dataset_dict["source"]
-            assert instance.subject == dataset_dict["subject"]
-            assert instance.title == dataset_dict["title"]
-            assert instance.version_id == dataset_dict["id"]["version_uuid"]
-            assert instance.date_range_end is None
-            assert instance.date_range_start is None
-
-        def test_dataset_details_set_correctly_when_date_range_dates_available(
-            self, get_dataset_list_fixture
-        ):
-            # SETUP
-            # Second dataset has date range dates set
-            dataset_dict = get_dataset_list_fixture["metadata"][1]
-
-            instance = dataset.Dataset()
-
-            # CALL
-            instance.set_attributes_from_dict(dataset_dict)
-
-            # ASSERT
-            assert instance.date_range_end == dt(2021, 1, 1, 12, 0, tzinfo=tzutc())
-            assert instance.date_range_start == dt(2019, 1, 1, 12, 0, tzinfo=tzutc())
+        self.assertEqual(dataset2.asset_id, dataset2_metadata["id"]["asset_id"])
+        self.assertEqual(dataset2.dataset_id, dataset2_metadata["id"]["dataset_uuid"])
+        self.assertEqual(dataset2.version_id, dataset2_metadata["id"]["version_uuid"])
+        self.assertEqual(dataset2.metadata_id, dataset2_metadata["id"]["metadata_uuid"])
+        self.assertEqual(dataset2.formats, dataset2_metadata["formats"])
+        self.assertEqual(
+            dataset2.modified_date,
+            datetime(2020, 8, 26, 13, 21, 18, 522000, tzinfo=tzutc()),
+        )
+        self.assertEqual(dataset2.source, dataset2_metadata["source"])
+        self.assertEqual(dataset2.subject, dataset2_metadata["subject"])
+        self.assertEqual(dataset2.title, dataset2_metadata["title"])
+        self.assertEqual(dataset2.description, dataset2_metadata["description"])
+        self.assertEqual(
+            dataset2.date_range_start, datetime(2019, 1, 1, 12, 0, tzinfo=tzutc())
+        )
+        self.assertEqual(
+            dataset2.date_range_end, datetime(2021, 1, 1, 12, 0, tzinfo=tzutc())
+        )
 
     @patch("dafni_cli.datasets.dataset.prose_print")
     @patch("dafni_cli.datasets.dataset.click")
-    class TestOutputDatasetDetails:
-        """Test class to test the Dataset.output_dataset_details() functionality"""
+    def test_dataset_details_outputted_correctly_when_no_optional_values(
+        self, mock_click, mock_prose
+    ):
+        """Tests output_dataset_details works correctly when the optional
+        values are missing"""
 
-        def test_dataset_details_outputted_correctly_when_no_daterange_values(
-            self, mock_click, mock_prose, get_dataset_list_fixture
-        ):
-            # SETUP
-            dataset_dict = get_dataset_list_fixture["metadata"][0]
-            instance = dataset.Dataset()
-            instance.set_attributes_from_dict(dataset_dict)
+        datasets = parse_datasets(TEST_DATASETS_DATA)
+        dataset1 = datasets[0]
 
-            # CALL
-            instance.output_dataset_details()
+        dataset1.output_dataset_details()
 
-            # ASSERT
-            assert mock_click.echo.call_args_list == [
-                call("Title: " + instance.title),
-                call("ID: " + instance.id),
-                call("Latest Version: " + instance.version_id),
-                call("Publisher: " + instance.source),
-                call("From: {0}{0}To: {0}".format(TAB_SPACE)),
+        mock_click.echo.has_calls(
+            [
+                call("Title: " + dataset1.title),
+                call("ID: " + dataset1.dataset_id),
+                call("Latest Version: " + dataset1.version_id),
+                call("Publisher: " + dataset1.source),
+                call(f"From: {TAB_SPACE}{TAB_SPACE}To: {TAB_SPACE}"),
                 call("Description: "),
                 call(""),
             ]
-            mock_prose.assert_called_once_with(instance.description, CONSOLE_WIDTH)
+        )
+        mock_prose.assert_called_once_with("", CONSOLE_WIDTH)
 
-        def test_dataset_details_outputted_correctly_when_daterange_values_available(
-            self, mock_click, mock_prose, get_dataset_list_fixture
-        ):
-            # SETUP
-            dataset_dict = get_dataset_list_fixture["metadata"][1]
-            instance = dataset.Dataset()
-            instance.set_attributes_from_dict(dataset_dict)
-            # setup expected date strings
-            start = instance.date_range_start.date().strftime("%B %d %Y")
-            end = instance.date_range_end.date().strftime("%B %d %Y")
+    @patch("dafni_cli.datasets.dataset.prose_print")
+    @patch("dafni_cli.datasets.dataset.click")
+    def test_dataset_details_outputted_correctly_when_optional_values_available(
+        self, mock_click, mock_prose
+    ):
+        """Tests output_dataset_details works correctly when the optional
+        values are available"""
+        datasets = parse_datasets(TEST_DATASETS_DATA)
+        dataset2 = datasets[1]
 
-            # CALL
-            instance.output_dataset_details()
+        # setup expected date strings
+        start = dataset2.date_range_start.date().strftime("%B %d %Y")
+        end = dataset2.date_range_end.date().strftime("%B %d %Y")
 
-            # ASSERT
-            assert mock_click.echo.call_args_list == [
-                call("Title: " + instance.title),
-                call("ID: " + instance.id),
-                call("Latest Version: " + instance.version_id),
-                call("Publisher: " + instance.source),
-                call("From: {0}{1}To: {2}".format(start, TAB_SPACE, end)),
-                call("Description: "),
-                call(""),
-            ]
-            mock_prose.assert_called_once_with(instance.description, CONSOLE_WIDTH)
+        dataset2.output_dataset_details()
+
+        # ASSERT
+        assert mock_click.echo.call_args_list == [
+            call("Title: " + dataset2.title),
+            call("ID: " + dataset2.dataset_id),
+            call("Latest Version: " + dataset2.version_id),
+            call("Publisher: " + dataset2.source),
+            call(f"From: {start}{TAB_SPACE}To: {end}"),
+            call("Description: "),
+            call(""),
+        ]
+        mock_prose.assert_called_once_with(dataset2.description, CONSOLE_WIDTH)
