@@ -3,8 +3,8 @@ from datetime import date, datetime
 from typing import ClassVar, List, Optional
 
 import click
-from dafni_cli.api.auth import Auth
 
+from dafni_cli.api.auth import Auth
 from dafni_cli.api.parser import ParserBaseObject, ParserParam, parse_datetime
 from dafni_cli.consts import CONSOLE_WIDTH, TAB_SPACE
 from dafni_cli.utils import prose_print
@@ -185,17 +185,17 @@ class Workflow(ParserBaseObject):
 
     # TODO: Unify with Model
     def filter_by_date(self, key: str, date_str: str) -> bool:
-        """Returns whether a particular date is greater than or equal to the
-           creation/publication date of this model.
+        """Returns whether a particular date is less than or equal to the
+           creation/publication date of this workflow.
 
         Args:
             key (str): Key for which date to check must be either 'creation'
                        or 'publication'
-            date_str (str): Date for which models are to be filtered on - format
-                            DD/MM/YYYY
+            date_str (str): Date for which workflows are to be filtered on -
+                            format DD/MM/YYYY
 
         Returns:
-            bool: Whether the given date is greater than or equal to the
+            bool: Whether the given date is less than or equal to the
                   chosen date
         """
         day, month, year = date_str.split("/")

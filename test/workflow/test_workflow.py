@@ -1,26 +1,20 @@
 from datetime import datetime
-from typing import List
 from test.api.test_auth import TEST_AUTH_DATA_OBJECT, TEST_AUTH_DATA_OBJECTS
 from test.workflow.test_instance import TEST_WORKFLOW_INSTANCE
 from test.workflow.test_parameter_set import TEST_WORKFLOW_PARAMETER_SET
+from typing import List
 from unittest import TestCase
+from unittest.mock import call, patch
 
 from dateutil.tz import tzutc
 
 from dafni_cli.api.auth import Auth
 from dafni_cli.api.parser import ParserBaseObject
-from dafni_cli.workflow.instance import (
-    WorkflowInstance,
-    WorkflowInstanceParameterSet,
-    WorkflowInstanceWorkflowVersion,
-)
-from dafni_cli.workflow.parameter_set import (
-    WorkflowParameterSet,
-    WorkflowParameterSetMetadata,
-)
+from dafni_cli.consts import CONSOLE_WIDTH, TAB_SPACE
+from dafni_cli.workflow.instance import WorkflowInstance
+from dafni_cli.workflow.parameter_set import WorkflowParameterSet
 from dafni_cli.workflow.workflow import (
     Workflow,
-    WorkflowMetadata,
     WorkflowVersion,
     parse_workflow,
     parse_workflows,
@@ -328,4 +322,147 @@ class TestWorkflow(TestCase):
         )
         self.assertEqual(
             workflow.metadata.description, TEST_WORKFLOW_METADATA["description"]
+        )
+
+    def _test_filter_by_date(
+        self, workflow: Workflow, key: str, date_str: str, expected_output: bool
+    ):
+        """Utility function to check a particular set of parameters to
+        filter_by_date does what is expected"""
+        self.assertEqual(workflow.filter_by_date(key, date_str), expected_output)
+
+    def test_filter_by_date(self):
+        """Tests filter_by_date works correctly"""
+        # SETUP
+        workflow = parse_workflow(TEST_WORKFLOW)
+
+        # Creation date and publication date's are:
+        # 2023-04-04T08:34:36.531809Z
+        # 2023-04-04T08:34:36.531809Z
+
+        # CALL
+
+        # Before
+        self._test_filter_by_date(workflow, "creation", "16/05/2018", True)
+        self._test_filter_by_date(workflow, "publication", "16/05/2018", True)
+        # Equal
+        self._test_filter_by_date(workflow, "creation", "04/04/2023", True)
+        self._test_filter_by_date(workflow, "publication", "04/04/2023", True)
+        # After
+        self._test_filter_by_date(workflow, "creation", "25/04/2023", False)
+        self._test_filter_by_date(workflow, "publication", "25/04/2023", False)
+
+    @patch("dafni_cli.workflow.workflow.click")
+    def test_output_details(self, mock_click):
+        """Tests output_details works correctly"""
+        # SETUP
+        model = parse_workflow(TEST_WORKFLOW)
+
+        # CALL
+        model.output_details()
+
+        # ASSERT
+        mock_click.echo.assert_has_calls(
+            [
+                call(
+                    "Name: A Workflow"
+                    + TAB_SPACE
+                    + "ID: 0a0a0a0a-0a00-0a00-a000-0a0a0000000a"
+                    + TAB_SPACE
+                    + "Date: April 04 2023"
+                ),
+                call("Summary: Test workflow created to learn about DAFNI"),
+                call(""),
+            ]
+        )
+
+    @patch("dafni_cli.workflow.workflow.prose_print")
+    @patch("dafni_cli.workflow.workflow.click")
+    def test_output_details_with_long(self, mock_click, mock_prose_print):
+        """Tests output_details works correctly when 'long' is set to True"""
+        # SETUP
+        workflow = parse_workflow(TEST_WORKFLOW)
+
+        # CALL
+        workflow.output_details(long=True)
+
+        # ASSERT
+        mock_click.echo.assert_has_calls(
+            [
+                call(
+                    "Name: A Workflow"
+                    + TAB_SPACE
+                    + "ID: 0a0a0a0a-0a00-0a00-a000-0a0a0000000a"
+                    + TAB_SPACE
+                    + "Date: April 04 2023"
+                ),
+                call("Summary: Test workflow created to learn about DAFNI"),
+                call("Description: "),
+                call(""),
+            ]
+        )
+        mock_prose_print.called_once_with("description", CONSOLE_WIDTH)
+
+    @patch("dafni_cli.workflow.workflow.prose_print")
+    @patch("dafni_cli.workflow.workflow.click")
+    def test_output_info(self, mock_click, mock_prose_print):
+        """Tests output_info works correctly"""
+        # SETUP
+        worfklow = parse_workflow(TEST_WORKFLOW)
+
+        worfklow.output_info()
+
+        mock_click.echo.assert_has_calls(
+            [
+                call("Name: A Workflow"),
+                call("Date: April 04 2023"),
+                call("Summary: "),
+                call("Test workflow created to learn about DAFNI"),
+            ]
+        )
+        mock_prose_print.assert_called_once_with("Test workflow", CONSOLE_WIDTH)
+
+    def test_output_version_details(self):
+        """Tests output_version_details works correctly"""
+        # SETUP
+        workflow = parse_workflow(TEST_WORKFLOW)
+
+        # CALL
+        result = workflow.output_version_details()
+
+        # ASSERT
+        self.assertEqual(
+            result,
+            "ID: 0a0a0a0a-0a00-0a00-a000-0a0a0000000a"
+            + TAB_SPACE
+            + "Name: A Workflow"
+            + TAB_SPACE
+            + "Publication date: April 04 2023"
+            + TAB_SPACE
+            + "Version message: Initial Workflow version",
+        )
+
+    @patch("dafni_cli.workflow.workflow.click")
+    def test_output_version_history(self, mock_click):
+        """Tests output_version_history works correctly"""
+        # SETUP
+        workflow = parse_workflow(TEST_WORKFLOW)
+
+        # CALL
+        workflow.output_version_history()
+
+        # ASSERT
+        mock_click.echo.assert_has_calls(
+            [
+                call(
+                    "Name: A Workflow"
+                    + TAB_SPACE
+                    + "ID: 0a0a0a0a-0a00-0a00-a000-0a0a0000000a"
+                    + TAB_SPACE
+                    + "Date: April 04 2023"
+                ),
+                call("Version message: Initial Workflow version"),
+                call("Version tags: latest"),
+                call(""),
+            ]
         )
