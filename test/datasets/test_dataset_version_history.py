@@ -96,7 +96,7 @@ class TestDatasetVersionHistory:
     @patch.object(DatasetMetadata, "__init__")
     @patch("dafni_cli.datasets.dataset_version_history.get_latest_dataset_metadata")
     class TestProcessVersionHistory:
-        """Test class to test the process_version_history functionality"""
+        """Test class to test the process_and_output_version_history functionality"""
 
         @pytest.mark.parametrize(
             "version_ids", [[], ["version_1"], ["version_1", "version_2"]]
@@ -115,7 +115,7 @@ class TestDatasetVersionHistory:
             instance.dataset_id = "dataset id"
 
             # CALL
-            instance.process_version_history()
+            instance.process_and_output_version_history()
 
             # ASSERT
             assert mock_get.call_args_list == [
@@ -155,7 +155,7 @@ class TestDatasetVersionHistory:
             instance.dataset_id = "dataset id"
 
             # CALL
-            instance.process_version_history(True)
+            instance.process_and_output_version_history(True)
 
             # ASSERT
             assert mock_get.call_args_list == [

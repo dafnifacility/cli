@@ -14,7 +14,7 @@ from dafni_cli.consts import (
     INPUT_TYPE_HEADER,
     TAB_SPACE,
 )
-from dafni_cli.utils import optional_column_new
+from dafni_cli.utils import optional_column
 
 
 @dataclass
@@ -55,7 +55,9 @@ class ModelParameter(ParserBaseObject):
         title(str): Title of the parameter
         required (bool): Whether the parameter is required
         description (str): Description of the model parameter
-        default (Any): Default value of the parameter
+        default (Optional[Any]): Default value of the parameter
+        min (Optional[str]): Minimum value of a numeric parameter (if any)
+        max (Optional[str]): Maximum value of a numeric parameter (if any)
     """
 
     name: str
@@ -64,9 +66,6 @@ class ModelParameter(ParserBaseObject):
     required: bool
     description: str
     default: Optional[Any] = None
-
-    # TODO: Left over from refactor, may no longer be needed
-    # (printed in format_parameters in ModelInputs but untouched for 2 years)
     min: Optional[str] = None
     max: Optional[str] = None
 
@@ -158,13 +157,9 @@ class ModelInputs(ParserBaseObject):
         # Populate table
         for parameter in self.parameters:
             params_table += f"{parameter.title:{title_column_width}}{parameter.type:{INPUT_TYPE_COLUMN_WIDTH}}"
-            params_table += optional_column_new(
-                parameter.min, INPUT_MIN_MAX_COLUMN_WIDTH
-            )
-            params_table += optional_column_new(
-                parameter.max, INPUT_MIN_MAX_COLUMN_WIDTH
-            )
-            params_table += optional_column_new(parameter.default, default_column_width)
+            params_table += optional_column(parameter.min, INPUT_MIN_MAX_COLUMN_WIDTH)
+            params_table += optional_column(parameter.max, INPUT_MIN_MAX_COLUMN_WIDTH)
+            params_table += optional_column(parameter.default, default_column_width)
             params_table += f"{parameter.description}\n"
         return params_table
 

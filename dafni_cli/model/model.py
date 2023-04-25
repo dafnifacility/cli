@@ -31,7 +31,7 @@ class ModelMetadata(ParserBaseObject):
             D - Deprecated
 
         The following are only present for the /model/<version_id> endpoint
-        (but are guaranteed for it)
+        (but are guaranteed not to be None for it)
         --------
         description (str): A rich description of the Model's function
         publisher (str): The name of the person or organisation who has
@@ -136,7 +136,7 @@ class Model(ParserBaseObject):
 
 
         The following are only present for the /model/<version_id> endpoint
-        (but are guaranteed for it)
+        (but are guaranteed not to be None for it)
         --------
         api_version (Optional[str]): Version of the DAFNI API used to retrieve
                                    the model data

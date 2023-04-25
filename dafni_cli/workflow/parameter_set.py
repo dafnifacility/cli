@@ -11,11 +11,11 @@ class WorkflowParameterSetMetadata(ParserBaseObject):
        workflow
 
     Attributes:
-        description (str): A rich description of the Model's function
-        display_name (str): The display name of the Model
-        name (str): Name of the model
+        description (str): A rich description of the parameter set's function
+        display_name (str): The display name of the parameter set
+        name (str): Name of the parameter set
         publisher (str): The name of the person or organisation who has
-                         published the Model
+                         published the parameter set
         workflow_version_id (str): Version id of the workflow
     """
 

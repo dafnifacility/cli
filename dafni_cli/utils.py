@@ -40,10 +40,7 @@ def process_response_to_class_list(response: List[dict], class_instance: object)
     return class_list
 
 
-# TODO: Replace original (optional_column below) with this once fully refactored
-def optional_column_new(
-    value: Optional[Any], column_width: int = 0, alignment: str = "<"
-):
+def optional_column(value: Optional[Any], column_width: int = 0, alignment: str = "<"):
     """Adds a value to a column, if the key exists in the dictionary
     and adds spaces of the appropriate width if not.
 
@@ -56,33 +53,6 @@ def optional_column_new(
     """
     if value is not None:
         entry_string = str(value)
-        if column_width > 0:
-            entry = f"{entry_string:{alignment}{column_width}}"
-        elif column_width == 0:
-            entry = entry_string
-        else:
-            raise ValueError("Column width for optional column must be non-negative")
-    else:
-        entry = " " * column_width
-    return entry
-
-
-def optional_column(
-    dictionary: dict, key: str, column_width: int = 0, alignment: str = "<"
-):
-    """Adds a value to a column, if the key exists in the dictionary
-    and adds spaces of the appropriate width if not.
-
-    Args:
-         dictionary (dict): Dictionary with data inside
-         key (str): Key of the data that is to be checked and added if present
-         column_width (int): Number of spaces to be returned instead if the key is not present
-         alignment (str): Specified alignment of column
-    Returns:
-        entry (str): Either the value of the entry to be put into the table, column_width number of spaces
-    """
-    if key in dictionary:
-        entry_string = str(dictionary[key])
         if column_width > 0:
             entry = f"{entry_string:{alignment}{column_width}}"
         elif column_width == 0:

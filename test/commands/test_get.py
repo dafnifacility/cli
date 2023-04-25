@@ -806,7 +806,8 @@ class TestGet:
         )
         @pytest.mark.parametrize("version_history", ["--version-history", "-v"])
         @patch.object(
-            dataset_version_history.DatasetVersionHistory, "process_version_history"
+            dataset_version_history.DatasetVersionHistory,
+            "process_and_output_version_history",
         )
         @patch.object(dataset_version_history.DatasetVersionHistory, "__init__")
         def test_dataset_version_history_called_when_version_history_true_and_json_flag_false(

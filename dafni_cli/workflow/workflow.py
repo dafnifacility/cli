@@ -22,7 +22,7 @@ class WorkflowMetadata(ParserBaseObject):
         summary (str): A short summary of the Workflow
 
         The following are only present for the /workflow/<version_id> endpoint
-        (but are guaranteed for it)
+        (but are guaranteed not to be None for it)
         --------
         publisher_id (Optional[str]): The name of the person or organisation who has
                             published the Workflow
@@ -94,7 +94,7 @@ class Workflow(ParserBaseObject):
 
 
         The following are only present for the /workflow/<version_id> endpoint
-        (but are guaranteed for it)
+        (but are guaranteed not to be None for it)
         --------
         instances (Optional[List[WorkflowInstance]]): Workflow instances
                                 (executions of this workflow)
@@ -283,6 +283,7 @@ class Workflow(ParserBaseObject):
             click.echo(f"Version message: {version.version_message}")
             click.echo(f"Version tags: {', '.join(version.version_tags)}")
             click.echo("")
+
 
 # The following methods mostly exists to get round current python limitations
 # with typing (see https://stackoverflow.com/questions/33533148/how-do-i-type-hint-a-method-with-the-type-of-the-enclosing-class)

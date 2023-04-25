@@ -18,13 +18,14 @@ class Auth(ParserBaseObject):
 
 
         The following are only present for the /model/<version_id> or
-        /workflow/<version_id> endpoints (but are guaranteed for them)
+        /workflow/<version_id> endpoints (but are guaranteed not to be
+        None for them)
         --------
         asset_id (Optional[str]): ID of the model
 
 
         The following are only present for the /models or /workflows endpoint
-        (but are guaranteed for them)
+        (but are guaranteed not to be None for them)
         --------
         role_id (Optional[str]): Role ID of the user
         name (Optional[str]): Name associated with the auth type

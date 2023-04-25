@@ -229,7 +229,7 @@ class DatasetVersionHistory(ParserBaseObject):
     """Dataclass for processing the version history of a dataset
 
     Methods:
-        process_version_history(session: DAFNISession, json_flag: bool): Iterates through all versions and outputs details
+        process_and_output_version_history(session: DAFNISession, json_flag: bool): Iterates through all versions and outputs details
 
     Attributes:
         session (DAFNISession): User session
@@ -246,7 +246,9 @@ class DatasetVersionHistory(ParserBaseObject):
         ParserParam("versions", "versions", DatasetVersion),
     ]
 
-    def process_version_history(self, session: DAFNISession, json_flag: bool = False):
+    def process_and_output_version_history(
+        self, session: DAFNISession, json_flag: bool = False
+    ):
         """Iterates through all version history ID's, retrieves the associated
         dataset metadata, and outputs the version details or Dataset metadata
         json for each version to the command line.

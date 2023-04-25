@@ -9,7 +9,7 @@ from dafni_cli.consts import (
     OUTPUT_SUMMARY_COLUMN_WIDTH,
     OUTPUT_SUMMARY_HEADER,
 )
-from dafni_cli.utils import optional_column_new
+from dafni_cli.utils import optional_column
 
 
 @dataclass
@@ -88,6 +88,6 @@ class ModelOutputs(ParserBaseObject):
         for dataset in self.datasets:
             outputs_table += f"{dataset.name or 'Unknown':{max_name_length}}"
             outputs_table += f"{dataset.type or 'Unknown':{OUTPUT_FORMAT_COLUMN_WIDTH}}"
-            outputs_table += optional_column_new(dataset.description)
+            outputs_table += optional_column(dataset.description)
             outputs_table += "\n"
         return outputs_table
