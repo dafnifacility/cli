@@ -183,7 +183,6 @@ class Model(ParserBaseObject):
         ParserParam("kind", "kind", str),
         ParserParam("owner_id", "owner", str),
         ParserParam("parent_id", "parent", str),
-        ParserParam("type", "api_version", str),
         ParserParam("creation_date", "creation_date", parse_datetime),
         ParserParam("publication_date", "publication_date", parse_datetime),
         ParserParam("version_message", "version_message", str),
@@ -195,7 +194,7 @@ class Model(ParserBaseObject):
         ParserParam("api_version", "api_version", str),
         ParserParam("container", "container", str),
         ParserParam("container_version", "container_version", str),
-        ParserParam("type", "api_version", str),
+        ParserParam("type", "type", str),
         ParserParam("spec", "spec", ModelSpec),
         ParserParam("_display_name", "display_name", str),
         ParserParam("_name", "name", str),
@@ -234,7 +233,7 @@ class Model(ParserBaseObject):
 
     # TODO: Replace with .filter???
     def filter_by_date(self, key: str, date_str: str) -> bool:
-        """Returns whether a particular date is greater than or equal to the
+        """Returns whether a particular date is less than or equal to the
            creation/publication date of this model.
 
         Args:
@@ -244,7 +243,7 @@ class Model(ParserBaseObject):
                             DD/MM/YYYY
 
         Returns:
-            bool: Whether the given date is greater than or equal to the
+            bool: Whether the given date is less than or equal to the
                   chosen date
         """
         day, month, year = date_str.split("/")
