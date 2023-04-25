@@ -1,15 +1,17 @@
 from datetime import datetime
 from typing import List
 from unittest import TestCase
+from unittest.mock import MagicMock, call, patch
 
 from dateutil.tz import tzutc
 
 from dafni_cli.api.parser import ParserBaseObject
-from dafni_cli.consts import DATA_FORMATS
+from dafni_cli.consts import CONSOLE_WIDTH, DATA_FORMATS, TAB_SPACE
 from dafni_cli.datasets.dataset_metadata import (
     Contact,
     Creator,
     DataFile,
+    DatasetMetadata,
     DatasetVersionHistory,
     Location,
     Publisher,
@@ -22,14 +24,12 @@ from dafni_cli.utils import process_file_size
 # metadata
 # Values labelled with _DEFAULT implies they do not define optional variables
 # and are used to test the values still parse correctly
-TEST_DATASET_METADATA_DATAFILES: List[dict] = [
-    {
-        "spdx:fileName": "workflow_def.csv",
-        "dcat:mediaType": "text/csv",
-        "dcat:byteSize": 6720,
-        "dcat:downloadURL": "url/to/file",
-    }
-]
+TEST_DATASET_METADATA_DATAFILE: dict = {
+    "spdx:fileName": "workflow_def.csv",
+    "dcat:mediaType": "text/csv",
+    "dcat:byteSize": 6720,
+    "dcat:downloadURL": "url/to/file",
+}
 
 TEST_DATASET_METADATA_CREATOR: dict = {
     "@type": "foaf:Organization",
@@ -93,7 +93,17 @@ TEST_DATASET_METADATA_VERSION_HISTORY: dict = {
                     "modified_date": "2021-03-17T09:27:21+00:00",
                 },
             ],
-        }
+        },
+        {
+            "version_uuid": "0a0a0a0a-0a00-0a00-a000-0a0a0000000c",
+            "metadata_versions": [
+                {
+                    "metadata_uuid": "0a0a0a0a-0a00-0a00-a000-0a0a0000000d",
+                    "dafni_version_note": "Initial Dataset version",
+                    "modified_date": "2021-03-16T09:27:21+00:00",
+                },
+            ],
+        },
     ],
 }
 
@@ -140,7 +150,7 @@ TEST_DATASET_METADATA: dict = {
     },
     "dct:modified": "2021-03-16T09:27:21+00:00",
     "dct:issued": "2021-03-16T09:27:21+00:00",
-    "dcat:distribution": TEST_DATASET_METADATA_DATAFILES,
+    "dcat:distribution": [TEST_DATASET_METADATA_DATAFILE],
     "mediatypes": [None],
     "version_history": TEST_DATASET_METADATA_VERSION_HISTORY,
     "auth": {
@@ -189,7 +199,7 @@ TEST_DATASET_METADATA_DEFAULT: dict = {
     },
     "dct:modified": "2021-03-16T09:27:21+00:00",
     "dct:issued": "2021-03-16T09:27:21+00:00",
-    "dcat:distribution": TEST_DATASET_METADATA_DATAFILES,
+    "dcat:distribution": [TEST_DATASET_METADATA_DATAFILE],
     "mediatypes": [None],
     "version_history": TEST_DATASET_METADATA_VERSION_HISTORY,
     "auth": {
@@ -209,21 +219,46 @@ class TestDataFile(TestCase):
     def test_parse(self):
         """Tests parsing of data files"""
 
-        datafiles: List[DataFile] = ParserBaseObject.parse_from_dict_list(
-            DataFile, TEST_DATASET_METADATA_DATAFILES
+        datafile: DataFile = ParserBaseObject.parse_from_dict(
+            DataFile, TEST_DATASET_METADATA_DATAFILE
         )
 
-        for datafile, dictionary in zip(datafiles, TEST_DATASET_METADATA_DATAFILES):
-            self.assertEqual(datafile.name, dictionary["spdx:fileName"])
-            self.assertEqual(
-                datafile.size,
-                process_file_size(dictionary["dcat:byteSize"]),
-            )
-            self.assertEqual(
-                datafile.format,
-                DATA_FORMATS.get(dictionary["dcat:mediaType"], "Unknown"),
-            )
-            self.assertEqual(datafile.download_url, dictionary["dcat:downloadURL"])
+        self.assertEqual(datafile.name, TEST_DATASET_METADATA_DATAFILE["spdx:fileName"])
+        self.assertEqual(
+            datafile.size,
+            process_file_size(TEST_DATASET_METADATA_DATAFILE["dcat:byteSize"]),
+        )
+        self.assertEqual(
+            datafile.format,
+            DATA_FORMATS.get(
+                TEST_DATASET_METADATA_DATAFILE["dcat:mediaType"], "Unknown"
+            ),
+        )
+        self.assertEqual(
+            datafile.download_url, TEST_DATASET_METADATA_DATAFILE["dcat:downloadURL"]
+        )
+
+    @patch("dafni_cli.datasets.dataset_metadata.minio_get_request")
+    def test_contents_set_to_returned_file_contents(self, mock_minio_get_request):
+        """Tests downloading of a data file"""
+        # SETUP
+        contents = b"Test data"
+        mock_minio_get_request.return_value = contents
+        session = MagicMock()
+
+        datafile: DataFile = ParserBaseObject.parse_from_dict(
+            DataFile, TEST_DATASET_METADATA_DATAFILE
+        )
+
+        # CALL
+        datafile.download_contents(session)
+
+        # ASSERT
+        mock_minio_get_request.assert_called_once_with(
+            TEST_DATASET_METADATA_DATAFILE["dcat:downloadURL"], session, content=True
+        )
+
+        self.assertEqual(contents, datafile.contents.getvalue())
 
 
 class TestCreator(TestCase):
@@ -352,13 +387,13 @@ class TestDatasetVersionHistory(TestCase):
             version_history.dataset_id,
             TEST_DATASET_METADATA_VERSION_HISTORY["dataset_uuid"],
         )
-        self.assertEqual(len(version_history.versions), 1)
+        self.assertEqual(len(version_history.versions), 2)
         self.assertEqual(
             version_history.versions[0].version_id,
             TEST_DATASET_METADATA_VERSION_HISTORY["versions"][0]["version_uuid"],
         )
         self.assertEqual(len(version_history.versions[0].metadata_versions), 2)
-        # Version 1
+        # Version 1, Metadata Version 1
         self.assertEqual(
             version_history.versions[0].metadata_versions[0].metadata_id,
             TEST_DATASET_METADATA_VERSION_HISTORY["versions"][0]["metadata_versions"][
@@ -376,7 +411,7 @@ class TestDatasetVersionHistory(TestCase):
             datetime(2021, 3, 16, 9, 27, 21, tzinfo=tzutc()),
         )
 
-        # Version 2
+        # Version 1, Metadata Version 2
         self.assertEqual(
             version_history.versions[0].metadata_versions[1].metadata_id,
             TEST_DATASET_METADATA_VERSION_HISTORY["versions"][0]["metadata_versions"][
@@ -392,6 +427,103 @@ class TestDatasetVersionHistory(TestCase):
         self.assertEqual(
             version_history.versions[0].metadata_versions[1].modified_date,
             datetime(2021, 3, 17, 9, 27, 21, tzinfo=tzutc()),
+        )
+
+        # Version 2
+        self.assertEqual(
+            version_history.versions[1].version_id,
+            TEST_DATASET_METADATA_VERSION_HISTORY["versions"][1]["version_uuid"],
+        )
+        self.assertEqual(len(version_history.versions[1].metadata_versions), 1)
+        # Version 1, Metadata Version 1
+        self.assertEqual(
+            version_history.versions[1].metadata_versions[0].metadata_id,
+            TEST_DATASET_METADATA_VERSION_HISTORY["versions"][1]["metadata_versions"][
+                0
+            ]["metadata_uuid"],
+        )
+        self.assertEqual(
+            version_history.versions[1].metadata_versions[0].label,
+            TEST_DATASET_METADATA_VERSION_HISTORY["versions"][1]["metadata_versions"][
+                0
+            ]["dafni_version_note"],
+        )
+        self.assertEqual(
+            version_history.versions[1].metadata_versions[0].modified_date,
+            datetime(2021, 3, 16, 9, 27, 21, tzinfo=tzutc()),
+        )
+
+    @patch("dafni_cli.datasets.dataset_metadata.print_json")
+    @patch.object(DatasetMetadata, "output_version_details")
+    @patch("dafni_cli.datasets.dataset_metadata.get_latest_dataset_metadata")
+    def test_process_and_output_version_history_with_false_json_flag(
+        self,
+        mock_get_latest_dataset_metadata,
+        mock_output_version_details,
+        mock_print_json,
+    ):
+        """Tests process_and_output_version_history with a 'json_flag' value
+        of False"""
+
+        # SETUP
+        mock_get_latest_dataset_metadata.return_value = TEST_DATASET_METADATA
+        session = MagicMock()
+
+        version_history: DatasetVersionHistory = ParserBaseObject.parse_from_dict(
+            DatasetVersionHistory, TEST_DATASET_METADATA_VERSION_HISTORY
+        )
+
+        # CALL
+        version_history.process_and_output_version_history(session)
+
+        # ASSERT
+        mock_get_latest_dataset_metadata.assert_has_calls(
+            [
+                call(session, version_history.dataset_id, version.version_id)
+                for version in version_history.versions
+            ]
+        )
+        self.assertEqual(
+            mock_output_version_details.call_count, len(version_history.versions)
+        )
+        mock_print_json.assert_not_called()
+
+    @patch("dafni_cli.datasets.dataset_metadata.print_json")
+    @patch.object(DatasetMetadata, "output_version_details")
+    @patch("dafni_cli.datasets.dataset_metadata.get_latest_dataset_metadata")
+    def test_process_and_output_version_history_with_true_json_flag(
+        self,
+        mock_get_latest_dataset_metadata,
+        mock_output_version_details,
+        mock_print_json,
+    ):
+        """Tests process_and_output_version_history with a 'json_flag' value
+        of True"""
+
+        # SETUP
+        mock_get_latest_dataset_metadata.return_value = TEST_DATASET_METADATA
+        session = MagicMock()
+
+        version_history: DatasetVersionHistory = ParserBaseObject.parse_from_dict(
+            DatasetVersionHistory, TEST_DATASET_METADATA_VERSION_HISTORY
+        )
+
+        # CALL
+        version_history.process_and_output_version_history(session, json_flag=True)
+
+        # ASSERT
+        mock_get_latest_dataset_metadata.assert_has_calls(
+            [
+                call(session, version_history.dataset_id, version.version_id)
+                for version in version_history.versions
+            ]
+        )
+        self.assertEqual(mock_output_version_details.call_count, 0)
+
+        # Above we are just returning the same metadata for each call
+        # of mock_get_latest_dataset_metadata
+        mock_print_json.assert_called_with(
+            [TEST_DATASET_METADATA, TEST_DATASET_METADATA]
         )
 
 
@@ -472,3 +604,198 @@ class TestDatasetMetadataTestCase(TestCase):
         self.assertEqual(metadata.update_frequency, None)
         self.assertEqual(metadata.start_date, None)
         self.assertEqual(metadata.end_date, None)
+
+    @patch.object(DatasetMetadata, "output_metadata_extra_details")
+    @patch.object(DatasetMetadata, "output_datafiles_table")
+    @patch("dafni_cli.datasets.dataset_metadata.prose_print")
+    @patch("dafni_cli.datasets.dataset_metadata.click")
+    def test_output_metadata_details(
+        self,
+        mock_click,
+        mock_prose,
+        mock_table,
+        mock_extra_details,
+    ):
+        """Tests output_metadata_details functions as expected"""
+
+        # SETUP
+        dataset_metadata: DatasetMetadata = parse_dataset_metadata(
+            TEST_DATASET_METADATA
+        )
+
+        # CALL
+        dataset_metadata.output_metadata_details()
+
+        # ASSERT
+        mock_click.echo.assert_has_calls(
+            [
+                call(f"\nCreated: {dataset_metadata.created}"),
+                call(f"Creator: {dataset_metadata.creators[0].name}"),
+                call(f"Contact: {dataset_metadata.contact}"),
+                call("Description:"),
+                call("Identifiers:"),
+                call(f"Location: {dataset_metadata.location.label}"),
+                call(
+                    f"Start date: {dataset_metadata.start_date.strftime('%B %d %Y') if dataset_metadata.start_date else 'None'}"
+                ),
+                call(
+                    f"End date: {dataset_metadata.end_date.strftime('%B %d %Y') if dataset_metadata.start_date else 'None'}"
+                ),
+                call(f"Key words:\n {dataset_metadata.keywords}"),
+            ]
+        )
+        mock_prose.assert_has_calls(
+            [
+                call(dataset_metadata.description, CONSOLE_WIDTH),
+                call(" ".join(dataset_metadata.identifiers), CONSOLE_WIDTH),
+            ]
+        )
+
+        mock_table.assert_has_calls([call()])
+        mock_extra_details.assert_not_called()
+
+    @patch.object(DatasetMetadata, "output_metadata_extra_details")
+    @patch.object(DatasetMetadata, "output_datafiles_table")
+    @patch("dafni_cli.datasets.dataset_metadata.prose_print")
+    @patch("dafni_cli.datasets.dataset_metadata.click")
+    def test_output_metadata_details_when_long_set_to_true(
+        self,
+        mock_click,
+        mock_prose,
+        mock_table,
+        mock_extra_details,
+    ):
+        """Tests output_metadata_details functions as expected when 'long'
+        is True"""
+        # SETUP
+        dataset_metadata: DatasetMetadata = parse_dataset_metadata(
+            TEST_DATASET_METADATA
+        )
+
+        # CALL
+        dataset_metadata.output_metadata_details(long=True)
+
+        # ASSERT
+        mock_extra_details.assert_called_once()
+
+    @patch("dafni_cli.datasets.dataset_metadata.output_table")
+    @patch("dafni_cli.datasets.dataset_metadata.click")
+    def test_output_datafiles_table(self, mock_click, mock_output_table):
+        """Tests output_datafiles_table functions as expected"""
+        # SETUP
+        dataset_metadata: DatasetMetadata = parse_dataset_metadata(
+            TEST_DATASET_METADATA
+        )
+
+        # CALL
+        dataset_metadata.output_datafiles_table()
+
+        # ASSERT
+        columns = ["Name", "Size", "Format"]
+        name_width = max([len(datafile.name) for datafile in dataset_metadata.files])
+        widths = [name_width, 10, 6]
+        rows = [
+            [datafile.name, datafile.size, datafile.format]
+            for datafile in dataset_metadata.files
+        ]
+        mock_output_table.assert_called_once_with(columns, widths, rows)
+        mock_click.echo.assert_has_calls(
+            [call("\nData Files"), call(mock_output_table.return_value)]
+        )
+
+    @patch("dafni_cli.datasets.dataset_metadata.prose_print")
+    @patch("dafni_cli.datasets.dataset_metadata.click")
+    def test_output_metadata_extra_details(self, mock_click, mock_prose_print):
+        """Tests test_output_metadata_extra_details functions as expected"""
+        # SETUP
+        dataset_metadata: DatasetMetadata = parse_dataset_metadata(
+            TEST_DATASET_METADATA
+        )
+
+        # CALL
+        dataset_metadata.output_metadata_extra_details()
+
+        # ASSERT
+        mock_click.echo.assert_has_calls(
+            [
+                call(f"Themes:\n{dataset_metadata.themes}"),
+                call(f"Publisher: {dataset_metadata.publisher}"),
+                call(f"Issued: {dataset_metadata.issued}"),
+                call("Rights:"),
+                call(f"Language: {dataset_metadata.language}"),
+                call(f"Standard: {dataset_metadata.standard}"),
+                call(f"Update Frequency: {dataset_metadata.update_frequency}"),
+            ]
+        )
+
+        mock_prose_print.assert_called_once_with(dataset_metadata.rights, CONSOLE_WIDTH)
+
+    @patch("dafni_cli.datasets.dataset_metadata.prose_print")
+    @patch("dafni_cli.datasets.dataset_metadata.click")
+    def test_output_version_details(self, mock_click, mock_prose_print):
+        """Tests test_output_version_details functions as expected"""
+        # SETUP
+        dataset_metadata: DatasetMetadata = parse_dataset_metadata(
+            TEST_DATASET_METADATA
+        )
+
+        # CALL
+        dataset_metadata.output_version_details()
+
+        # ASSERT
+        mock_click.echo.assert_has_calls(
+            [
+                call(f"\nTitle: {dataset_metadata.title}"),
+                call(f"ID: {dataset_metadata.dataset_id}"),
+                call(f"Version ID: {dataset_metadata.version_id}"),
+                call(f"Publisher: {dataset_metadata.publisher}"),
+                call(
+                    f"From: {dataset_metadata.start_date}{TAB_SPACE}To: {dataset_metadata.end_date}"
+                ),
+                call("Description: "),
+            ]
+        )
+
+        mock_prose_print.assert_called_once_with(
+            dataset_metadata.description, CONSOLE_WIDTH
+        )
+
+    @patch.object(DataFile, "download_contents")
+    def test_download_dataset_files_returns_empty_arrays_when_no_files(
+        self, mock_download
+    ):
+        """Tests download_dataset_files functions as expected when there are
+        no files to download"""
+        # SETUP
+        dataset_metadata: DatasetMetadata = parse_dataset_metadata(
+            TEST_DATASET_METADATA
+        )
+        dataset_metadata.files = []
+        session = MagicMock()
+
+        # CALL
+        file_names, file_contents = dataset_metadata.download_dataset_files(session)
+
+        # ASSERT
+        mock_download.assert_not_called()
+
+        self.assertEqual(file_names, [])
+        self.assertEqual(file_contents, [])
+
+    @patch.object(DataFile, "download_contents")
+    def test_download_dataset_files(self, mock_download):
+        """Tests download_dataset_files functions as expected"""
+        # SETUP
+        dataset_metadata: DatasetMetadata = parse_dataset_metadata(
+            TEST_DATASET_METADATA
+        )
+        session = MagicMock()
+
+        # CALL
+        file_names, file_contents = dataset_metadata.download_dataset_files(session)
+
+        # ASSERT
+        mock_download.assert_has_calls([call(session)])
+
+        self.assertEqual(file_names, [dataset_metadata.files[0].name])
+        self.assertEqual(file_contents, [dataset_metadata.files[0].contents])

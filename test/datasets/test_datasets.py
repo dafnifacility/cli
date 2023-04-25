@@ -147,7 +147,7 @@ class TestDataset(TestCase):
 
     @patch("dafni_cli.datasets.dataset.prose_print")
     @patch("dafni_cli.datasets.dataset.click")
-    def test_dataset_details_outputted_correctly_when_no_optional_values(
+    def test_output_dataset_details_when_no_optional_values(
         self, mock_click, mock_prose
     ):
         """Tests output_dataset_details works correctly when the optional
@@ -173,7 +173,7 @@ class TestDataset(TestCase):
 
     @patch("dafni_cli.datasets.dataset.prose_print")
     @patch("dafni_cli.datasets.dataset.click")
-    def test_dataset_details_outputted_correctly_when_optional_values_available(
+    def test_output_dataset_details_when_optional_values_available(
         self, mock_click, mock_prose
     ):
         """Tests output_dataset_details works correctly when the optional

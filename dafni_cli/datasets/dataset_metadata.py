@@ -380,7 +380,7 @@ class DatasetMetadata(ParserBaseObject):
         click.echo(f"Contact: {self.contact}")
         click.echo("Description:")
         prose_print(self.description, CONSOLE_WIDTH)
-        click.echo("Identifiers: ")
+        click.echo("Identifiers:")
         prose_print(
             " ".join(self.identifiers) if self.identifiers else "None", CONSOLE_WIDTH
         )
@@ -391,7 +391,7 @@ class DatasetMetadata(ParserBaseObject):
         click.echo(
             f"End date: {self.end_date.strftime('%B %d %Y') if self.end_date else 'None'}"
         )
-        click.echo(f"Key Words:\n {self.keywords}")
+        click.echo(f"Key words:\n {self.keywords}")
 
         # DataFiles table
         self.output_datafiles_table()
