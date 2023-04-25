@@ -1,5 +1,6 @@
 from unittest import TestCase
 from unittest.mock import patch
+
 from dafni_cli.api.parser import ParserBaseObject
 from dafni_cli.consts import (
     INPUT_DEFAULT_HEADER,
@@ -14,7 +15,6 @@ from dafni_cli.consts import (
     TAB_SPACE,
 )
 from dafni_cli.model.inputs import ModelDataslot, ModelInputs, ModelParameter
-
 
 TEST_MODEL_INPUT_DATASLOT: dict = {
     "name": "Inputs",

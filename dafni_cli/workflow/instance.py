@@ -2,7 +2,7 @@ from dataclasses import dataclass
 from datetime import datetime
 from typing import ClassVar, List
 
-from dafni_cli.api.parser import ParserBaseObject, ParserParam
+from dafni_cli.api.parser import ParserBaseObject, ParserParam, parse_datetime
 
 
 @dataclass
@@ -60,7 +60,7 @@ class WorkflowInstance(ParserBaseObject):
         parameter_set (WorkflowInstanceParameterSet): Information on the
                             parameter set the instance used
         workflow_version (WorkflowInstanceWorkflowVersion): Information on the
-                            wowkflow version the instance used
+                            workflow version the instance used
     """
 
     instance_id: str
@@ -72,8 +72,8 @@ class WorkflowInstance(ParserBaseObject):
 
     _parser_params: ClassVar[List[ParserParam]] = [
         ParserParam("instance_id", "instance_id", str),
-        ParserParam("submission_time", "submission_time", str),
-        ParserParam("finished_time", "finished_time", str),
+        ParserParam("submission_time", "submission_time", parse_datetime),
+        ParserParam("finished_time", "finished_time", parse_datetime),
         ParserParam("overall_status", "overall_status", str),
         ParserParam("parameter_set", "parameter_set", WorkflowInstanceParameterSet),
         ParserParam(
