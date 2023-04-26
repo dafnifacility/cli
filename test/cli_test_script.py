@@ -17,7 +17,7 @@ DAFNI_SCRIPT_LOCATION = "/home/joel/.local/bin/dafni"
 # Where to save snapshots
 SNAPSHOT_SAVE_LOCATION = "/home/joel/dafni_cli_snapshots/"
 
-# Commands to test - organised into sections
+# Commands to test - organised into sections that can be executed separately
 COMMANDS = {
     "login": ["dafni login --help", "dafni login"],
     "get": {
@@ -64,6 +64,28 @@ COMMANDS = {
             "dafni get dataset 6f6c7fb8-2f04-4ffc-b7a9-58dc2739d8c2 d8d8b3ae-9d33-42fe-bfb6-ba1d7c5f0d58 --version-history",
             "dafni get dataset 6f6c7fb8-2f04-4ffc-b7a9-58dc2739d8c2 d8d8b3ae-9d33-42fe-bfb6-ba1d7c5f0d58 --json",
             "dafni get dataset 6f6c7fb8-2f04-4ffc-b7a9-58dc2739d8c2 d8d8b3ae-9d33-42fe-bfb6-ba1d7c5f0d58 --version-history --json",
+        ],
+        "workflows": [
+            "dafni get workflows --help",
+            "dafni get workflows",
+            "dafni get workflows --json",
+            "dafni get workflows --long",
+            "dafni get workflows --creation-date 01/01/2021",
+            "dafni get workflows --creation-date 01/01/2019",
+            "dafni get workflows --creation-date 01/01/2019 --long",
+            "dafni get workflows --publication-date 01/01/2021",
+            "dafni get workflows --publication-date 01/01/2019",
+            "dafni get workflows --publication-date 01/01/2019 --long",
+            "dafni get workflows --publication-date 01/01/2019 --long --json",
+        ],
+        "workflow": [
+            "dafni get workflow --help",
+            "dafni get workflow cfb164b2-59de-4156-85ea-36049e147322",
+            "dafni get workflow cfb164b2-59de-4156-85ea-36049e147322 --json",
+            "dafni get workflow 4a7c1897-e902-4966-b4a8-d8c4c64ff092 797e8ba2-539d-4284-ba86-dea4a930206e",
+            "dafni get workflow cfb164b2-59de-4156-85ea-36049e147322 --version-history",
+            "dafni get workflow 4a7c1897-e902-4966-b4a8-d8c4c64ff092 797e8ba2-539d-4284-ba86-dea4a930206e --version-history",
+            "dafni get workflow 4a7c1897-e902-4966-b4a8-d8c4c64ff092 797e8ba2-539d-4284-ba86-dea4a930206e --version-history --json",
         ],
     },
 }
@@ -162,7 +184,9 @@ def run_commands(
     # If a dict then expect subsections
     if isinstance(commands, dict):
         for key, section in commands.items():
-            run_commands(section, snapshot, output, prefix + ", key" if prefix else key)
+            run_commands(
+                section, snapshot, output, f"{prefix}.{key}" if prefix else key
+            )
     elif isinstance(commands, list):
         print(f"--------- Testing section: {prefix} ---------")
         print()
@@ -196,7 +220,10 @@ def run_tests(section, snapshot, snapshot_overwrite):
     output = Output()
 
     if section:
-        commands = commands[section]
+        # Use something like get.dataset to mean ["get"]["dataset"]
+        split = section.split(".")
+        for key in split:
+            commands = commands[key]
         run_commands(commands, snapshot, output, section)
     else:
         run_commands(commands, snapshot, output, section)
