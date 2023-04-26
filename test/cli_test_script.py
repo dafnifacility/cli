@@ -9,8 +9,10 @@ Notes on usage:
       could time out and get stuck
 """
 
+from abc import ABC, abstractmethod
 from pathlib import Path
 import subprocess
+import tempfile
 from typing import Optional, Union
 
 import click
@@ -20,6 +22,45 @@ DAFNI_SCRIPT_LOCATION = "/home/joel/.local/bin/dafni"
 
 # Where to save snapshots
 SNAPSHOT_SAVE_LOCATION = "/home/joel/dafni_cli_snapshots/"
+
+
+class SpecialCommand(ABC):
+    """Class for special commands that may need to do some independent file
+    checking e.g. download"""
+
+    @abstractmethod
+    def get_command(self) -> str:
+        """Should return the command to run (also a time to do any special
+        stuff e.g. creating a temporary directory)"""
+
+    @abstractmethod
+    def check_ran_correctly(self) -> bool:
+        """Should return whether the command ran successfully or not"""
+
+
+class DownloadDatasetCommand(SpecialCommand):
+    """Command that downloads a dataset"""
+
+    def __init__(self) -> None:
+        super().__init__()
+
+        self._temp_dir = None
+
+    def get_command(self):
+        # Create a temporary directory for the datasets being downloaded
+        self._temp_dir = tempfile.TemporaryDirectory()
+
+        return f"dafni download dataset b71f0880-ff95-4b68-82a1-aafa2e949825 c052d9b8-dbca-42b0-85b5-135016a2fbb1 --directory {self._temp_dir.name}"
+
+    def check_ran_correctly(self) -> bool:
+        file_path = Path(
+            self._temp_dir.name,
+            "Dataset_b71f0880-ff95-4b68-82a1-aafa2e949825_c052d9b8-dbca-42b0-85b5-135016a2fbb1.zip",
+        )
+        success = file_path.is_file()
+        self._temp_dir.cleanup()
+        return success
+
 
 # Commands to test - organised into sections that can be executed separately
 COMMANDS = {
@@ -127,6 +168,7 @@ COMMANDS = {
     "download": {
         "help": ["dafni download --help"],
         "dataset": [
+            DownloadDatasetCommand()
             # "dafni download dataset 6f6c7fb8-2f04-4ffc-b7a9-58dc2739d8c2 d8d8b3ae-9d33-42fe-bfb6-ba1d7c5f0d58 6f6c7fb8-2f04-4ffc-b7a9-58dc2739d8c2 d8d8b3ae-9d33-42fe-bfb6-ba1d7c5f0d58 --directory path\to\directory"
         ],
     },
@@ -158,13 +200,16 @@ def clean_string(string: str):
 
 
 def save_and_check_snapshot(
-    command: str, run_result: subprocess.CompletedProcess, snapshot: int, output: Output
+    command: Union[str, SpecialCommand],
+    run_result: subprocess.CompletedProcess,
+    snapshot: int,
+    output: Output,
 ):
     """Saves the result of a command as a snapshot or otherwise checks the
-    result agains an already existing one
+    result against an already existing one
 
     Args:
-        command (str): Command that was run
+        command (str or SpecialCommand): Command that was run
         run_result (subprocess.CompletedProcess): Result of running the
                                                   command
         snapshot (int): Integer value specifying what to do:
@@ -174,15 +219,22 @@ def save_and_check_snapshot(
         output (Output): Object for storing whether commands have succeeded
                          or not
     """
-    if run_result.returncode != 0:
+    success = run_result.returncode == 0
+    if isinstance(command, SpecialCommand):
+        success = success and command.check_ran_correctly()
+        command_str = command.get_command()
+    else:
+        command_str = command
+
+    if not success:
         # Command itself failed to execute
-        print(f"[FAILED!] {command}")
+        print(f"[FAILED!] {command_str}")
         # print(run_result.stderr)
-        output.failed_commands.append(command)
+        output.failed_commands.append(command_str)
         return
 
     # Path to compare snapshot to
-    path = Path(SNAPSHOT_SAVE_LOCATION, f"{clean_string(command)}.out")
+    path = Path(SNAPSHOT_SAVE_LOCATION, f"{clean_string(command_str)}.out")
 
     # Store as a string array with new lines ready for saving/comparing
     string_output = run_result.stdout.decode().splitlines()
@@ -203,21 +255,21 @@ def save_and_check_snapshot(
             previous_contents = file.readlines()
 
         if previous_contents != string_output:
-            print(f"[Failed] {command}")
+            print(f"[Failed] {command_str}")
             print()
             print("Expected:")
             print("".join(previous_contents))
             print("Got:")
             print("".join(string_output))
-            output.failed_commands.append(command)
+            output.failed_commands.append(command_str)
             return
 
     # Passed
-    print(f"[Success] {command}")
-    output.succeeded_commands.append(command)
+    print(f"[Success] {command_str}")
+    output.succeeded_commands.append(command_str)
 
 
-def run_command(command: str, snapshot: int, output: Output):
+def run_command(command: Union[str, SpecialCommand], snapshot: int, output: Output):
     """Runs a given command checking it against a snapshot if necessary
 
     Args:
@@ -229,11 +281,19 @@ def run_command(command: str, snapshot: int, output: Output):
         output (Output): Object for storing whether commands have succeeded
                          or not
     """
+
+    if isinstance(command, SpecialCommand):
+        command_str = command.get_command()
+    else:
+        command_str = command
+
+    command_str = command_str.replace("dafni", DAFNI_SCRIPT_LOCATION)
+
     if snapshot:
         # Run command, hiding input (this is where login may get stuck if
         # token times out)
         run_result = subprocess.run(
-            command.replace("dafni", DAFNI_SCRIPT_LOCATION),
+            command_str,
             check=False,
             shell=True,
             stdout=subprocess.PIPE,
@@ -241,16 +301,21 @@ def run_command(command: str, snapshot: int, output: Output):
         save_and_check_snapshot(command, run_result, snapshot, output)
     else:
         # Run command waiting for user input before running the next one
-        print(f"--------- {command} ---------")
+        print(f"--------- {command_str} ---------")
         run_result = subprocess.run(
-            command.replace("dafni", DAFNI_SCRIPT_LOCATION),
+            command_str,
             check=True,
             shell=True,
         )
-        if run_result.returncode == 0:
-            output.succeeded_commands.append(command)
+
+        success = run_result.returncode == 0
+        if isinstance(command, SpecialCommand):
+            success = success and command.check_ran_correctly()
+
+        if success:
+            output.succeeded_commands.append(command_str)
         else:
-            output.failed_commands.append(command)
+            output.failed_commands.append(command_str)
         print("-------------------------------")
         print()
         input("Press enter to continue")
