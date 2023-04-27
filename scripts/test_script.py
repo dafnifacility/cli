@@ -9,16 +9,16 @@ Notes on usage:
       could time out and get stuck
 """
 
-from abc import ABC, abstractmethod
-from pathlib import Path
 import subprocess
 import tempfile
+from abc import ABC, abstractmethod
+from pathlib import Path
 from typing import Optional, Union
 
 import click
 
 # Not sure why it wasn't finding this, but this will do for now
-DAFNI_SCRIPT_LOCATION = "/home/joel/.local/bin/dafni"
+DAFNI_CLI_SCRIPT = "/home/joel/.local/bin/dafni"
 
 # Where to save snapshots
 SNAPSHOT_SAVE_LOCATION = "/home/joel/dafni_cli_snapshots/"
@@ -167,10 +167,7 @@ COMMANDS = {
     },
     "download": {
         "help": ["dafni download --help"],
-        "dataset": [
-            DownloadDatasetCommand()
-            # "dafni download dataset 6f6c7fb8-2f04-4ffc-b7a9-58dc2739d8c2 d8d8b3ae-9d33-42fe-bfb6-ba1d7c5f0d58 6f6c7fb8-2f04-4ffc-b7a9-58dc2739d8c2 d8d8b3ae-9d33-42fe-bfb6-ba1d7c5f0d58 --directory path\to\directory"
-        ],
+        "dataset": [DownloadDatasetCommand()],
     },
     "logout": ["dafni logout --help", "dafni logout"],
 }
@@ -287,13 +284,11 @@ def run_command(command: Union[str, SpecialCommand], snapshot: int, output: Outp
     else:
         command_str = command
 
-    command_str = command_str.replace("dafni", DAFNI_SCRIPT_LOCATION)
-
     if snapshot:
         # Run command, hiding input (this is where login may get stuck if
         # token times out)
         run_result = subprocess.run(
-            command_str,
+            command_str.replace("dafni", DAFNI_CLI_SCRIPT),
             check=False,
             shell=True,
             stdout=subprocess.PIPE,
@@ -301,10 +296,11 @@ def run_command(command: Union[str, SpecialCommand], snapshot: int, output: Outp
         save_and_check_snapshot(command, run_result, snapshot, output)
     else:
         # Run command waiting for user input before running the next one
-        print(f"--------- {command_str} ---------")
+        header = f"--------- {command_str} ---------"
+        print(header)
         run_result = subprocess.run(
-            command_str,
-            check=True,
+            command_str.replace("dafni", DAFNI_CLI_SCRIPT),
+            check=False,
             shell=True,
         )
 
@@ -316,7 +312,7 @@ def run_command(command: Union[str, SpecialCommand], snapshot: int, output: Outp
             output.succeeded_commands.append(command_str)
         else:
             output.failed_commands.append(command_str)
-        print("-------------------------------")
+        print("-" * len(header))
         print()
         input("Press enter to continue")
         print()
@@ -395,13 +391,13 @@ def run_tests(section, snapshot, snapshot_overwrite):
         split = section.split(".")
         for key in split:
             commands = commands[key]
-        run_commands(commands, snapshot, output, section)
-    else:
-        run_commands(commands, snapshot, output, section)
+
+    run_commands(commands, snapshot, output, section)
 
     print()
     output.print_output()
 
 
 if __name__ == "__main__":
+    # pylint:disable=no-value-for-parameter
     run_tests()
