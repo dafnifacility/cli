@@ -297,9 +297,9 @@ class Model(ParserBaseObject):
             click.echo("Outputs: ")
             click.echo(self.spec.outputs.format_outputs())
 
-    def output_version_details(self) -> str:
-        """Prints model ID, display name, publication date and version
-        message on one line
+    def get_version_details(self) -> str:
+        """Returns a string with the model ID, display name, publication date
+        and version message on one line
         """
         return (
             "ID: "

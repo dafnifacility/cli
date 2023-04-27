@@ -471,13 +471,13 @@ class TestModel(TestCase):
         )
         mock_prose_print.assert_called_once_with("Test description", CONSOLE_WIDTH)
 
-    def test_output_version_details(self):
-        """Tests output_version_details works correctly"""
+    def test_get_version_details(self):
+        """Tests get_version_details works correctly"""
         # SETUP
         model = parse_model(TEST_MODEL)
 
         # CALL
-        result = model.output_version_details()
+        result = model.get_version_details()
 
         # ASSERT
         self.assertEqual(

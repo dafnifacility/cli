@@ -249,9 +249,9 @@ class Workflow(ParserBaseObject):
         #     click.echo("Outputs: ")
         #     click.echo(self.metadata_obj.format_outputs())
 
-    def output_version_details(self) -> str:
-        """Prints workflow ID, display name, publication time and version
-        message on one line
+    def get_version_details(self) -> str:
+        """Returns a string with the workflow ID, display name, publication
+        time and version message on one line
         """
         return (
             "ID: "
