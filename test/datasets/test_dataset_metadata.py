@@ -387,11 +387,14 @@ class TestDatasetVersionHistory(TestCase):
             TEST_DATASET_METADATA_VERSION_HISTORY["dataset_uuid"],
         )
         self.assertEqual(len(version_history.versions), 2)
+
+        # Version 1
         self.assertEqual(
             version_history.versions[0].version_id,
             TEST_DATASET_METADATA_VERSION_HISTORY["versions"][0]["version_uuid"],
         )
         self.assertEqual(len(version_history.versions[0].metadata_versions), 2)
+
         # Version 1, Metadata Version 1
         self.assertEqual(
             version_history.versions[0].metadata_versions[0].metadata_id,
@@ -434,6 +437,7 @@ class TestDatasetVersionHistory(TestCase):
             TEST_DATASET_METADATA_VERSION_HISTORY["versions"][1]["version_uuid"],
         )
         self.assertEqual(len(version_history.versions[1].metadata_versions), 1)
+
         # Version 1, Metadata Version 1
         self.assertEqual(
             version_history.versions[1].metadata_versions[0].metadata_id,
@@ -501,6 +505,7 @@ class TestDatasetVersionHistory(TestCase):
 
         # SETUP
         mock_get_latest_dataset_metadata.return_value = TEST_DATASET_METADATA
+
         session = MagicMock()
 
         version_history: DatasetVersionHistory = ParserBaseObject.parse_from_dict(
@@ -519,8 +524,10 @@ class TestDatasetVersionHistory(TestCase):
         )
         self.assertEqual(mock_output_version_details.call_count, 0)
 
-        # Above we are just returning the same metadata for each call
-        # of mock_get_latest_dataset_metadata
+        # Above we have mocked mock_get_latest_dataset_metadata's return
+        # value to be TEST_DATASET_METADATA, as we have 2 versions in the
+        # metadata we expect the same metadata to have been printed twice,
+        # once per version
         mock_print_json.assert_called_with(
             [TEST_DATASET_METADATA, TEST_DATASET_METADATA]
         )
@@ -634,12 +641,55 @@ class TestDatasetMetadataTestCase(TestCase):
                 call("Description:"),
                 call("Identifiers:"),
                 call(f"Location: {dataset_metadata.location.label}"),
-                call(
-                    f"Start date: {dataset_metadata.start_date.strftime('%B %d %Y') if dataset_metadata.start_date else 'None'}"
-                ),
-                call(
-                    f"End date: {dataset_metadata.end_date.strftime('%B %d %Y') if dataset_metadata.start_date else 'None'}"
-                ),
+                call(f"Start date: {dataset_metadata.start_date.strftime('%B %d %Y')}"),
+                call(f"End date: {dataset_metadata.end_date.strftime('%B %d %Y')}"),
+                call(f"Key words:\n {dataset_metadata.keywords}"),
+            ]
+        )
+        mock_prose.assert_has_calls(
+            [
+                call(dataset_metadata.description, CONSOLE_WIDTH),
+                call(" ".join(dataset_metadata.identifiers), CONSOLE_WIDTH),
+            ]
+        )
+
+        mock_table.assert_has_calls([call()])
+        mock_extra_details.assert_not_called()
+
+    @patch.object(DatasetMetadata, "output_metadata_extra_details")
+    @patch.object(DatasetMetadata, "output_datafiles_table")
+    @patch("dafni_cli.datasets.dataset_metadata.prose_print")
+    @patch("dafni_cli.datasets.dataset_metadata.click")
+    def test_output_metadata_details_when_start_and_end_date_are_None(
+        self,
+        mock_click,
+        mock_prose,
+        mock_table,
+        mock_extra_details,
+    ):
+        """Tests output_metadata_details functions as expected"""
+
+        # SETUP
+        dataset_metadata: DatasetMetadata = parse_dataset_metadata(
+            TEST_DATASET_METADATA
+        )
+        dataset_metadata.start_date = None
+        dataset_metadata.end_date = None
+
+        # CALL
+        dataset_metadata.output_metadata_details()
+
+        # ASSERT
+        mock_click.echo.assert_has_calls(
+            [
+                call(f"\nCreated: {dataset_metadata.created}"),
+                call(f"Creator: {dataset_metadata.creators[0].name}"),
+                call(f"Contact: {dataset_metadata.contact}"),
+                call("Description:"),
+                call("Identifiers:"),
+                call(f"Location: {dataset_metadata.location.label}"),
+                call(f"Start date: None"),
+                call(f"End date: None"),
                 call(f"Key words:\n {dataset_metadata.keywords}"),
             ]
         )
