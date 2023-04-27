@@ -128,7 +128,5 @@ class TestModelOutputs(TestCase):
         # CALL
         table_string = model_outputs.format_outputs()
 
-        print(table_string)
-
         # ASSERT
         self.assertEqual(expected_table, table_string)

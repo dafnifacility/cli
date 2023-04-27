@@ -394,24 +394,26 @@ class TestModel(TestCase):
         """Tests output_info works correctly"""
         # SETUP
         model = parse_model(TEST_MODEL)
-        model.spec.inputs = None
+        model.spec.outputs = None
 
         model.output_info()
 
-        mock_click.echo.asser_has_calls(
+        mock_click.echo.assert_has_calls(
             [
-                call("Name: display name"),
-                call("Date: March 03 2021"),
+                call("Name: Some display name"),
+                call("Date: July 17 2019"),
                 call("Summary: "),
-                call("summary"),
+                call("For testing"),
                 call("Description: "),
                 call(""),
                 call("Input Parameters: "),
-                call("params"),
+                call(
+                    "Title       Type      Min       Max       Default  Description\n-----------------------------------------------------------------------\nYear input  integer   2016      2025      2018     Year input description\n"
+                ),
                 call("Input Data Slots: "),
-                call("dataslots"),
-                call("Outputs: "),
-                call("outputs"),
+                call(
+                    "Name: Inputs\nPath in container: inputs/\nRequired: True\nDefault Datasets: \nID: 0a0a0a0a-0a00-0a00-a000-0a0a0000000f    \n"
+                ),
             ]
         )
         mock_prose_print.assert_called_once_with("Test description", CONSOLE_WIDTH)
@@ -424,24 +426,22 @@ class TestModel(TestCase):
         """Tests output_info works correctly"""
         # SETUP
         model = parse_model(TEST_MODEL)
-        model.spec.outputs = None
+        model.spec.inputs = None
 
         model.output_info()
 
-        mock_click.echo.asser_has_calls(
+        mock_click.echo.assert_has_calls(
             [
-                call("Name: display name"),
-                call("Date: March 03 2021"),
+                call("Name: Some display name"),
+                call("Date: July 17 2019"),
                 call("Summary: "),
-                call("summary"),
+                call("For testing"),
                 call("Description: "),
                 call(""),
-                call("Input Parameters: "),
-                call("params"),
-                call("Input Data Slots: "),
-                call("dataslots"),
                 call("Outputs: "),
-                call("outputs"),
+                call(
+                    "Name                 Format    Summary\n---------------------------------------------------\nexample_dataset.csv  CSV       \n"
+                ),
             ]
         )
         mock_prose_print.assert_called_once_with("Test description", CONSOLE_WIDTH)
@@ -459,20 +459,14 @@ class TestModel(TestCase):
 
         model.output_info()
 
-        mock_click.echo.asser_has_calls(
+        mock_click.echo.assert_has_calls(
             [
-                call("Name: display name"),
-                call("Date: March 03 2021"),
+                call("Name: Some display name"),
+                call("Date: July 17 2019"),
                 call("Summary: "),
-                call("summary"),
+                call("For testing"),
                 call("Description: "),
                 call(""),
-                call("Input Parameters: "),
-                call("params"),
-                call("Input Data Slots: "),
-                call("dataslots"),
-                call("Outputs: "),
-                call("outputs"),
             ]
         )
         mock_prose_print.assert_called_once_with("Test description", CONSOLE_WIDTH)

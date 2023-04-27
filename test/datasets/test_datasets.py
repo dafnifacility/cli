@@ -158,7 +158,7 @@ class TestDataset(TestCase):
 
         dataset1.output_dataset_details()
 
-        mock_click.echo.has_calls(
+        mock_click.echo.assert_has_calls(
             [
                 call("Title: " + dataset1.title),
                 call("ID: " + dataset1.dataset_id),
@@ -188,13 +188,15 @@ class TestDataset(TestCase):
         dataset2.output_dataset_details()
 
         # ASSERT
-        assert mock_click.echo.call_args_list == [
-            call("Title: " + dataset2.title),
-            call("ID: " + dataset2.dataset_id),
-            call("Latest Version: " + dataset2.version_id),
-            call("Publisher: " + dataset2.source),
-            call(f"From: {start}{TAB_SPACE}To: {end}"),
-            call("Description: "),
-            call(""),
-        ]
+        mock_click.echo.assert_has_calls(
+            [
+                call("Title: " + dataset2.title),
+                call("ID: " + dataset2.dataset_id),
+                call("Latest Version: " + dataset2.version_id),
+                call("Publisher: " + dataset2.source),
+                call(f"From: {start}{TAB_SPACE}To: {end}"),
+                call("Description: "),
+                call(""),
+            ]
+        )
         mock_prose.assert_called_once_with(dataset2.description, CONSOLE_WIDTH)

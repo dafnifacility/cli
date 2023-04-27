@@ -230,7 +230,6 @@ class TestInputs(TestCase):
         )
         # CALL
         table_string = model_inputs.format_parameters()
-        print(table_string)
 
         # ASSERT
         self.assertEqual(expected_table, table_string)
