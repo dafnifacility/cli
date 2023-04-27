@@ -1,7 +1,4 @@
 from datetime import datetime
-from test.api.test_auth import TEST_AUTH_DATA_OBJECT, TEST_AUTH_DATA_OBJECTS
-from test.model.test_inputs import TEST_MODEL_INPUTS, TEST_MODEL_OUTPUTS
-from typing import List
 from unittest import TestCase
 from unittest.mock import call, patch
 
@@ -13,89 +10,14 @@ from dafni_cli.consts import CONSOLE_WIDTH, TAB_SPACE
 from dafni_cli.model.inputs import ModelInputs
 from dafni_cli.model.model import Model, ModelSpec, parse_model, parse_models
 
-# Below follows example response data from the API for getting a models
-# Values labelled with MODELS implies the responses are for the /models
-# endpoint rather than the /model/<version_id> one and
-# values labelled with _DEFAULT implies they do not define optional variables
-# and are used to test the values still parse correctly
-TEST_MODEL_METADATA: dict = {
-    "description": "Test description",
-    "display_name": "Some display name",
-    "name": "test-name",
-    "publisher": "Joel Davies",
-    "summary": "For testing",
-    "source_code": "https://github.com/dafnifacility/cli",
-    "status": "F",
-}
-
-# Data for a model from the /models endpoint
-TEST_MODEL_DATA_MODELS_ENDPOINT: dict = {
-    "auth": TEST_AUTH_DATA_OBJECTS,
-    "id": "0a0a0a0a-0a00-0a00-a000-0a0a0000000a",
-    "kind": "M",
-    "display_name": "Test Display Name",
-    "name": "test-name",
-    "summary": "Test summary",
-    "creation_date": "2019-07-17T13:33:13.751682Z",
-    "publication_date": "2020-04-02T09:12:25.989915Z",
-    "owner": "0a0a0a0a-0a00-0a00-a000-0a0a0000000b",
-    "version_tags": ["latest"],
-    "version_message": "",
-    "status": "L",
-    "type": "model",
-    "parent": "0a0a0a0a-0a00-0a00-a000-0a0a0000000c",
-    "version_history": [
-        {
-            "id": "0a0a0a0a-0a00-0a00-a000-0a0a0000000d",
-            "version_tags": ["latest"],
-            "publication_date": "2020-04-02T09:12:25.989915Z",
-            "version_message": "First version",
-        }
-    ],
-}
-
-TEST_MODELS: List[dict] = [TEST_MODEL_DATA_MODELS_ENDPOINT]
-
-TEST_MODEL_SPEC: dict = {
-    "image": "some/image/url",
-    "inputs": TEST_MODEL_INPUTS,
-    "command": ["python", "some_script.py"],
-    "outputs": TEST_MODEL_OUTPUTS,
-}
-
-TEST_MODEL_SPEC_DEFAULT: dict = {
-    "image": "some/image/url",
-    "inputs": None,
-    "command": ["python", "some_script.py"],
-    "outputs": None,
-}
-
-TEST_MODEL: dict = {
-    "id": "0a0a0a0a-0a00-0a00-a000-0a0a0000000a",
-    "version_history": [
-        {
-            "id": "0a0a0a0a-0a00-0a00-a000-0a0a0000000d",
-            "version_tags": ["latest"],
-            "publication_date": "2020-04-02T09:12:25.989915Z",
-            "version_message": "First version",
-        }
-    ],
-    "auth": TEST_AUTH_DATA_OBJECT,
-    "metadata": TEST_MODEL_METADATA,
-    "api_version": "v1beta2",
-    "kind": "M",
-    "creation_date": "2019-07-17T13:33:13.751682Z",
-    "publication_date": "2020-04-02T09:12:25.989915Z",
-    "owner": "0a0a0a0a-0a00-0a00-a000-0a0a0000000c",
-    "version_tags": ["latest"],
-    "version_message": "",
-    "container": "some/url",
-    "container_version": "nims",
-    "ingest_completed_date": None,
-    "spec": TEST_MODEL_SPEC,
-    "type": "model",
-    "parent": "0a0a0a0a-0a00-0a00-a000-0a0a0000000b",
-}
+from test.fixtures.models import (
+    TEST_MODEL,
+    TEST_MODEL_DATA_MODELS_ENDPOINT,
+    TEST_MODEL_METADATA,
+    TEST_MODEL_SPEC,
+    TEST_MODEL_SPEC_DEFAULT,
+    TEST_MODELS,
+)
 
 
 class TestModelSpec(TestCase):

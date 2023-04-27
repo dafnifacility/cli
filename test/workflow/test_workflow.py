@@ -1,7 +1,4 @@
 from datetime import datetime
-from test.api.test_auth import TEST_AUTH_DATA_OBJECT, TEST_AUTH_DATA_OBJECTS
-from test.workflow.test_instance import TEST_WORKFLOW_INSTANCE
-from test.workflow.test_parameter_set import TEST_WORKFLOW_PARAMETER_SET
 from typing import List
 from unittest import TestCase
 from unittest.mock import call, patch
@@ -19,6 +16,10 @@ from dafni_cli.workflow.workflow import (
     parse_workflow,
     parse_workflows,
 )
+
+from test.fixtures.auth import TEST_AUTH_DATA_OBJECT, TEST_AUTH_DATA_OBJECTS
+from test.workflow.test_instance import TEST_WORKFLOW_INSTANCE
+from test.workflow.test_parameter_set import TEST_WORKFLOW_PARAMETER_SET
 
 TEST_WORKFLOW_METADATA: dict = {
     "description": "Test workflow",

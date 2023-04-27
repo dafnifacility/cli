@@ -10,18 +10,9 @@ from dafni_cli.consts import (
     OUTPUT_SUMMARY_COLUMN_WIDTH,
     OUTPUT_SUMMARY_HEADER,
 )
-from dafni_cli.model.inputs import ModelParameter
 from dafni_cli.model.outputs import ModelOutputDataset, ModelOutputs
 
-TEST_MODEL_OUTPUTS: dict = {
-    "datasets": [
-        {
-            "name": "example_dataset.csv",
-            "type": "CSV",
-            "description": "",
-        },
-    ]
-}
+from test.fixtures.model_outputs import TEST_MODEL_OUTPUTS
 
 
 class TestModelOutputDataset(TestCase):

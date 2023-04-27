@@ -2,70 +2,17 @@ from unittest import TestCase
 from unittest.mock import patch
 
 from dafni_cli.api.parser import ParserBaseObject
-from dafni_cli.consts import (
-    INPUT_DEFAULT_HEADER,
-    INPUT_DESCRIPTION_HEADER,
-    INPUT_DESCRIPTION_LINE_WIDTH,
-    INPUT_MAX_HEADER,
-    INPUT_MIN_HEADER,
-    INPUT_MIN_MAX_COLUMN_WIDTH,
-    INPUT_TITLE_HEADER,
-    INPUT_TYPE_COLUMN_WIDTH,
-    INPUT_TYPE_HEADER,
-    TAB_SPACE,
-)
+from dafni_cli.consts import (INPUT_DEFAULT_HEADER, INPUT_DESCRIPTION_HEADER,
+                              INPUT_DESCRIPTION_LINE_WIDTH, INPUT_MAX_HEADER,
+                              INPUT_MIN_HEADER, INPUT_MIN_MAX_COLUMN_WIDTH,
+                              INPUT_TITLE_HEADER, INPUT_TYPE_COLUMN_WIDTH,
+                              INPUT_TYPE_HEADER, TAB_SPACE)
 from dafni_cli.model.inputs import ModelDataslot, ModelInputs, ModelParameter
 
-TEST_MODEL_INPUT_DATASLOT: dict = {
-    "name": "Inputs",
-    "path": "inputs/",
-    "default": ["0a0a0a0a-0a00-0a00-a000-0a0a0000000f"],
-    "required": True,
-}
-
-TEST_MODEL_INPUT_PARAMETER: dict = {
-    "max": 2025,
-    "min": 2016,
-    "name": "YEAR",
-    "type": "integer",
-    "title": "Year input",
-    "default": 2018,
-    "required": True,
-    "description": "Year input description",
-}
-
-TEST_MODEL_INPUTS: dict = {
-    "dataslots": [TEST_MODEL_INPUT_DATASLOT],
-    "parameters": [
-        TEST_MODEL_INPUT_PARAMETER,
-    ],
-}
-
-TEST_MODEL_INPUTS_DEFAULT: dict = {
-    "parameters": [
-        {
-            "max": 2025,
-            "min": 2016,
-            "name": "YEAR",
-            "type": "integer",
-            "title": "Year input",
-            "default": 2018,
-            "required": True,
-            "description": "Year input description",
-        },
-    ],
-}
-
-TEST_MODEL_OUTPUTS: dict = {
-    "datasets": [
-        {
-            "name": "example_dataset.csv",
-            "type": "CSV",
-            "description": "",
-        },
-    ]
-}
-
+from test.fixtures.model_inputs import (TEST_MODEL_INPUT_DATASLOT,
+                                        TEST_MODEL_INPUT_PARAMETER,
+                                        TEST_MODEL_INPUTS,
+                                        TEST_MODEL_INPUTS_DEFAULT)
 
 class TestModelDataslot(TestCase):
     """Tests the ModelDataslot dataclass"""
