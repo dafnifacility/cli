@@ -1,239 +1,264 @@
-import datetime as dt
+from dataclasses import dataclass
+from datetime import date, datetime
+from typing import ClassVar, List, Optional
 
 import click
-from dateutil import parser
 
-from dafni_cli.api.session import DAFNISession
-from dafni_cli.api.workflows_api import get_workflow  # get_workflow_metadata_dict
-from dafni_cli.auth import Auth
+from dafni_cli.api.auth import Auth
+from dafni_cli.api.parser import ParserBaseObject, ParserParam, parse_datetime
 from dafni_cli.consts import CONSOLE_WIDTH, TAB_SPACE
-from dafni_cli.utils import print_json, prose_print
-from dafni_cli.workflow.workflow_metadata import WorkflowMetadata
+from dafni_cli.utils import prose_print
+from dafni_cli.workflow.instance import WorkflowInstance
+from dafni_cli.workflow.parameter_set import WorkflowParameterSet
 
 
-class Workflow:
-    """
-    Contains information about a DAFNI workflow.
-    The information (as attributes) for a workflow can be populated from a dictionary, or a DAFNI workflow UUID.
-
-    Methods:
-        get_attributes_from_dict(dict): populates attributes from the workflow dictionary from the DAFNI API
-        get_attributes_from_id(session (DAFNISession), id (str)): populates attributes from the workflow version ID by calling DAFNI API.
-        get_metadata(session (DAFNISession)): After details have been obtained, populate metadata attributes.
-        filter_by_date(key (str), date (str)): calculates whether the workflow was created/published before a date.
-        output_details(): Prints key information of workflow to console.
-        output_metadata(): Prints key information of workflow metadata to console.
+@dataclass
+class WorkflowMetadata(ParserBaseObject):
+    """Dataclass representing a DAFNI workflows's metadata
 
     Attributes:
-        api_version: The version of the API that created the data
-        auth: credentials used to retrieve the data
-        creation_date: Date and time the workflow was created
-        description: More detailed information on the workflow
-        display_name: Name of the workflow used in the web app
-        id: ID used to identify the specific workflow version
-        instances: A list of the workflow version run instances
-        kind: The type of asset (will be 'W', workflow)
-        metadata: a sub-group containing the workflow metadata:
-            description: More detailed information on the workflow
-            display_name: Name of the workflow used in the web app
-            name: DAFNI workflow name
-            publisher: Organisation publishing the model
-            summary: One-line summary of what the workflow does
-            status: ?
-        name: DAFNI workflow name
-        owner: UUID of the workflow owner
-        parameter_sets:
-        parent: UUID of the workflow's parent
-        publication_date: Date and time the workflow was published
-        publisher: Organisation publishing the workflow
-        spec: JSON description of the workflow steps
-        summary: One-line summary of what the workflow does
-        version_history: A list of all versions of the workflow
-        version_message: Message attached when the workflow was updated to this workflow version
-        version_tags: Any tags created by the publisher for this version
+        display_name (str): The display name of the Workflow
+        name (str): Name of the Workflow
+        summary (str): A short summary of the Workflow
 
-        dictionary: Full description of the workflow as retrieved from the API
-        metadata_obj: WorkflowMetadata object containing metadata for the workflow
+        The following are only present for the /workflow/<version_id> endpoint
+        (but are guaranteed not to be None for it)
+        --------
+        publisher_id (Optional[str]): The name of the person or organisation who has
+                            published the Workflow
+        description (Optional[str]): A rich description of the Workflow
     """
 
-    def __init__(self, identifier=None):
-        # Attributes that are also workflow dictionary keys
-        self.api_version = None
-        self.auth = Auth()
-        self.creation_date = None
-        self.display_name = None
-        self.description = None  # present??
-        self.id = identifier
-        self.instances = None
-        self.kind = None
-        self.metadata = None
-        self.name = None
-        self.owner = None
-        self.parameter_sets = None
-        self.parent = None
-        self.publication_date = None
-        self.publisher = None
-        self.spec = None
-        self.summary = None
-        self.version_history = None
-        self.version_message = None
-        self.version_tags = None
+    display_name: str
+    name: str
+    summary: str
 
-        # Set of workflow dictionary keys, for use in validation functions
-        workflow_attributes = vars(self).keys()
-        self.workflow_attributes = set(workflow_attributes)
+    publisher_id: Optional[str] = None
+    description: Optional[str] = None
 
-        # Attributes that are not also workflow dictionary keys
-        self.dictionary = None
-        self.metadata_obj = None
+    _parser_params: ClassVar[List[ParserParam]] = [
+        ParserParam("display_name", "display_name", str),
+        ParserParam("name", "name", str),
+        ParserParam("summary", "summary", str),
+        ParserParam("description", "description", str),
+        ParserParam("publisher_id", "publisher", str),
+        ParserParam("summary", "summary", str),
+    ]
 
-        return
 
-    def set_attributes_from_dict(self, workflow_dict: dict):
-        """
-        Attempts to store workflow attributes from a dictionary returned from the DAFNI API.
-        Not all of the attributes need be present in workflow_dict.
+# TODO: Unify with ModelVersion
+@dataclass
+class WorkflowVersion(ParserBaseObject):
+    """Dataclass containing information on a historic version of a workflow
 
-        Args:
-            workflow_dict (dict): Dictionary returned from DAFNI API at /workflows endpoints
+    Attributes:
+        version_id (str): ID of the version
+        version_message (str): Message labelling the model version
+        version_tags (List[str]): Version tags e.g. 'latest'
+        publication_date: Date and time this version was published
+    """
+
+    version_id: str
+    version_message: str
+    version_tags: List[str]
+    publication_date: datetime
+
+    _parser_params: ClassVar[List[ParserParam]] = [
+        ParserParam("version_id", "id", str),
+        ParserParam("version_message", "version_message", str),
+        ParserParam("version_tags", "version_tags"),
+        ParserParam("publication_date", "publication_date", parse_datetime),
+    ]
+
+
+@dataclass
+class Workflow(ParserBaseObject):
+    """Dataclass representing a DAFNI workflow
+
+    Attributes:
+        workflow_id (str): Workflow ID
+        version_history (List[WorkflowVersion]): Full version history of the
+                                                 workflow
+        auth (Auth): Authentication credentials giving the permissions the
+                     current user has on the workflow
+        kind (str): Type of DAFNI object (should be "W" for workflow)
+        creation_date (datetime): Date and time the workflow was created
+        publication_date (datetime): Date and time the workflow was published
+        owner_id (str): ID of the workflow owner
+        version_tags (List[str]): Any tags created by the publisher for this
+                                  workflow version
+        version_message (str): Message attached when the workflow was updated
+                               to this workflow version
+        parent_id (str): Parent workflow ID
+        metadata (WorkflowMetadata): Metadata of the workflow
+
+
+        The following are only present for the /workflow/<version_id> endpoint
+        (but are guaranteed not to be None for it)
+        --------
+        instances (Optional[List[WorkflowInstance]]): Workflow instances
+                                (executions of this workflow)
+        parameter_sets (Optional[List[WorkflowInstance]]): Parameter sets that
+                                can be run with this workflow
+        api_version (Optional[str]): Version of the DAFNI API used to retrieve
+                                     the workflow data
+        spec (Optional[dict]): Specification of the workflow (contains the
+                              steps of the workflow)
+    """
+
+    workflow_id: str
+    version_history: List[WorkflowVersion]
+    auth: Auth
+    kind: str
+    creation_date: datetime
+    publication_date: datetime
+    owner_id: str
+    version_tags: List[str]
+    version_message: str
+    parent_id: str
+
+    instances: Optional[List[WorkflowInstance]] = None
+    parameter_sets: Optional[List[WorkflowParameterSet]] = None
+    api_version: Optional[str] = None
+    # TODO: Left as a dict for now, would just need its own parsing function
+    spec: Optional[dict] = None
+
+    # Internal metadata storage - Defined explicitly for the
+    # /workflow/<version_id> endpoint but is None otherwise, the property
+    # 'metadata' handles this discrepancy
+    _metadata: Optional[WorkflowMetadata] = None
+
+    # These are found in ModelMetadata but appear here when using the
+    # /workflows endpoint, the property 'metadata' handles this discrepancy
+    _display_name: Optional[str] = None
+    _name: Optional[str] = None
+    _summary: Optional[str] = None
+
+    _parser_params: ClassVar[List[ParserParam]] = [
+        ParserParam("workflow_id", "id", str),
+        ParserParam("version_history", "version_history", WorkflowVersion),
+        ParserParam("auth", "auth", Auth),
+        ParserParam("kind", "kind", str),
+        ParserParam("creation_date", "creation_date", parse_datetime),
+        ParserParam("publication_date", "publication_date", parse_datetime),
+        ParserParam("owner_id", "owner", str),
+        ParserParam("version_tags", "version_tags"),
+        ParserParam("version_message", "version_message", str),
+        ParserParam("parent_id", "parent", str),
+        ParserParam("instances", "instances", WorkflowInstance),
+        ParserParam("parameter_sets", "parameter_sets", WorkflowParameterSet),
+        ParserParam("api_version", "api_version", str),
+        ParserParam("spec", "spec"),
+        ParserParam("_metadata", "metadata", WorkflowMetadata),
+        ParserParam("_display_name", "display_name", str),
+        ParserParam("_name", "name", str),
+        ParserParam("_summary", "summary", str),
+    ]
+
+    @property
+    def metadata(self) -> WorkflowMetadata:
+        """WorkflowMetadata: Metadata of the workflow
+
+        In the case of loading a Workflow from the /workflow/<version_id>
+        endpoint this will just return the metadata loaded directly from the
+        json. In the case of the /workflows endpoint this will create and
+        return a new instance containing most of the parameters as described in
+        WorkflowMetadata, having obtained them from their locations that are
+        different for this endpoint.
 
         Returns:
-            a set of attributes of Workflow that could not be set as they were not present in workflow_dict
+            WorkflowMetadata: Metadata of the workflow
         """
-        workflow_attributes = self.workflow_attributes
-        # special_attributes = {"auth", "creation_date", "publication_date"}
-        # workflow_attributes = self.workflow_attributes.difference_update(special_attributes)
 
-        missing_workflow_attributes = set()
-        for key in workflow_attributes:
-            try:
-                setattr(self, key, workflow_dict[key])
-            except:
-                missing_workflow_attributes.add(key)
-            pass
+        # Return what already exists if possible
+        if self._metadata is not None:
+            return self._metadata
+        # In the case of the /models endpoint, _metadata won't be assigned but
+        # most of the parameters will be assigned in model, so create the
+        # metadata instance here to ensure consistency in the rest of the code
+        self._metadata = WorkflowMetadata(
+            display_name=self._display_name,
+            name=self._name,
+            summary=self._summary,
+        )
+        return self._metadata
 
-        # Special treatment. If these keys are not in the missing attributes set, then
-        # they have already been added above and we just need to ignore the exception
-        try:
-            self.auth = Auth(workflow_dict["auth"])
-        except:
-            pass
-
-        try:
-            self.creation_date = parser.isoparse(workflow_dict["creation_date"])
-        except:
-            pass
-
-        try:
-            self.publication_date = parser.isoparse(workflow_dict["publication_date"])
-        except:
-            pass
-
-        #  If workflow_dict is not a dictionary then an exception will have already been raised
-        self.dictionary = workflow_dict
-
-        return missing_workflow_attributes
-
-    def get_attributes_from_id(self, session: str, version_id_string: str):
-        """
-        Retrieve workflow attributes from the DAFNI API using the /workflows/<version-id> endpoint.
+    # TODO: Unify with Model
+    def filter_by_date(self, key: str, date_str: str) -> bool:
+        """Returns whether a particular date is less than or equal to the
+           creation/publication date of this workflow.
 
         Args:
-            session (DAFNISession): User session
-            version_id_string (str): Version ID of the workflow
-        """
-        workflow_dict = get_workflow(session, version_id_string)
-        self.set_attributes_from_dict(workflow_dict)
-        # TODO: Check: Version message key appears on single workflow API response, but not list of all workflows response
-        self.version_message = workflow_dict["version_message"]
-        return
-
-    def get_metadata(self, session: DAFNISession):
-        """
-        Retrieve metadata for the workflow using the workflow details.
-
-        Args:
-            session (DAFNISession): User session
-        """
-        #        metadata_dict = get_workflow_metadata_dict(session, self.id)
-        self.metadata_obj = WorkflowMetadata(self.dictionary)
-        return
-
-    def filter_by_date(self, key: str, date: str) -> bool:
-        """Filters workflows based on the date given as an option.
-        Args:
-            key (str): Key for WORKFLOW_DICT in which date is contained
-            date (str): Date for which workflows are to be filtered on: format DD/MM/YYYY
+            key (str): Key for which date to check must be either 'creation'
+                       or 'publication'
+            date_str (str): Date for which workflows are to be filtered on -
+                            format DD/MM/YYYY
 
         Returns:
-            bool: Whether to display the workflow based on the filter
+            bool: Whether the given date is less than or equal to the
+                  chosen date
         """
-        day, month, year = date.split("/")
-        date = dt.date(int(year), int(month), int(day))
+        day, month, year = date_str.split("/")
+        date_val = date(int(year), int(month), int(day))
         if key.lower() == "creation":
-            return self.creation_date.date() >= date
-        elif key.lower() == "publication":
-            return self.publication_date.date() >= date
-        else:
-            raise KeyError("Key should be CREATION or PUBLICATION")
+            return self.creation_date.date() >= date_val
+        if key.lower() == "publication":
+            return self.publication_date.date() >= date_val
+        raise KeyError("Key should be 'creation' or 'publication'")
 
     def output_details(self, long: bool = False):
-        """
-        Prints relevant workflow attributes to command line
+        """Prints relevant workflow attributes to command line
+
+        Args:
+            long (bool): Whether to print with the (potentially long)
+                         description (ignored if description is None)
         """
         click.echo(
             "Name: "
-            + self.display_name
+            + self.metadata.display_name
             + TAB_SPACE
             + "ID: "
-            + self.id
+            + self.workflow_id
             + TAB_SPACE
             + "Date: "
             + self.creation_date.date().strftime("%B %d %Y")
         )
-        click.echo("Summary: " + self.summary)
-        if long:
+        click.echo("Summary: " + self.metadata.summary)
+        if long and self.metadata.description is not None:
             click.echo("Description: ")
-            prose_print(self.description, CONSOLE_WIDTH)
+            prose_print(self.metadata.description, CONSOLE_WIDTH)
         click.echo("")
-        return
 
-    def output_metadata(self, json_flag: bool = False):
-        """
-        Prints the metadata for the workflow to command line.
+    def output_info(self):
+        """Prints information about the workflow to command line"""
 
-        Args:
-            json_flag (bool): Whether to print raw json or pretty print information. Defaults to False.
-        """
-        if not json_flag:
-            click.echo("Name: " + self.metadata["display_name"])
-            click.echo("Date: " + self.creation_date.strftime("%B %d %Y"))
-            click.echo("Summary: ")
-            click.echo(self.metadata["summary"])
-            prose_print(self.metadata["description"], CONSOLE_WIDTH)
-            click.echo("")
-            if self.metadata_obj.inputs:
-                click.echo("Input Parameters: ")
-                click.echo(self.metadata_obj.format_parameters())
-                click.echo("Input Data Slots: ")
-                click.echo(self.metadata_obj.format_dataslots())
-            if self.metadata_obj.outputs:
-                click.echo("Outputs: ")
-                click.echo(self.metadata_obj.format_outputs())
-        else:
-            print_json(self.dictionary)
-        return
+        click.echo("Name: " + self.metadata.display_name)
+        click.echo("Date: " + self.creation_date.strftime("%B %d %Y"))
+        click.echo("Summary: ")
+        click.echo(self.metadata.summary)
+        prose_print(self.metadata.description, CONSOLE_WIDTH)
+        click.echo("")
 
-    def output_version_details(self) -> str:
-        """
-        Prints version ID, display name, publication time and version message on one line
+        # TODO: Update this so can view inputs and outputs?
+        # if self.metadata_obj.inputs:
+        #     click.echo("Input Parameters: ")
+        #     click.echo(self.metadata_obj.format_parameters())
+        #     click.echo("Input Data Slots: ")
+        #     click.echo(self.metadata_obj.format_dataslots())
+        # if self.metadata_obj.outputs:
+        #     click.echo("Outputs: ")
+        #     click.echo(self.metadata_obj.format_outputs())
+
+    def get_version_details(self) -> str:
+        """Returns a string with the workflow ID, display name, publication
+        time and version message on one line
         """
         return (
             "ID: "
-            + self.id
+            + self.workflow_id
             + TAB_SPACE
             + "Name: "
-            + self.metadata["display_name"]
+            + self.metadata.display_name
             + TAB_SPACE
             + "Publication date: "
             + self.publication_date.date().strftime("%B %d %Y")
@@ -241,3 +266,33 @@ class Workflow:
             + "Version message: "
             + self.version_message
         )
+
+    def output_version_history(self):
+        """Prints the version history for the workflow to the command line"""
+        for version in self.version_history:
+            click.echo(
+                "Name: "
+                + self.metadata.display_name
+                + TAB_SPACE
+                + "ID: "
+                + version.version_id
+                + TAB_SPACE
+                + "Date: "
+                + version.publication_date.strftime("%B %d %Y")
+            )
+            click.echo(f"Version message: {version.version_message}")
+            click.echo(f"Version tags: {', '.join(version.version_tags)}")
+            click.echo("")
+
+
+# The following methods mostly exists to get round current python limitations
+# with typing (see https://stackoverflow.com/questions/33533148/how-do-i-type-hint-a-method-with-the-type-of-the-enclosing-class)
+def parse_workflows(workflow_dictionary_list: List[dict]) -> List[Workflow]:
+    """Parses the output of get_all_workflows and returns a list of Workflow
+    instances"""
+    return ParserBaseObject.parse_from_dict_list(Workflow, workflow_dictionary_list)
+
+
+def parse_workflow(workflow_dictionary: dict) -> Workflow:
+    """Parses the output of get_workflow and returns Workflow instance"""
+    return ParserBaseObject.parse_from_dict(Workflow, workflow_dictionary)

@@ -107,7 +107,7 @@ def minio_get_request(
     file_url = url.replace(DATA_DOWNLOAD_API_URL, DATA_DOWNLOAD_REDIRECT_API_URL)
     return session.get_request(
         file_url,
-        headers={"Content-Type": "application/json"},
+        content_type="application/json",
         allow_redirect=allow_redirect,
         content=content,
         raise_status=True,

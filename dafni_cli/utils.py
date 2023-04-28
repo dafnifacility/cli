@@ -3,11 +3,10 @@ import textwrap
 from dataclasses import fields
 from datetime import datetime as dt
 from io import BytesIO
-from typing import List, Optional, Type, Union
+from typing import Any, List, Optional, Type, Union
 from zipfile import ZipFile
 
 import click
-from dateutil.parser import isoparse
 
 
 def prose_print(prose: str, width: int):
@@ -41,22 +40,19 @@ def process_response_to_class_list(response: List[dict], class_instance: object)
     return class_list
 
 
-def optional_column(
-    dictionary: dict, key: str, column_width: int = 0, alignment: str = "<"
-):
+def optional_column(value: Optional[Any], column_width: int = 0, alignment: str = "<"):
     """Adds a value to a column, if the key exists in the dictionary
     and adds spaces of the appropriate width if not.
 
     Args:
-         dictionary (dict): Dictionary with data inside
-         key (str): Key of the data that is to be checked and added if present
+         value (Optional[Any]): Data that is to be checked and added if present
          column_width (int): Number of spaces to be returned instead if the key is not present
          alignment (str): Specified alignment of column
     Returns:
         entry (str): Either the value of the entry to be put into the table, column_width number of spaces
     """
-    if key in dictionary:
-        entry_string = str(dictionary[key])
+    if value is not None:
+        entry_string = str(value)
         if column_width > 0:
             entry = f"{entry_string:{alignment}{column_width}}"
         elif column_width == 0:
@@ -80,64 +76,6 @@ def process_date_filter(date_str: str) -> str:
     """
     # TODO use this datetime format (ISO8601) and use as a constant here
     return dt.strptime(date_str, "%d/%m/%Y").strftime("%Y-%m-%dT%H:%M:%S")
-
-
-# TODO remove this whole function and use dict.get(key, default)
-def check_key_in_dict(
-    input_dict: dict,
-    keys: List[str],
-    default: Optional[Union[str, int, dict, bool]] = "N/A",
-) -> Optional[Union[str, int, dict, bool]]:
-    """Utility function to check a nested dict for a given
-    key and nested keys if applicable. If the keys exist, the
-    associated value is returned, otherwise the default value is returned.
-
-    Args:
-        input_dict (dict): dict to check in for keys
-        keys (List[str]): keys to check for, with nested keys being subsequent elements of the list
-        default (Union[str, int, dict, bool], optional): default value if key(s) not found. Defaults to "N/A".
-
-    Returns:
-        Union[str, int, dict, bool], optional: Value associated with given dict and key(s)
-    """
-    _element = None
-    if isinstance(input_dict, dict):
-        _element = input_dict
-        for key in keys:
-            try:
-                _element = _element[key]
-            except BaseException:
-                return default
-
-    if _element is not None:
-        return _element
-    return default
-
-
-# TODO change to process_datetime
-def process_dict_datetime(input_dict: dict, keys: List[str], default="N/A") -> str:
-    """Utility function to check a nested dict for a given
-    key and nested key if applicable. If the keys exist, the
-    associated value is parsed to a datetime and then formatted to an
-    applicable datetime string, otherwise the default value is returned.
-    This function will only parse datetimes in the ISO date format
-
-    Args:
-        input_dict (dict): dict to check in for keys
-        keys (List[str]): keys to check for
-        nested_key (Optional[str], optional): A nested key to check for. Defaults to None.
-        default (Optional[str], optional): default value if key(s) not found. Defaults to "N/A".
-
-    Returns:
-        str: Parsed datetime associated with given dict and key(s)
-    """
-    value = check_key_in_dict(input_dict, keys, None)
-    if value:
-        try:
-            return isoparse(value).strftime("%B %d %Y")
-        except ValueError:
-            return value
-    return default
 
 
 def output_table_row(

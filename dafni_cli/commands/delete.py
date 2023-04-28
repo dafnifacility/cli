@@ -3,12 +3,12 @@ from typing import List
 import click
 from click import Context
 
-from dafni_cli.api.models_api import delete_model
+from dafni_cli.api.models_api import delete_model, get_model
 from dafni_cli.api.session import DAFNISession
-from dafni_cli.api.workflows_api import delete_workflow
-from dafni_cli.model.model import Model
+from dafni_cli.api.workflows_api import delete_workflow, get_workflow
+from dafni_cli.model.model import Model, parse_model
 from dafni_cli.utils import argument_confirmation
-from dafni_cli.workflow.workflow import Workflow
+from dafni_cli.workflow.workflow import Workflow, parse_workflow
 
 
 ###############################################################################
@@ -46,16 +46,15 @@ def collate_model_version_details(
     model_version_details_list = []
     for vid in version_id_list:
         # Find details of each model version that will be deleted
-        model_version = Model(vid)
-        model_version.get_attributes_from_id(session, vid)
+        model_version: Model = parse_model(get_model(session, vid))
         # Exit if user doesn't have necessary permissions
         if not model_version.auth.destroy:
             click.echo(
                 "You do not have sufficient permissions to delete model version:"
             )
-            click.echo(model_version.output_version_details())
+            click.echo(model_version.get_version_details())
             raise SystemExit(1)
-        model_version_details_list.append(model_version.output_version_details())
+        model_version_details_list.append(model_version.get_version_details())
     return model_version_details_list
 
 
@@ -102,16 +101,15 @@ def collate_workflow_version_details(
     workflow_version_details_list = []
     for vid in version_id_list:
         # Find details of each workflow version that will be deleted
-        workflow_version = Workflow(vid)
-        workflow_version.get_attributes_from_id(session, vid)
+        workflow_version = parse_workflow(get_workflow(session, vid))
         # Exit if user doesn't have necessary permissions
         if not workflow_version.auth.destroy:
             click.echo(
                 "You do not have sufficient permissions to delete workflow version:"
             )
-            click.echo(workflow_version.output_version_details())
+            click.echo(workflow_version.get_version_details())
             raise SystemExit(1)
-        workflow_version_details_list.append(workflow_version.output_version_details())
+        workflow_version_details_list.append(workflow_version.get_version_details())
     return workflow_version_details_list
 
 

@@ -26,12 +26,11 @@ The requirements.txt file contains all required python module dependencies for b
 
 ___
 ## Running the tests
-Whilst running the activated venv created locally for the dafni-cli, ensure you are in the root directory of the git repository, and run the following to run all tests:
+Whilst running the activated venv created locally for the dafni-cli, ensure you are in the root directory of the git repository, and use the following to run all tests:
 
-`python -m pytest -vv test`
+`python -m unittest`
 
-The `-vv` argument is to make pytest output information on any failing tests in a verbose manner.
-
+**Note**: Some tests currently fail as they are outdated
 ___
 ## Deployment 
 

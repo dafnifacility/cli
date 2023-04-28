@@ -4,20 +4,18 @@ import click
 from click import Context
 
 from dafni_cli.api.datasets_api import get_all_datasets, get_latest_dataset_metadata
-from dafni_cli.api.models_api import get_all_models
+from dafni_cli.api.models_api import get_all_models, get_model
 from dafni_cli.api.session import DAFNISession
-from dafni_cli.api.workflows_api import get_all_workflows
-from dafni_cli.datasets import (
-    dataset_filtering,
-    dataset_metadata,
-    dataset_version_history,
+from dafni_cli.api.workflows_api import (
+    get_all_workflows,
+    get_workflow,
 )
-from dafni_cli.datasets.dataset import Dataset
-from dafni_cli.model.model import Model
-from dafni_cli.model.version_history import ModelVersionHistory
-from dafni_cli.utils import print_json, process_response_to_class_list
-from dafni_cli.workflow.version_history import WorkflowVersionHistory
-from dafni_cli.workflow.workflow import Workflow
+from dafni_cli.datasets import dataset_filtering
+from dafni_cli.datasets.dataset import parse_datasets
+from dafni_cli.datasets.dataset_metadata import parse_dataset_metadata
+from dafni_cli.model.model import parse_model, parse_models
+from dafni_cli.utils import print_json
+from dafni_cli.workflow.workflow import parse_workflow, parse_workflows
 
 
 @click.group(help="Lists entities available to the user")
@@ -78,19 +76,20 @@ def models(
         json (bool): whether to print the raw json returned by the DAFNI API
     """
     model_dict_list = get_all_models(ctx.obj["session"])
-    model_list = process_response_to_class_list(model_dict_list, Model)
+    model_list = parse_models(model_dict_list)
+
     filtered_model_dict_list = []
-    for model in model_list:
+    for model_inst, model_dict in zip(model_list, model_dict_list):
         date_filter = True
         if creation_date:
-            date_filter = model.filter_by_date("creation", creation_date)
+            date_filter = model_inst.filter_by_date("creation", creation_date)
         if publication_date:
-            date_filter = model.filter_by_date("publication", publication_date)
+            date_filter = model_inst.filter_by_date("publication", publication_date)
         if date_filter:
             if json:
-                filtered_model_dict_list.append(model.dictionary)
+                filtered_model_dict_list.append(model_dict)
             else:
-                model.output_details(long)
+                model_inst.output_details(long)
     if json:
         print_json(filtered_model_dict_list)
 
@@ -121,15 +120,21 @@ def model(ctx: Context, version_id: List[str], version_history: bool, json: bool
         json (bool): Whether to output raw json from API or pretty print metadata/version history. Defaults to False.
     """
     for vid in version_id:
-        model = Model(vid)
-        model.get_attributes_from_id(ctx.obj["session"], vid)
+        model_dictionary = get_model(ctx.obj["session"], vid)
 
         if version_history:
-            history = ModelVersionHistory(ctx.obj["session"], model)
-            history.output_version_history(json)
+            if json:
+                for version_json in model_dictionary["version_history"]:
+                    print_json(version_json)
+            else:
+                model_inst = parse_model(model_dictionary)
+                model_inst.output_version_history()
         else:
-            model.get_metadata()
-            model.output_metadata(json)
+            if json:
+                print_json(model_dictionary)
+            else:
+                model_inst = parse_model(model_dictionary)
+                model_inst.output_info()
 
 
 ###############################################################################
@@ -180,15 +185,13 @@ def datasets(
         json (Optional[bool]): Whether to output raw json from API or pretty print information. Defaults to False.
     """
     filters = dataset_filtering.process_datasets_filters(search, start_date, end_date)
-    datasets_response = get_all_datasets(ctx.obj["session"], filters)
+    dataset_dict_list = get_all_datasets(ctx.obj["session"], filters)
     if json:
-        print_json(datasets_response)
+        print_json(dataset_dict_list)
     else:
-        datasets = process_response_to_class_list(
-            datasets_response["metadata"], Dataset
-        )
-        for dataset_model in datasets:
-            dataset_model.output_dataset_details()
+        dataset_list = parse_datasets(dataset_dict_list)
+        for dataset_inst in dataset_list:
+            dataset_inst.output_dataset_details()
 
 
 @get.command(help="Prints metadata or version history of a dataset version")
@@ -234,17 +237,18 @@ def dataset(
         json (bool): Flag to view json returned from API
     """
     metadata = get_latest_dataset_metadata(ctx.obj["session"], id, version_id)
+
     if not version_history:
         if json:
             print_json(metadata)
         else:
-            dataset_meta = dataset_metadata.DatasetMetadata(metadata)
-            dataset_meta.output_metadata_details(long)
+            metadata_inst = parse_dataset_metadata(metadata)
+            metadata_inst.output_metadata_details(long)
     else:
-        version_history = dataset_version_history.DatasetVersionHistory(
-            ctx.obj["session"], metadata
+        metadata_inst = parse_dataset_metadata(metadata)
+        metadata_inst.version_history.process_and_output_version_history(
+            ctx.obj["session"], json
         )
-        version_history.process_version_history(json)
 
 
 ###############################################################################
@@ -293,19 +297,20 @@ def workflows(
         json (bool): whether to print the raw json returned by the DAFNI API
     """
     workflow_dict_list = get_all_workflows(ctx.obj["session"])
-    workflow_list = process_response_to_class_list(workflow_dict_list, Workflow)
+    workflow_list = parse_workflows(workflow_dict_list)
+
     filtered_workflow_dict_list = []
-    for workflow in workflow_list:
+    for workflow_inst, workflow_dict in zip(workflow_list, workflow_dict_list):
         date_filter = True
         if creation_date:
-            date_filter = workflow.filter_by_date("creation", creation_date)
+            date_filter = workflow_inst.filter_by_date("creation", creation_date)
         if publication_date:
-            date_filter = workflow.filter_by_date("publication", publication_date)
+            date_filter = workflow_inst.filter_by_date("publication", publication_date)
         if date_filter:
             if json:
-                filtered_workflow_dict_list.append(workflow.dictionary)
+                filtered_workflow_dict_list.append(workflow_dict)
             else:
-                workflow.output_details(long)
+                workflow_inst.output_details(long)
     if json:
         print_json(filtered_workflow_dict_list)
 
@@ -340,15 +345,21 @@ def workflow(ctx: Context, version_id: List[str], version_history: bool, json: b
         json (bool): Whether to output raw json from API or pretty print metadata/version history. Defaults to False.
     """
     for vid in version_id:
-        workflow = Workflow(vid)
-        workflow.get_attributes_from_id(ctx.obj["session"], vid)
+        workflow_dictionary = get_workflow(ctx.obj["session"], vid)
 
         if version_history:
-            history = WorkflowVersionHistory(ctx.obj["session"], workflow)
-            history.output_version_history(json)
+            if json:
+                for version_json in workflow_dictionary["version_history"]:
+                    print_json(version_json)
+            else:
+                workflow_inst = parse_workflow(workflow_dictionary)
+                workflow_inst.output_version_history()
         else:
-            workflow.get_metadata(ctx.obj["session"])
-            workflow.output_metadata(json)
+            if json:
+                print_json(workflow_dictionary)
+            else:
+                workflow_inst = parse_workflow(workflow_dictionary)
+                workflow_inst.output_info()
 
 
 @get.command()
