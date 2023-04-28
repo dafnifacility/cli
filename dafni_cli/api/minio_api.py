@@ -85,7 +85,7 @@ def upload_dataset_metadata(
     """
     url = f"{DATA_UPLOAD_API_URL}/nid/dataset/"
     data = {"bucketId": upload_id, "metadata": metadata}
-    return session.post_request(url=url, json=data, raise_status=False)
+    return session.post_request(url=url, json=data)
 
 
 def minio_get_request(
@@ -110,5 +110,4 @@ def minio_get_request(
         content_type="application/json",
         allow_redirect=allow_redirect,
         content=content,
-        raise_status=True,
     )

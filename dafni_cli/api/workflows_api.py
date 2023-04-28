@@ -12,6 +12,7 @@ from pathlib import Path
 from typing import List, Tuple
 
 from requests import Response
+from dafni_cli.api.exceptions import EndpointNotFoundError, ResourceNotFoundError
 
 from dafni_cli.api.session import DAFNISession
 from dafni_cli.consts import WORKFLOWS_API_URL
@@ -31,19 +32,30 @@ def get_all_workflows(session: DAFNISession) -> List[dict]:
     return session.get_request(url)
 
 
-def get_workflow(session: DAFNISession, workflow_version_id: str) -> dict:
+def get_workflow(session: DAFNISession, version_id: str) -> dict:
     """
     Call the "workflows" endpoint and return the resulting dictionary.
 
     Args:
         session (DAFNISession): User session
-        workflow_version_id (str): workflow version ID for selected workflow
+        version_id (str): workflow version ID for selected workflow
 
     Returns:
         dict: dictionary for the details of selected workflow
+
+    Raises:
+        ResourceNotFoundError: If a workflow with the given version_id wasn't
+                               found
     """
-    url = WORKFLOWS_API_URL + "/workflows/" + workflow_version_id + "/"
-    return session.get_request(url)
+    url = WORKFLOWS_API_URL + "/workflows/" + version_id + "/"
+
+    try:
+        return session.get_request(url)
+    except EndpointNotFoundError as err:
+        # When the endpoint isn't found it means the workflow wasn't found
+        raise ResourceNotFoundError(
+            f"Unable to find a workflow with version id '{version_id}'"
+        ) from err
 
 
 def upload_workflow(
@@ -91,13 +103,13 @@ def upload_workflow(
 #    return dafni_post_request(url, jwt, workflow_description)
 
 
-def delete_workflow(session: DAFNISession, workflow_version_id: str) -> Response:
+def delete_workflow(session: DAFNISession, version_id: str) -> Response:
     """
     Calls the workflows_delete endpoint
 
     Args:
         session (DAFNISession): User session
-        workflow_version_id (str): version ID of workflow to be deleted
+        version_id (str): version ID of workflow to be deleted
     """
-    url = WORKFLOWS_API_URL + "/workflows/" + workflow_version_id
+    url = WORKFLOWS_API_URL + "/workflows/" + version_id
     return session.delete_request(url)
