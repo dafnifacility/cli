@@ -1,855 +1,1179 @@
-import pytest
+from unittest import TestCase
+from unittest.mock import ANY, MagicMock, patch
+
 from click.testing import CliRunner
-from mock import call, patch
 
 from dafni_cli.commands import get
-from dafni_cli.datasets import dataset, dataset_metadata, dataset_version_history
-from dafni_cli.model import model, version_history
-
-from test.fixtures.dataset_fixtures import (
-    dataset_metadata_fixture,
-    get_dataset_list_fixture,
-)
-from test.fixtures.jwt_fixtures import processed_jwt_fixture
-from test.fixtures.model_fixtures import (
-    get_model_metadata_fixture,
-    get_models_list_fixture,
-)
 
 
-class TestGet:
-    """test class to test the get() command functionality"""
+@patch("dafni_cli.commands.get.DAFNISession")
+class TestGet(TestCase):
+    """Test class to test the get command"""
+
+    def test_session_retrieved_and_set_on_context(self, mock_DAFNISession):
+        """Tests that the session is created in the click context"""
+        # SETUP
+        session = MagicMock()
+        mock_DAFNISession.return_value = session
+        runner = CliRunner()
+        ctx = {}
+
+        # CALL
+        result = runner.invoke(get.get, ["models"], obj=ctx)
+
+        # ASSERT
+        mock_DAFNISession.assert_called_once()
+
+        self.assertEqual(ctx["session"], session)
+        self.assertEqual(result.exit_code, 0)
+
+    # ----------------- MODELS
 
     @patch("dafni_cli.commands.get.get_all_models")
-    @patch("dafni_cli.commands.get.check_for_jwt_file")
-    class TestInit:
-        """Test class to test the get() group processing of the
-        JWT
-        """
-
-        def test_jwt_retrieved_and_set_on_context(
-            self, mock_jwt, mock_models, processed_jwt_fixture
-        ):
-            # SETUP
-            mock_models.return_value = []
-            mock_jwt.return_value = processed_jwt_fixture, False
-            runner = CliRunner()
-            ctx = {}
-
-            # CALL
-            result = runner.invoke(get.get, ["models"], obj=ctx)
-
-            # ASSERT
-            mock_jwt.assert_called_once()
-
-            assert ctx["jwt"] == processed_jwt_fixture["jwt"]
-
-            assert result.exit_code == 0
-
-    @patch.object(model.Model, "filter_by_date")
-    @patch.object(model.Model, "output_details")
-    @patch("dafni_cli.commands.get.get_all_models")
-    @patch("dafni_cli.commands.get.check_for_jwt_file")
-    class TestModels:
-        """Test class to test the get.models command"""
-
-        @patch("dafni_cli.commands.get.process_response_to_class_list")
-        def test_get_models_dict_called_with_jwt_from_context(
-            self,
-            mock_list,
-            mock_jwt,
-            mock_get,
-            mock_output,
-            mock_filter,
-            processed_jwt_fixture,
-            get_models_list_fixture,
-        ):
-            # SETUP
-            # setup get group command
-            mock_jwt.return_value = processed_jwt_fixture, False
-            # setup get_all_models call
-            models = get_models_list_fixture
-            mock_get.return_value = models
-            # setup create_model_list call
-            mock_list.return_value = []
-            # Setup click
-            runner = CliRunner()
-
-            # CALL
-            result = runner.invoke(get.get, ["models"])
-
-            # ASSERT
-            mock_get.assert_called_once_with(processed_jwt_fixture["jwt"])
-            mock_list.assert_called_once_with(models, model.Model)
-
-            assert result.exit_code == 0
-
-        def test_output_model_details_called_on_all_models_if_no_option_given(
-            self,
-            mock_jwt,
-            mock_get,
-            mock_output,
-            mock_filter,
-            processed_jwt_fixture,
-            get_models_list_fixture,
-        ):
-            # SETUP
-            # setup get group command
-            mock_jwt.return_value = processed_jwt_fixture, False
-            # setup get_all_models call
-            models = get_models_list_fixture
-            mock_get.return_value = models
-            # Setup click
-            runner = CliRunner()
-
-            # CALL
-            result = runner.invoke(get.get, ["models"])
-
-            # ASSERT
-            assert mock_output.call_count == len(models)
-            mock_filter.assert_not_called()
-
-            assert result.exit_code == 0
-
-        @pytest.mark.parametrize(
-            "option, value",
-            [("--creation-date", "creation"), ("--publication-date", "publication")],
-        )
-        def test_output_model_details_called_on_no_models_if_filter_options_return_no_models(
-            self,
-            mock_jwt,
-            mock_get,
-            mock_output,
-            mock_filter,
-            option,
-            value,
-            processed_jwt_fixture,
-            get_models_list_fixture,
-        ):
-            # SETUP
-            date = "01/02/2021"
-            # setup get group command
-            mock_jwt.return_value = processed_jwt_fixture, False
-            # setup get_all_models call
-            models = get_models_list_fixture
-            mock_get.return_value = models
-            # setup filter_by_date return so that no models are displayed
-            mock_filter.return_value = False
-            # Setup click
-            runner = CliRunner()
-
-            # CALL
-            result = runner.invoke(get.get, ["models", option, date])
-
-            # ASSERT
-            assert mock_output.call_count == 0
-            assert mock_filter.call_args_list == [call(value, date), call(value, date)]
-            assert result.exit_code == 0
-
-        @pytest.mark.parametrize(
-            "option, value",
-            [("--creation-date", "creation"), ("--publication-date", "publication")],
-        )
-        def test_output_model_details_called_on_a_model_if_filter_options_return_models(
-            self,
-            mock_jwt,
-            mock_get,
-            mock_output,
-            mock_filter,
-            option,
-            value,
-            processed_jwt_fixture,
-            get_models_list_fixture,
-        ):
-            # SETUP
-            date = "01/02/2021"
-            # setup get group command
-            mock_jwt.return_value = processed_jwt_fixture, False
-            # setup get_all_models call
-            models = get_models_list_fixture
-            mock_get.return_value = models
-            # setup filter_by_date return so that the second model is displayed
-            mock_filter.side_effect = False, True
-            # Setup click
-            runner = CliRunner()
-
-            # CALL
-            result = runner.invoke(get.get, ["models", option, date])
-
-            # ASSERT
-            assert mock_output.call_count == 1
-            assert mock_filter.call_args_list == [call(value, date), call(value, date)]
-            assert result.exit_code == 0
-
-        @patch("dafni_cli.commands.get.print_json")
-        def test_print_json_method_called_on_each_model_if_json_option_chosen_without_date_filter(
-            self,
-            mock_print,
-            mock_jwt,
-            mock_get,
-            mock_output,
-            mock_filter,
-            processed_jwt_fixture,
-            get_models_list_fixture,
-        ):
-            # SETUP
-            # setup get group command
-            mock_jwt.return_value = processed_jwt_fixture, False
-            # setup get_all_models call
-            models = get_models_list_fixture
-            mock_get.return_value = models
-            # Setup click
-            runner = CliRunner()
-
-            # CALL
-            result = runner.invoke(get.get, ["models", "--json"])
-
-            # ASSERT
-            mock_output.assert_not_called()
-            mock_filter.assert_not_called()
-            mock_print.assert_called_once_with(get_models_list_fixture)
-            assert result.exit_code == 0
-
-        @patch("dafni_cli.commands.get.print_json")
-        @pytest.mark.parametrize(
-            "option, value",
-            [("--creation-date", "creation"), ("--publication-date", "publication")],
-        )
-        def test_empty_list_printed_if_filter_options_return_no_models_and_json_option_chosen(
-            self,
-            mock_print,
-            mock_jwt,
-            mock_get,
-            mock_output,
-            mock_filter,
-            option,
-            value,
-            processed_jwt_fixture,
-            get_models_list_fixture,
-        ):
-            # SETUP
-            date = "01/02/2021"
-            # setup get group command
-            mock_jwt.return_value = processed_jwt_fixture, False
-            # setup get_all_models call
-            models = get_models_list_fixture
-            mock_get.return_value = models
-            # setup filter_by_date return so that no models are displayed
-            mock_filter.return_value = False
-            # Setup click
-            runner = CliRunner()
-
-            # CALL
-            result = runner.invoke(get.get, ["models", "--json", option, date])
-
-            # ASSERT
-            assert mock_output.call_count == 0
-            assert mock_filter.call_args_list == [call(value, date), call(value, date)]
-            mock_print.assert_called_once_with([])
-            assert result.exit_code == 0
-
-        @patch("dafni_cli.commands.get.print_json")
-        @pytest.mark.parametrize(
-            "option, value",
-            [("--creation-date", "creation"), ("--publication-date", "publication")],
-        )
-        def test_only_dictionaries_of_models_that_make_it_through_filter_are_printed_with_json_option(
-            self,
-            mock_print,
-            mock_jwt,
-            mock_get,
-            mock_output,
-            mock_filter,
-            option,
-            value,
-            processed_jwt_fixture,
-            get_models_list_fixture,
-        ):
-            # SETUP
-            date = "01/02/2021"
-            # setup get group command
-            mock_jwt.return_value = processed_jwt_fixture, False
-            # setup get_all_models call
-            models = get_models_list_fixture
-            mock_get.return_value = models
-            # setup filter_by_date return so that the second model is displayed
-            mock_filter.side_effect = False, True
-            # Setup click
-            runner = CliRunner()
-
-            # CALL
-            result = runner.invoke(get.get, ["models", "--json", option, date])
-
-            # ASSERT
-            assert mock_output.call_count == 0
-            assert mock_filter.call_args_list == [call(value, date), call(value, date)]
-            mock_print.assert_called_once_with([get_models_list_fixture[1]])
-            assert result.exit_code == 0
-
-    @patch.object(model.Model, "get_details_from_id")
-    @patch("dafni_cli.model.model.get_model")
-    @patch("dafni_cli.commands.get.check_for_jwt_file")
-    class TestModel:
-        """Test class to test the get.models command"""
-
-        @pytest.mark.parametrize(
-            "json_flag, value",
-            [("--json", True), ("--pretty", False)],
-        )
-        @patch.object(model.Model, "get_metadata")
-        @patch.object(model.Model, "output_metadata")
-        @patch("dafni_cli.model.model.get_model_metadata_dict")
-        def test_model_methods_each_called_once_when_one_version_id_given(
-            self,
-            mock_set_metadata,
-            mock_output,
-            mock_get_metadata,
-            mock_jwt,
-            mock_get,
-            mock_details,
-            json_flag,
-            value,
-            processed_jwt_fixture,
-            get_models_list_fixture,
-            get_model_metadata_fixture,
-        ):
-            # SETUP
-            # setup get jwt
-            mock_jwt.return_value = processed_jwt_fixture, False
-            # setup retrieving
-            mock_get.return_value = get_models_list_fixture[0]
-            version_id = get_models_list_fixture[0]["id"]
-            # setup setting metadata
-            mock_set_metadata.return_value = get_model_metadata_fixture
-            # Setup click
-            runner = CliRunner()
-
-            # CALL
-            result = runner.invoke(get.get, ["model", json_flag, version_id])
-
-            # ASSERT
-            mock_details.assert_called_once_with(
-                processed_jwt_fixture["jwt"], version_id
-            )
-            mock_get_metadata.assert_called_once_with(processed_jwt_fixture["jwt"])
-            mock_output.assert_called_once_with(value)
-            assert result.exit_code == 0
-
-        @pytest.mark.parametrize(
-            "json_flag, value",
-            [("--json", True), ("--pretty", False)],
-        )
-        @patch.object(model.Model, "get_metadata")
-        @patch.object(model.Model, "output_metadata")
-        @patch("dafni_cli.model.model.get_model_metadata_dict")
-        def test_model_methods_each_called_twice_when_two_version_ids_given(
-            self,
-            mock_set_metadata,
-            mock_output,
-            mock_get_metadata,
-            mock_jwt,
-            mock_get,
-            mock_details,
-            json_flag,
-            value,
-            processed_jwt_fixture,
-            get_models_list_fixture,
-            get_model_metadata_fixture,
-        ):
-            # SETUP
-            # setup get jwt
-            mock_jwt.return_value = processed_jwt_fixture, False
-            # setup retrieving
-            mock_get.side_effect = get_models_list_fixture
-            version_id_1 = get_models_list_fixture[0]["id"]
-            version_id_2 = get_models_list_fixture[1]["id"]
-            # setup setting metadata
-            mock_set_metadata.return_value = get_model_metadata_fixture
-            # Setup click
-            runner = CliRunner()
-
-            # CALL
-            result = runner.invoke(
-                get.get, ["model", json_flag, version_id_1, version_id_2]
-            )
-
-            # ASSERT
-            assert mock_details.call_args_list == [
-                call(processed_jwt_fixture["jwt"], version_id_1),
-                call(processed_jwt_fixture["jwt"], version_id_2),
-            ]
-            assert mock_get_metadata.call_args_list == [
-                call(processed_jwt_fixture["jwt"]),
-                call(processed_jwt_fixture["jwt"]),
-            ]
-            assert mock_output.call_args_list == [call(value), call(value)]
-            assert result.exit_code == 0
-
-        @pytest.mark.parametrize(
-            "json_flag, value",
-            [("--json", True), ("--pretty", False)],
-        )
-        @patch.object(version_history.ModelVersionHistory, "output_version_history")
-        @patch.object(version_history.ModelVersionHistory, "__init__")
-        def test_version_history_methods_each_called_once_when_one_version_id_given(
-            self,
-            mock_initialise,
-            mock_output_version_history,
-            mock_jwt,
-            mock_get,
-            mock_details,
-            json_flag,
-            value,
-            processed_jwt_fixture,
-            get_models_list_fixture,
-            get_model_metadata_fixture,
-        ):
-            # SETUP
-            # setup get jwt
-            mock_jwt.return_value = processed_jwt_fixture, False
-            # setup retrieving
-            mock_get.side_effect = get_models_list_fixture
-            version_id = get_models_list_fixture[0]["id"]
-            # Setup click
-            runner = CliRunner()
-            mock_initialise.return_value = None
-
-            # CALL
-            result = runner.invoke(
-                get.get, ["model", version_id, json_flag, "--version-history"]
-            )
-
-            # ASSERT
-            assert mock_details.called_once_with(
-                processed_jwt_fixture["jwt"], version_id
-            )
-            assert mock_initialise.called_once_with(
-                processed_jwt_fixture["jwt"], model.Model(version_id)
-            )
-            mock_output_version_history.assert_called_once_with(value)
-            assert result.exit_code == 0
-
-        @pytest.mark.parametrize(
-            "json_flag, value",
-            [("--json", True), ("--pretty", False)],
-        )
-        @patch.object(version_history.ModelVersionHistory, "output_version_history")
-        @patch.object(version_history.ModelVersionHistory, "__init__")
-        def test_version_history_methods_each_called_twice_when_two_version_ids_given(
-            self,
-            mock_initialise,
-            mock_output_version_history,
-            mock_jwt,
-            mock_get,
-            mock_details,
-            json_flag,
-            value,
-            processed_jwt_fixture,
-            get_models_list_fixture,
-            get_model_metadata_fixture,
-        ):
-            # SETUP
-            # setup get jwt
-            mock_jwt.return_value = processed_jwt_fixture, False
-            # setup retrieving
-            mock_get.side_effect = get_models_list_fixture
-            version_id_1 = get_models_list_fixture[0]["id"]
-            version_id_2 = get_models_list_fixture[1]["id"]
-            # Setup click
-            runner = CliRunner()
-            mock_initialise.return_value = None
-
-            # CALL
-            result = runner.invoke(
-                get.get,
-                ["model", version_id_1, version_id_2, json_flag, "--version-history"],
-            )
-
-            # ASSERT
-            assert mock_details.call_args_list == [
-                call(processed_jwt_fixture["jwt"], version_id_1),
-                call(processed_jwt_fixture["jwt"], version_id_2),
-            ]
-            assert mock_initialise.call_count == 2
-            assert mock_output_version_history.call_args_list == [
-                call(value),
-                call(value),
-            ]
-            assert result.exit_code == 0
-
-    @patch.object(dataset.Dataset, "output_dataset_details")
+    @patch("dafni_cli.commands.get.parse_models")
     @patch("dafni_cli.commands.get.print_json")
+    def test_get_models(
+        self, mock_print_json, mock_parse_models, mock_get_all_models, mock_DAFNISession
+    ):
+        """Tests that the 'get models' command works correctly (with no
+        optional arguments)"""
+
+        # SETUP
+        session = MagicMock()
+        mock_DAFNISession.return_value = session
+        runner = CliRunner()
+        models = [MagicMock(), MagicMock()]
+        mock_get_all_models.return_value = models
+        mock_parse_models.return_value = models
+
+        # CALL
+        result = runner.invoke(get.get, ["models"])
+
+        # ASSERT
+        mock_DAFNISession.assert_called_once()
+        mock_get_all_models.assert_called_with(session)
+        for model in models:
+            model.output_details.assert_called_with(False)
+        mock_print_json.assert_not_called()
+
+        self.assertEqual(result.exit_code, 0)
+
+    @patch("dafni_cli.commands.get.get_all_models")
+    @patch("dafni_cli.commands.get.parse_models")
+    @patch("dafni_cli.commands.get.print_json")
+    def test_get_models_with_long_true(
+        self, mock_print_json, mock_parse_models, mock_get_all_models, mock_DAFNISession
+    ):
+        """Tests that the 'get models' command works correctly (with long
+        True)"""
+
+        # SETUP
+        session = MagicMock()
+        mock_DAFNISession.return_value = session
+        runner = CliRunner()
+        models = [MagicMock(), MagicMock()]
+        mock_get_all_models.return_value = models
+        mock_parse_models.return_value = models
+
+        # CALL
+        result = runner.invoke(get.get, ["models", "--long"])
+
+        # ASSERT
+        mock_DAFNISession.assert_called_once()
+        mock_get_all_models.assert_called_with(session)
+        for model in models:
+            model.output_details.assert_called_with(True)
+        mock_print_json.assert_not_called()
+
+        self.assertEqual(result.exit_code, 0)
+
+    @patch("dafni_cli.commands.get.get_all_models")
+    @patch("dafni_cli.commands.get.parse_models")
+    @patch("dafni_cli.commands.get.print_json")
+    def test_get_models_with_json_true(
+        self, mock_print_json, mock_parse_models, mock_get_all_models, mock_DAFNISession
+    ):
+        """Tests that the 'get models' command works correctly (with json
+        True)"""
+
+        # SETUP
+        session = MagicMock()
+        mock_DAFNISession.return_value = session
+        runner = CliRunner()
+        models = [MagicMock(), MagicMock()]
+        mock_get_all_models.return_value = models
+        mock_parse_models.return_value = models
+
+        # CALL
+        result = runner.invoke(get.get, ["models", "--json"])
+
+        # ASSERT
+        mock_DAFNISession.assert_called_once()
+        mock_get_all_models.assert_called_with(session)
+        for model in models:
+            model.output_details.assert_not_called()
+        mock_print_json.assert_called_with(models)
+
+        self.assertEqual(result.exit_code, 0)
+
+    def _test_get_models_with_date_filter(
+        self,
+        mock_print_json,
+        mock_parse_models,
+        mock_get_all_models,
+        mock_DAFNISession,
+        date_filter_options,
+        long,
+    ):
+        """Helper method for testing that the 'get models' command works
+        correctly with the given date filters"""
+
+        # SETUP
+        session = MagicMock()
+        mock_DAFNISession.return_value = session
+        runner = CliRunner()
+        models = [MagicMock(), MagicMock()]
+
+        # Make the first model filter but the second not
+        models[0].filter_by_date = MagicMock(return_value=True)
+        models[1].filter_by_date = MagicMock(return_value=False)
+
+        mock_get_all_models.return_value = models
+        mock_parse_models.return_value = models
+
+        # CALL
+        options = ["models", date_filter_options[0], "01/01/2023"]
+        if long:
+            options.append("--long")
+        result = runner.invoke(get.get, options)
+
+        # ASSERT
+        mock_DAFNISession.assert_called_once()
+        mock_get_all_models.assert_called_with(session)
+        models[0].filter_by_date.assert_called_with(date_filter_options[1], ANY)
+        models[0].output_details.assert_called_with(long)
+        models[1].output_details.assert_not_called()
+
+        mock_print_json.assert_not_called()
+
+        self.assertEqual(result.exit_code, 0)
+
+    @patch("dafni_cli.commands.get.get_all_models")
+    @patch("dafni_cli.commands.get.parse_models")
+    @patch("dafni_cli.commands.get.print_json")
+    def test_get_models_with_creation_date_filter(
+        self,
+        mock_print_json,
+        mock_parse_models,
+        mock_get_all_models,
+        mock_DAFNISession,
+    ):
+        """Tests that the 'get models' command works correctly (while
+        filtering by creation date)"""
+
+        self._test_get_models_with_date_filter(
+            mock_print_json,
+            mock_parse_models,
+            mock_get_all_models,
+            mock_DAFNISession,
+            ("--creation-date", "creation"),
+            False,
+        )
+
+    @patch("dafni_cli.commands.get.get_all_models")
+    @patch("dafni_cli.commands.get.parse_models")
+    @patch("dafni_cli.commands.get.print_json")
+    def test_get_models_with_publication_date_filter(
+        self,
+        mock_print_json,
+        mock_parse_models,
+        mock_get_all_models,
+        mock_DAFNISession,
+    ):
+        """Tests that the 'get models' command works correctly (while
+        filtering by publication date)"""
+
+        self._test_get_models_with_date_filter(
+            mock_print_json,
+            mock_parse_models,
+            mock_get_all_models,
+            mock_DAFNISession,
+            ("--publication-date", "publication"),
+            False,
+        )
+
+    @patch("dafni_cli.commands.get.get_all_models")
+    @patch("dafni_cli.commands.get.parse_models")
+    @patch("dafni_cli.commands.get.print_json")
+    def test_get_models_with_creation_date_filter_and_long_true(
+        self,
+        mock_print_json,
+        mock_parse_models,
+        mock_get_all_models,
+        mock_DAFNISession,
+    ):
+        """Tests that the 'get models' command works correctly (while
+        filtering by creation date and long=True)"""
+
+        self._test_get_models_with_date_filter(
+            mock_print_json,
+            mock_parse_models,
+            mock_get_all_models,
+            mock_DAFNISession,
+            ("--creation-date", "creation"),
+            True,
+        )
+
+    @patch("dafni_cli.commands.get.get_all_models")
+    @patch("dafni_cli.commands.get.parse_models")
+    @patch("dafni_cli.commands.get.print_json")
+    def test_get_models_with_publication_date_filter_and_long_true(
+        self,
+        mock_print_json,
+        mock_parse_models,
+        mock_get_all_models,
+        mock_DAFNISession,
+    ):
+        """Tests that the 'get models' command works correctly (while
+        filtering by publication date and long=True)"""
+
+        self._test_get_models_with_date_filter(
+            mock_print_json,
+            mock_parse_models,
+            mock_get_all_models,
+            mock_DAFNISession,
+            ("--publication-date", "publication"),
+            True,
+        )
+
+    def _test_get_models_with_date_filter_json(
+        self,
+        mock_print_json,
+        mock_parse_models,
+        mock_get_all_models,
+        mock_DAFNISession,
+        date_filter_options,
+    ):
+        """Helper method for testing that the 'get models' command works
+        correctly with the given date filters"""
+
+        # SETUP
+        session = MagicMock()
+        mock_DAFNISession.return_value = session
+        runner = CliRunner()
+        models = [MagicMock(), MagicMock()]
+
+        # Make the first model filter but the second not
+        models[0].filter_by_date = MagicMock(return_value=True)
+        models[1].filter_by_date = MagicMock(return_value=False)
+
+        mock_get_all_models.return_value = models
+        mock_parse_models.return_value = models
+
+        # CALL
+        options = ["models", date_filter_options[0], "01/01/2023", "--json"]
+        result = runner.invoke(get.get, options)
+
+        # ASSERT
+        mock_DAFNISession.assert_called_once()
+        mock_get_all_models.assert_called_with(session)
+        models[0].filter_by_date.assert_called_with(date_filter_options[1], ANY)
+        models[0].output_details.assert_not_called()
+        models[1].output_details.assert_not_called()
+
+        mock_print_json.assert_called_with([models[0]])
+
+        self.assertEqual(result.exit_code, 0)
+
+    @patch("dafni_cli.commands.get.get_all_models")
+    @patch("dafni_cli.commands.get.parse_models")
+    @patch("dafni_cli.commands.get.print_json")
+    def test_get_models_with_creation_date_filter_json(
+        self,
+        mock_print_json,
+        mock_parse_models,
+        mock_get_all_models,
+        mock_DAFNISession,
+    ):
+        """Tests that the 'get models' command works correctly (while
+        filtering by creation date and printing json)"""
+
+        self._test_get_models_with_date_filter_json(
+            mock_print_json,
+            mock_parse_models,
+            mock_get_all_models,
+            mock_DAFNISession,
+            ("--creation-date", "creation"),
+        )
+
+    @patch("dafni_cli.commands.get.get_all_models")
+    @patch("dafni_cli.commands.get.parse_models")
+    @patch("dafni_cli.commands.get.print_json")
+    def test_get_models_with_publication_date_filter_json(
+        self,
+        mock_print_json,
+        mock_parse_models,
+        mock_get_all_models,
+        mock_DAFNISession,
+    ):
+        """Tests that the 'get models' command works correctly (while
+        filtering by publication date and printing json)"""
+
+        self._test_get_models_with_date_filter_json(
+            mock_print_json,
+            mock_parse_models,
+            mock_get_all_models,
+            mock_DAFNISession,
+            ("--publication-date", "publication"),
+        )
+
+    # ----------------- MODEL
+
+    @patch("dafni_cli.commands.get.get_model")
+    @patch("dafni_cli.commands.get.parse_model")
+    def test_get_model(self, mock_parse_model, mock_get_model, mock_DAFNISession):
+        """Tests that the 'get model' command works correctly (with no
+        optional arguments)"""
+
+        # SETUP
+        session = MagicMock()
+        mock_DAFNISession.return_value = session
+        runner = CliRunner()
+        model = MagicMock()
+        mock_get_model.return_value = model
+        mock_parse_model.return_value = model
+
+        # CALL
+        result = runner.invoke(get.get, ["model", "some_version_id"])
+
+        # ASSERT
+        mock_DAFNISession.assert_called_once()
+        mock_get_model.assert_called_with(session, "some_version_id")
+        model.output_info.assert_called_once()
+
+        self.assertEqual(result.exit_code, 0)
+
+    @patch("dafni_cli.commands.get.get_model")
+    @patch("dafni_cli.commands.get.parse_model")
+    @patch("dafni_cli.commands.get.print_json")
+    def test_get_model_json(
+        self, mock_print_json, mock_parse_model, mock_get_model, mock_DAFNISession
+    ):
+        """Tests that the 'get model' command works correctly (with --json)"""
+
+        # SETUP
+        session = MagicMock()
+        mock_DAFNISession.return_value = session
+        runner = CliRunner()
+        model = MagicMock()
+        mock_get_model.return_value = model
+        mock_parse_model.return_value = model
+
+        # CALL
+        result = runner.invoke(get.get, ["model", "some_version_id", "--json"])
+
+        # ASSERT
+        mock_DAFNISession.assert_called_once()
+        mock_get_model.assert_called_with(session, "some_version_id")
+        model.output_info.assert_not_called()
+        mock_print_json.assert_called_once_with(model)
+
+        self.assertEqual(result.exit_code, 0)
+
+    @patch("dafni_cli.commands.get.get_model")
+    @patch("dafni_cli.commands.get.parse_model")
+    @patch("dafni_cli.commands.get.print_json")
+    def test_get_model_version_history(
+        self, mock_print_json, mock_parse_model, mock_get_model, mock_DAFNISession
+    ):
+        """Tests that the 'get model' command works correctly (with
+        --version-history)"""
+
+        # SETUP
+        session = MagicMock()
+        mock_DAFNISession.return_value = session
+        runner = CliRunner()
+        model = MagicMock()
+        mock_get_model.return_value = model
+        mock_parse_model.return_value = model
+
+        # CALL
+        result = runner.invoke(
+            get.get, ["model", "some_version_id", "--version-history"]
+        )
+
+        # ASSERT
+        mock_DAFNISession.assert_called_once()
+        mock_get_model.assert_called_with(session, "some_version_id")
+        model.output_version_history.assert_called_once()
+        mock_print_json.assert_not_called()
+
+        self.assertEqual(result.exit_code, 0)
+
+    @patch("dafni_cli.commands.get.get_model")
+    @patch("dafni_cli.commands.get.parse_model")
+    @patch("dafni_cli.commands.get.print_json")
+    def test_get_model_version_history_json(
+        self, mock_print_json, mock_parse_model, mock_get_model, mock_DAFNISession
+    ):
+        """Tests that the 'get model' command works correctly (with --json
+        and --version-history)"""
+
+        # SETUP
+        session = MagicMock()
+        mock_DAFNISession.return_value = session
+        runner = CliRunner()
+        model = MagicMock()
+        version_history = MagicMock()
+        mock_get_model.return_value = {"version_history": [version_history]}
+        mock_parse_model.return_value = model
+
+        # CALL
+        result = runner.invoke(
+            get.get, ["model", "some_version_id", "--version-history", "--json"]
+        )
+
+        # ASSERT
+        mock_DAFNISession.assert_called_once()
+        mock_get_model.assert_called_with(session, "some_version_id")
+        model.output_version_history.assert_not_called()
+        mock_print_json.assert_called_once_with(version_history)
+
+        self.assertEqual(result.exit_code, 0)
+
+    # ----------------- DATASETS
+
     @patch("dafni_cli.commands.get.get_all_datasets")
-    @patch("dafni_cli.datasets.dataset_filtering.process_datasets_filters")
-    @patch("dafni_cli.commands.get.check_for_jwt_file")
-    class TestDatasets:
-        """Test class to test the get group datasets command"""
-
-        @pytest.mark.parametrize(
-            "json_flag, value",
-            [("--json", True), ("--pretty", False)],
-        )
-        @patch("dafni_cli.commands.get.process_response_to_class_list")
-        def test_get_all_datasets_called_with_jwt_from_context(
-            self,
-            mock_create,
-            mock_jwt,
-            mock_filter,
-            mock_get,
-            mock_print,
-            mock_output,
-            json_flag,
-            value,
-            processed_jwt_fixture,
-            get_dataset_list_fixture,
-        ):
-            # SETUP
-            # setup get group command to set the context containing a JWT
-            mock_jwt.return_value = processed_jwt_fixture, False
-            # setup filters
-            filters = {}
-            mock_filter.return_value = filters
-            # setup get_all_datasets call
-            response = get_dataset_list_fixture
-            mock_get.return_value = response
-            # setup process_response_to_class_list
-            mock_create.return_value = []
-            # Setup click
-            runner = CliRunner()
-
-            # CALL
-            result = runner.invoke(get.get, ["datasets", json_flag])
-
-            # ASSERT
-            mock_filter.assert_called_once_with(None, None, None)
-            mock_get.assert_called_once_with(processed_jwt_fixture["jwt"], filters)
-
-            assert result.exit_code == 0
-
-        def test_output_dataset_details_called_for_each_dataset(
-            self,
-            mock_jwt,
-            mock_filter,
-            mock_get,
-            mock_print,
-            mock_output,
-            processed_jwt_fixture,
-            get_dataset_list_fixture,
-        ):
-            # SETUP
-            # setup get group command to set the context containing a JWT
-            mock_jwt.return_value = processed_jwt_fixture, False
-            # setup filters
-            filters = {}
-            mock_filter.return_value = filters
-            # setup get_all_datasets call
-            response = get_dataset_list_fixture
-            mock_get.return_value = response
-            # Setup click
-            runner = CliRunner()
-
-            # CALL
-            result = runner.invoke(get.get, ["datasets"])
-
-            # ASSERT
-            assert mock_output.call_count == len(response["metadata"])
-            mock_print.assert_not_called()
-            assert result.exit_code == 0
-
-        def test_output_dataset_details_not_called_with_json_but_print_json_called_once_with_response(
-            self,
-            mock_jwt,
-            mock_filter,
-            mock_get,
-            mock_print,
-            mock_output,
-            processed_jwt_fixture,
-            get_dataset_list_fixture,
-        ):
-            # SETUP
-            # setup get group command to set the context containing a JWT
-            mock_jwt.return_value = processed_jwt_fixture, False
-            # setup filters
-            filters = {}
-            mock_filter.return_value = filters
-            # setup get_all_datasets call
-            response = get_dataset_list_fixture
-            mock_get.return_value = response
-            # Setup click
-            runner = CliRunner()
-
-            # CALL
-            result = runner.invoke(get.get, ["datasets", "--json"])
-
-            # ASSERT
-            mock_output.assert_not_called()
-            mock_print.assert_called_once_with(response)
-            assert result.exit_code == 0
-
-        @pytest.mark.parametrize(
-            "filter_args, search, start, end",
-            [
-                (["--search", "DAFNI passport"], "DAFNI passport", None, None),
-                (["--start-date", "21/1/2021"], None, "21/1/2021", None),
-                (["--end-date", "21/1/2021"], None, None, "21/1/2021"),
-                (
-                    ["--start-date", "21/1/2021", "--end-date", "22/2/2021"],
-                    None,
-                    "21/1/2021",
-                    "22/2/2021",
-                ),
-                (
-                    [
-                        "--search",
-                        "DAFNI passport",
-                        "--start-date",
-                        "21/1/2021",
-                        "--end-date",
-                        "22/2/2021",
-                    ],
-                    "DAFNI passport",
-                    "21/1/2021",
-                    "22/2/2021",
-                ),
-            ],
-            ids=[
-                "Case 1 - Only search terms used",
-                "Case 2 - Only Start date defined",
-                "Case 3 - Only End date defined",
-                "Case 4 - Start & End date defined",
-                "Case 5 - Search term & date range defined",
-            ],
-        )
-        def test_filter_options_passed_correctly_to_process_dataset_filters(
-            self,
-            mock_jwt,
-            mock_filter,
-            mock_get,
-            mock_print,
-            mock_output,
-            filter_args,
-            search,
-            start,
-            end,
-            processed_jwt_fixture,
-            get_dataset_list_fixture,
-        ):
-            # SETUP
-            # setup get group command
-            mock_jwt.return_value = processed_jwt_fixture, False
-            # setup filters
-            filters = {}
-            mock_filter.return_value = filters
-            # setup get_all_datasets call
-            response = get_dataset_list_fixture
-            mock_get.return_value = response
-            # Setup click
-            runner = CliRunner()
-
-            # CALL
-            runner.invoke(get.get, ["datasets", *filter_args])
-
-            # ASSERT
-            mock_filter.assert_called_once_with(search, start, end)
-
+    @patch("dafni_cli.commands.get.parse_datasets")
     @patch("dafni_cli.commands.get.print_json")
+    def test_get_datasets(
+        self,
+        mock_print_json,
+        mock_parse_datasets,
+        mock_get_all_datasets,
+        mock_DAFNISession,
+    ):
+        """Tests that the 'get datasets' command works correctly (with no
+        optional arguments)"""
+
+        # SETUP
+        session = MagicMock()
+        mock_DAFNISession.return_value = session
+        runner = CliRunner()
+        datasets = [MagicMock(), MagicMock()]
+        mock_get_all_datasets.return_value = datasets
+        mock_parse_datasets.return_value = datasets
+
+        # CALL
+        result = runner.invoke(get.get, ["datasets"])
+
+        # ASSERT
+        mock_DAFNISession.assert_called_once()
+        mock_get_all_datasets.assert_called_with(session, {})
+        for dataset in datasets:
+            dataset.output_dataset_details.assert_called_once()
+        mock_print_json.assert_not_called()
+
+        self.assertEqual(result.exit_code, 0)
+
+    @patch("dafni_cli.commands.get.get_all_datasets")
+    @patch("dafni_cli.commands.get.parse_datasets")
+    @patch("dafni_cli.commands.get.print_json")
+    def test_get_datasets_with_json_true(
+        self,
+        mock_print_json,
+        mock_parse_datasets,
+        mock_get_all_datasets,
+        mock_DAFNISession,
+    ):
+        """Tests that the 'get datasets' command works correctly (with json
+        True)"""
+
+        # SETUP
+        session = MagicMock()
+        mock_DAFNISession.return_value = session
+        runner = CliRunner()
+        datasets = [MagicMock(), MagicMock()]
+        mock_get_all_datasets.return_value = datasets
+        mock_parse_datasets.return_value = datasets
+
+        # CALL
+        result = runner.invoke(get.get, ["datasets", "--json"])
+
+        # ASSERT
+        mock_DAFNISession.assert_called_once()
+        mock_get_all_datasets.assert_called_with(session, {})
+        for dataset in datasets:
+            dataset.output_details.assert_not_called()
+        mock_print_json.assert_called_with(datasets)
+
+        self.assertEqual(result.exit_code, 0)
+
+    def _test_get_datasets_with_date_filter(
+        self,
+        mock_print_json,
+        mock_parse_datasets,
+        mock_get_all_datasets,
+        mock_DAFNISession,
+        date_filter_options,
+    ):
+        """Helper method for testing that the 'get datasets' command works
+        correctly with the given date filters"""
+
+        # SETUP
+        session = MagicMock()
+        mock_DAFNISession.return_value = session
+        runner = CliRunner()
+        datasets = [MagicMock(), MagicMock()]
+
+        mock_get_all_datasets.return_value = datasets
+        mock_parse_datasets.return_value = datasets
+
+        # CALL
+        options = ["datasets", date_filter_options[0], "01/01/2023"]
+        result = runner.invoke(get.get, options)
+
+        # ASSERT
+        mock_DAFNISession.assert_called_once()
+        mock_get_all_datasets.assert_called_with(session, date_filter_options[1])
+        datasets[0].output_dataset_details.assert_called_once()
+        datasets[1].output_dataset_details.assert_called_once()
+        mock_print_json.assert_not_called()
+
+        self.assertEqual(result.exit_code, 0)
+
+    @patch("dafni_cli.commands.get.get_all_datasets")
+    @patch("dafni_cli.commands.get.parse_datasets")
+    @patch("dafni_cli.commands.get.print_json")
+    def test_get_datasets_with_start_date_filter(
+        self,
+        mock_print_json,
+        mock_parse_datasets,
+        mock_get_all_datasets,
+        mock_DAFNISession,
+    ):
+        """Tests that the 'get datasets' command works correctly (while
+        filtering by start date)"""
+
+        self._test_get_datasets_with_date_filter(
+            mock_print_json,
+            mock_parse_datasets,
+            mock_get_all_datasets,
+            mock_DAFNISession,
+            (
+                "--start-date",
+                {
+                    "date_range": {
+                        "data_with_no_date": False,
+                        "begin": "2023-01-01T00:00:00",
+                    }
+                },
+            ),
+        )
+
+    @patch("dafni_cli.commands.get.get_all_datasets")
+    @patch("dafni_cli.commands.get.parse_datasets")
+    @patch("dafni_cli.commands.get.print_json")
+    def test_get_datasets_with_end_date_filter(
+        self,
+        mock_print_json,
+        mock_parse_datasets,
+        mock_get_all_datasets,
+        mock_DAFNISession,
+    ):
+        """Tests that the 'get datasets' command works correctly (while
+        filtering by end date)"""
+
+        self._test_get_datasets_with_date_filter(
+            mock_print_json,
+            mock_parse_datasets,
+            mock_get_all_datasets,
+            mock_DAFNISession,
+            (
+                "--end-date",
+                {
+                    "date_range": {
+                        "data_with_no_date": False,
+                        "end": "2023-01-01T00:00:00",
+                    }
+                },
+            ),
+        )
+
+    # ----------------- DATASET
+
     @patch("dafni_cli.commands.get.get_latest_dataset_metadata")
-    @patch("dafni_cli.commands.get.check_for_jwt_file")
-    class TestDataset:
-        """Test class to test the get group dataset command"""
+    @patch("dafni_cli.commands.get.parse_dataset_metadata")
+    @patch("dafni_cli.commands.get.print_json")
+    def test_get_dataset(
+        self,
+        mock_print_json,
+        mock_parse_dataset_metadata,
+        mock_get_latest_dataset_metadata,
+        mock_DAFNISession,
+    ):
+        """Tests that the 'get dataset' command works correctly (with no
+        optional arguments)"""
 
-        @patch.object(dataset_metadata.DatasetMetadata, "output_metadata_details")
-        @patch.object(dataset_metadata.DatasetMetadata, "__init__")
-        def test_get_dataset_called_with_jwt_from_context_with_default_long_flag_version_flag_and_json_flag(
-            self,
-            mock_init,
-            mock_output,
-            mock_jwt,
-            mock_get,
-            mock_print,
-            processed_jwt_fixture,
-            dataset_metadata_fixture,
-        ):
-            # SETUP
-            # setup get group command to set the context containing a JWT
-            mock_jwt.return_value = processed_jwt_fixture, False
-            # setup get_latest_dataset_metadata call
-            response = dataset_metadata_fixture
-            mock_get.return_value = response
-            # setup DatasetMetadata class
-            mock_init.return_value = None
-            mock_output.return_value = "Output"
+        # SETUP
+        session = MagicMock()
+        mock_DAFNISession.return_value = session
+        runner = CliRunner()
+        dataset = MagicMock()
+        mock_get_latest_dataset_metadata.return_value = dataset
+        mock_parse_dataset_metadata.return_value = dataset
 
-            # setup data
-            dataset_id = "0a0a0a0a-0a00-0a00-a000-0a0a0000000a"
-            version_id = "0a0a0a0a-0a00-0a00-a000-0a0a0000000b"
+        # CALL
+        result = runner.invoke(get.get, ["dataset", "some_id", "some_version_id"])
 
-            # Setup click
-            runner = CliRunner()
-
-            # CALL
-            result = runner.invoke(get.get, ["dataset", dataset_id, version_id])
-
-            # ASSERT
-            mock_get.assert_called_once_with(
-                processed_jwt_fixture["jwt"], dataset_id, version_id
-            )
-            mock_init.assert_called_once_with(response)
-            mock_output.assert_called_once_with(False)
-            mock_print.assert_not_called()
-            assert result.exit_code == 0
-
-        @pytest.mark.parametrize("json_flag", ["--pretty", "-p"])
-        @pytest.mark.parametrize("metadata", ["--metadata", "-m"])
-        @pytest.mark.parametrize(
-            "option, long",
-            [("--short", False), ("-s", False), ("-l", True), ("--long", True)],
+        # ASSERT
+        mock_DAFNISession.assert_called_once()
+        mock_get_latest_dataset_metadata.assert_called_with(
+            session, "some_id", "some_version_id"
         )
-        @patch.object(dataset_metadata.DatasetMetadata, "output_metadata_details")
-        @patch.object(dataset_metadata.DatasetMetadata, "__init__")
-        def test_dataset_metadata_called_with_given_long_value_when_version_history_and_json_false(
-            self,
-            mock_init,
-            mock_output,
-            mock_jwt,
-            mock_get,
-            mock_print,
-            option,
-            long,
-            metadata,
-            json_flag,
-            processed_jwt_fixture,
-            dataset_metadata_fixture,
-        ):
-            # SETUP
-            # setup get group command to set the context containing a JWT
-            mock_jwt.return_value = processed_jwt_fixture, False
-            # setup get_latest_dataset_metadata call
-            response = dataset_metadata_fixture
-            mock_get.return_value = response
-            # setup DatasetMetadata class
-            mock_init.return_value = None
-            mock_output.return_value = "Output"
+        dataset.output_metadata_details.assert_called_once()
+        mock_print_json.assert_not_called()
 
-            # setup data
-            dataset_id = "0a0a0a0a-0a00-0a00-a000-0a0a0000000a"
-            version_id = "0a0a0a0a-0a00-0a00-a000-0a0a0000000b"
+        self.assertEqual(result.exit_code, 0)
 
-            # Setup click
-            runner = CliRunner()
+    @patch("dafni_cli.commands.get.get_latest_dataset_metadata")
+    @patch("dafni_cli.commands.get.parse_dataset_metadata")
+    @patch("dafni_cli.commands.get.print_json")
+    def test_get_dataset_json(
+        self,
+        mock_print_json,
+        mock_parse_dataset_metadata,
+        mock_get_latest_dataset_metadata,
+        mock_DAFNISession,
+    ):
+        """Tests that the 'get dataset' command works correctly (with --json)"""
 
-            # CALL
-            result = runner.invoke(
-                get.get,
-                ["dataset", dataset_id, version_id, option, metadata, json_flag],
-            )
-            print(result.stdout)
-            print(result.exc_info)
-            # ASSERT
-            mock_get.assert_called_once_with(
-                processed_jwt_fixture["jwt"], dataset_id, version_id
-            )
-            mock_init.assert_called_once_with(response)
-            mock_output.assert_called_once_with(long)
-            mock_print.assert_not_called()
-            assert result.exit_code == 0
+        # SETUP
+        session = MagicMock()
+        mock_DAFNISession.return_value = session
+        runner = CliRunner()
+        dataset = MagicMock()
+        mock_get_latest_dataset_metadata.return_value = dataset
+        mock_parse_dataset_metadata.return_value = dataset
 
-        @pytest.mark.parametrize(
-            "option",
-            ["--short", "-s", "-l", "--long"],
+        # CALL
+        result = runner.invoke(
+            get.get, ["dataset", "some_id", "some_version_id", "--json"]
         )
-        @patch.object(dataset_metadata.DatasetMetadata, "output_metadata_details")
-        @patch.object(dataset_metadata.DatasetMetadata, "__init__")
-        def test_print_json_called_with_same_data_no_matter_short_or_long_called_with_default_metadata_flag(
-            self,
-            mock_init,
-            mock_output,
-            mock_jwt,
-            mock_get,
-            mock_print,
-            option,
-            processed_jwt_fixture,
-            dataset_metadata_fixture,
-        ):
-            # SETUP
-            # setup get group command to set the context containing a JWT
-            mock_jwt.return_value = processed_jwt_fixture, False
-            # setup get_latest_dataset_metadata call
-            response = dataset_metadata_fixture
-            mock_get.return_value = response
 
-            # setup data
-            dataset_id = "0a0a0a0a-0a00-0a00-a000-0a0a0000000a"
-            version_id = "0a0a0a0a-0a00-0a00-a000-0a0a0000000b"
-
-            # Setup click
-            runner = CliRunner()
-
-            # CALL
-            result = runner.invoke(
-                get.get,
-                ["dataset", dataset_id, version_id, "--json", option],
-            )
-
-            # ASSERT
-            mock_get.assert_called_once_with(
-                processed_jwt_fixture["jwt"], dataset_id, version_id
-            )
-            mock_init.assert_not_called()
-            mock_output.assert_not_called()
-            mock_print.assert_called_once_with(response)
-            assert result.exit_code == 0
-
-        @pytest.mark.parametrize(
-            "json_flag, json_value",
-            [("--pretty", False), ("-p", False), ("--json", True), ("-j", True)],
+        # ASSERT
+        mock_DAFNISession.assert_called_once()
+        mock_get_latest_dataset_metadata.assert_called_with(
+            session, "some_id", "some_version_id"
         )
-        @pytest.mark.parametrize("version_history", ["--version-history", "-v"])
-        @patch.object(
-            dataset_version_history.DatasetVersionHistory, "process_version_history"
+        dataset.output_metadata_details.assert_not_called()
+        mock_print_json.assert_called_once_with(dataset)
+
+        self.assertEqual(result.exit_code, 0)
+
+    @patch("dafni_cli.commands.get.get_latest_dataset_metadata")
+    @patch("dafni_cli.commands.get.parse_dataset_metadata")
+    @patch("dafni_cli.commands.get.print_json")
+    def test_get_dataset_version_history(
+        self,
+        mock_print_json,
+        mock_parse_dataset_metadata,
+        mock_get_latest_dataset_metadata,
+        mock_DAFNISession,
+    ):
+        """Tests that the 'get dataset' command works correctly (with
+        --version-history)"""
+
+        # SETUP
+        session = MagicMock()
+        mock_DAFNISession.return_value = session
+        runner = CliRunner()
+        dataset = MagicMock()
+        dataset.version_history = MagicMock()
+        mock_get_latest_dataset_metadata.return_value = dataset
+        mock_parse_dataset_metadata.return_value = dataset
+
+        # CALL
+        result = runner.invoke(
+            get.get, ["dataset", "some_id", "some_version_id", "--version-history"]
         )
-        @patch.object(dataset_version_history.DatasetVersionHistory, "__init__")
-        def test_dataset_version_history_called_when_version_history_true_and_json_flag_false(
-            self,
-            mock_init,
-            mock_output,
-            mock_jwt,
-            mock_get,
-            mock_print,
-            version_history,
-            json_flag,
-            json_value,
-            processed_jwt_fixture,
-            dataset_metadata_fixture,
-        ):
-            # SETUP
-            # setup get group command to set the context containing a JWT
-            mock_jwt.return_value = processed_jwt_fixture, False
-            # setup get_latest_dataset_metadata call
-            response = dataset_metadata_fixture
-            mock_get.return_value = response
-            # setup DatasetMetadata class
-            mock_init.return_value = None
-            mock_output.return_value = "Output"
 
-            # setup data
-            dataset_id = "0a0a0a0a-0a00-0a00-a000-0a0a0000000a"
-            version_id = "0a0a0a0a-0a00-0a00-a000-0a0a0000000b"
+        # ASSERT
+        mock_DAFNISession.assert_called_once()
+        mock_get_latest_dataset_metadata.assert_called_with(
+            session, "some_id", "some_version_id"
+        )
+        dataset.version_history.process_and_output_version_history.assert_called_once_with(
+            session, False
+        )
+        mock_print_json.assert_not_called()
 
-            # Setup click
-            runner = CliRunner()
+        self.assertEqual(result.exit_code, 0)
 
-            # CALL
-            result = runner.invoke(
-                get.get,
-                ["dataset", dataset_id, version_id, version_history, json_flag],
-            )
+    @patch("dafni_cli.commands.get.get_latest_dataset_metadata")
+    @patch("dafni_cli.commands.get.parse_dataset_metadata")
+    @patch("dafni_cli.commands.get.print_json")
+    def test_get_dataset_version_history_json(
+        self,
+        mock_print_json,
+        mock_parse_dataset_metadata,
+        mock_get_latest_dataset_metadata,
+        mock_DAFNISession,
+    ):
+        """Tests that the 'get dataset' command works correctly (with --json
+        and --version-history)"""
 
-            # ASSERT
-            mock_get.assert_called_once_with(
-                processed_jwt_fixture["jwt"], dataset_id, version_id
-            )
-            mock_init.assert_called_once_with(processed_jwt_fixture["jwt"], response)
-            mock_output.assert_called_once_with(json_value)
-            mock_print.assert_not_called()
-            assert result.exit_code == 0
+        # SETUP
+        session = MagicMock()
+        mock_DAFNISession.return_value = session
+        runner = CliRunner()
+        dataset = MagicMock()
+        dataset.version_history = MagicMock()
+        mock_get_latest_dataset_metadata.return_value = dataset
+        mock_parse_dataset_metadata.return_value = dataset
+
+        # CALL
+        result = runner.invoke(
+            get.get,
+            ["dataset", "some_id", "some_version_id", "--version-history", "--json"],
+        )
+
+        # ASSERT
+        mock_DAFNISession.assert_called_once()
+        mock_get_latest_dataset_metadata.assert_called_with(
+            session, "some_id", "some_version_id"
+        )
+        dataset.version_history.process_and_output_version_history.assert_called_once_with(
+            session, True
+        )
+        mock_print_json.assert_not_called()
+
+        self.assertEqual(result.exit_code, 0)
+
+    # ----------------- WORKFLOWS
+
+    @patch("dafni_cli.commands.get.get_all_workflows")
+    @patch("dafni_cli.commands.get.parse_workflows")
+    @patch("dafni_cli.commands.get.print_json")
+    def test_get_workflows(
+        self,
+        mock_print_json,
+        mock_parse_workflows,
+        mock_get_all_workflows,
+        mock_DAFNISession,
+    ):
+        """Tests that the 'get workflows' command works correctly (with no
+        optional arguments)"""
+
+        # SETUP
+        session = MagicMock()
+        mock_DAFNISession.return_value = session
+        runner = CliRunner()
+        workflows = [MagicMock(), MagicMock()]
+        mock_get_all_workflows.return_value = workflows
+        mock_parse_workflows.return_value = workflows
+
+        # CALL
+        result = runner.invoke(get.get, ["workflows"])
+
+        # ASSERT
+        mock_DAFNISession.assert_called_once()
+        mock_get_all_workflows.assert_called_with(session)
+        for workflow in workflows:
+            workflow.output_details.assert_called_with(False)
+        mock_print_json.assert_not_called()
+
+        self.assertEqual(result.exit_code, 0)
+
+    @patch("dafni_cli.commands.get.get_all_workflows")
+    @patch("dafni_cli.commands.get.parse_workflows")
+    @patch("dafni_cli.commands.get.print_json")
+    def test_get_workflows_with_long_true(
+        self,
+        mock_print_json,
+        mock_parse_workflows,
+        mock_get_all_workflows,
+        mock_DAFNISession,
+    ):
+        """Tests that the 'get workflows' command works correctly (with long
+        True)"""
+
+        # SETUP
+        session = MagicMock()
+        mock_DAFNISession.return_value = session
+        runner = CliRunner()
+        workflows = [MagicMock(), MagicMock()]
+        mock_get_all_workflows.return_value = workflows
+        mock_parse_workflows.return_value = workflows
+
+        # CALL
+        result = runner.invoke(get.get, ["workflows", "--long"])
+
+        # ASSERT
+        mock_DAFNISession.assert_called_once()
+        mock_get_all_workflows.assert_called_with(session)
+        for workflow in workflows:
+            workflow.output_details.assert_called_with(True)
+        mock_print_json.assert_not_called()
+
+        self.assertEqual(result.exit_code, 0)
+
+    @patch("dafni_cli.commands.get.get_all_workflows")
+    @patch("dafni_cli.commands.get.parse_workflows")
+    @patch("dafni_cli.commands.get.print_json")
+    def test_get_workflows_with_json_true(
+        self,
+        mock_print_json,
+        mock_parse_workflows,
+        mock_get_all_workflows,
+        mock_DAFNISession,
+    ):
+        """Tests that the 'get workflows' command works correctly (with json
+        True)"""
+
+        # SETUP
+        session = MagicMock()
+        mock_DAFNISession.return_value = session
+        runner = CliRunner()
+        workflows = [MagicMock(), MagicMock()]
+        mock_get_all_workflows.return_value = workflows
+        mock_parse_workflows.return_value = workflows
+
+        # CALL
+        result = runner.invoke(get.get, ["workflows", "--json"])
+
+        # ASSERT
+        mock_DAFNISession.assert_called_once()
+        mock_get_all_workflows.assert_called_with(session)
+        for workflow in workflows:
+            workflow.output_details.assert_not_called()
+        mock_print_json.assert_called_with(workflows)
+
+        self.assertEqual(result.exit_code, 0)
+
+    def _test_get_workflows_with_date_filter(
+        self,
+        mock_print_json,
+        mock_parse_workflows,
+        mock_get_all_workflows,
+        mock_DAFNISession,
+        date_filter_options,
+        long,
+    ):
+        """Helper method for testing that the 'get workflows' command works
+        correctly with the given date filters"""
+
+        # SETUP
+        session = MagicMock()
+        mock_DAFNISession.return_value = session
+        runner = CliRunner()
+        workflows = [MagicMock(), MagicMock()]
+
+        # Make the first model filter but the second not
+        workflows[0].filter_by_date = MagicMock(return_value=True)
+        workflows[1].filter_by_date = MagicMock(return_value=False)
+
+        mock_get_all_workflows.return_value = workflows
+        mock_parse_workflows.return_value = workflows
+
+        # CALL
+        options = ["workflows", date_filter_options[0], "01/01/2023"]
+        if long:
+            options.append("--long")
+        result = runner.invoke(get.get, options)
+
+        # ASSERT
+        mock_DAFNISession.assert_called_once()
+        mock_get_all_workflows.assert_called_with(session)
+        workflows[0].filter_by_date.assert_called_with(date_filter_options[1], ANY)
+        workflows[0].output_details.assert_called_with(long)
+        workflows[1].output_details.assert_not_called()
+        mock_print_json.assert_not_called()
+
+        self.assertEqual(result.exit_code, 0)
+
+    @patch("dafni_cli.commands.get.get_all_workflows")
+    @patch("dafni_cli.commands.get.parse_workflows")
+    @patch("dafni_cli.commands.get.print_json")
+    def test_get_workflows_with_creation_date_filter(
+        self,
+        mock_print_json,
+        mock_parse_workflows,
+        mock_get_all_workflows,
+        mock_DAFNISession,
+    ):
+        """Tests that the 'get workflows' command works correctly (while
+        filtering by creation date)"""
+
+        self._test_get_workflows_with_date_filter(
+            mock_print_json,
+            mock_parse_workflows,
+            mock_get_all_workflows,
+            mock_DAFNISession,
+            ("--creation-date", "creation"),
+            False,
+        )
+
+    @patch("dafni_cli.commands.get.get_all_workflows")
+    @patch("dafni_cli.commands.get.parse_workflows")
+    @patch("dafni_cli.commands.get.print_json")
+    def test_get_workflows_with_publication_date_filter(
+        self,
+        mock_print_json,
+        mock_parse_workflows,
+        mock_get_all_workflows,
+        mock_DAFNISession,
+    ):
+        """Tests that the 'get workflows' command works correctly (while
+        filtering by publication date)"""
+
+        self._test_get_workflows_with_date_filter(
+            mock_print_json,
+            mock_parse_workflows,
+            mock_get_all_workflows,
+            mock_DAFNISession,
+            ("--publication-date", "publication"),
+            False,
+        )
+
+    @patch("dafni_cli.commands.get.get_all_workflows")
+    @patch("dafni_cli.commands.get.parse_workflows")
+    @patch("dafni_cli.commands.get.print_json")
+    def test_get_workflows_with_creation_date_filter_and_long_true(
+        self,
+        mock_print_json,
+        mock_parse_workflows,
+        mock_get_all_workflows,
+        mock_DAFNISession,
+    ):
+        """Tests that the 'get workflows' command works correctly (while
+        filtering by creation date and long=True)"""
+
+        self._test_get_workflows_with_date_filter(
+            mock_print_json,
+            mock_parse_workflows,
+            mock_get_all_workflows,
+            mock_DAFNISession,
+            ("--creation-date", "creation"),
+            True,
+        )
+
+    @patch("dafni_cli.commands.get.get_all_workflows")
+    @patch("dafni_cli.commands.get.parse_workflows")
+    @patch("dafni_cli.commands.get.print_json")
+    def test_get_workflows_with_publication_date_filter_and_long_true(
+        self,
+        mock_print_json,
+        mock_parse_workflows,
+        mock_get_all_workflows,
+        mock_DAFNISession,
+    ):
+        """Tests that the 'get workflows' command works correctly (while
+        filtering by publication date and long=True)"""
+
+        self._test_get_workflows_with_date_filter(
+            mock_print_json,
+            mock_parse_workflows,
+            mock_get_all_workflows,
+            mock_DAFNISession,
+            ("--publication-date", "publication"),
+            True,
+        )
+
+    def _test_get_workflows_with_date_filter_json(
+        self,
+        mock_print_json,
+        mock_parse_workflows,
+        mock_get_all_workflows,
+        mock_DAFNISession,
+        date_filter_options,
+    ):
+        """Helper method for testing that the 'get workflows' command works
+        correctly with the given date filters and the --json flag"""
+
+        # SETUP
+        session = MagicMock()
+        mock_DAFNISession.return_value = session
+        runner = CliRunner()
+        workflows = [MagicMock(), MagicMock()]
+
+        # Make the first model filter but the second not
+        workflows[0].filter_by_date = MagicMock(return_value=True)
+        workflows[1].filter_by_date = MagicMock(return_value=False)
+
+        mock_get_all_workflows.return_value = workflows
+        mock_parse_workflows.return_value = workflows
+
+        # CALL
+        options = ["workflows", date_filter_options[0], "01/01/2023", "--json"]
+        result = runner.invoke(get.get, options)
+
+        # ASSERT
+        mock_DAFNISession.assert_called_once()
+        mock_get_all_workflows.assert_called_with(session)
+        workflows[0].filter_by_date.assert_called_with(date_filter_options[1], ANY)
+        workflows[0].output_details.assert_not_called()
+        workflows[1].output_details.assert_not_called()
+        mock_print_json.assert_called_with([workflows[0]])
+
+        self.assertEqual(result.exit_code, 0)
+
+    @patch("dafni_cli.commands.get.get_all_workflows")
+    @patch("dafni_cli.commands.get.parse_workflows")
+    @patch("dafni_cli.commands.get.print_json")
+    def test_get_workflows_with_creation_date_filter_json(
+        self,
+        mock_print_json,
+        mock_parse_workflows,
+        mock_get_all_workflows,
+        mock_DAFNISession,
+    ):
+        """Tests that the 'get workflows' command works correctly (while
+        filtering by creation date and printing json)"""
+
+        self._test_get_workflows_with_date_filter_json(
+            mock_print_json,
+            mock_parse_workflows,
+            mock_get_all_workflows,
+            mock_DAFNISession,
+            ("--creation-date", "creation"),
+        )
+
+    @patch("dafni_cli.commands.get.get_all_workflows")
+    @patch("dafni_cli.commands.get.parse_workflows")
+    @patch("dafni_cli.commands.get.print_json")
+    def test_get_workflows_with_publication_date_filter_json(
+        self,
+        mock_print_json,
+        mock_parse_workflows,
+        mock_get_all_workflows,
+        mock_DAFNISession,
+    ):
+        """Tests that the 'get workflows' command works correctly (while
+        filtering by publication date and printing json)"""
+
+        self._test_get_workflows_with_date_filter_json(
+            mock_print_json,
+            mock_parse_workflows,
+            mock_get_all_workflows,
+            mock_DAFNISession,
+            ("--publication-date", "publication"),
+        )
+
+    # ----------------- WORKFLOW
+
+    @patch("dafni_cli.commands.get.get_workflow")
+    @patch("dafni_cli.commands.get.parse_workflow")
+    @patch("dafni_cli.commands.get.print_json")
+    def test_get_workflow(
+        self, mock_print_json, mock_parse_workflow, mock_get_workflow, mock_DAFNISession
+    ):
+        """Tests that the 'get workflow' command works correctly (with no
+        optional arguments)"""
+
+        # SETUP
+        session = MagicMock()
+        mock_DAFNISession.return_value = session
+        runner = CliRunner()
+        workflow = MagicMock()
+        mock_get_workflow.return_value = workflow
+        mock_parse_workflow.return_value = workflow
+
+        # CALL
+        result = runner.invoke(get.get, ["workflow", "some_version_id"])
+
+        # ASSERT
+        mock_DAFNISession.assert_called_once()
+        mock_get_workflow.assert_called_with(session, "some_version_id")
+        workflow.output_info.assert_called_once()
+        mock_print_json.assert_not_called()
+
+        self.assertEqual(result.exit_code, 0)
+
+    @patch("dafni_cli.commands.get.get_workflow")
+    @patch("dafni_cli.commands.get.parse_workflow")
+    @patch("dafni_cli.commands.get.print_json")
+    def test_get_workflow_json(
+        self, mock_print_json, mock_parse_workflow, mock_get_workflow, mock_DAFNISession
+    ):
+        """Tests that the 'get workflow' command works correctly (with --json)"""
+
+        # SETUP
+        session = MagicMock()
+        mock_DAFNISession.return_value = session
+        runner = CliRunner()
+        workflow = MagicMock()
+        mock_get_workflow.return_value = workflow
+        mock_parse_workflow.return_value = workflow
+
+        # CALL
+        result = runner.invoke(get.get, ["workflow", "some_version_id", "--json"])
+
+        # ASSERT
+        mock_DAFNISession.assert_called_once()
+        mock_get_workflow.assert_called_with(session, "some_version_id")
+        workflow.output_info.assert_not_called()
+        mock_print_json.assert_called_once_with(workflow)
+
+        self.assertEqual(result.exit_code, 0)
+
+    @patch("dafni_cli.commands.get.get_workflow")
+    @patch("dafni_cli.commands.get.parse_workflow")
+    @patch("dafni_cli.commands.get.print_json")
+    def test_get_workflow_version_history(
+        self, mock_print_json, mock_parse_workflow, mock_get_workflow, mock_DAFNISession
+    ):
+        """Tests that the 'get workflow' command works correctly (with
+        --version-history)"""
+
+        # SETUP
+        session = MagicMock()
+        mock_DAFNISession.return_value = session
+        runner = CliRunner()
+        workflow = MagicMock()
+        mock_get_workflow.return_value = workflow
+        mock_parse_workflow.return_value = workflow
+
+        # CALL
+        result = runner.invoke(
+            get.get, ["workflow", "some_version_id", "--version-history"]
+        )
+
+        # ASSERT
+        mock_DAFNISession.assert_called_once()
+        mock_get_workflow.assert_called_with(session, "some_version_id")
+        workflow.output_version_history.assert_called_once()
+        mock_print_json.assert_not_called()
+
+        self.assertEqual(result.exit_code, 0)
+
+    @patch("dafni_cli.commands.get.get_workflow")
+    @patch("dafni_cli.commands.get.parse_workflow")
+    @patch("dafni_cli.commands.get.print_json")
+    def test_get_workflow_version_history_json(
+        self, mock_print_json, mock_parse_workflow, mock_get_workflow, mock_DAFNISession
+    ):
+        """Tests that the 'get workflow' command works correctly (with --json
+        and --version-history)"""
+
+        # SETUP
+        session = MagicMock()
+        mock_DAFNISession.return_value = session
+        runner = CliRunner()
+        workflow = MagicMock()
+        version_history = MagicMock()
+        mock_get_workflow.return_value = {"version_history": [version_history]}
+        mock_parse_workflow.return_value = workflow
+
+        # CALL
+        result = runner.invoke(
+            get.get, ["workflow", "some_version_id", "--version-history", "--json"]
+        )
+
+        # ASSERT
+        mock_DAFNISession.assert_called_once()
+        mock_get_workflow.assert_called_with(session, "some_version_id")
+        workflow.output_version_history.assert_not_called()
+        mock_print_json.assert_called_once_with(version_history)
+
+        self.assertEqual(result.exit_code, 0)

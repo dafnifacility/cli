@@ -5,6 +5,7 @@ import click
 from click import Context
 
 from dafni_cli.api.datasets_api import get_latest_dataset_metadata
+from dafni_cli.api.parser import ParserBaseObject
 from dafni_cli.api.session import DAFNISession
 from dafni_cli.datasets.dataset_metadata import DatasetMetadata
 from dafni_cli.utils import write_files_to_zip
@@ -46,7 +47,7 @@ def dataset(
         directory (Optional[click.Path]): Directory to write zip folder to
     """
     metadata = get_latest_dataset_metadata(ctx.obj["session"], dataset_id, version_id)
-    dataset_meta = DatasetMetadata(metadata)
+    dataset_meta = ParserBaseObject.parse_from_dict(DatasetMetadata, metadata)
 
     if len(dataset_meta.files) > 0:
         # Download all files
