@@ -44,12 +44,13 @@ This will run each command one at a time, requiring you to press enter between c
 
 `python ./scripts/test_script.py --snapshot_overwrite`
 
-to run all in one go saving the outputs in a designated folder specified by the variable `DAFNI_SNAPSHOT_SAVE_LOCATION`. Then using
+to run all in one go saving the outputs in a designated folder specified by the variable `DAFNI_SNAPSHOT_SAVE_LOCATION` (this folder should be in existence before running the script). Then using
 
 `python ./scripts/test_script.py --snapshot`
 
 will rerun the tests and will cause any with different outputs to fail. This is useful for comparing any changes.
 
+Subsections of the tests can be run by naming a section as defined in the `COMMANDS` variable. E.g. `--section get` will run all 'get' commands listed under `COMMANDS["get"]`. `--section get.models` will run all `get models` commands listed under `COMMANDS["get"]["models"]`.
 
 ___
 ## Deployment 

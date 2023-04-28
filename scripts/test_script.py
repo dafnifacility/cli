@@ -21,10 +21,10 @@ import click
 
 home_dir = Path.home()
 
-# The cli executable is
+# Where cli executable is
 DAFNI_CLI_SCRIPT = os.getenv("DAFNI_CLI_SCRIPT") or f"{home_dir}/.local/bin/dafni"
 
-# Where to save snapshots
+# Where to save snapshots (Should be an already existing folder)
 DAFNI_SNAPSHOT_SAVE_LOCATION = (
     os.getenv("DAFNI_SNAPSHOT_SAVE_LOCATION") or f"{home_dir}/dafni_cli_snapshots/"
 )
