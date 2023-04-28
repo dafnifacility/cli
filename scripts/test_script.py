@@ -2,13 +2,15 @@
 Script for running tests of the cli as a whole via the command line
 
 Notes on usage:
-    - Replace DAFNI_SCRIPT_LOCATION and SNAPSHOT_SAVE_LOCATION as necessary
-      before executing
+    - Replace DAFNI_SCRIPT_LOCATION and DAFNI_SNAPSHOT_SAVE_LOCATION as
+      necessary before executing (you can also assign them with environment
+      variables)
     - Run on python command line e.g. python ./test/cli_test_script --help
     - Should login just before running with --snapshot as otherwise token
       could time out and get stuck
 """
 
+import os
 import subprocess
 import tempfile
 from abc import ABC, abstractmethod
@@ -17,11 +19,15 @@ from typing import Optional, Union
 
 import click
 
-# Not sure why it wasn't finding this, but this will do for now
-DAFNI_CLI_SCRIPT = "/home/joel/.local/bin/dafni"
+home_dir = Path.home()
+
+# The cli executable is
+DAFNI_CLI_SCRIPT = os.getenv("DAFNI_CLI_SCRIPT") or f"{home_dir}/.local/bin/dafni"
 
 # Where to save snapshots
-SNAPSHOT_SAVE_LOCATION = "/home/joel/dafni_cli_snapshots/"
+DAFNI_SNAPSHOT_SAVE_LOCATION = (
+    os.getenv("DAFNI_SNAPSHOT_SAVE_LOCATION") or f"{home_dir}/dafni_cli_snapshots/"
+)
 
 
 class SpecialCommand(ABC):
@@ -231,7 +237,7 @@ def save_and_check_snapshot(
         return
 
     # Path to compare snapshot to
-    path = Path(SNAPSHOT_SAVE_LOCATION, f"{clean_string(command_str)}.out")
+    path = Path(DAFNI_SNAPSHOT_SAVE_LOCATION, f"{clean_string(command_str)}.out")
 
     # Store as a string array with new lines ready for saving/comparing
     string_output = run_result.stdout.decode().splitlines()

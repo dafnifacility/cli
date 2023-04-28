@@ -32,7 +32,7 @@ Whilst running the activated venv created locally for the dafni-cli, ensure you 
 
 **Note**: Some tests currently fail as they are outdated
 
-There is also a script for running full CLI commands against the current released version of DAFNI in the `/scripts` folder. To use this you first need to modify the `DAFNI_CLI_SCRIPT` variable to point to the installed CLI script. You may be able to get away with assigning it to `dafni` but for some reason it didn't work for me so I had to use `whereis dafni` to find the location.
+There is also a script for running full CLI commands against the current released version of DAFNI in the `/scripts` folder. To use this you first need to modify the `DAFNI_CLI_SCRIPT` variable to point to the installed CLI script or define it as an environment variable. You may be able to get away with assigning it to `dafni` but for some reason it didn't work for me so I had to use `whereis dafni` to find the location.
 
 Before running the tests make sure you login to the non-admin1 test account. If you are already logged in, logout first to ensure the refresh tokens wont expire during the execution.
 
@@ -44,7 +44,7 @@ This will run each command one at a time, requiring you to press enter between c
 
 `python ./scripts/test_script.py --snapshot_overwrite`
 
-to run all in one go saving the outputs in a designated folder specified by the variable `SNAPSHOT_SAVE_LOCATION`. Then using
+to run all in one go saving the outputs in a designated folder specified by the variable `DAFNI_SNAPSHOT_SAVE_LOCATION`. Then using
 
 `python ./scripts/test_script.py --snapshot`
 
