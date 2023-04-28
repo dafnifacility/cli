@@ -34,6 +34,14 @@ class LoginResponse:
         return self.access_token is not None and self.refresh_token is not None
 
 
+class DAFNIError(BaseException):
+    """An error returned by one of the DAFNI API's"""
+
+
+class EndpointNotFoundError(BaseException):
+    """An error for distinguishing when an endpoint is not found"""
+
+
 @dataclass
 class SessionData:
     """Dataclass for storing information about a logged in session (This will
@@ -327,6 +335,54 @@ class DAFNISession:
 
         return response
 
+    def _check_response(
+        self, url: str, response: requests.Response, raise_status: bool
+    ):
+        """Checks a requests response for any errors and raises them as
+        required
+
+        Args:
+            url (str): URL endpoint that was being queried
+            response (requests.Response): Response from requests
+            raise_status (bool): Whether to raise an error from the response
+                                 status code
+
+        Raises:
+            EndpointNotFoundError: If the response returns a 404 status code
+            DAFNIError: If an error occurs with an error message from DAFNI
+            HTTPError: If any other error occurs without an error message from
+                       DAFNI
+        """
+
+        # Check for some returned error
+        if not response.ok:
+            # Check for common issues
+            if response.status_code == 404:
+                raise EndpointNotFoundError(f"Could not find {url}")
+
+            # Attempt to get an error message
+            error_message = None
+            try:
+                decoded_response = response.json()
+                if "error" in decoded_response:
+                    error_message = f"Error: {decoded_response['error']}"
+                if "error_message" in decoded_response:
+                    error_message = (
+                        f"{error_message}, {decoded_response['error_message']}"
+                    )
+            except requests.JSONDecodeError:
+                pass
+        if raise_status:
+            # If the error is from DAFNI return a DAFNI exception instead
+            # with more details, otherwise leave as a HTTP error
+            if error_message is None:
+                response.raise_for_status()
+            else:
+                try:
+                    response.raise_for_status()
+                except requests.HTTPError as err:
+                    raise DAFNIError(error_message) from err
+
     def get_request(
         self,
         url: str,
@@ -361,9 +417,8 @@ class DAFNISession:
             json=None,
             allow_redirect=allow_redirect,
         )
+        self._check_response(response, raise_status)
 
-        if raise_status:
-            response.raise_for_status()
         if content:
             return response.content
         return response.json()
@@ -407,8 +462,8 @@ class DAFNISession:
             allow_redirect=allow_redirect,
         )
 
-        if raise_status:
-            response.raise_for_status()
+        self._check_response(response, raise_status)
+
         if content:
             return response.content
         return response.json()
@@ -452,8 +507,8 @@ class DAFNISession:
             allow_redirect=allow_redirect,
         )
 
-        if raise_status:
-            response.raise_for_status()
+        self._check_response(response, raise_status)
+
         if content:
             return response.content
         return response
@@ -497,8 +552,8 @@ class DAFNISession:
             allow_redirect=allow_redirect,
         )
 
-        if raise_status:
-            response.raise_for_status()
+        self._check_response(response, raise_status)
+
         if content:
             return response.content
         return response.json()
@@ -536,8 +591,8 @@ class DAFNISession:
             allow_redirect=allow_redirect,
         )
 
-        if raise_status:
-            response.raise_for_status()
+        self._check_response(response, raise_status)
+
         if content:
             return response.content
         return response.json()
