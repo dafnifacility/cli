@@ -1,4 +1,4 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import datetime
 from typing import ClassVar, List, Optional
 
@@ -23,25 +23,25 @@ class Dataset(ParserBaseObject):
                           dataset
         metadata_id (str): Metadata identifier of the latest metadata for this
                            dataset
-        formats (List[str]): The file formats related to the dataset
         modified_date (datetime): Date for when the dataset was last modified
         source (str): Publisher of the dataset e.g. DAFNI
         subject (str): Subject relating to the dataset e.g. Transportation
         title (str): Title of the dataset
+        formats (List[str]): The file formats related to the dataset
         description (Optional[str]): Description of the dataset
-        date_range_start (datetime or None): Start of date range
-        date_range_end (datetime or None): End of date range
+        date_range_start (Optional[datetime]): Start of date range
+        date_range_end (Optional[datetime]): End of date range
     """
 
     asset_id: str
     dataset_id: str
     version_id: str
     metadata_id: str
-    formats: List[str]
     modified_date: datetime
     source: str
     subject: str
     title: str
+    formats: List[str] = field(default_factory=list)
     description: Optional[str] = None
     date_range_start: Optional[datetime] = None
     date_range_end: Optional[datetime] = None
@@ -51,12 +51,12 @@ class Dataset(ParserBaseObject):
         ParserParam("dataset_id", ["id", "dataset_uuid"], str),
         ParserParam("version_id", ["id", "version_uuid"], str),
         ParserParam("metadata_id", ["id", "metadata_uuid"], str),
-        ParserParam("description", "description", str),
-        ParserParam("formats", "formats"),
         ParserParam("modified_date", "modified_date", parse_datetime),
         ParserParam("source", "source", str),
         ParserParam("subject", "subject", str),
         ParserParam("title", "title", str),
+        ParserParam("formats", "formats"),
+        ParserParam("description", "description", str),
         ParserParam("date_range_start", ["date_range", "begin"], parse_datetime),
         ParserParam("date_range_end", ["date_range", "end"], parse_datetime),
     ]

@@ -14,7 +14,6 @@ TEST_DATASETS_DATA: dict = {
             "source": "DAFNI",
             "date_range": {"begin": None, "end": None},
             "modified_date": "2021-03-04T15:59:26+00:00",
-            "formats": [None],
             "auth": {
                 "name": "Executor",
                 "view": True,
