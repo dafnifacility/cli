@@ -161,12 +161,12 @@ class Standard(ParserBaseObject):
     """Dataclass representing the standard listed in a dataset's metadata
 
     Attributes:
-        type (str): Standard type
-        id (str or None): Standard id
-        label (str or None): Standard label
+        type (Optional[str]): Standard type
+        id (Optional[str]): Standard id
+        label (Optional[str]): Standard label
     """
 
-    type: str
+    type: Optional[str] = None
     id: Optional[str] = None
     label: Optional[str] = None
 
@@ -188,19 +188,19 @@ class DatasetMetadataVersion(ParserBaseObject):
 
     Attributes:
         metadata_id (str): ID of this version of the metadata
-        label (str): Label of the metadata version
         modified_date (datetime): Time and date of last modification of this
                                   version
+        label (Optional[str]): Label of the metadata version
     """
 
     metadata_id: str
-    label: str
     modified_date: datetime
+    label: Optional[str] = None
 
     _parser_params: ClassVar[List[ParserParam]] = [
         ParserParam("metadata_id", "metadata_uuid", str),
-        ParserParam("label", "dafni_version_note", str),
         ParserParam("modified_date", "modified_date", parse_datetime),
+        ParserParam("label", "dafni_version_note", str),
     ]
 
 

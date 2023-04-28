@@ -50,9 +50,7 @@ TEST_DATASET_METADATA_STANDARD: dict = {
     "label": "ISO 19115-2:2009",
 }
 
-TEST_DATASET_METADATA_STANDARD_DEFAULT: dict = {
-    "@type": "dct:Standard",
-}
+TEST_DATASET_METADATA_STANDARD_DEFAULT: dict = {}
 
 TEST_DATASET_METADATA_VERSION_HISTORY: dict = {
     "dataset_uuid": "0a0a0a0a-0a00-0a00-a000-0a0a0000000a",

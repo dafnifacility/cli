@@ -190,7 +190,7 @@ class TestStandard(TestCase):
         standard: Standard = ParserBaseObject.parse_from_dict(
             Standard, TEST_DATASET_METADATA_STANDARD_DEFAULT
         )
-        self.assertEqual(standard.type, TEST_DATASET_METADATA_STANDARD_DEFAULT["@type"])
+        self.assertEqual(standard.type, None)
         self.assertEqual(standard.id, None)
         self.assertEqual(standard.label, None)
 
@@ -226,14 +226,14 @@ class TestDatasetVersionHistory(TestCase):
             ]["metadata_uuid"],
         )
         self.assertEqual(
+            version_history.versions[0].metadata_versions[0].modified_date,
+            datetime(2021, 3, 16, 9, 27, 21, tzinfo=tzutc()),
+        )
+        self.assertEqual(
             version_history.versions[0].metadata_versions[0].label,
             TEST_DATASET_METADATA_VERSION_HISTORY["versions"][0]["metadata_versions"][
                 0
             ]["dafni_version_note"],
-        )
-        self.assertEqual(
-            version_history.versions[0].metadata_versions[0].modified_date,
-            datetime(2021, 3, 16, 9, 27, 21, tzinfo=tzutc()),
         )
 
         # Version 1, Metadata Version 2
@@ -244,14 +244,14 @@ class TestDatasetVersionHistory(TestCase):
             ]["metadata_uuid"],
         )
         self.assertEqual(
+            version_history.versions[0].metadata_versions[1].modified_date,
+            datetime(2021, 3, 17, 9, 27, 21, tzinfo=tzutc()),
+        )
+        self.assertEqual(
             version_history.versions[0].metadata_versions[1].label,
             TEST_DATASET_METADATA_VERSION_HISTORY["versions"][0]["metadata_versions"][
                 1
             ]["dafni_version_note"],
-        )
-        self.assertEqual(
-            version_history.versions[0].metadata_versions[1].modified_date,
-            datetime(2021, 3, 17, 9, 27, 21, tzinfo=tzutc()),
         )
 
         # Version 2
@@ -269,14 +269,14 @@ class TestDatasetVersionHistory(TestCase):
             ]["metadata_uuid"],
         )
         self.assertEqual(
+            version_history.versions[1].metadata_versions[0].modified_date,
+            datetime(2021, 3, 16, 9, 27, 21, tzinfo=tzutc()),
+        )
+        self.assertEqual(
             version_history.versions[1].metadata_versions[0].label,
             TEST_DATASET_METADATA_VERSION_HISTORY["versions"][1]["metadata_versions"][
                 0
             ]["dafni_version_note"],
-        )
-        self.assertEqual(
-            version_history.versions[1].metadata_versions[0].modified_date,
-            datetime(2021, 3, 16, 9, 27, 21, tzinfo=tzutc()),
         )
 
     @patch("dafni_cli.datasets.dataset_metadata.print_json")
@@ -511,8 +511,8 @@ class TestDatasetMetadataTestCase(TestCase):
                 call("Description:"),
                 call("Identifiers:"),
                 call(f"Location: {dataset_metadata.location.label}"),
-                call(f"Start date: None"),
-                call(f"End date: None"),
+                call("Start date: None"),
+                call("End date: None"),
                 call(f"Key words:\n {dataset_metadata.keywords}"),
             ]
         )
