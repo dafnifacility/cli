@@ -31,6 +31,27 @@ Whilst running the activated venv created locally for the dafni-cli, ensure you 
 `python -m unittest`
 
 **Note**: Some tests currently fail as they are outdated
+
+There is also a script for running full CLI commands against the current released version of DAFNI in the `/scripts` folder. To use this you first need to modify the `DAFNI_CLI_SCRIPT` variable to point to the installed CLI script or define it as an environment variable. You may be able to get away with assigning it to `dafni` but for some reason it didn't work for me so I had to use `whereis dafni` to find the location.
+
+Before running the tests make sure you login to the non-admin1 test account. If you are already logged in, logout first to ensure the refresh tokens wont expire during the execution.
+
+You can then run the tests by using
+
+`python ./scripts/test_script.py`
+
+This will run each command one at a time, requiring you to press enter between commands. You may also use
+
+`python ./scripts/test_script.py --snapshot_overwrite`
+
+to run all in one go saving the outputs in a designated folder specified by the variable `DAFNI_SNAPSHOT_SAVE_LOCATION` (this folder should be in existence before running the script). Then using
+
+`python ./scripts/test_script.py --snapshot`
+
+will rerun the tests and will cause any with different outputs to fail. This is useful for comparing any changes.
+
+Subsections of the tests can be run by naming a section as defined in the `COMMANDS` variable. E.g. `--section get` will run all 'get' commands listed under `COMMANDS["get"]`. `--section get.models` will run all `get models` commands listed under `COMMANDS["get"]["models"]`.
+
 ___
 ## Deployment 
 
