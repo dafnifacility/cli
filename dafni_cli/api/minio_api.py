@@ -27,7 +27,7 @@ def upload_file_to_minio(
     """
     with open(file_path, "rb") as file_data:
         return session.put_request(
-            url=url, content_type=MINIO_UPLOAD_CT, data=file_data
+            url=url, content_type=MINIO_UPLOAD_CT, data=file_data, auth=False
         )
 
 
@@ -43,10 +43,8 @@ def get_data_upload_id(session: DAFNISession) -> str:
     """
 
     url = f"{DATA_UPLOAD_API_URL}/nid/upload/"
-    # TODO remove this - no cancel tokens in cli - this is front-end-y
-    data = {"cancelToken": {"promise": {}}}
 
-    return session.post_request(url=url, json=data, allow_redirect=True)
+    return session.post_request(url=url, allow_redirect=True)
 
 
 def get_data_upload_urls(
@@ -67,7 +65,7 @@ def get_data_upload_urls(
     url = f"{DATA_UPLOAD_API_URL}/nid/upload/"
     data = {"bucketId": upload_id, "datafiles": file_names}
 
-    return session.patch_request(url=url, data=data, allow_redirect=True)
+    return session.patch_request(url=url, json=data, allow_redirect=True)
 
 
 def upload_dataset_metadata(
@@ -79,6 +77,13 @@ def upload_dataset_metadata(
         session (DAFNISession): User session
         upload_id (str): Minio Temporary Upload ID
         metadata (dict): Dataset Metadata
+
+    Raises:
+        EndpointNotFoundError: If the post request returns a 404 status
+                               code
+        DAFNIError: If an error occurs with an error message from DAFNI
+        HTTPError: If any other error occurs without an error message from
+                   DAFNI
 
     Returns:
         Response: Upload Response

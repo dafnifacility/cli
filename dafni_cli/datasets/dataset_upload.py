@@ -4,6 +4,7 @@ from typing import List
 
 import click
 from requests.exceptions import HTTPError
+from dafni_cli.api.exceptions import DAFNIError, EndpointNotFoundError
 
 from dafni_cli.api.minio_api import (
     get_data_upload_id,
@@ -62,7 +63,9 @@ def upload_files(session: DAFNISession, files: List[click.Path]) -> str:
     return upload_id
 
 
-def upload_metadata(session: DAFNISession, definition: click.Path, upload_id: str) -> dict:
+def upload_metadata(
+    session: DAFNISession, definition: click.Path, upload_id: str
+) -> dict:
     """Function to upload the Metadata to the Minio API, with the
     given Minio Temporary Upload ID
 
@@ -75,15 +78,13 @@ def upload_metadata(session: DAFNISession, definition: click.Path, upload_id: st
         dict: Upload response in json format
     """
     click.echo("Uploading Metadata File")
-    with open(definition, "r") as definition_file:
+    with open(definition, "r", encoding="utf-8") as definition_file:
         try:
             response = upload_dataset_metadata(
                 session, upload_id, json.load(definition_file)
             )
-            response.raise_for_status()
-        except HTTPError as e:
+        except (EndpointNotFoundError, DAFNIError, HTTPError) as err:
             click.echo("\nMetadata Upload Failed")
-            prose_print("\n".join(response.json()), CONSOLE_WIDTH)
-            raise SystemExit(1) from e
+            raise SystemExit(1) from err
 
     return response.json()
