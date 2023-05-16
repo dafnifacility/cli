@@ -5,11 +5,12 @@ from typing import BinaryIO, Literal, Optional, Union
 
 import click
 import requests
-from dafni_cli.api.exceptions import DAFNIError, EndpointNotFoundError, LoginError
 
+from dafni_cli.api.exceptions import DAFNIError, EndpointNotFoundError, LoginError
 from dafni_cli.consts import (
     LOGIN_API_ENDPOINT,
     LOGOUT_API_ENDPOINT,
+    MINIO_API_URL,
     REQUESTS_TIMEOUT,
     SESSION_SAVE_FILE,
 )
@@ -292,21 +293,38 @@ class DAFNISession:
             requests.Response: Response from the requests library
         """
 
-        response = requests.request(
-            method,
-            url=url,
-            headers={
-                "Authorization": f"Bearer {self._session_data.access_token}",
-                **headers,
-            },
-            data=data,
-            json=json,
-            allow_redirects=allow_redirect,
-            timeout=REQUESTS_TIMEOUT,
-        )
+        # Switch to cookie based authentication only for minio
+        if MINIO_API_URL in url:
+            response = requests.request(
+                method,
+                url=url,
+                headers=headers,
+                data=data,
+                json=json,
+                allow_redirects=allow_redirect,
+                timeout=REQUESTS_TIMEOUT,
+                cookies={"__Secure-dafni": self._session_data.access_token},
+            )
+        else:
+            response = requests.request(
+                method,
+                url=url,
+                headers={
+                    "Authorization": f"Bearer {self._session_data.access_token}",
+                    **headers,
+                },
+                data=data,
+                json=json,
+                allow_redirects=allow_redirect,
+                timeout=REQUESTS_TIMEOUT,
+            )
 
-        # Check for any kind of authentication error
-        if response.status_code == 403:
+        # Check for any kind of authentication error, or an attempted redirect
+        # (this covers a case during file upload where a 302 is returned rather
+        # than an actual authentication error)
+        if response.status_code == 403 or (
+            response.status_code == 302 and not allow_redirect
+        ):
             # Try again, but only once
             if recursion_level > 1:
                 # Provide further details from the response (if there is
@@ -401,15 +419,26 @@ class DAFNISession:
             if response.status_code == 404:
                 raise EndpointNotFoundError(f"Could not find {url}")
 
-            # Attempt to get an error message
+            # Attempt to get an error message from the API itself
             try:
                 decoded_response = response.json()
                 if "error" in decoded_response:
                     error_message = f"Error: {decoded_response['error']}"
-                if "error_message" in decoded_response:
+                elif "errors" in decoded_response:
+                    error_message = "The following errors were returned:"
+                    for error in decoded_response["errors"]:
+                        error_message += f"\nError: {error}"
+                elif "error_message" in decoded_response:
                     error_message = (
                         f"{error_message}, {decoded_response['error_message']}"
                     )
+                # Special case when uploading dataset metadata that's invalid
+                elif "metadata" in decoded_response:
+                    # This returns a list of errors, add them all to the
+                    # message
+                    error_message = "Found errors in metadata:"
+                    for error in decoded_response["metadata"]:
+                        error_message += f"\n{error}"
             except requests.JSONDecodeError:
                 pass
         # If there is an error from DAFNI raise a DAFNI exception as well
@@ -628,7 +657,7 @@ class DAFNISession:
     def delete_request(
         self, url: str, allow_redirect: bool = False, content: bool = False, auth=True
     ):
-        """Performs a PATCH request to the DAFNI API.
+        """Performs a DELETE request to the DAFNI API
 
         Args:
             url (str): The url endpoint that is being queried

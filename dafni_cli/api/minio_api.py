@@ -27,7 +27,9 @@ def upload_file_to_minio(
     """
     with open(file_path, "rb") as file_data:
         return session.put_request(
-            url=url, content_type=MINIO_UPLOAD_CT, data=file_data, auth=False
+            url=url,
+            content_type=MINIO_UPLOAD_CT,
+            data=file_data,
         )
 
 
