@@ -346,55 +346,6 @@ class DAFNISession:
 
         return response
 
-    def _request(
-        self,
-        method: Literal["get", "post", "put", "patch", "delete"],
-        url: str,
-        headers: dict,
-        data: Union[dict, BinaryIO],
-        json,
-        allow_redirect: bool,
-        auth: bool,
-    ) -> requests.Response:
-        """Performs a request from the DAFNI API that may be authenticated
-        using an access token
-
-        Args:
-            url (str): The url endpoint that is being queried
-            headers (dict): Headers to include in the request (authorisation
-                            will already be added)
-            data (dict or BinaryIO): Data to be include in the request
-            json: Any JSON serialisable object to include in the request
-            allow_redirect (bool): Flag to allow redirects during API call.
-            auth (bool): Whether session authentication is needed in the
-                         request
-
-        Returns:
-            requests.Response: Response from the requests library
-        """
-
-        # When authentication needed use special function that handles token
-        # timeout
-        if auth:
-            return self._authenticated_request(
-                method=method,
-                url=url,
-                headers=headers,
-                data=data,
-                json=json,
-                allow_redirect=allow_redirect,
-            )
-        else:
-            return requests.request(
-                method,
-                url=url,
-                headers=headers,
-                data=data,
-                json=json,
-                allow_redirects=allow_redirect,
-                timeout=REQUESTS_TIMEOUT,
-            )
-
     def _check_response(self, url: str, response: requests.Response):
         """Checks a requests response for any errors and raises them as
         required
@@ -457,7 +408,6 @@ class DAFNISession:
         content_type: str = "application/json",
         allow_redirect: bool = False,
         content: bool = False,
-        auth=True,
     ):
         """Performs a GET request from the DAFNI API
 
@@ -468,8 +418,6 @@ class DAFNISession:
                                    Defaults to False.
             content (bool): Flag to define if the response content is
                             returned. default is the response json
-            auth (bool): Whether session authentication is needed in the
-                         request
 
         Returns:
             List[dict]: For an endpoint returning several objects, a list is
@@ -483,14 +431,13 @@ class DAFNISession:
             HTTPError: If any other error occurs without an error message from
                        DAFNI
         """
-        response = self._request(
+        response = self._authenticated_request(
             method="get",
             url=url,
             headers={"Content-Type": content_type},
             data=None,
             json=None,
             allow_redirect=allow_redirect,
-            auth=auth,
         )
         self._check_response(url, response)
 
@@ -506,7 +453,6 @@ class DAFNISession:
         json=None,
         allow_redirect: bool = False,
         content: bool = False,
-        auth=True,
     ):
         """Performs a POST request to the DAFNI API
 
@@ -519,8 +465,6 @@ class DAFNISession:
                                    Defaults to False.
             content (bool): Flag to define if the response content is
                             returned. default is the response json
-            auth (bool): Whether session authentication is needed in the
-                         request
 
         Returns:
             List[dict]: For an endpoint returning several objects, a list is
@@ -534,14 +478,13 @@ class DAFNISession:
             HTTPError: If any other error occurs without an error message from
                        DAFNI
         """
-        response = self._request(
+        response = self._authenticated_request(
             method="post",
             url=url,
             headers={"Content-Type": content_type},
             data=data,
             json=json,
             allow_redirect=allow_redirect,
-            auth=auth,
         )
 
         self._check_response(url, response)
@@ -558,7 +501,6 @@ class DAFNISession:
         json=None,
         allow_redirect: bool = False,
         content: bool = False,
-        auth=True,
     ):
         """Performs a PUT request to the DAFNI API
 
@@ -571,8 +513,6 @@ class DAFNISession:
                                    Defaults to False.
             content (bool): Flag to define if the response content is
                             returned. default is the response json
-            auth (bool): Whether session authentication is needed in the
-                         request
 
         Returns:
             List[dict]: For an endpoint returning several objects, a list is
@@ -586,14 +526,13 @@ class DAFNISession:
             HTTPError: If any other error occurs without an error message from
                        DAFNI
         """
-        response = self._request(
+        response = self._authenticated_request(
             method="put",
             url=url,
             headers={"Content-Type": content_type},
             data=data,
             json=json,
             allow_redirect=allow_redirect,
-            auth=auth,
         )
 
         self._check_response(url, response)
@@ -610,9 +549,8 @@ class DAFNISession:
         json=None,
         allow_redirect: bool = False,
         content: bool = False,
-        auth=True,
     ):
-        """Performs a PATCH request to the DAFNI API.
+        """Performs a PATCH request to the DAFNI API
 
         Args:
             url (str): The url endpoint that is being queried
@@ -623,8 +561,6 @@ class DAFNISession:
                                    Defaults to False.
             content (bool): Flag to define if the response content is
                             returned. default is the response json
-            auth (bool): Whether session authentication is needed in the
-                         request
 
         Returns:
             List[dict]: For an endpoint returning several objects, a list is
@@ -638,14 +574,13 @@ class DAFNISession:
             HTTPError: If any other error occurs without an error message from
                        DAFNI
         """
-        response = self._request(
+        response = self._authenticated_request(
             method="patch",
             url=url,
             headers={"Content-Type": content_type},
             data=data,
             json=json,
             allow_redirect=allow_redirect,
-            auth=auth,
         )
 
         self._check_response(url, response)
@@ -655,7 +590,7 @@ class DAFNISession:
         return response.json()
 
     def delete_request(
-        self, url: str, allow_redirect: bool = False, content: bool = False, auth=True
+        self, url: str, allow_redirect: bool = False, content: bool = False
     ):
         """Performs a DELETE request to the DAFNI API
 
@@ -665,8 +600,6 @@ class DAFNISession:
                                    Defaults to False.
             content (bool): Flag to define if the response content is
                             returned. default is the response json
-            auth (bool): Whether session authentication is needed in the
-                         request
 
         Returns:
             List[dict]: For an endpoint returning several objects, a list is
@@ -680,7 +613,7 @@ class DAFNISession:
             HTTPError: If any other error occurs without an error message from
                        DAFNI
         """
-        response = self._request(
+        response = self._authenticated_request(
             method="delete",
             url=url,
             headers={},
