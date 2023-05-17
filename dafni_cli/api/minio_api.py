@@ -8,6 +8,7 @@ from dafni_cli.consts import (
     DATA_DOWNLOAD_API_URL,
     DATA_DOWNLOAD_REDIRECT_API_URL,
     DATA_UPLOAD_API_URL,
+    DSS_API_URL,
     MINIO_UPLOAD_CT,
 )
 
@@ -33,8 +34,8 @@ def upload_file_to_minio(
         )
 
 
-def get_data_upload_id(session: DAFNISession) -> str:
-    """Function to get a temporary upload ID from
+def create_temp_bucket(session: DAFNISession) -> str:
+    """Creates a temporary bucket and returns its ID using
     DAFNI data upload API
 
     Args:
@@ -47,6 +48,16 @@ def get_data_upload_id(session: DAFNISession) -> str:
     url = f"{DATA_UPLOAD_API_URL}/nid/upload/"
 
     return session.post_request(url=url, allow_redirect=True)
+
+
+def delete_temp_bucket(session: DAFNISession, upload_id: str):
+    """Deletes a temporary bucket given its ID"""
+
+    # Strip out temp_ which will be present in the ID returned by
+    # create_temp_bucket
+    url = f"{DSS_API_URL}/assets/{upload_id.replace('temp-', '')}"
+
+    return session.delete_request(url)
 
 
 def get_data_upload_urls(
@@ -71,13 +82,13 @@ def get_data_upload_urls(
 
 
 def upload_dataset_metadata(
-    session: DAFNISession, upload_id: str, metadata: dict
+    session: DAFNISession, temp_bucket_id: str, metadata: dict
 ) -> requests.Response:
     """Function to upload Dataset Metadata to Minio
 
     Args:
         session (DAFNISession): User session
-        upload_id (str): Minio Temporary Upload ID
+        temp_bucket_id (str): Minio Temporary Upload ID
         metadata (dict): Dataset Metadata
 
     Raises:
@@ -91,7 +102,7 @@ def upload_dataset_metadata(
         Response: Upload Response
     """
     url = f"{DATA_UPLOAD_API_URL}/nid/dataset/"
-    data = {"bucketId": upload_id, "metadata": metadata}
+    data = {"bucketId": temp_bucket_id, "metadata": metadata}
     return session.post_request(url=url, json=data)
 
 

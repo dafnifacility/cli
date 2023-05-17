@@ -646,4 +646,4 @@ class DAFNISession:
 
         if content:
             return response.content
-        return response.json()
+        return response

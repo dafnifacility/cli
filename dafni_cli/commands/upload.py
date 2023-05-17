@@ -4,6 +4,7 @@ from typing import List
 import click
 from click import Context
 
+from dafni_cli.api.exceptions import ValidationError
 from dafni_cli.api.minio_api import upload_file_to_minio
 from dafni_cli.api.models_api import (
     get_all_models,
@@ -87,7 +88,12 @@ def model(
     )
 
     click.echo("Validating model definition")
-    validate_model_definition(ctx.obj["session"], definition)
+    try:
+        validate_model_definition(ctx.obj["session"], definition)
+    except ValidationError as err:
+        click.echo(err)
+
+        raise SystemExit(1) from err
 
     click.echo("Getting urls")
     upload_id, urls = get_model_upload_urls(ctx.obj["session"])
