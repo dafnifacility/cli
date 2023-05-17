@@ -12,6 +12,7 @@ from dafni_cli.consts import (
     LOGOUT_API_ENDPOINT,
     MINIO_API_URL,
     REQUESTS_TIMEOUT,
+    SESSION_COOKIE,
     SESSION_SAVE_FILE,
 )
 from dafni_cli.utils import dataclass_from_dict
@@ -303,7 +304,7 @@ class DAFNISession:
                 json=json,
                 allow_redirects=allow_redirect,
                 timeout=REQUESTS_TIMEOUT,
-                cookies={"__Secure-dafni": self._session_data.access_token},
+                cookies={SESSION_COOKIE: self._session_data.access_token},
             )
         else:
             response = requests.request(
@@ -346,6 +347,40 @@ class DAFNISession:
 
         return response
 
+    def _find_error_message(self, response: requests.Response) -> Optional[str]:
+        """Attempts to find an error message from a failed request response
+
+        Args:
+            response (requests.Response): The failed request response
+
+        Returns:
+            Optional[str]: String representing an error message or None
+                           if none was found
+        """
+
+        # Try and get JSON data from the response
+        try:
+            decoded_response = response.json()
+            if "error" in decoded_response:
+                error_message = f"Error: {decoded_response['error']}"
+            elif "errors" in decoded_response:
+                error_message = "The following errors were returned:"
+                for error in decoded_response["errors"]:
+                    error_message += f"\nError: {error}"
+            elif "error_message" in decoded_response:
+                error_message = f"{error_message}, {decoded_response['error_message']}"
+            # Special case when uploading dataset metadata that's invalid
+            elif "metadata" in decoded_response:
+                # This returns a list of errors, add them all to the
+                # message
+                error_message = "Found errors in metadata:"
+                for error in decoded_response["metadata"]:
+                    error_message += f"\n{error}"
+
+            return error_message
+        except requests.JSONDecodeError:
+            return None
+
     def _check_response(self, url: str, response: requests.Response):
         """Checks a requests response for any errors and raises them as
         required
@@ -370,28 +405,9 @@ class DAFNISession:
             if response.status_code == 404:
                 raise EndpointNotFoundError(f"Could not find {url}")
 
-            # Attempt to get an error message from the API itself
-            try:
-                decoded_response = response.json()
-                if "error" in decoded_response:
-                    error_message = f"Error: {decoded_response['error']}"
-                elif "errors" in decoded_response:
-                    error_message = "The following errors were returned:"
-                    for error in decoded_response["errors"]:
-                        error_message += f"\nError: {error}"
-                elif "error_message" in decoded_response:
-                    error_message = (
-                        f"{error_message}, {decoded_response['error_message']}"
-                    )
-                # Special case when uploading dataset metadata that's invalid
-                elif "metadata" in decoded_response:
-                    # This returns a list of errors, add them all to the
-                    # message
-                    error_message = "Found errors in metadata:"
-                    for error in decoded_response["metadata"]:
-                        error_message += f"\n{error}"
-            except requests.JSONDecodeError:
-                pass
+            # Attempt to find an error message from the API itself
+            error_message = self._find_error_message(response)
+
         # If there is an error from DAFNI raise a DAFNI exception as well
         # with more details, otherwise leave as any errors are HTTPError's
         if error_message is None:

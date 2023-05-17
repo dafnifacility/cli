@@ -20,7 +20,7 @@ DATA_DOWNLOAD_REDIRECT_API_URL = "https://fwd.secure.dafni.rl.ac.uk/nidminio"
 
 # Authentication
 SESSION_SAVE_FILE = ".dafni-cli"
-# JWT_COOKIE = "__Secure-dafnijwt"
+SESSION_COOKIE = "__Secure-dafni"
 
 # Content types
 MINIO_UPLOAD_CT = "multipart/form-data"

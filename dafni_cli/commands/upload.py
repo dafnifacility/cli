@@ -96,8 +96,8 @@ def model(
         if e.response.status_code == 500:
             click.echo(
                 "Error validating the model definition. "
-                "See https://docs.secure.dafni.rl.ac.uk/docs/how-to/models/how-to-write-a-model-definition-file/"
-                " for guidance"
+                "See https://docs.secure.dafni.rl.ac.uk/docs/how-to/models/how-to-write-a-model-definition-file/ "
+                "for guidance"
             )
         else:
             click.echo(e)
