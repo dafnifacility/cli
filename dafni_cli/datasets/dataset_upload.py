@@ -42,7 +42,7 @@ def upload_new_dataset_files(
         raise
 
     # Output Details
-    click.echo("\nUpload Successful")
+    click.echo("\nUpload successful")
     click.echo(f"Dataset ID: {details['datasetId']}")
     click.echo(f"Version ID: {details['versionId']}")
     click.echo(f"Metadata ID: {details['metadataId']}")
@@ -50,17 +50,14 @@ def upload_new_dataset_files(
 
 def upload_files(
     session: DAFNISession, temp_bucket_id: str, files: List[click.Path]
-) -> str:
-    """Function to get a temporary Upload ID, and upload all given
-    files to the Minio API
+):
+    """Function to upload all given files to a temporary bucket via the Minio
+    API
 
     Args:
         session (DAFNISession): User session
-        temp_bucket_id (str): Minio Temporary Bucket ID to upload files to
+        temp_bucket_id (str): Minio temporary bucket ID to upload files to
         files (List[click.Path]): List of Paths to dataset data files
-
-    Returns:
-        str: Minio Temporary Bucket ID
     """
     click.echo("Retrieving file upload URls")
     file_names = {basename(normpath(file_path)): file_path for file_path in files}
@@ -69,8 +66,6 @@ def upload_files(
     click.echo("Uploading files")
     for key, value in upload_urls["URLs"].items():
         upload_file_to_minio(session, value, file_names[key])
-
-    return temp_bucket_id
 
 
 def upload_metadata(
@@ -97,7 +92,7 @@ def upload_metadata(
                 session, temp_bucket_id, json.load(definition_file)
             )
         except (EndpointNotFoundError, DAFNIError, HTTPError) as err:
-            click.echo(f"\nMetadata Upload Failed: {err}")
+            click.echo(f"\nMetadata upload failed: {err}")
 
             raise SystemExit(1) from err
 

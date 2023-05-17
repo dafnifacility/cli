@@ -4,8 +4,8 @@ from unittest import TestCase
 from unittest.mock import MagicMock, call, mock_open, patch
 
 from requests import HTTPError
-from dafni_cli.api.exceptions import DAFNIError, EndpointNotFoundError
 
+from dafni_cli.api.exceptions import DAFNIError, EndpointNotFoundError
 from dafni_cli.api.session import DAFNISession, LoginError, SessionData
 from dafni_cli.consts import (
     LOGIN_API_ENDPOINT,
@@ -33,7 +33,7 @@ class TestDAFNISession(TestCase):
 
         Args:
             return_mock_file (bool): When true also returns the mock file object for asserting
-                                     any specific file operations are handled correctly
+                                        any specific file operations are handled correctly
         """
 
         with patch.object(Path, "is_file") as mock_is_file:
@@ -75,6 +75,16 @@ class TestDAFNISession(TestCase):
         """Returns a mock response indicating an access token as become invalid"""
         return self.create_mock_response(
             403,
+            {
+                "error": "invalid_grant",
+                "error_message": "Some error message",
+            },
+        )
+
+    def create_mock_invalid_login_response(self):
+        """Returns a mock response indicating a username/password was rejected"""
+        return self.create_mock_response(
+            401,
             {
                 "error": "invalid_grant",
                 "error_message": "Some error message",
@@ -177,14 +187,14 @@ class TestDAFNISession(TestCase):
 
         self.assertEqual(session._session_data.__dict__, TEST_SESSION_DATA.__dict__)
 
-    def test_load_error(
+    def test_load_invalid_login(
         self,
         mock_requests,
     ):
         """Tests loading of session with an invalid username and/or password"""
 
         # Setup
-        mock_requests.post.return_value = self.create_mock_token_expiry_response()
+        mock_requests.post.return_value = self.create_mock_invalid_login_response()
 
         # Attempt login
         with self.assertRaises(LoginError):
