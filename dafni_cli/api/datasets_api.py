@@ -17,7 +17,7 @@ def get_all_datasets(session: DAFNISession, filters: dict) -> List[dict]:
     Returns:
         List[dict]: List of available datasets
     """
-    url = DISCOVERY_API_URL + "/catalogue/"
+    url = f"{DISCOVERY_API_URL}/catalogue/"
     data = {"offset": {"start": 0, "size": 1000}, "sort_by": "recent", **filters}
 
     return session.post_request(url=url, json=data, allow_redirect=True)
@@ -43,7 +43,7 @@ def get_latest_dataset_metadata(
     url = f"{DISCOVERY_API_URL}/metadata/{dataset_id}/{version_id}"
 
     try:
-        return session.get_request(url, allow_redirect=True)
+        return session.get_request(url=url, allow_redirect=True)
     except EndpointNotFoundError as err:
         # When the endpoint isn't found it means a dataset with the given id's
         # wasn't found

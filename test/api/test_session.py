@@ -197,8 +197,12 @@ class TestDAFNISession(TestCase):
         mock_requests.post.return_value = self.create_mock_invalid_login_response()
 
         # Attempt login
-        with self.assertRaises(LoginError):
+        with self.assertRaises(LoginError) as err:
             DAFNISession.login(username="test_username", password="test_password")
+        self.assertEqual(
+            str(err.exception),
+            "Failed to login. Please check your username and password and try again.",
+        )
 
     def test_load_from_file(self, mock_requests):
         """Tests can load existing session from a file"""

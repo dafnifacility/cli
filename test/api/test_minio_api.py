@@ -25,13 +25,14 @@ class TestMinioAPI(TestCase):
         file_path = Path("path/to/file")
 
         # CALL
-        minio_api.upload_file_to_minio(session, url, file_path)
+        result = minio_api.upload_file_to_minio(session, url, file_path)
 
         # ASSERT
         open_mock.assert_called_once_with(file_path, "rb")
         session.put_request.assert_called_once_with(
             url=url, content_type=MINIO_UPLOAD_CT, data=open(Path(file_path), "rb")
         )
+        self.assertEqual(result, session.put_request.return_value)
 
     def test_create_temp_bucket(self):
         """Tests that create_temp_bucket works as expected"""
