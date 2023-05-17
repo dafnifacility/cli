@@ -3,7 +3,7 @@ from typing import List, Tuple
 
 import pytest
 
-from dafni_cli.auth import Auth
+from dafni_cli.api.auth import Auth
 from dafni_cli.model.model import Model
 
 

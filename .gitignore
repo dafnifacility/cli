@@ -63,6 +63,3 @@ venv.bak/
 pyvenv.cfg
 **/bin
 **/lib64
-
-# Temp
-delete_buckets.py

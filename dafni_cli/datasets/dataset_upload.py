@@ -49,7 +49,6 @@ def upload_files(session: DAFNISession, files: List[click.Path]) -> str:
     """
     click.echo("\nRetrieving Temporary Upload ID")
     upload_id = get_data_upload_id(session)
-    print(f"Temp Bucket ID: {upload_id}")
 
     click.echo("Retrieving File Upload URls")
     file_names = {basename(normpath(file_path)): file_path for file_path in files}

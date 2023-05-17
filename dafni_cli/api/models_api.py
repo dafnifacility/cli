@@ -13,8 +13,8 @@ from dafni_cli.consts import MODELS_API_URL, VALIDATE_MODEL_CT
 
 
 def get_all_models(session: DAFNISession) -> List[dict]:
-    """
-    Function to call the "models_list" endpoint and return the resulting list of dictionaries.
+    """Function to call the "models_list" endpoint and return the resulting
+    list of dictionaries.
 
     Args:
         session (DAFNISession): User session
@@ -71,8 +71,8 @@ def validate_model_definition(session: DAFNISession, model_definition: Path):
     # without a failed status code so we need to do this separately)
     if not response.json()["valid"]:
         raise ValidationError(
-            "Model validation failed with the following message:\n\n"
-            f"{session.get_error_message(response)}\n\n"
+            "Model definition validation failed with the following "
+            f"message:\n\n{session.get_error_message(response)}\n\n"
             "See "
             "https://docs.secure.dafni.rl.ac.uk/docs/how-to/models/how-to-write-a-model-definition-file/ "
             "for guidance on writing a model definition file"
@@ -80,8 +80,7 @@ def validate_model_definition(session: DAFNISession, model_definition: Path):
 
 
 def get_model_upload_urls(session: DAFNISession) -> Tuple[str, dict]:
-    """
-    Obtains the model upload urls from the "models_upload_create" endpoint
+    """Obtains the model upload urls from the "models_upload_create" endpoint
 
     Args:
         session (DAFNISession): User session
@@ -101,8 +100,8 @@ def get_model_upload_urls(session: DAFNISession) -> Tuple[str, dict]:
 def model_version_ingest(
     session: DAFNISession, upload_id: str, version_message: str, model_id: str = None
 ) -> dict:
-    """
-    Ingests a new version of a model using the "models_upload_ingest_create" endpoint
+    """Ingests a new version of a model using the "models_upload_ingest_create"
+    endpoint
 
     Args:
         session (DAFNISession): User session
@@ -124,8 +123,7 @@ def model_version_ingest(
 
 
 def delete_model(session: DAFNISession, version_id: str) -> Response:
-    """
-    Calls the "models_delete" endpoint
+    """Calls the "models_delete" endpoint
 
     Args:
         session (DAFNISession): User session

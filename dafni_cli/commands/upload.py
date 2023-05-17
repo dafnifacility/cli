@@ -60,7 +60,7 @@ def model(
     version_message: str,
     parent_id: str,
 ):
-    """Uploads model to DAFNI from metadata and image files.
+    """Uploads model to DAFNI from metadata and image files
 
     Args:
         ctx (Context): contains user session for authentication
@@ -121,7 +121,7 @@ def dataset(ctx: Context, definition: click.Path, files: List[click.Path]):
     """
     # Confirm upload details
     argument_names = ["Dataset definition file path"] + [
-        "Dataset file path" for file_path in files
+        "Dataset file path" for _ in files
     ]
     arguments = [definition, *files]
     confirmation_message = "Confirm Dataset upload?"
@@ -185,35 +185,7 @@ def workflow(
         argument_names, arguments, confirmation_message, additional_message
     )
 
-    # click.echo("Validating workflow definition")
-    # Print helpful message when 500 error returned
-    # try:
-    #    valid, error_message = validate_model_definition(ctx.obj["session"], definition)
-    # except HTTPError as e:
-    #    if e.response.status_code == 500:
-    #        click.echo(
-    #            "Error validating the model definition. "
-    #            "See https://docs.secure.dafni.rl.ac.uk/docs/how-to/models/how-to-write-a-model-definition-file/"
-    #            " for guidance"
-    #        )
-    #    else:
-    #        click.echo(e)
-    #    raise SystemExit(1)
-    # if not valid:
-    #    click.echo(
-    #        "Definition validation failed with the following errors: " + error_message
-    #    )
-    #    raise SystemExit(1)
-
-    # click.echo("Getting urls")
-    # upload_id, urls = get_model_upload_urls(ctx.obj["session"])
-    # definition_url = urls["definition"]
-
-    # click.echo("Uploading model definition and image")
-    # upload_file_to_minio(ctx.obj["session"], definition_url, definition)
-
-    # click.echo("Ingesting model")
-    # model_version_ingest(ctx.obj["session"], upload_id, version_message, parent_model)
+    # TODO: Validate workflow definition using workflows/validate?
 
     click.echo("Uploading workflow")
     upload_workflow(ctx.obj["session"], definition, version_message, parent_id)

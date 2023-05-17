@@ -5,6 +5,7 @@ from typing import BinaryIO, Literal, Optional, Union
 
 import click
 import requests
+from requests import HTTPError
 
 from dafni_cli.api.exceptions import DAFNIError, EndpointNotFoundError, LoginError
 from dafni_cli.consts import (
@@ -360,15 +361,18 @@ class DAFNISession:
 
         # Try and get JSON data from the response
         try:
+            error_message = None
             decoded_response = response.json()
+            # Some requests have an error and error_message, in which case we
+            # want to override with the latter
             if "error" in decoded_response:
                 error_message = f"Error: {decoded_response['error']}"
+            if "error_message" in decoded_response:
+                error_message = f"{error_message}, {decoded_response['error_message']}"
             elif "errors" in decoded_response:
                 error_message = "The following errors were returned:"
                 for error in decoded_response["errors"]:
                     error_message += f"\nError: {error}"
-            elif "error_message" in decoded_response:
-                error_message = f"{error_message}, {decoded_response['error_message']}"
             # Special case when uploading dataset metadata that's invalid
             elif "metadata" in decoded_response:
                 # This returns a list of errors, add them all to the
@@ -415,7 +419,7 @@ class DAFNISession:
         else:
             try:
                 response.raise_for_status()
-            except requests.HTTPError as err:
+            except HTTPError as err:
                 raise DAFNIError(error_message) from err
 
     def get_request(
@@ -636,7 +640,6 @@ class DAFNISession:
             data=None,
             json=None,
             allow_redirect=allow_redirect,
-            auth=auth,
         )
 
         self._check_response(url, response)
