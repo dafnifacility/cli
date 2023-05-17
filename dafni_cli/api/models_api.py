@@ -2,8 +2,12 @@ from pathlib import Path
 from typing import List, Tuple
 
 from requests import Response
-from dafni_cli.api.exceptions import EndpointNotFoundError, ResourceNotFoundError
 
+from dafni_cli.api.exceptions import (
+    EndpointNotFoundError,
+    ResourceNotFoundError,
+    ValidationError,
+)
 from dafni_cli.api.session import DAFNISession
 from dafni_cli.consts import MODELS_API_URL, VALIDATE_MODEL_CT
 
@@ -48,29 +52,31 @@ def get_model(session: DAFNISession, version_id: str) -> dict:
         ) from err
 
 
-def validate_model_definition(
-    session: DAFNISession, model_definition: Path
-) -> Tuple[bool, str]:
-    """
-    Validates the model definition file using the "models_validate_update" endpoint
+def validate_model_definition(session: DAFNISession, model_definition: Path):
+    """Validates the model definition file using the "models_validate_update"
+    endpoint
 
     Args:
         session (DAFNISession): User session
         model_definition (Path): Path to the model definition file
 
-    Returns:
-        bool: Whether the model definition is valid or not
-        List[str]: Errors encountered if the model definition file is not valid
+    Raises:
+        ValidationError: If the validation fails
     """
     content_type = VALIDATE_MODEL_CT
     url = MODELS_API_URL + "/models/validate/"
     with open(model_definition, "rb") as md:
         response = session.put_request(url=url, content_type=content_type, data=md)
-    if response.json()["valid"]:
-        return True, ""
-    else:
-        # TODO we should return all errors and have a generic way of returning errors in cli
-        return False, response.json()["errors"][0]
+    # This response returns a property "valid" and any errors found (although
+    # without a failed status code so we need to do this separately)
+    if not response.json()["valid"]:
+        raise ValidationError(
+            "Model validation failed with the following message:\n\n"
+            f"{session.get_error_message(response)}\n\n"
+            "See "
+            "https://docs.secure.dafni.rl.ac.uk/docs/how-to/models/how-to-write-a-model-definition-file/ "
+            "for guidance on writing a model definition file"
+        )
 
 
 def get_model_upload_urls(session: DAFNISession) -> Tuple[str, dict]:

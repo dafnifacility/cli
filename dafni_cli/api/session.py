@@ -347,7 +347,7 @@ class DAFNISession:
 
         return response
 
-    def _find_error_message(self, response: requests.Response) -> Optional[str]:
+    def get_error_message(self, response: requests.Response) -> Optional[str]:
         """Attempts to find an error message from a failed request response
 
         Args:
@@ -406,7 +406,7 @@ class DAFNISession:
                 raise EndpointNotFoundError(f"Could not find {url}")
 
             # Attempt to find an error message from the API itself
-            error_message = self._find_error_message(response)
+            error_message = self.get_error_message(response)
 
         # If there is an error from DAFNI raise a DAFNI exception as well
         # with more details, otherwise leave as any errors are HTTPError's

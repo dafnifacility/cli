@@ -1,10 +1,8 @@
 import json
-from pathlib import Path
 from typing import List
 
 import click
 from click import Context
-from requests.exceptions import HTTPError
 
 from dafni_cli.api.minio_api import upload_file_to_minio
 from dafni_cli.api.models_api import (
@@ -89,24 +87,7 @@ def model(
     )
 
     click.echo("Validating model definition")
-    # Print helpful message when 500 error returned
-    try:
-        valid, error_message = validate_model_definition(ctx.obj["session"], definition)
-    except HTTPError as e:
-        if e.response.status_code == 500:
-            click.echo(
-                "Error validating the model definition. "
-                "See https://docs.secure.dafni.rl.ac.uk/docs/how-to/models/how-to-write-a-model-definition-file/ "
-                "for guidance"
-            )
-        else:
-            click.echo(e)
-        raise SystemExit(1) from e
-    if not valid:
-        click.echo(
-            "Definition validation failed with the following errors: " + error_message
-        )
-        raise SystemExit(1)
+    validate_model_definition(ctx.obj["session"], definition)
 
     click.echo("Getting urls")
     upload_id, urls = get_model_upload_urls(ctx.obj["session"])
