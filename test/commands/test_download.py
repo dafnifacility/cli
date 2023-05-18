@@ -84,7 +84,6 @@ class TestDownload(TestCase):
         )
         metadata.output_datafiles_table.assert_called_once()
 
-        print(result.output)
         self.assertEqual(
             result.output,
             f"\nThe dataset files have been downloaded to:\n{expected_download_path}\n",

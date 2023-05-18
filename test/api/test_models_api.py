@@ -13,6 +13,15 @@ from dafni_cli.consts import MODELS_API_URL, VALIDATE_MODEL_CT
 from test.fixtures.session import create_mock_response
 
 
+TEST_MODELS_UPLOAD_RESPONSE = {
+    "id": "upload_id",
+    "urls": {
+        "definition": "model_definition_upload_url",
+        "image": "image_upload_url",
+    },
+}
+
+
 class TestModelsAPI(TestCase):
     """Test class to test the functions in models_api.py"""
 
@@ -132,13 +141,7 @@ class TestModelsAPI(TestCase):
 
         # SETUP
         session = MagicMock()
-        session.post_request.return_value = {
-            "id": "upload_id",
-            "urls": {
-                "definition": "model_definition_upload_url",
-                "image": "image_upload_url",
-            },
-        }
+        session.post_request.return_value = TEST_MODELS_UPLOAD_RESPONSE
 
         # CALL
         result = models_api.get_model_upload_urls(session)

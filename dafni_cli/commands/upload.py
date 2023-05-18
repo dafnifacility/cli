@@ -82,7 +82,7 @@ def model(
         arguments.append(parent_id)
         additional_message = None
     else:
-        additional_message = ["No parent model: new model to be created"]
+        additional_message = ["No parent model: New model to be created"]
     argument_confirmation(
         argument_names, arguments, confirmation_message, additional_message
     )
@@ -130,7 +130,7 @@ def dataset(ctx: Context, definition: click.Path, files: List[click.Path]):
         "Dataset file path" for _ in files
     ]
     arguments = [definition, *files]
-    confirmation_message = "Confirm Dataset upload?"
+    confirmation_message = "Confirm dataset upload?"
     argument_confirmation(argument_names, arguments, confirmation_message)
 
     # Upload all files

@@ -410,6 +410,7 @@ class TestDelete(TestCase):
         self.assertEqual(result.exit_code, 1)
 
     # ----------------- WORKFLOWS
+
     @patch("dafni_cli.commands.delete.collate_workflow_version_details")
     @patch("dafni_cli.commands.delete.delete_workflow")
     def test_delete_workflow(
