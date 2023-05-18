@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import List, Tuple
+from typing import List, Optional, Tuple
 
 from requests import Response
 
@@ -22,7 +22,7 @@ def get_all_models(session: DAFNISession) -> List[dict]:
     Returns:
         List[dict]: list of dictionaries with raw response from API
     """
-    url = MODELS_API_URL + "/models/"
+    url = f"{MODELS_API_URL}/models/"
     return session.get_request(url)
 
 
@@ -41,7 +41,7 @@ def get_model(session: DAFNISession, version_id: str) -> dict:
         ResourceNotFoundError: If a model with the given version_id wasn't
                                found
     """
-    url = MODELS_API_URL + "/models/" + version_id + "/"
+    url = f"{MODELS_API_URL}/models/{version_id}/"
 
     try:
         return session.get_request(url)
@@ -52,20 +52,20 @@ def get_model(session: DAFNISession, version_id: str) -> dict:
         ) from err
 
 
-def validate_model_definition(session: DAFNISession, model_definition: Path):
+def validate_model_definition(session: DAFNISession, model_definition_path: Path):
     """Validates the model definition file using the "models_validate_update"
     endpoint
 
     Args:
         session (DAFNISession): User session
-        model_definition (Path): Path to the model definition file
+        model_definition_path (Path): Path to the model definition file
 
     Raises:
         ValidationError: If the validation fails
     """
     content_type = VALIDATE_MODEL_CT
-    url = MODELS_API_URL + "/models/validate/"
-    with open(model_definition, "rb") as md:
+    url = f"{MODELS_API_URL}/models/validate/"
+    with open(model_definition_path, "rb") as md:
         response = session.put_request(url=url, content_type=content_type, data=md)
     # This response returns a property "valid" and any errors found (although
     # without a failed status code so we need to do this separately)
@@ -89,7 +89,7 @@ def get_model_upload_urls(session: DAFNISession) -> Tuple[str, dict]:
         str: The ID for the upload
         dict: The urls for the definition and image with keys "definition" and "image", respectively.
     """
-    url = MODELS_API_URL + "/models/upload/"
+    url = f"{MODELS_API_URL}/models/upload/"
     data = {"image": True, "definition": True}
     urls_resp = session.post_request(url=url, json=data)
     upload_id = urls_resp["id"]
@@ -98,7 +98,10 @@ def get_model_upload_urls(session: DAFNISession) -> Tuple[str, dict]:
 
 
 def model_version_ingest(
-    session: DAFNISession, upload_id: str, version_message: str, model_id: str = None
+    session: DAFNISession,
+    upload_id: str,
+    version_message: str,
+    model_id: Optional[str] = None,
 ) -> dict:
     """Ingests a new version of a model using the "models_upload_ingest_create"
     endpoint
@@ -113,11 +116,9 @@ def model_version_ingest(
         dict: JSON from response returned in post request
     """
     if model_id:
-        url = (
-            MODELS_API_URL + "/models/" + model_id + "/upload/" + upload_id + "/ingest/"
-        )
+        url = f"{MODELS_API_URL}/models/{model_id}/upload/{upload_id}/ingest/"
     else:
-        url = MODELS_API_URL + "/models/upload/" + upload_id + "/ingest/"
+        url = f"{MODELS_API_URL}/models/upload/{upload_id}/ingest/"
     data = {"version_message": version_message}
     return session.post_request(url=url, json=data)
 
@@ -129,5 +130,5 @@ def delete_model(session: DAFNISession, version_id: str) -> Response:
         session (DAFNISession): User session
         version_id (str): Model version ID for selected model
     """
-    url = MODELS_API_URL + "/models/" + version_id
+    url = f"{MODELS_API_URL}/models/{version_id}"
     return session.delete_request(url)

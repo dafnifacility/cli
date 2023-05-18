@@ -1,200 +1,222 @@
 from pathlib import Path
-
-import pytest
-from mock import mock_open, patch
-from requests.exceptions import HTTPError
+from unittest import TestCase
+from unittest.mock import MagicMock, mock_open, patch
 
 from dafni_cli.api import models_api
-from dafni_cli.consts import MINIO_UPLOAD_CT, MODELS_API_URL, VALIDATE_MODEL_CT
+from dafni_cli.api.exceptions import (
+    EndpointNotFoundError,
+    ResourceNotFoundError,
+    ValidationError,
+)
+from dafni_cli.consts import MODELS_API_URL, VALIDATE_MODEL_CT
 
-from test.fixtures.jwt_fixtures import JWT, request_response_fixture
+from test.fixtures.session import create_mock_response
 
 
-@patch("dafni_cli.api.models_api.dafni_get_request")
-class TestGetModelsDicts:
-    """Test class to test the get_all_models functionality"""
+class TestModelsAPI(TestCase):
+    """Test class to test the functions in models_api.py"""
 
-    def test_dafni_get_request_called_correctly(self, mock_get):
+    def test_get_all_models(self):
+        """Tests that get_all_models works as expected"""
+
         # SETUP
-        mock_get.return_value = [{"key": "value"}]
+        session = MagicMock()
 
         # CALL
-        result = models_api.get_all_models(JWT)
+        result = models_api.get_all_models(session)
 
         # ASSERT
-        assert result == [{"key": "value"}]
-        mock_get.assert_called_once_with(MODELS_API_URL + "/models/", JWT)
-
-
-@patch("dafni_cli.api.models_api.dafni_get_request")
-class TestGetSingleModelDict:
-    """Test class to test the get_model functionality"""
-
-    def test_dafni_get_request_called_correctly(self, mock_get):
-        # SETUP
-        mock_get.return_value = {"key": "value"}
-
-        model_version = "version_1"
-
-        # CALL
-        result = models_api.get_model(JWT, model_version)
-
-        # ASSERT
-        assert result == {"key": "value"}
-        mock_get.assert_called_once_with(MODELS_API_URL + "/models/version_1/", JWT)
-
-
-# TODO: Remove, function get_model_metadata_dict() no longer exists
-# as the API no longer returns metadata in this form
-# @patch("dafni_cli.api.models_api.dafni_get_request")
-# class TestModelMetaDataDict:
-#    """Test class to test the get_model_metadata_dict functionality"""
-#
-#    def test_dafni_get_request_called_correctly(self, mock_get):
-#        # SETUP
-#        mock_get.return_value = {"key": "value"}
-#
-#        model_version = "version_1"
-#
-#        # CALL
-#        result = models_api.get_model_metadata_dict(JWT, model_version)
-#
-#        # ASSERT
-#        assert result == {"key": "value"}
-#        mock_get.assert_called_once_with(
-#            MODELS_API_URL + "/models/version_1/definition/", JWT
-#        )
-
-
-@patch("dafni_cli.api.models_api.dafni_put_request")
-@patch("builtins.open", new_callable=mock_open, read_data="definition file")
-class TestValidateModelDefinition:
-    """
-    Test validate_model_definition() behaviour"""
-
-    def test_valid_model_definition_file_processed_correctly(
-        self, open_mock, mock_put, request_response_fixture
-    ):
-        # SETUP
-        request_response_fixture.json.return_value = {"valid": True}
-        mock_put.return_value = request_response_fixture
-        mock_file = Path("definition_file")
-        jwt = "JWT"
-
-        # CALL
-        response, error_message = models_api.validate_model_definition(jwt, mock_file)
-
-        # ASSERT
-        open_mock.assert_called_once_with(mock_file, "rb")
-        mock_put.assert_called_once_with(
-            MODELS_API_URL + "/models/validate/",
-            jwt,
-            open(mock_file, "rb"),
-            VALIDATE_MODEL_CT,
+        session.get_request.assert_called_once_with(
+            f"{MODELS_API_URL}/models/",
         )
-        assert response
-        assert error_message == ""
+        self.assertEqual(result, session.get_request.return_value)
 
-    def test_invalid_model_definition_file_processed_correctly(
-        self, open_mock, mock_put, request_response_fixture
-    ):
+    def test_get_model(self):
+        """Tests that get_model works as expected"""
+
         # SETUP
-        request_response_fixture.json.return_value = {
-            "valid": False,
-            "errors": ["error message"],
+        session = MagicMock()
+        version_id = "some-model-version-id"
+
+        # CALL
+        result = models_api.get_model(session, version_id=version_id)
+
+        # ASSERT
+        session.get_request.assert_called_once_with(
+            f"{MODELS_API_URL}/models/{version_id}/",
+        )
+        self.assertEqual(result, session.get_request.return_value)
+
+    def test_get_model_raises_resource_not_found(self):
+        """Tests that get_model works handles an EndpointNotFoundError as
+        expected"""
+
+        # SETUP
+        session = MagicMock()
+        version_id = "some-model-version-id"
+        session.get_request.side_effect = EndpointNotFoundError(
+            "Some 404 error message"
+        )
+
+        # CALL
+        with self.assertRaises(ResourceNotFoundError) as err:
+            models_api.get_model(session, version_id=version_id)
+
+        # ASSERT
+        self.assertEqual(
+            str(err.exception),
+            f"Unable to find a model with version id '{version_id}'",
+        )
+
+    @patch("builtins.open", new_callable=mock_open, read_data="definition file")
+    def test_validate_model_definition(self, open_mock):
+        """Tests that validate_model_definition works as expected when the
+        definition is found to be valid"""
+
+        # SETUP
+        session = MagicMock()
+        model_definition_path = Path("path/to/file")
+        session.put_request.return_value = create_mock_response(
+            200, json={"valid": True}
+        )
+
+        # CALL
+        models_api.validate_model_definition(
+            session, model_definition_path=model_definition_path
+        )
+
+        # ASSERT
+        open_mock.assert_called_once_with(model_definition_path, "rb")
+        session.put_request.assert_called_once_with(
+            url=f"{MODELS_API_URL}/models/validate/",
+            content_type=VALIDATE_MODEL_CT,
+            data=open(model_definition_path, "rb"),
+        )
+
+    @patch("builtins.open", new_callable=mock_open, read_data="definition file")
+    def test_validate_model_definition_when_def_invalid(self, open_mock):
+        """Tests that validate_model_definition works as expected when the
+        definition is found to be invalid"""
+
+        # SETUP
+        session = MagicMock()
+        model_definition_path = Path("path/to/file")
+        session.put_request.return_value = create_mock_response(
+            200, json={"valid": False, "errors": ["Error 1", "Error 2"]}
+        )
+
+        # CALL
+        with self.assertRaises(ValidationError) as err:
+            models_api.validate_model_definition(
+                session, model_definition_path=model_definition_path
+            )
+        self.assertEqual(
+            str(err.exception),
+            "Model definition validation failed with the following "
+            f"message:\n\n{session.get_error_message(session.put_request.return_value)}\n\n"
+            "See "
+            "https://docs.secure.dafni.rl.ac.uk/docs/how-to/models/how-to-write-a-model-definition-file/ "
+            "for guidance on writing a model definition file",
+        )
+
+        # ASSERT
+        open_mock.assert_called_once_with(model_definition_path, "rb")
+        session.put_request.assert_called_once_with(
+            url=f"{MODELS_API_URL}/models/validate/",
+            content_type=VALIDATE_MODEL_CT,
+            data=open(model_definition_path, "rb"),
+        )
+
+    def test_get_model_upload_urls(self):
+        """Tests that get_model_upload_urls works as expected"""
+
+        # SETUP
+        session = MagicMock()
+        session.post_request.return_value = {
+            "id": "upload_id",
+            "urls": {
+                "definition": "model_definition_upload_url",
+                "image": "image_upload_url",
+            },
         }
-        mock_put.return_value = request_response_fixture
-        mock_file = Path("definition_file")
-        jwt = "JWT"
 
         # CALL
-        response, errors = models_api.validate_model_definition(jwt, mock_file)
+        result = models_api.get_model_upload_urls(session)
 
         # ASSERT
-        open_mock.assert_called_once_with(mock_file, "rb")
-        mock_put.assert_called_once_with(
-            MODELS_API_URL + "/models/validate/",
-            jwt,
-            open(mock_file, "rb"),
-            VALIDATE_MODEL_CT,
+        session.post_request.assert_called_once_with(
+            url=f"{MODELS_API_URL}/models/upload/",
+            json={"image": True, "definition": True},
         )
-        assert not response
-        assert errors == "error message"
-
-
-@patch("dafni_cli.api.models_api.dafni_post_request")
-class TestGetModelUploadUrls:
-    """
-    Test get_model_upload_urls() behaviour
-    """
-
-    def test_post_request_called_with_correct_arguments(self, mock_post):
-        # SETUP
-        jwt = "JWT"
-        url = MODELS_API_URL + "/models/upload/"
-        data = {"image": True, "definition": True}
-
-        # CALL
-        models_api.get_model_upload_urls(jwt)
-
-        # ASSERT
-        mock_post.assert_called_once_with(url, jwt, data)
-
-    def test_response_dictionary_is_handled_correctly_and_returns_both_id_and_urls(
-        self, mock_post
-    ):
-        # SETUP
-        jwt = "JWT"
-        urls_dict = {"definition": "definition url", "image": "image url"}
-        mock_post.return_value = {"id": "upload id", "urls": urls_dict}
-
-        # CALL
-        upload_id, urls = models_api.get_model_upload_urls(jwt)
-
-        # ASSERT
-        assert upload_id == "upload id"
-        assert urls == urls_dict
-
-
-@patch("dafni_cli.api.models_api.dafni_post_request")
-class TestModelVersionIngest:
-    """
-    Test model_ingest() behaviour
-    """
-
-    def test_post_request_called_with_correct_arguments_when_no_parent_model(
-        self, mock_post
-    ):
-        # SETUP
-        jwt = "JWT"
-        upload_id = "uploadID"
-        version_message = "version message"
-
-        # CALL
-        models_api.model_version_ingest(jwt, upload_id, version_message)
-
-        # ASSERT
-        mock_post.assert_called_once_with(
-            MODELS_API_URL + "/models/upload/uploadID/ingest/",
-            jwt,
-            {"version_message": "version message"},
+        self.assertEqual(
+            result,
+            (
+                "upload_id",
+                {
+                    "definition": "model_definition_upload_url",
+                    "image": "image_upload_url",
+                },
+            ),
         )
 
-    def test_post_request_called_with_correct_arguments_when_there_is_a_parent_model(
-        self, mock_post
-    ):
+    def test_model_version_ingest(self):
+        """Tests that model_version_ingest works as expected without a parent
+        model"""
+
         # SETUP
-        jwt = "JWT"
-        upload_id = "uploadID"
-        version_message = "version message"
-        model_id = "parentModel"
+        session = MagicMock()
+        upload_id = "upload-id"
+        version_message = "Version message"
 
         # CALL
-        models_api.model_version_ingest(jwt, upload_id, version_message, model_id)
+        result = models_api.model_version_ingest(
+            session, upload_id=upload_id, version_message=version_message
+        )
 
         # ASSERT
-        mock_post.assert_called_once_with(
-            MODELS_API_URL + "/models/parentModel/upload/uploadID/ingest/",
-            jwt,
-            {"version_message": "version message"},
+        session.post_request.assert_called_once_with(
+            url=f"{MODELS_API_URL}/models/upload/{upload_id}/ingest/",
+            json={"version_message": version_message},
         )
+        self.assertEqual(result, session.post_request.return_value)
+
+    def test_model_version_ingest_with_parent_model(self):
+        """Tests that model_version_ingest works as expected with a parent
+        model"""
+
+        # SETUP
+        session = MagicMock()
+        upload_id = "upload-id"
+        version_message = "Version message"
+        model_id = "parent-model-id"
+
+        # CALL
+        result = models_api.model_version_ingest(
+            session,
+            upload_id=upload_id,
+            version_message=version_message,
+            model_id=model_id,
+        )
+
+        # ASSERT
+        session.post_request.assert_called_once_with(
+            url=f"{MODELS_API_URL}/models/{model_id}/upload/{upload_id}/ingest/",
+            json={"version_message": version_message},
+        )
+        self.assertEqual(result, session.post_request.return_value)
+
+    def test_delete_model(self):
+        """Tests that delete_model works as expected"""
+
+        # SETUP
+        session = MagicMock()
+        version_id = "version-id"
+
+        # CALL
+        result = models_api.delete_model(session, version_id=version_id)
+
+        # ASSERT
+        session.delete_request.assert_called_once_with(
+            f"{MODELS_API_URL}/models/{version_id}",
+        )
+        self.assertEqual(result, session.delete_request.return_value)
