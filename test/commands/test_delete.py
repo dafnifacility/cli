@@ -1,221 +1,525 @@
-import pytest
+from unittest import TestCase
+from unittest.mock import MagicMock, call, patch
+
 from click.testing import CliRunner
-from mock import MagicMock, PropertyMock, call, create_autospec, patch
 
 from dafni_cli.commands import delete
-from dafni_cli.model import model
-
-from test.fixtures.jwt_fixtures import processed_jwt_fixture
 
 
-@patch.object(model.Model, "get_details_from_id")
-@patch.object(model.Model, "output_version_details")
-@patch("dafni_cli.auth.Auth.destroy", new_callable=PropertyMock)
-class TestCollateModelVersionDetails:
-    """Test class to test the collate_model_version_details method"""
+@patch("dafni_cli.commands.delete.get_model")
+@patch("dafni_cli.commands.delete.parse_model")
+class TestCollateModelVersionDetails(TestCase):
+    """Test class to collate_model_version_details function"""
 
     def test_single_model_with_valid_permissions_returns_single_model_details(
-        self, mock_destroy, mock_output, mock_get
+        self, mock_parse_model, mock_get_model
     ):
+        """Tests collate_model_version_details works correctly for a single
+        model with delete permissions"""
+
         # SETUP
-        mock_output.return_value = "Model 1 details"
-        mock_destroy.return_value = True
-        jwt = "JWT"
+        session = MagicMock()
         version_id = "version-id"
         version_id_list = [version_id]
 
+        model_mock = MagicMock()
+        model_mock.auth.destroy = True
+
+        mock_parse_model.return_value = model_mock
+
         # CALL
-        result = delete.collate_model_version_details(jwt, version_id_list)
+        result = delete.collate_model_version_details(session, version_id_list)
 
         # ASSERT
-        mock_get.assert_called_once_with(jwt, version_id)
-        assert mock_output.called_once
-        assert result == ["Model 1 details"]
+        mock_get_model.assert_called_once_with(session, version_id)
+        mock_parse_model.assert_called_once_with(mock_get_model.return_value)
+        self.assertEqual(result, [model_mock.get_version_details.return_value])
 
-    def test_multiple_models_both_with_valid_permissions_returns_multiple_model_details(
-        self, mock_destroy, mock_output, mock_get
+    @patch("dafni_cli.commands.delete.click")
+    def test_single_model_without_valid_permissions_exits(
+        self, mock_click, mock_parse_model, mock_get_model
     ):
+        """Tests collate_model_version_details works correctly for a single
+        model without delete permissions"""
+
         # SETUP
-        mock_output.side_effect = ["Model 1 details", "Model 2 details"]
-        mock_destroy.return_value = True
-        jwt = "JWT"
+        session = MagicMock()
+        version_id = "version-id"
+        version_id_list = [version_id]
+
+        model_mock = MagicMock()
+        model_mock.auth.destroy = False
+
+        mock_parse_model.return_value = model_mock
+
+        # CALL
+        with self.assertRaises(SystemExit):
+            delete.collate_model_version_details(session, version_id_list)
+
+        # ASSERT
+        mock_get_model.assert_called_once_with(session, version_id)
+        mock_parse_model.assert_called_once_with(mock_get_model.return_value)
+        mock_click.echo.assert_has_calls(
+            [
+                call("You do not have sufficient permissions to delete model version:"),
+                call(model_mock.get_version_details.return_value),
+            ]
+        )
+
+    def test_multiple_models_with_valid_permissions_returns_multiple_model_details(
+        self, mock_parse_model, mock_get_model
+    ):
+        """Tests collate_model_version_details works correctly for a list
+        of models with delete permissions"""
+
+        # SETUP
+        session = MagicMock()
         version_id1 = "version-id-1"
         version_id2 = "version-id-2"
         version_id_list = [version_id1, version_id2]
 
-        # CALL
-        result = delete.collate_model_version_details(jwt, version_id_list)
+        model_mock1 = MagicMock()
+        model_mock1.auth.destroy = True
+        model_mock2 = MagicMock()
+        model_mock2.auth.destroy = True
 
-        # ASSERT
-        assert mock_get.call_args_list == [
-            call(jwt, version_id1),
-            call(jwt, version_id2),
-        ]
-        assert mock_output.call_count == 2
-        assert result == ["Model 1 details", "Model 2 details"]
-
-    @patch("dafni_cli.commands.delete.click")
-    def test_single_model_without_permission_exits_with_code_1(
-        self, mock_click, mock_destroy, mock_output, mock_get
-    ):
-        # SETUP
-        mock_output.return_value = "Model 1 details"
-        mock_destroy.return_value = False
-        jwt = "JWT"
-        version_id = "version-id"
-        version_id_list = [version_id]
+        mock_parse_model.side_effect = [model_mock1, model_mock2]
 
         # CALL
-        with pytest.raises(SystemExit) as cn:
-            result = delete.collate_model_version_details(jwt, version_id_list)
+        result = delete.collate_model_version_details(session, version_id_list)
 
         # ASSERT
-        mock_get.assert_called_once_with(jwt, version_id)
-        mock_output.assert_called_once()
-        assert mock_click.echo.call_args_list == [
-            call("You do not have sufficient permissions to delete model version:"),
-            call("Model 1 details"),
-        ]
-        assert cn.value.code == 1
+        mock_get_model.assert_has_calls(
+            [call(session, version_id1), call(session, version_id2)]
+        )
+        mock_parse_model.assert_has_calls(
+            [call(mock_get_model.return_value), call(mock_get_model.return_value)]
+        )
+        self.assertEqual(
+            result,
+            [
+                model_mock1.get_version_details.return_value,
+                model_mock2.get_version_details.return_value,
+            ],
+        )
 
     @patch("dafni_cli.commands.delete.click")
     def test_first_model_with_permissions_but_second_without_exits_and_shows_model_without_permissions(
-        self, mock_click, mock_destroy, mock_output, mock_get
+        self, mock_click, mock_parse_model, mock_get_model
     ):
+        """Tests collate_model_version_details works correctly for a list
+        of models where the first has delete permissions and the second does not"""
+
         # SETUP
-        mock_output.side_effect = ["Model 1 details", "Model 2 details"]
-        mock_get.return_value = None
-        # Is called once by model_version = Model(vid) and once by if statement => need 2 values per version ID.
-        mock_destroy.side_effect = [True, True, False, False]
-        jwt = "JWT"
+        session = MagicMock()
         version_id1 = "version-id-1"
         version_id2 = "version-id-2"
         version_id_list = [version_id1, version_id2]
 
+        model_mock1 = MagicMock()
+        model_mock1.auth.destroy = True
+        model_mock2 = MagicMock()
+        model_mock2.auth.destroy = False
+
+        mock_parse_model.side_effect = [model_mock1, model_mock2]
+
         # CALL
-        with pytest.raises(SystemExit) as cn:
-            result = delete.collate_model_version_details(jwt, version_id_list)
+        with self.assertRaises(SystemExit):
+            delete.collate_model_version_details(session, version_id_list)
 
         # ASSERT
-        print(mock_destroy.call_count)
-        assert mock_get.call_args_list == [
-            call(jwt, version_id1),
-            call(jwt, version_id2),
-        ]
-        assert mock_output.call_count == 2
-        assert mock_click.echo.call_args_list == [
-            call("You do not have sufficient permissions to delete model version:"),
-            call("Model 2 details"),
-        ]
-        assert cn.value.code == 1
+        mock_get_model.assert_has_calls(
+            [call(session, version_id1), call(session, version_id2)]
+        )
+        mock_parse_model.assert_has_calls(
+            [call(mock_get_model.return_value), call(mock_get_model.return_value)]
+        )
+        self.assertEqual(
+            mock_click.echo.call_args_list,
+            [
+                call("You do not have sufficient permissions to delete model version:"),
+                call(model_mock2.get_version_details.return_value),
+            ],
+        )
 
 
-class TestDelete:
-    """Test class to test the delete() command functionality"""
+@patch("dafni_cli.commands.delete.get_workflow")
+@patch("dafni_cli.commands.delete.parse_workflow")
+class TestCollateWorkflowVersionDetails(TestCase):
+    """Test class to collate_workflow_version_details function"""
 
-    class TestInit:
-        """Test class to test the delete() group processing of the JWT"""
+    def test_single_workflow_with_valid_permissions_returns_single_model_details(
+        self, mock_parse_workflow, mock_get_workflow
+    ):
+        """Tests collate_workflow_version_details works correctly for a single
+        workflow with delete permissions"""
 
-        @patch("dafni_cli.commands.delete.check_for_jwt_file")
-        @patch("dafni_cli.commands.delete.click")
-        @patch("dafni_cli.commands.delete.collate_model_version_details")
-        @patch("dafni_cli.commands.delete.argument_confirmation")
-        @patch("dafni_cli.commands.delete.delete_model")
-        def test_jwt_retrieved_and_set_on_context(
-            self,
-            mock_model,
-            mock_confirm,
-            mock_collate,
-            mock_click,
-            mock_jwt,
-            processed_jwt_fixture,
-        ):
-            # SETUP
-            mock_jwt.return_value = processed_jwt_fixture, False
-            runner = CliRunner()
-            ctx = {}
+        # SETUP
+        session = MagicMock()
+        version_id = "version-id"
+        version_id_list = [version_id]
 
-            # CALL
-            result = runner.invoke(delete.delete, ["model", "version-id"], obj=ctx)
+        workflow_mock = MagicMock()
+        workflow_mock.auth.destroy = True
 
-            # ASSERT
-            mock_jwt.assert_called_once()
-            assert ctx["jwt"] == processed_jwt_fixture["jwt"]
-            assert result.exit_code == 0
+        mock_parse_workflow.return_value = workflow_mock
 
-    @patch("dafni_cli.commands.delete.check_for_jwt_file")
+        # CALL
+        result = delete.collate_workflow_version_details(session, version_id_list)
+
+        # ASSERT
+        mock_get_workflow.assert_called_once_with(session, version_id)
+        mock_parse_workflow.assert_called_once_with(mock_get_workflow.return_value)
+        self.assertEqual(result, [workflow_mock.get_version_details.return_value])
+
     @patch("dafni_cli.commands.delete.click")
-    @patch("dafni_cli.commands.delete.collate_model_version_details")
-    @patch("dafni_cli.commands.delete.argument_confirmation")
-    @patch("dafni_cli.commands.delete.delete_model")
-    class TestModel:
-        """Test class to test the delete.model command"""
+    def test_single_workflow_without_valid_permissions_exits(
+        self, mock_click, mock_parse_workflow, mock_get_workflow
+    ):
+        """Tests collate_workflow_version_details works correctly for a single
+        model without delete permissions"""
 
-        def test_methods_called_once_each_for_single_model(
-            self,
-            mock_model,
-            mock_confirm,
-            mock_collate,
-            mock_click,
-            mock_jwt,
-            processed_jwt_fixture,
-        ):
-            # SETUP
-            mock_jwt.return_value = processed_jwt_fixture, False
-            mock_collate.return_value = ["model 1 details"]
-            runner = CliRunner()
-            version_id = "version-id"
+        # SETUP
+        session = MagicMock()
+        version_id = "version-id"
+        version_id_list = [version_id]
 
-            # CALL
-            result = runner.invoke(delete.delete, ["model", version_id])
+        workflow_mock = MagicMock()
+        workflow_mock.auth.destroy = False
 
-            # ASSERT
-            assert result.exit_code == 0
-            mock_collate.assert_called_once_with(
-                processed_jwt_fixture["jwt"], (version_id,)
-            )
-            mock_confirm.assert_called_once_with(
-                [], [], "Confirm deletion of models?", ["model 1 details"]
-            )
-            mock_model.assert_called_once_with(processed_jwt_fixture["jwt"], version_id)
-            mock_click.echo.assert_called_once_with("Model versions deleted")
+        mock_parse_workflow.return_value = workflow_mock
 
-        def test_methods_called_once_each_other_than_delete_model_for_multiple_models(
-            self,
-            mock_model,
-            mock_confirm,
-            mock_collate,
-            mock_click,
-            mock_jwt,
-            processed_jwt_fixture,
-        ):
-            # SETUP
-            mock_jwt.return_value = processed_jwt_fixture, False
-            mock_collate.return_value = ["model 1 details", "model 2 details"]
-            runner = CliRunner()
-            version_id1 = "version-id-1"
-            version_id2 = "version-id-2"
+        # CALL
+        with self.assertRaises(SystemExit):
+            delete.collate_workflow_version_details(session, version_id_list)
 
-            # CALL
-            result = runner.invoke(delete.delete, ["model", version_id1, version_id2])
-
-            # ASSERT
-            assert result.exit_code == 0
-            mock_collate.assert_called_once_with(
-                processed_jwt_fixture["jwt"],
-                (
-                    version_id1,
-                    version_id2,
+        # ASSERT
+        mock_get_workflow.assert_called_once_with(session, version_id)
+        mock_parse_workflow.assert_called_once_with(mock_get_workflow.return_value)
+        mock_click.echo.assert_has_calls(
+            [
+                call(
+                    "You do not have sufficient permissions to delete workflow version:"
                 ),
-            )
-            mock_confirm.assert_called_once_with(
-                [],
-                [],
-                "Confirm deletion of models?",
-                ["model 1 details", "model 2 details"],
-            )
-            assert mock_model.call_args_list == [
-                call(processed_jwt_fixture["jwt"], version_id1),
-                call(processed_jwt_fixture["jwt"], version_id2),
+                call(workflow_mock.get_version_details.return_value),
             ]
-            mock_click.echo.assert_called_once_with("Model versions deleted")
+        )
+
+    def test_multiple_workflow_with_valid_permissions_returns_multiple_workflow_details(
+        self, mock_parse_workflow, mock_get_workflow
+    ):
+        """Tests collate_model_version_details works correctly for a list
+        of models with delete permissions"""
+
+        # SETUP
+        session = MagicMock()
+        version_id1 = "version-id-1"
+        version_id2 = "version-id-2"
+        version_id_list = [version_id1, version_id2]
+
+        workflow_mock1 = MagicMock()
+        workflow_mock1.auth.destroy = True
+        workflow_mock2 = MagicMock()
+        workflow_mock2.auth.destroy = True
+
+        mock_parse_workflow.side_effect = [workflow_mock1, workflow_mock2]
+
+        # CALL
+        result = delete.collate_workflow_version_details(session, version_id_list)
+
+        # ASSERT
+        mock_get_workflow.assert_has_calls(
+            [call(session, version_id1), call(session, version_id2)]
+        )
+        mock_parse_workflow.assert_has_calls(
+            [call(mock_get_workflow.return_value), call(mock_get_workflow.return_value)]
+        )
+        self.assertEqual(
+            result,
+            [
+                workflow_mock1.get_version_details.return_value,
+                workflow_mock2.get_version_details.return_value,
+            ],
+        )
+
+    @patch("dafni_cli.commands.delete.click")
+    def test_first_workflow_with_permissions_but_second_without_exits_and_shows_workflow_without_permissions(
+        self, mock_click, mock_parse_workflow, mock_get_workflow
+    ):
+        """Tests collate_workflow_version_details works correctly for a list
+        of workflows where the first has delete permissions and the second does not"""
+
+        # SETUP
+        session = MagicMock()
+        version_id1 = "version-id-1"
+        version_id2 = "version-id-2"
+        version_id_list = [version_id1, version_id2]
+
+        workflow_mock1 = MagicMock()
+        workflow_mock1.auth.destroy = True
+        workflow_mock2 = MagicMock()
+        workflow_mock2.auth.destroy = False
+
+        mock_parse_workflow.side_effect = [workflow_mock1, workflow_mock2]
+
+        # CALL
+        with self.assertRaises(SystemExit):
+            delete.collate_workflow_version_details(session, version_id_list)
+
+        # ASSERT
+        mock_get_workflow.assert_has_calls(
+            [call(session, version_id1), call(session, version_id2)]
+        )
+        mock_parse_workflow.assert_has_calls(
+            [call(mock_get_workflow.return_value), call(mock_get_workflow.return_value)]
+        )
+        self.assertEqual(
+            mock_click.echo.call_args_list,
+            [
+                call(
+                    "You do not have sufficient permissions to delete workflow version:"
+                ),
+                call(workflow_mock2.get_version_details.return_value),
+            ],
+        )
+
+
+@patch("dafni_cli.commands.delete.DAFNISession")
+class TestDelete(TestCase):
+    """Test class to test the delete command"""
+
+    @patch("dafni_cli.commands.delete.collate_model_version_details")
+    def test_session_retrieved_and_set_on_context(self, _, mock_DAFNISession):
+        """Tests that the session is created in the click context"""
+        # SETUP
+        session = MagicMock()
+        mock_DAFNISession.return_value = session
+        runner = CliRunner()
+        ctx = {}
+
+        # CALL
+        result = runner.invoke(
+            delete.delete, ["model", "version-id"], input="y", obj=ctx
+        )
+
+        # ASSERT
+        mock_DAFNISession.assert_called_once()
+
+        self.assertEqual(ctx["session"], session)
+        self.assertEqual(result.exit_code, 0)
+
+    # ----------------- MODELS
+
+    @patch("dafni_cli.commands.delete.collate_model_version_details")
+    @patch("dafni_cli.commands.delete.delete_model")
+    def test_delete_model(
+        self, mock_delete_model, mock_collate_model_version_details, mock_DAFNISession
+    ):
+        """Tests that the 'delete model' command works correctly with a single
+        version id"""
+        # SETUP
+        session = MagicMock()
+        mock_DAFNISession.return_value = session
+        runner = CliRunner()
+        ctx = {}
+        version_ids = ("version-id",)
+        mock_collate_model_version_details.return_value = ["Model 1 details"]
+
+        # CALL
+        result = runner.invoke(
+            delete.delete, ["model"] + list(version_ids), input="y", obj=ctx
+        )
+
+        # ASSERT
+        mock_DAFNISession.assert_called_once()
+        mock_collate_model_version_details.assert_called_once_with(session, version_ids)
+        mock_delete_model.assert_called_with(session, version_ids[0])
+
+        self.assertEqual(
+            result.output,
+            "Model 1 details\nConfirm deletion of models? [y/N]: y\nModel versions deleted\n",
+        )
+        self.assertEqual(result.exit_code, 0)
+
+    @patch("dafni_cli.commands.delete.collate_model_version_details")
+    @patch("dafni_cli.commands.delete.delete_model")
+    def test_delete_model_multiple_versions(
+        self, mock_delete_model, mock_collate_model_version_details, mock_DAFNISession
+    ):
+        """Tests that the 'delete model' command works correctly with multiple
+        version ids"""
+        # SETUP
+        session = MagicMock()
+        mock_DAFNISession.return_value = session
+        runner = CliRunner()
+        ctx = {}
+        version_ids = ("version-id-1", "version-id-2")
+        mock_collate_model_version_details.return_value = [
+            "Model 1 details",
+            "Model 2 details",
+        ]
+
+        # CALL
+        result = runner.invoke(
+            delete.delete, ["model"] + list(version_ids), input="y", obj=ctx
+        )
+
+        # ASSERT
+        mock_DAFNISession.assert_called_once()
+        mock_collate_model_version_details.assert_called_once_with(session, version_ids)
+        self.assertEqual(
+            mock_delete_model.call_args_list,
+            [call(session, version_ids[0]), call(session, version_ids[1])],
+        )
+
+        self.assertEqual(
+            result.output,
+            "Model 1 details\nModel 2 details\nConfirm deletion of models? [y/N]: y\nModel versions deleted\n",
+        )
+        self.assertEqual(result.exit_code, 0)
+
+    @patch("dafni_cli.commands.delete.collate_model_version_details")
+    @patch("dafni_cli.commands.delete.delete_model")
+    def test_delete_model_cancels_when_requested(
+        self, mock_delete_model, mock_collate_model_version_details, mock_DAFNISession
+    ):
+        """Tests that the 'delete model' can be canceled after printing the
+        model info"""
+        # SETUP
+        session = MagicMock()
+        mock_DAFNISession.return_value = session
+        runner = CliRunner()
+        ctx = {}
+        version_ids = ("version-id",)
+        mock_collate_model_version_details.return_value = ["Model 1 details"]
+
+        # CALL
+        result = runner.invoke(
+            delete.delete, ["model"] + list(version_ids), input="n", obj=ctx
+        )
+
+        # ASSERT
+        mock_DAFNISession.assert_called_once()
+        mock_collate_model_version_details.assert_called_once_with(session, version_ids)
+        mock_delete_model.assert_not_called()
+
+        self.assertEqual(
+            result.output,
+            "Model 1 details\nConfirm deletion of models? [y/N]: n\nAborted!\n",
+        )
+        self.assertEqual(result.exit_code, 1)
+
+    # ----------------- WORKFLOWS
+    @patch("dafni_cli.commands.delete.collate_workflow_version_details")
+    @patch("dafni_cli.commands.delete.delete_workflow")
+    def test_delete_workflow(
+        self,
+        mock_delete_workflow,
+        mock_collate_workflow_version_details,
+        mock_DAFNISession,
+    ):
+        """Tests that the 'delete workflow' command works correctly with a single
+        version id"""
+        # SETUP
+        session = MagicMock()
+        mock_DAFNISession.return_value = session
+        runner = CliRunner()
+        ctx = {}
+        version_ids = ("version-id",)
+        mock_collate_workflow_version_details.return_value = ["Workflow 1 details"]
+
+        # CALL
+        result = runner.invoke(
+            delete.delete, ["workflow"] + list(version_ids), input="y", obj=ctx
+        )
+
+        # ASSERT
+        mock_DAFNISession.assert_called_once()
+        mock_collate_workflow_version_details.assert_called_once_with(
+            session, version_ids
+        )
+        mock_delete_workflow.assert_called_with(session, version_ids[0])
+
+        self.assertEqual(
+            result.output,
+            "Workflow 1 details\nConfirm deletion of workflows? [y/N]: y\nWorkflow versions deleted\n",
+        )
+        self.assertEqual(result.exit_code, 0)
+
+    @patch("dafni_cli.commands.delete.collate_workflow_version_details")
+    @patch("dafni_cli.commands.delete.delete_workflow")
+    def test_delete_workflow_multiple_versions(
+        self,
+        mock_delete_workflow,
+        mock_collate_workflow_version_details,
+        mock_DAFNISession,
+    ):
+        """Tests that the 'delete workflow' command works correctly with multiple
+        version ids"""
+        # SETUP
+        session = MagicMock()
+        mock_DAFNISession.return_value = session
+        runner = CliRunner()
+        ctx = {}
+        version_ids = ("version-id-1", "version-id-2")
+        mock_collate_workflow_version_details.return_value = [
+            "Workflow 1 details",
+            "Workflow 2 details",
+        ]
+
+        # CALL
+        result = runner.invoke(
+            delete.delete, ["workflow"] + list(version_ids), input="y", obj=ctx
+        )
+
+        # ASSERT
+        mock_DAFNISession.assert_called_once()
+        mock_collate_workflow_version_details.assert_called_once_with(
+            session, version_ids
+        )
+        self.assertEqual(
+            mock_delete_workflow.call_args_list,
+            [call(session, version_ids[0]), call(session, version_ids[1])],
+        )
+
+        self.assertEqual(
+            result.output,
+            "Workflow 1 details\nWorkflow 2 details\nConfirm deletion of workflows? [y/N]: y\nWorkflow versions deleted\n",
+        )
+        self.assertEqual(result.exit_code, 0)
+
+    @patch("dafni_cli.commands.delete.collate_workflow_version_details")
+    @patch("dafni_cli.commands.delete.delete_workflow")
+    def test_delete_workflow_cancels_when_requested(
+        self,
+        mock_delete_workflow,
+        mock_collate_workflow_version_details,
+        mock_DAFNISession,
+    ):
+        """Tests that the 'delete workflow' can be canceled after printing the
+        workflow info"""
+        # SETUP
+        session = MagicMock()
+        mock_DAFNISession.return_value = session
+        runner = CliRunner()
+        ctx = {}
+        version_ids = ("version-id",)
+        mock_collate_workflow_version_details.return_value = ["Workflow 1 details"]
+
+        # CALL
+        result = runner.invoke(
+            delete.delete, ["workflow"] + list(version_ids), input="n", obj=ctx
+        )
+
+        # ASSERT
+        mock_DAFNISession.assert_called_once()
+        mock_collate_workflow_version_details.assert_called_once_with(
+            session, version_ids
+        )
+        mock_delete_workflow.assert_not_called()
+
+        self.assertEqual(
+            result.output,
+            "Workflow 1 details\nConfirm deletion of workflows? [y/N]: n\nAborted!\n",
+        )
+        self.assertEqual(result.exit_code, 1)

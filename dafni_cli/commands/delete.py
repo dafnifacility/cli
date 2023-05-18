@@ -8,7 +8,7 @@ from dafni_cli.api.session import DAFNISession
 from dafni_cli.api.workflows_api import delete_workflow, get_workflow
 from dafni_cli.model.model import Model, parse_model
 from dafni_cli.utils import argument_confirmation
-from dafni_cli.workflow.workflow import Workflow, parse_workflow
+from dafni_cli.workflow.workflow import parse_workflow
 
 
 ###############################################################################
