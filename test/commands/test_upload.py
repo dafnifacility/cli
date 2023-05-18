@@ -2,8 +2,8 @@ from unittest import TestCase
 from unittest.mock import MagicMock, call, patch
 
 from click.testing import CliRunner
-from dafni_cli.api.exceptions import ValidationError
 
+from dafni_cli.api.exceptions import ValidationError
 from dafni_cli.commands import upload
 
 from test.api.test_models_api import TEST_MODELS_UPLOAD_RESPONSE

@@ -9,8 +9,6 @@ from mock import call, patch
 from dafni_cli import utils
 from dafni_cli.model.model import Model
 
-from test.fixtures.model_fixtures import get_models_list_fixture
-
 
 @patch("dafni_cli.utils.click")
 class TestProsePrint:
