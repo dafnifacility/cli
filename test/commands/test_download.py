@@ -1,208 +1,199 @@
 import os
+from unittest import TestCase
+from unittest.mock import MagicMock, patch
 
 from click.testing import CliRunner
-from mock import MagicMock, PropertyMock, patch
 
-from dafni_cli.commands.download import download
-
-from test.fixtures.dataset_fixtures import dataset_metadata_fixture
-from test.fixtures.jwt_fixtures import processed_jwt_fixture
+from dafni_cli.commands import download
 
 
-class TestDownload:
-    """test class to test the download() command functionality"""
+@patch("dafni_cli.commands.download.DAFNISession")
+class TestDownload(TestCase):
+    """Test class to test the download command"""
 
-    @patch("dafni_cli.commands.download.DatasetMetadata")
+    @patch("dafni_cli.commands.download.parse_dataset_metadata")
+    def test_session_retrieved_and_set_on_context(self, _, mock_DAFNISession):
+        """Tests that the session is created in the click context"""
+        # SETUP
+        session = MagicMock()
+        mock_DAFNISession.return_value = session
+        runner = CliRunner()
+        ctx = {}
+
+        # CALL
+        result = runner.invoke(
+            download.download, ["dataset", "dataset-id", "version-id"], obj=ctx
+        )
+
+        # ASSERT
+        mock_DAFNISession.assert_called_once()
+
+        self.assertEqual(ctx["session"], session)
+        self.assertEqual(result.exit_code, 0)
+
     @patch("dafni_cli.commands.download.get_latest_dataset_metadata")
-    @patch("dafni_cli.commands.download.check_for_jwt_file")
-    class TestInit:
-        """Test class to test the get() group processing of the
-        JWT
-        """
+    @patch("dafni_cli.commands.download.parse_dataset_metadata")
+    @patch("dafni_cli.commands.download.write_files_to_zip")
+    def test_download_dataset(
+        self,
+        mock_write_files_to_zip,
+        mock_parse_dataset_metadata,
+        mock_get_latest_dataset_metadata,
+        mock_DAFNISession,
+    ):
+        """Tests that the 'download dataset' command works correctly (with no
+        optional arguments)"""
+        # SETUP
+        session = MagicMock()
+        mock_DAFNISession.return_value = session
+        runner = CliRunner()
 
-        def test_jwt_retrieved_and_set_on_context(
-            self,
-            mock_jwt,
-            mock_get,
-            mock_dataset,
-            processed_jwt_fixture,
-            dataset_metadata_fixture,
-        ):
-            # SETUP
-            mock_get.return_value = dataset_metadata_fixture
-            mock_jwt.return_value = processed_jwt_fixture, False
+        dataset_id = "dataset-id"
+        version_id = "version-id"
+        file_names = ["file_name1", "file_name2"]
+        file_contents = ["file_contents1", "file_contents2"]
+        expected_download_path = os.path.join(
+            os.getcwd(), f"Dataset_{dataset_id}_{version_id}.zip"
+        )
+        metadata = MagicMock()
+        metadata.files = [MagicMock(), MagicMock()]
+        metadata.download_dataset_files = MagicMock()
+        metadata.download_dataset_files.return_value = (
+            file_names,
+            file_contents,
+        )
+        mock_parse_dataset_metadata.return_value = metadata
 
-            mock_instance = MagicMock()
-            mock_instance.files.return_value = []
-            mock_dataset.return_value = mock_instance
+        # CALL
+        result = runner.invoke(download.download, ["dataset", dataset_id, version_id])
 
-            runner = CliRunner()
-            ctx = {}
+        # ASSERT
+        mock_DAFNISession.assert_called_once()
+        mock_get_latest_dataset_metadata.assert_called_once_with(
+            session, dataset_id, version_id
+        )
+        mock_parse_dataset_metadata.assert_called_once_with(
+            mock_get_latest_dataset_metadata.return_value
+        )
 
-            # CALL
-            result = runner.invoke(download, ["dataset", "id", "version-id"], obj=ctx)
+        metadata.download_dataset_files.assert_called_once_with(session)
+        mock_write_files_to_zip.assert_called_once_with(
+            expected_download_path,
+            file_names,
+            file_contents,
+        )
+        metadata.output_datafiles_table.assert_called_once()
 
-            # ASSERT
-            mock_jwt.assert_called_once()
+        print(result.output)
+        self.assertEqual(
+            result.output,
+            f"\nThe dataset files have been downloaded to:\n{expected_download_path}\n",
+        )
 
-            assert ctx["jwt"] == processed_jwt_fixture["jwt"]
-            assert result.exit_code == 0
+        self.assertEqual(result.exit_code, 0)
 
-    @patch("dafni_cli.commands.download.DatasetMetadata")
     @patch("dafni_cli.commands.download.get_latest_dataset_metadata")
-    @patch("dafni_cli.commands.download.check_for_jwt_file")
-    class TestDataset:
-        """Test class to test the download dataset command"""
+    @patch("dafni_cli.commands.download.parse_dataset_metadata")
+    @patch("dafni_cli.commands.download.write_files_to_zip")
+    def test_download_dataset_with_specific_directory(
+        self,
+        mock_write_files_to_zip,
+        mock_parse_dataset_metadata,
+        mock_get_latest_dataset_metadata,
+        mock_DAFNISession,
+    ):
+        """Tests that the 'download dataset' command works correctly with a
+        specific directory specified"""
+        # SETUP
+        session = MagicMock()
+        mock_DAFNISession.return_value = session
+        runner = CliRunner()
 
-        def test_message_outputted_if_no_files_found(
-            self,
-            mock_jwt,
-            mock_get,
-            mock_dataset,
-            processed_jwt_fixture,
-            dataset_metadata_fixture,
-        ):
-            # SETUP
-            mock_get.return_value = dataset_metadata_fixture
-            mock_jwt.return_value = processed_jwt_fixture, False
+        dataset_id = "dataset-id"
+        version_id = "version-id"
+        file_names = ["file_name1", "file_name2"]
+        file_contents = [b"file_contents1", b"file_contents2"]
+        directory = "some_folder"
+        expected_download_path = os.path.join(
+            directory, f"Dataset_{dataset_id}_{version_id}.zip"
+        )
+        metadata = MagicMock()
+        metadata.files = [MagicMock(), MagicMock()]
+        metadata.download_dataset_files = MagicMock()
+        metadata.download_dataset_files.return_value = (
+            file_names,
+            file_contents,
+        )
+        mock_parse_dataset_metadata.return_value = metadata
 
-            mock_instance = MagicMock()
-            files = PropertyMock(return_value=[])
-            type(mock_instance).files = files
+        # CALL
+        with runner.isolated_filesystem():
+            os.mkdir(directory)
 
-            mock_dataset.return_value = mock_instance
-
-            runner = CliRunner()
-
-            # CALL
-            result = runner.invoke(download, ["dataset", "id", "version-id"])
-
-            # ASSERT
-            assert (
-                result.stdout
-                == "\nThere are no files currently associated with the Dataset to download\n"
+            result = runner.invoke(
+                download.download,
+                ["dataset", dataset_id, version_id, "--directory", directory],
             )
 
-            assert result.exit_code == 0
+        # ASSERT
+        mock_DAFNISession.assert_called_once()
+        mock_get_latest_dataset_metadata.assert_called_once_with(
+            session, dataset_id, version_id
+        )
+        mock_parse_dataset_metadata.assert_called_once_with(
+            mock_get_latest_dataset_metadata.return_value
+        )
 
-        @patch("dafni_cli.commands.download.os.getcwd")
-        @patch("dafni_cli.commands.download.write_files_to_zip")
-        def test_file_details_processed_correctly_for_default_directory(
-            self,
-            mock_zip,
-            mock_os,
-            mock_jwt,
-            mock_get,
-            mock_dataset,
-            processed_jwt_fixture,
-            dataset_metadata_fixture,
-        ):
-            # SETUP
-            mock_get.return_value = dataset_metadata_fixture
-            mock_jwt.return_value = processed_jwt_fixture, False
-            directory = "path/to/cwd"
-            mock_os.return_value = directory
+        metadata.download_dataset_files.assert_called_once_with(session)
+        mock_write_files_to_zip.assert_called_once_with(
+            expected_download_path,
+            file_names,
+            file_contents,
+        )
+        metadata.output_datafiles_table.assert_called_once()
 
-            # Setup DatasetMetadata mock instance
-            mock_instance = MagicMock()
-            files = PropertyMock(return_value=["files"])
-            type(mock_instance).files = files
+        self.assertEqual(
+            result.output,
+            f"\nThe dataset files have been downloaded to:\n{expected_download_path}\n",
+        )
 
-            file_names = ["file_1.txt", "file_2.pdf", "file_3.csv"]
-            file_contents = [b"file 1", b"file 2", b"file 3"]
-            mock_instance.download_dataset_files.return_value = (
-                file_names,
-                file_contents,
-            )
+        self.assertEqual(result.exit_code, 0)
 
-            mock_dataset.return_value = mock_instance
+    @patch("dafni_cli.commands.download.get_latest_dataset_metadata")
+    @patch("dafni_cli.commands.download.parse_dataset_metadata")
+    def test_download_dataset_with_no_files(
+        self,
+        mock_parse_dataset_metadata,
+        mock_get_latest_dataset_metadata,
+        mock_DAFNISession,
+    ):
+        """Tests that the 'download dataset' command works correctly when
+        there are no files to download"""
+        # SETUP
+        session = MagicMock()
+        mock_DAFNISession.return_value = session
+        runner = CliRunner()
+        metadata = MagicMock()
+        metadata.files = []
+        mock_parse_dataset_metadata.return_value = metadata
 
-            # Setup data for call
-            data_id = "dataset id"
-            version_id = "version id"
+        # CALL
+        result = runner.invoke(
+            download.download, ["dataset", "dataset-id", "version-id"]
+        )
 
-            # Setup data for results
-            zip_name = f"Dataset_{data_id}_{version_id}.zip"
-            path = os.path.join(directory, zip_name)
+        # ASSERT
+        mock_DAFNISession.assert_called_once()
+        mock_get_latest_dataset_metadata.assert_called_once_with(
+            session, "dataset-id", "version-id"
+        )
+        mock_parse_dataset_metadata.assert_called_once_with(
+            mock_get_latest_dataset_metadata.return_value
+        )
 
-            runner = CliRunner()
+        self.assertEqual(
+            result.output,
+            "\nThere are no files currently associated with the Dataset to download\n",
+        )
 
-            # CALL
-            result = runner.invoke(download, ["dataset", data_id, version_id])
-
-            # ASSERT
-            mock_instance.download_dataset_files.assert_called_once_with(
-                processed_jwt_fixture["jwt"]
-            )
-
-            mock_zip.assert_called_once_with(path, file_names, file_contents)
-
-            mock_instance.output_datafiles_table.assert_called_once()
-
-            assert result.exit_code == 0
-
-        @patch("dafni_cli.commands.download.os.getcwd")
-        @patch("dafni_cli.commands.download.write_files_to_zip")
-        def test_file_details_processed_correctly_in_given_directory(
-            self,
-            mock_zip,
-            mock_os,
-            mock_jwt,
-            mock_get,
-            mock_dataset,
-            processed_jwt_fixture,
-            dataset_metadata_fixture,
-        ):
-            # SETUP
-            mock_get.return_value = dataset_metadata_fixture
-            mock_jwt.return_value = processed_jwt_fixture, False
-            directory = "test"
-            mock_os.return_value = directory
-
-            # Setup DatasetMetadata mock instance
-            mock_instance = MagicMock()
-            files = PropertyMock(return_value=["files"])
-            type(mock_instance).files = files
-
-            file_names = ["file_1.txt", "file_2.pdf", "file_3.csv"]
-            file_contents = [b"file 1", b"file 2", b"file 3"]
-            mock_instance.download_dataset_files.return_value = (
-                file_names,
-                file_contents,
-            )
-
-            mock_dataset.return_value = mock_instance
-
-            # Setup data for call
-            data_id = "dataset id"
-            version_id = "version id"
-
-            # Setup data fro results
-            zip_name = f"Dataset_{data_id}_{version_id}.zip"
-            path = os.path.join(directory, zip_name)
-
-            runner = CliRunner()
-
-            # CALL
-            with runner.isolated_filesystem():
-                # Make directory for write zip file to
-                os.mkdir(directory)
-
-                result = runner.invoke(
-                    download, ["dataset", data_id, version_id, "--directory", directory]
-                )
-
-            # ASSERT
-            mock_instance.download_dataset_files.assert_called_once_with(
-                processed_jwt_fixture["jwt"]
-            )
-
-            mock_zip.assert_called_once_with(path, file_names, file_contents)
-
-            mock_instance.output_datafiles_table.assert_called_once()
-
-            assert result.stdout == (
-                "\nThe dataset files have been downloaded to: \ntest\\Dataset_dataset id_version id.zip\n"
-            )
-
-            assert result.exit_code == 0
+        self.assertEqual(result.exit_code, 0)
