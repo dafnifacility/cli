@@ -4,8 +4,8 @@ from io import BytesIO
 from typing import ClassVar, List, Optional, Tuple
 
 import click
-from dafni_cli.api.datasets_api import get_latest_dataset_metadata
 
+from dafni_cli.api.datasets_api import get_latest_dataset_metadata
 from dafni_cli.api.minio_api import minio_get_request
 from dafni_cli.api.parser import ParserBaseObject, ParserParam, parse_datetime
 from dafni_cli.api.session import DAFNISession

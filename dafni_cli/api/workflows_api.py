@@ -12,8 +12,8 @@ from pathlib import Path
 from typing import List, Tuple
 
 from requests import Response
-from dafni_cli.api.exceptions import EndpointNotFoundError, ResourceNotFoundError
 
+from dafni_cli.api.exceptions import EndpointNotFoundError, ResourceNotFoundError
 from dafni_cli.api.session import DAFNISession
 from dafni_cli.consts import WORKFLOWS_API_URL
 

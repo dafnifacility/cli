@@ -1,6 +1,6 @@
 from typing import List
-from dafni_cli.api.exceptions import EndpointNotFoundError, ResourceNotFoundError
 
+from dafni_cli.api.exceptions import EndpointNotFoundError, ResourceNotFoundError
 from dafni_cli.api.session import DAFNISession
 from dafni_cli.consts import DISCOVERY_API_URL
 
