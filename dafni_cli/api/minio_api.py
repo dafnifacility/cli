@@ -57,7 +57,7 @@ def delete_temp_bucket(session: DAFNISession, temp_bucket_id: str):
         temp_bucket_id (str): Minio temporary bucket ID
     """
 
-    # Strip out temp_ which will be present in the ID returned by
+    # Strip out 'temp-' which will be present in the ID returned by
     # create_temp_bucket
     url = f"{DSS_API_URL}/assets/{temp_bucket_id.replace('temp-', '')}"
 
@@ -67,7 +67,8 @@ def delete_temp_bucket(session: DAFNISession, temp_bucket_id: str):
 def get_data_upload_urls(
     session: DAFNISession, temp_bucket_id: str, file_names: List[str]
 ) -> dict:
-    """Function to get an upload URL for each file name given.
+    """Returns an upload URL for each file name given
+
     Returns a nested dict under the 'URLs' key, with each key being the file name,
     and the value being the upload URL
 
@@ -88,7 +89,7 @@ def get_data_upload_urls(
 def upload_dataset_metadata(
     session: DAFNISession, temp_bucket_id: str, metadata: dict
 ) -> requests.Response:
-    """Function to upload Dataset Metadata to Minio
+    """Uploads dataset metadata to Minio
 
     This will commit the dataset and triggers the deletion of the temporary
     bucket when successful.
