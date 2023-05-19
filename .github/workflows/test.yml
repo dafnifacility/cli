@@ -6,7 +6,7 @@ on:
         - '**'
     pull_request:
         branches:
-        - master
+        - main
 
 jobs:
   black:
@@ -30,7 +30,6 @@ jobs:
       - name: Check formatting with black
         run: |
           black --check .
-
 
   test:
     name: Test on Python ${{ matrix.python-version }} and ${{ matrix.os }}
