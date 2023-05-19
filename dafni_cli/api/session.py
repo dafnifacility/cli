@@ -374,6 +374,7 @@ class DAFNISession:
                 for error in decoded_response["errors"]:
                     error_message += f"\nError: {error}"
             # Special case when uploading dataset metadata that's invalid
+            # TODO: This is a bug, remove once fixed
             elif "metadata" in decoded_response:
                 # This returns a list of errors, add them all to the
                 # message

@@ -57,7 +57,7 @@ class TestModelsAPI(TestCase):
         self.assertEqual(result, session.get_request.return_value)
 
     def test_get_model_raises_resource_not_found(self):
-        """Tests that get_model works handles an EndpointNotFoundError as
+        """Tests that get_model handles an EndpointNotFoundError as
         expected"""
 
         # SETUP
