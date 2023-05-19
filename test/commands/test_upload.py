@@ -1,425 +1,607 @@
-import json
+from unittest import TestCase
+from unittest.mock import MagicMock, call, patch
 
-import pytest
 from click.testing import CliRunner
-from mock import call, patch
-from requests import HTTPError, Response
 
+from dafni_cli.api.exceptions import ValidationError
 from dafni_cli.commands import upload
 
-from test.fixtures.dataset_fixtures import upload_metadata_fixture
-from test.fixtures.jwt_fixtures import processed_jwt_fixture
-from test.fixtures.model_fixtures import get_model_upload_urls_fixture
+from test.api.test_models_api import TEST_MODELS_UPLOAD_RESPONSE
 
 
-class TestUpload:
-    """test class to test the upload() command functionality"""
+@patch("dafni_cli.commands.upload.DAFNISession")
+class TestUpload(TestCase):
+    """Test class to test the upload command"""
 
-    @patch("dafni_cli.commands.upload.model_version_ingest")
-    @patch("dafni_cli.commands.upload.upload_file_to_minio")
+    @patch("dafni_cli.commands.upload.upload_new_dataset_files")
+    def test_session_retrieved_and_set_on_context(self, _, mock_DAFNISession):
+        """Tests that the session is created in the click context"""
+        # SETUP
+        session = MagicMock()
+        mock_DAFNISession.return_value = session
+        runner = CliRunner()
+        ctx = {}
+
+        # CALL
+        with runner.isolated_filesystem():
+            with open("test_definition.yaml", "w", encoding="utf-8") as f:
+                f.write("test definition file")
+            with open("test_image.txt", "w", encoding="utf-8") as f:
+                f.write("test image file")
+            result = runner.invoke(
+                upload.upload,
+                ["dataset", "test_definition.yaml", "test_image.txt"],
+                input="y",
+                obj=ctx,
+            )
+
+        # ASSERT
+        mock_DAFNISession.assert_called_once()
+
+        self.assertEqual(ctx["session"], session)
+        self.assertEqual(result.exit_code, 0)
+
+    # ----------------- MODELS
+
+    @patch("dafni_cli.commands.upload.validate_model_definition")
     @patch("dafni_cli.commands.upload.get_model_upload_urls")
-    @patch("dafni_cli.commands.upload.validate_model_definition")
-    @patch("dafni_cli.commands.upload.argument_confirmation")
-    @patch("dafni_cli.commands.upload.check_for_jwt_file")
-    class TestInit:
-        """Test class to test the get() group processing of the
-        JWT
-        """
+    @patch("dafni_cli.commands.upload.upload_file_to_minio")
+    @patch("dafni_cli.commands.upload.model_version_ingest")
+    def test_upload_model(
+        self,
+        mock_model_version_ingest,
+        mock_upload_file_to_minio,
+        mock_get_model_upload_urls,
+        mock_validate_model_definition,
+        mock_DAFNISession,
+    ):
+        """Tests that the 'upload model' command works correctly when
+        no parent is given"""
 
-        @pytest.mark.parametrize("version_message_flag", ["--version-message", "-m"])
-        def test_jwt_retrieved_and_set_on_context(
-            self,
-            mock_jwt,
-            mock_confirm,
-            mock_validate,
-            mock_urls,
-            mock_minio,
-            mock_ingest,
-            version_message_flag,
-            processed_jwt_fixture,
-            get_model_upload_urls_fixture,
-        ):
-            # SETUP
-            mock_jwt.return_value = processed_jwt_fixture, False
-            mock_validate.return_value = (True, "")
-            mock_urls.return_value = get_model_upload_urls_fixture
+        # SETUP
+        session = MagicMock()
+        mock_DAFNISession.return_value = session
+        runner = CliRunner()
 
-            runner = CliRunner()
-            ctx = {}
-
-            # CALL
-            with runner.isolated_filesystem():
-                with open("test_definition.yaml", "w") as f:
-                    f.write("test definition file")
-                with open("test_image.txt", "w") as f:
-                    f.write("test image file")
-                result = runner.invoke(
-                    upload.upload,
-                    [
-                        "model",
-                        "test_definition.yaml",
-                        "test_image.txt",
-                        version_message_flag,
-                        "version message",
-                    ],
-                    obj=ctx,
-                )
-
-            # ASSERT
-            mock_jwt.assert_called_once()
-            assert ctx["jwt"] == processed_jwt_fixture["jwt"]
-            assert result.exit_code == 0
-
-    @patch("dafni_cli.commands.upload.check_for_jwt_file")
-    @patch("dafni_cli.commands.upload.argument_confirmation")
-    @patch("dafni_cli.commands.upload.click")
-    @patch("dafni_cli.commands.upload.validate_model_definition")
-    class TestModel:
-        """test class to test the upload.model() command functionality"""
-
-        @pytest.mark.parametrize("version_message_flag", ["--version-message", "-m"])
-        def test_method_aborted_and_500_error_printed_if_500_response_from_validation_method(
-            self,
-            mock_validate,
-            mock_click,
-            mock_confirm,
-            mock_jwt,
-            version_message_flag,
-            processed_jwt_fixture,
-        ):
-            # SETUP
-            mock_jwt.return_value = processed_jwt_fixture, False
-            error_response = Response()
-            error_response.status_code = 500
-            mock_validate.side_effect = HTTPError(response=error_response)
-            runner = CliRunner()
-
-            # CALL
-            with runner.isolated_filesystem():
-                with open("test_definition.yaml", "w") as f:
-                    f.write("test definition file")
-                with open("test_image.txt", "w") as f:
-                    f.write("test image file")
-                result = runner.invoke(
-                    upload.upload,
-                    [
-                        "model",
-                        "test_definition.yaml",
-                        "test_image.txt",
-                        version_message_flag,
-                        "version message",
-                    ],
-                )
-
-            # ASSERT
-            assert result.exit_code == 1
-            assert mock_click.echo.call_args_list == [
-                call("Validating model definition"),
-                call(
-                    "Error validating the model definition. "
-                    "See https://docs.secure.dafni.rl.ac.uk/docs/how-to/models/how-to-write-a-model-definition-file/"
-                    " for guidance"
-                ),
-            ]
-
-        @pytest.mark.parametrize("version_message_flag", ["--version-message", "-m"])
-        def test_method_aborted_and_standard_error_printed_if_non_200_or_500_response_from_validation_method(
-            self,
-            mock_validate,
-            mock_click,
-            mock_confirm,
-            mock_jwt,
-            version_message_flag,
-            processed_jwt_fixture,
-        ):
-            # SETUP
-            mock_jwt.return_value = processed_jwt_fixture, False
-            error_response = Response()
-            error_response.status_code = 400
-            error = HTTPError("error message", response=error_response)
-            mock_validate.side_effect = error
-            runner = CliRunner()
-
-            # CALL
-            with runner.isolated_filesystem():
-                with open("test_definition.yaml", "w") as f:
-                    f.write("test definition file")
-                with open("test_image.txt", "w") as f:
-                    f.write("test image file")
-                result = runner.invoke(
-                    upload.upload,
-                    [
-                        "model",
-                        "test_definition.yaml",
-                        "test_image.txt",
-                        version_message_flag,
-                        "version message",
-                    ],
-                )
-
-            # ASSERT
-            assert result.exit_code == 1
-            assert mock_click.echo.call_args_list == [
-                call("Validating model definition"),
-                call(error),
-            ]
-
-        @pytest.mark.parametrize("version_message_flag", ["--version-message", "-m"])
-        def test_method_aborted_and_error_printed_if_model_definition_is_not_valid(
-            self,
-            mock_validate,
-            mock_click,
-            mock_confirm,
-            mock_jwt,
-            version_message_flag,
-            processed_jwt_fixture,
-        ):
-            # SETUP
-            mock_jwt.return_value = processed_jwt_fixture, False
-            mock_validate.return_value = (False, "Test validation error")
-            runner = CliRunner()
-
-            # CALL
-            with runner.isolated_filesystem():
-                with open("test_definition.yaml", "w") as f:
-                    f.write("test definition file")
-                with open("test_image.txt", "w") as f:
-                    f.write("test image file")
-                result = runner.invoke(
-                    upload.upload,
-                    [
-                        "model",
-                        "test_definition.yaml",
-                        "test_image.txt",
-                        version_message_flag,
-                        "version message",
-                    ],
-                )
-
-            # ASSERT
-            assert result.exit_code == 1
-            mock_confirm.assert_called_once_with(
-                ["Model definition file path", "Image file path", "Version message"],
-                ["test_definition.yaml", "test_image.txt", "version message"],
-                "Confirm model upload?",
-                ["No parent model: new model to be created"],
-            )
-            mock_validate.assert_called_once_with(
-                processed_jwt_fixture["jwt"], "test_definition.yaml"
-            )
-            assert mock_click.echo.call_args_list == [
-                call("Validating model definition"),
-                call(
-                    "Definition validation failed with the following errors: Test validation error"
-                ),
-            ]
-
-        @patch("dafni_cli.commands.upload.get_model_upload_urls")
-        @patch("dafni_cli.commands.upload.upload_file_to_minio")
-        @patch("dafni_cli.commands.upload.model_version_ingest")
-        @pytest.mark.parametrize(
-            "upload_options, expected_argument, confirm_arg_1, confirm_arg_2, confirm_arg_3",
-            [
-                (
-                    [
-                        "model",
-                        "test_definition.yaml",
-                        "test_image.txt",
-                        "--version-message",
-                        "version message",
-                    ],
-                    None,
-                    [
-                        "Model definition file path",
-                        "Image file path",
-                        "Version message",
-                    ],
-                    ["test_definition.yaml", "test_image.txt", "version message"],
-                    ["No parent model: new model to be created"],
-                ),
-                (
-                    [
-                        "model",
-                        "test_definition.yaml",
-                        "test_image.txt",
-                        "--version-message",
-                        "version message",
-                        "--parent-model",
-                        "parent-model-id",
-                    ],
-                    "parent-model-id",
-                    [
-                        "Model definition file path",
-                        "Image file path",
-                        "Version message",
-                        "Parent model ID",
-                    ],
-                    [
-                        "test_definition.yaml",
-                        "test_image.txt",
-                        "version message",
-                        "parent-model-id",
-                    ],
-                    None,
-                ),
-            ],
-            ids=["Case 1 - without parent model", "Case 2 - with parent model"],
+        mock_get_model_upload_urls.return_value = (
+            TEST_MODELS_UPLOAD_RESPONSE["id"],
+            TEST_MODELS_UPLOAD_RESPONSE["urls"],
         )
-        def test_models_api_functions_called_with_expected_arguments(
-            self,
-            mock_ingest,
-            mock_minio,
-            mock_urls,
-            mock_validate,
-            mock_click,
-            mock_confirm,
-            mock_jwt,
-            upload_options,
-            expected_argument,
-            confirm_arg_1,
-            confirm_arg_2,
-            confirm_arg_3,
-            processed_jwt_fixture,
-            get_model_upload_urls_fixture,
-        ):
-            # SETUP
-            mock_jwt.return_value = processed_jwt_fixture, False
-            mock_validate.return_value = (True, "")
-            mock_urls.return_value = get_model_upload_urls_fixture
-            upload_id, urls_dict = get_model_upload_urls_fixture
-            runner = CliRunner()
 
-            # CALL
-            with runner.isolated_filesystem():
-                with open("test_definition.yaml", "w") as f:
-                    f.write("test definition file")
-                with open("test_image.txt", "w") as f:
-                    f.write("test image file")
-                result = runner.invoke(upload.upload, upload_options)
+        # CALL
+        with runner.isolated_filesystem():
+            with open("test_definition.yaml", "w", encoding="utf-8") as file:
+                file.write("test definition file")
+            with open("test_image.txt", "w", encoding="utf-8") as file:
+                file.write("test image file")
+            result = runner.invoke(
+                upload.upload,
+                [
+                    "model",
+                    "test_definition.yaml",
+                    "test_image.txt",
+                    "--version-message",
+                    "version_message",
+                ],
+                input="y",
+            )
 
-            # ASSERT
-            assert result.exit_code == 0
-            mock_confirm.assert_called_once_with(
-                confirm_arg_1, confirm_arg_2, "Confirm model upload?", confirm_arg_3
-            )
-            mock_validate.assert_called_once_with(
-                processed_jwt_fixture["jwt"], "test_definition.yaml"
-            )
-            mock_urls.assert_called_once_with(processed_jwt_fixture["jwt"])
-            assert mock_minio.call_args_list == [
+        # ASSERT
+        mock_DAFNISession.assert_called_once()
+        mock_validate_model_definition.assert_called_once_with(
+            session, "test_definition.yaml"
+        )
+        mock_get_model_upload_urls.assert_called_once_with(session)
+        mock_upload_file_to_minio.assert_has_calls(
+            [
                 call(
-                    processed_jwt_fixture["jwt"],
-                    urls_dict["definition"],
+                    session,
+                    TEST_MODELS_UPLOAD_RESPONSE["urls"]["definition"],
                     "test_definition.yaml",
                 ),
                 call(
-                    processed_jwt_fixture["jwt"], urls_dict["image"], "test_image.txt"
+                    session,
+                    TEST_MODELS_UPLOAD_RESPONSE["urls"]["image"],
+                    "test_image.txt",
                 ),
             ]
-            mock_ingest.assert_called_once_with(
-                processed_jwt_fixture["jwt"],
-                upload_id,
-                "version message",
-                expected_argument,
+        )
+        mock_model_version_ingest.assert_called_once_with(
+            session, TEST_MODELS_UPLOAD_RESPONSE["id"], "version_message", None
+        )
+
+        self.assertEqual(
+            result.output,
+            "Model definition file path: test_definition.yaml\n"
+            "Image file path: test_image.txt\n"
+            "Version message: version_message\n"
+            "No parent model: New model to be created\n"
+            "Confirm model upload? [y/N]: y\n"
+            "Validating model definition\n"
+            "Getting urls\n"
+            "Uploading model definition and image\n"
+            "Ingesting model\n"
+            "Model upload complete\n",
+        )
+        self.assertEqual(result.exit_code, 0)
+
+    @patch("dafni_cli.commands.upload.validate_model_definition")
+    @patch("dafni_cli.commands.upload.get_model_upload_urls")
+    @patch("dafni_cli.commands.upload.upload_file_to_minio")
+    @patch("dafni_cli.commands.upload.model_version_ingest")
+    def test_upload_model_with_parent(
+        self,
+        mock_model_version_ingest,
+        mock_upload_file_to_minio,
+        mock_get_model_upload_urls,
+        mock_validate_model_definition,
+        mock_DAFNISession,
+    ):
+        """Tests that the 'upload model' command works correctly when
+        a parent is given"""
+
+        # SETUP
+        session = MagicMock()
+        mock_DAFNISession.return_value = session
+        runner = CliRunner()
+
+        mock_get_model_upload_urls.return_value = (
+            TEST_MODELS_UPLOAD_RESPONSE["id"],
+            TEST_MODELS_UPLOAD_RESPONSE["urls"],
+        )
+
+        # CALL
+        with runner.isolated_filesystem():
+            with open("test_definition.yaml", "w", encoding="utf-8") as file:
+                file.write("test definition file")
+            with open("test_image.txt", "w", encoding="utf-8") as file:
+                file.write("test image file")
+            result = runner.invoke(
+                upload.upload,
+                [
+                    "model",
+                    "test_definition.yaml",
+                    "test_image.txt",
+                    "--version-message",
+                    "version_message",
+                    "--parent-id",
+                    "parent-id",
+                ],
+                input="y",
             )
-            assert mock_click.echo.call_args_list == [
-                call("Validating model definition"),
-                call("Getting urls"),
-                call("Uploading model definition and image"),
-                call("Ingesting model"),
-                call("Model upload complete"),
+
+        # ASSERT
+        mock_DAFNISession.assert_called_once()
+        mock_validate_model_definition.assert_called_once_with(
+            session, "test_definition.yaml"
+        )
+        mock_get_model_upload_urls.assert_called_once_with(session)
+        mock_upload_file_to_minio.assert_has_calls(
+            [
+                call(
+                    session,
+                    TEST_MODELS_UPLOAD_RESPONSE["urls"]["definition"],
+                    "test_definition.yaml",
+                ),
+                call(
+                    session,
+                    TEST_MODELS_UPLOAD_RESPONSE["urls"]["image"],
+                    "test_image.txt",
+                ),
             ]
+        )
+        mock_model_version_ingest.assert_called_once_with(
+            session, TEST_MODELS_UPLOAD_RESPONSE["id"], "version_message", "parent-id"
+        )
+
+        self.assertEqual(
+            result.output,
+            "Model definition file path: test_definition.yaml\n"
+            "Image file path: test_image.txt\n"
+            "Version message: version_message\n"
+            "Parent model ID: parent-id\n"
+            "Confirm model upload? [y/N]: y\n"
+            "Validating model definition\n"
+            "Getting urls\n"
+            "Uploading model definition and image\n"
+            "Ingesting model\n"
+            "Model upload complete\n",
+        )
+        self.assertEqual(result.exit_code, 0)
+
+    @patch("dafni_cli.commands.upload.validate_model_definition")
+    @patch("dafni_cli.commands.upload.get_model_upload_urls")
+    @patch("dafni_cli.commands.upload.upload_file_to_minio")
+    @patch("dafni_cli.commands.upload.model_version_ingest")
+    def test_upload_model_with_validation_error(
+        self,
+        mock_model_version_ingest,
+        mock_upload_file_to_minio,
+        mock_get_model_upload_urls,
+        mock_validate_model_definition,
+        mock_DAFNISession,
+    ):
+        """Tests that the 'upload model' command exits correctly when
+        a validation error occurs"""
+
+        # SETUP
+        session = MagicMock()
+        mock_DAFNISession.return_value = session
+        runner = CliRunner()
+
+        mock_get_model_upload_urls.return_value = (
+            TEST_MODELS_UPLOAD_RESPONSE["id"],
+            TEST_MODELS_UPLOAD_RESPONSE["urls"],
+        )
+        mock_validate_model_definition.side_effect = ValidationError(
+            "Some validation error message"
+        )
+
+        # CALL
+        with runner.isolated_filesystem():
+            with open("test_definition.yaml", "w", encoding="utf-8") as file:
+                file.write("test definition file")
+            with open("test_image.txt", "w", encoding="utf-8") as file:
+                file.write("test image file")
+            result = runner.invoke(
+                upload.upload,
+                [
+                    "model",
+                    "test_definition.yaml",
+                    "test_image.txt",
+                    "--version-message",
+                    "version_message",
+                ],
+                input="y",
+            )
+
+        # ASSERT
+        mock_DAFNISession.assert_called_once()
+        mock_validate_model_definition.assert_called_once_with(
+            session, "test_definition.yaml"
+        )
+
+        self.assertEqual(
+            result.output,
+            "Model definition file path: test_definition.yaml\n"
+            "Image file path: test_image.txt\n"
+            "Version message: version_message\n"
+            "No parent model: New model to be created\n"
+            "Confirm model upload? [y/N]: y\n"
+            "Validating model definition\n"
+            "Some validation error message\n",
+        )
+        self.assertEqual(result.exit_code, 1)
+
+    @patch("dafni_cli.commands.upload.validate_model_definition")
+    @patch("dafni_cli.commands.upload.get_model_upload_urls")
+    @patch("dafni_cli.commands.upload.upload_file_to_minio")
+    @patch("dafni_cli.commands.upload.model_version_ingest")
+    def test_upload_model_cancel(
+        self,
+        mock_model_version_ingest,
+        mock_upload_file_to_minio,
+        mock_get_model_upload_urls,
+        mock_validate_model_definition,
+        mock_DAFNISession,
+    ):
+        """Tests that the 'upload model' command can be canceled"""
+
+        # SETUP
+        session = MagicMock()
+        mock_DAFNISession.return_value = session
+        runner = CliRunner()
+
+        mock_get_model_upload_urls.return_value = (
+            TEST_MODELS_UPLOAD_RESPONSE["id"],
+            TEST_MODELS_UPLOAD_RESPONSE["urls"],
+        )
+        mock_validate_model_definition.side_effect = ValidationError(
+            "Some validation error message"
+        )
+
+        # CALL
+        with runner.isolated_filesystem():
+            with open("test_definition.yaml", "w", encoding="utf-8") as file:
+                file.write("test definition file")
+            with open("test_image.txt", "w", encoding="utf-8") as file:
+                file.write("test image file")
+            result = runner.invoke(
+                upload.upload,
+                [
+                    "model",
+                    "test_definition.yaml",
+                    "test_image.txt",
+                    "--version-message",
+                    "version_message",
+                ],
+                input="n",
+            )
+
+        # ASSERT
+        mock_DAFNISession.assert_called_once()
+        mock_validate_model_definition.assert_not_called()
+        mock_get_model_upload_urls.assert_not_called()
+        mock_upload_file_to_minio.assert_not_called()
+        mock_model_version_ingest.assert_not_called()
+
+        self.assertEqual(
+            result.output,
+            "Model definition file path: test_definition.yaml\n"
+            "Image file path: test_image.txt\n"
+            "Version message: version_message\n"
+            "No parent model: New model to be created\n"
+            "Confirm model upload? [y/N]: n\n"
+            "Aborted!\n",
+        )
+        self.assertEqual(result.exit_code, 1)
+
+    # ----------------- DATASET
 
     @patch("dafni_cli.commands.upload.upload_new_dataset_files")
-    @patch("dafni_cli.commands.upload.argument_confirmation")
-    @patch("dafni_cli.commands.upload.check_for_jwt_file")
-    class TestDataset:
-        """Test class to test the upload.dataset command"""
+    def test_upload_dataset(
+        self,
+        mock_upload_new_dataset_files,
+        mock_DAFNISession,
+    ):
+        """Tests that the 'upload dataset' command works correctly when
+        no parent is given"""
 
-        @pytest.mark.parametrize(
-            "files", [["file_1.txt"], ["file_1.txt", "file_2.txt", "file_3.txt"]]
+        # SETUP
+        session = MagicMock()
+        mock_DAFNISession.return_value = session
+        runner = CliRunner()
+
+        # CALL
+        with runner.isolated_filesystem():
+            with open("test_definition.json", "w", encoding="utf-8") as file:
+                file.write("test definition file")
+            with open("test_dataset.txt", "w", encoding="utf-8") as file:
+                file.write("test dataset file")
+            result = runner.invoke(
+                upload.upload,
+                [
+                    "dataset",
+                    "test_definition.json",
+                    "test_dataset.txt",
+                ],
+                input="y",
+            )
+
+        # ASSERT
+        mock_DAFNISession.assert_called_once()
+        mock_upload_new_dataset_files.assert_called_once_with(
+            session, "test_definition.json", ("test_dataset.txt",)
         )
-        def test_upload_does_not_take_place_if_confirmation_cancelled(
-            self,
-            mock_jwt,
-            mock_confirm,
-            mock_upload,
-            files,
-            processed_jwt_fixture,
-            upload_metadata_fixture,
-        ):
-            # SETUP
-            mock_jwt.return_value = processed_jwt_fixture, True
-            mock_confirm.side_effect = SystemExit(1)
 
-            # setup data for call
-            definition = "meta_data.json"
-            runner = CliRunner()
-
-            # setup expected call values
-            argument_names = ["Dataset definition file path"] + [
-                "Dataset file path" for file_path in files
-            ]
-            arguments = [definition, *files]
-
-            # CALL
-            with runner.isolated_filesystem():
-                with open(definition, "w") as f:
-                    f.write(json.dumps(upload_metadata_fixture))
-                for file_name in files:
-                    with open(file_name, "w") as f:
-                        f.write(f"{file_name} content")
-
-                result = runner.invoke(upload.upload, ["dataset", definition, *files])
-
-            # ASSERT
-            assert result.exit_code == 1
-            mock_upload.assert_not_called()
-            mock_confirm.assert_called_once_with(
-                argument_names, arguments, "Confirm Dataset upload?"
-            )
-
-        @pytest.mark.parametrize(
-            "files", [("file_1.txt",), ("file_1.txt", "file_2.txt", "file_3.txt")]
+        self.assertEqual(
+            result.output,
+            "Dataset definition file path: test_definition.json\n"
+            "Dataset file path: test_dataset.txt\n"
+            "Confirm dataset upload? [y/N]: y\n",
         )
-        def test_upload_take_place_if_details_confirmed(
-            self,
-            mock_jwt,
-            mock_confirm,
-            mock_upload,
-            files,
-            processed_jwt_fixture,
-            upload_metadata_fixture,
-        ):
-            # SETUP
-            mock_jwt.return_value = processed_jwt_fixture, True
-            mock_confirm.return_value = None
+        self.assertEqual(result.exit_code, 0)
 
-            # setup data for call
-            definition = "meta_data.json"
-            runner = CliRunner()
+    @patch("dafni_cli.commands.upload.upload_new_dataset_files")
+    def test_upload_dataset_with_multiple_files(
+        self,
+        mock_upload_new_dataset_files,
+        mock_DAFNISession,
+    ):
+        """Tests that the 'upload dataset' command works correctly when
+        multiple files are given"""
 
-            # setup expected call values
-            argument_names = ["Dataset definition file path"] + [
-                "Dataset file path" for file_path in files
-            ]
-            arguments = [definition, *files]
+        # SETUP
+        session = MagicMock()
+        mock_DAFNISession.return_value = session
+        runner = CliRunner()
 
-            # CALL
-            with runner.isolated_filesystem():
-                with open(definition, "w") as f:
-                    f.write(json.dumps(upload_metadata_fixture))
-                for file_name in files:
-                    with open(file_name, "w") as f:
-                        f.write(f"{file_name} content")
-
-                result = runner.invoke(upload.upload, ["dataset", definition, *files])
-
-            # ASSERT
-            assert result.exit_code == 0
-            mock_upload.assert_called_once_with(
-                processed_jwt_fixture["jwt"], definition, files
+        # CALL
+        with runner.isolated_filesystem():
+            with open("test_definition.json", "w", encoding="utf-8") as file:
+                file.write("test definition file")
+            with open("test_dataset1.txt", "w", encoding="utf-8") as file:
+                file.write("test dataset file1")
+            with open("test_dataset2.txt", "w", encoding="utf-8") as file:
+                file.write("test dataset file2")
+            result = runner.invoke(
+                upload.upload,
+                [
+                    "dataset",
+                    "test_definition.json",
+                    "test_dataset1.txt",
+                    "test_dataset2.txt",
+                ],
+                input="y",
             )
-            mock_confirm.assert_called_once_with(
-                argument_names, arguments, "Confirm Dataset upload?"
+
+        # ASSERT
+        mock_DAFNISession.assert_called_once()
+        mock_upload_new_dataset_files.assert_called_once_with(
+            session, "test_definition.json", ("test_dataset1.txt", "test_dataset2.txt")
+        )
+
+        self.assertEqual(
+            result.output,
+            "Dataset definition file path: test_definition.json\n"
+            "Dataset file path: test_dataset1.txt\n"
+            "Dataset file path: test_dataset2.txt\n"
+            "Confirm dataset upload? [y/N]: y\n",
+        )
+        self.assertEqual(result.exit_code, 0)
+
+    @patch("dafni_cli.commands.upload.upload_new_dataset_files")
+    def test_upload_dataset_cancel(
+        self,
+        mock_upload_new_dataset_files,
+        mock_DAFNISession,
+    ):
+        """Tests that the 'upload dataset' command can be canceled"""
+
+        # SETUP
+        session = MagicMock()
+        mock_DAFNISession.return_value = session
+        runner = CliRunner()
+
+        # CALL
+        with runner.isolated_filesystem():
+            with open("test_definition.json", "w", encoding="utf-8") as file:
+                file.write("test definition file")
+            with open("test_dataset.txt", "w", encoding="utf-8") as file:
+                file.write("test dataset file")
+            result = runner.invoke(
+                upload.upload,
+                [
+                    "dataset",
+                    "test_definition.json",
+                    "test_dataset.txt",
+                ],
+                input="n",
             )
+
+        # ASSERT
+        mock_DAFNISession.assert_called_once()
+        mock_upload_new_dataset_files.assert_not_called()
+
+        self.assertEqual(
+            result.output,
+            "Dataset definition file path: test_definition.json\n"
+            "Dataset file path: test_dataset.txt\n"
+            "Confirm dataset upload? [y/N]: n\n"
+            "Aborted!\n",
+        )
+        self.assertEqual(result.exit_code, 1)
+
+    # ----------------- WORKFLOW
+
+    @patch("dafni_cli.commands.upload.upload_workflow")
+    def test_upload_workflow(
+        self,
+        mock_upload_workflow,
+        mock_DAFNISession,
+    ):
+        """Tests that the 'upload workflow' command works correctly when
+        no parent is given"""
+
+        # SETUP
+        session = MagicMock()
+        mock_DAFNISession.return_value = session
+        runner = CliRunner()
+
+        # CALL
+        with runner.isolated_filesystem():
+            with open("test_definition.json", "w", encoding="utf-8") as file:
+                file.write("test definition file")
+            result = runner.invoke(
+                upload.upload,
+                [
+                    "workflow",
+                    "test_definition.json",
+                ],
+                input="y",
+            )
+
+        # ASSERT
+        mock_DAFNISession.assert_called_once()
+        mock_upload_workflow.assert_called_once_with(
+            session, "test_definition.json", None, None
+        )
+
+        self.assertEqual(
+            result.output,
+            "Workflow definition file path: test_definition.json\n"
+            "Version message: None\n"
+            "No parent workflow: new workflow to be created\n"
+            "Confirm workflow upload? [y/N]: y\n"
+            "Uploading workflow\n"
+            "Workflow upload complete\n",
+        )
+        self.assertEqual(result.exit_code, 0)
+
+    @patch("dafni_cli.commands.upload.upload_workflow")
+    def test_upload_workflow_with_parent_and_version_message(
+        self,
+        mock_upload_workflow,
+        mock_DAFNISession,
+    ):
+        """Tests that the 'upload workflow' command works correctly when
+        a parent and version message is given"""
+
+        # SETUP
+        session = MagicMock()
+        mock_DAFNISession.return_value = session
+        runner = CliRunner()
+
+        # CALL
+        with runner.isolated_filesystem():
+            with open("test_definition.json", "w", encoding="utf-8") as file:
+                file.write("test definition file")
+            result = runner.invoke(
+                upload.upload,
+                [
+                    "workflow",
+                    "test_definition.json",
+                    "--version-message",
+                    "version_message",
+                    "--parent-id",
+                    "parent-id",
+                ],
+                input="y",
+            )
+
+        # ASSERT
+        mock_DAFNISession.assert_called_once()
+        mock_upload_workflow.assert_called_once_with(
+            session, "test_definition.json", "version_message", "parent-id"
+        )
+
+        self.assertEqual(
+            result.output,
+            "Workflow definition file path: test_definition.json\n"
+            "Version message: version_message\n"
+            "Parent workflow ID: parent-id\n"
+            "Confirm workflow upload? [y/N]: y\n"
+            "Uploading workflow\n"
+            "Workflow upload complete\n",
+        )
+        self.assertEqual(result.exit_code, 0)
+
+    @patch("dafni_cli.commands.upload.upload_workflow")
+    def test_upload_workflow_cancel(
+        self,
+        mock_upload_workflow,
+        mock_DAFNISession,
+    ):
+        """Tests that the 'upload workflow' command can be canceled"""
+
+        # SETUP
+        session = MagicMock()
+        mock_DAFNISession.return_value = session
+        runner = CliRunner()
+
+        # CALL
+        with runner.isolated_filesystem():
+            with open("test_definition.json", "w", encoding="utf-8") as file:
+                file.write("test definition file")
+            result = runner.invoke(
+                upload.upload,
+                [
+                    "workflow",
+                    "test_definition.json",
+                ],
+                input="n",
+            )
+
+        # ASSERT
+        mock_DAFNISession.assert_called_once()
+        mock_upload_workflow.assert_not_called()
+
+        self.assertEqual(
+            result.output,
+            "Workflow definition file path: test_definition.json\n"
+            "Version message: None\n"
+            "No parent workflow: new workflow to be created\n"
+            "Confirm workflow upload? [y/N]: n\n"
+            "Aborted!\n",
+        )
+        self.assertEqual(result.exit_code, 1)

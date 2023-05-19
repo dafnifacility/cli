@@ -1,11 +1,10 @@
 import json
-from pathlib import Path
 from typing import List
 
 import click
 from click import Context
-from requests.exceptions import HTTPError
 
+from dafni_cli.api.exceptions import ValidationError
 from dafni_cli.api.minio_api import upload_file_to_minio
 from dafni_cli.api.models_api import (
     get_all_models,
@@ -62,7 +61,7 @@ def model(
     version_message: str,
     parent_id: str,
 ):
-    """Uploads model to DAFNI from metadata and image files.
+    """Uploads model to DAFNI from metadata and image files
 
     Args:
         ctx (Context): contains user session for authentication
@@ -83,30 +82,18 @@ def model(
         arguments.append(parent_id)
         additional_message = None
     else:
-        additional_message = ["No parent model: new model to be created"]
+        additional_message = ["No parent model: New model to be created"]
     argument_confirmation(
         argument_names, arguments, confirmation_message, additional_message
     )
 
     click.echo("Validating model definition")
-    # Print helpful message when 500 error returned
     try:
-        valid, error_message = validate_model_definition(ctx.obj["session"], definition)
-    except HTTPError as e:
-        if e.response.status_code == 500:
-            click.echo(
-                "Error validating the model definition. "
-                "See https://docs.secure.dafni.rl.ac.uk/docs/how-to/models/how-to-write-a-model-definition-file/"
-                " for guidance"
-            )
-        else:
-            click.echo(e)
-        raise SystemExit(1) from e
-    if not valid:
-        click.echo(
-            "Definition validation failed with the following errors: " + error_message
-        )
-        raise SystemExit(1)
+        validate_model_definition(ctx.obj["session"], definition)
+    except ValidationError as err:
+        click.echo(err)
+
+        raise SystemExit(1) from err
 
     click.echo("Getting urls")
     upload_id, urls = get_model_upload_urls(ctx.obj["session"])
@@ -140,10 +127,10 @@ def dataset(ctx: Context, definition: click.Path, files: List[click.Path]):
     """
     # Confirm upload details
     argument_names = ["Dataset definition file path"] + [
-        "Dataset file path" for file_path in files
+        "Dataset file path" for _ in files
     ]
     arguments = [definition, *files]
-    confirmation_message = "Confirm Dataset upload?"
+    confirmation_message = "Confirm dataset upload?"
     argument_confirmation(argument_names, arguments, confirmation_message)
 
     # Upload all files
@@ -204,35 +191,7 @@ def workflow(
         argument_names, arguments, confirmation_message, additional_message
     )
 
-    # click.echo("Validating workflow definition")
-    # Print helpful message when 500 error returned
-    # try:
-    #    valid, error_message = validate_model_definition(ctx.obj["session"], definition)
-    # except HTTPError as e:
-    #    if e.response.status_code == 500:
-    #        click.echo(
-    #            "Error validating the model definition. "
-    #            "See https://docs.secure.dafni.rl.ac.uk/docs/how-to/models/how-to-write-a-model-definition-file/"
-    #            " for guidance"
-    #        )
-    #    else:
-    #        click.echo(e)
-    #    raise SystemExit(1)
-    # if not valid:
-    #    click.echo(
-    #        "Definition validation failed with the following errors: " + error_message
-    #    )
-    #    raise SystemExit(1)
-
-    # click.echo("Getting urls")
-    # upload_id, urls = get_model_upload_urls(ctx.obj["session"])
-    # definition_url = urls["definition"]
-
-    # click.echo("Uploading model definition and image")
-    # upload_file_to_minio(ctx.obj["session"], definition_url, definition)
-
-    # click.echo("Ingesting model")
-    # model_version_ingest(ctx.obj["session"], upload_id, version_message, parent_model)
+    # TODO: Validate workflow definition using workflows/validate?
 
     click.echo("Uploading workflow")
     upload_workflow(ctx.obj["session"], definition, version_message, parent_id)

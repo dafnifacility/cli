@@ -1,15 +1,20 @@
 from pathlib import Path
-from typing import List, Tuple
+from typing import List, Optional, Tuple
 
 from requests import Response
 
+from dafni_cli.api.exceptions import (
+    EndpointNotFoundError,
+    ResourceNotFoundError,
+    ValidationError,
+)
 from dafni_cli.api.session import DAFNISession
 from dafni_cli.consts import MODELS_API_URL, VALIDATE_MODEL_CT
 
 
 def get_all_models(session: DAFNISession) -> List[dict]:
-    """
-    Function to call the "models_list" endpoint and return the resulting list of dictionaries.
+    """Function to call the "models_list" endpoint and return the resulting
+    list of dictionaries.
 
     Args:
         session (DAFNISession): User session
@@ -17,53 +22,65 @@ def get_all_models(session: DAFNISession) -> List[dict]:
     Returns:
         List[dict]: list of dictionaries with raw response from API
     """
-    url = MODELS_API_URL + "/models/"
+    url = f"{MODELS_API_URL}/models/"
     return session.get_request(url)
 
 
-def get_model(session: DAFNISession, model_version_id: str) -> dict:
-    """
-    Function to call the "models_read" endpoint and return the resulting dictionary.
+def get_model(session: DAFNISession, version_id: str) -> dict:
+    """Function to call the "models_read" endpoint and return the resulting
+    dictionary
 
     Args:
         session (DAFNISession): User session
-        model_version_id (str): model version ID for selected model
+        version_id (str): model version ID for selected model
 
     Returns:
         dict: dictionary for the details of selected model
+
+    Raises:
+        ResourceNotFoundError: If a model with the given version_id wasn't
+                               found
     """
-    url = MODELS_API_URL + "/models/" + model_version_id + "/"
-    return session.get_request(url)
+    url = f"{MODELS_API_URL}/models/{version_id}/"
+
+    try:
+        return session.get_request(url)
+    except EndpointNotFoundError as err:
+        # When the endpoint isn't found it means the model wasn't found
+        raise ResourceNotFoundError(
+            f"Unable to find a model with version id '{version_id}'"
+        ) from err
 
 
-def validate_model_definition(
-    session: DAFNISession, model_definition: Path
-) -> Tuple[bool, str]:
-    """
-    Validates the model definition file using the "models_validate_update" endpoint
+def validate_model_definition(session: DAFNISession, model_definition_path: Path):
+    """Validates the model definition file using the "models_validate_update"
+    endpoint
 
     Args:
         session (DAFNISession): User session
-        model_definition (Path): Path to the model definition file
+        model_definition_path (Path): Path to the model definition file
 
-    Returns:
-        bool: Whether the model definition is valid or not
-        List[str]: Errors encountered if the model definition file is not valid
+    Raises:
+        ValidationError: If the validation fails
     """
     content_type = VALIDATE_MODEL_CT
-    url = MODELS_API_URL + "/models/validate/"
-    with open(model_definition, "rb") as md:
+    url = f"{MODELS_API_URL}/models/validate/"
+    with open(model_definition_path, "rb") as md:
         response = session.put_request(url=url, content_type=content_type, data=md)
-    if response.json()["valid"]:
-        return True, ""
-    else:
-        # TODO we should return all errors and have a generic way of returning errors in cli
-        return False, response.json()["errors"][0]
+    # This response returns a property "valid" and any errors found (although
+    # without a failed status code so we need to do this separately)
+    if not response.json()["valid"]:
+        raise ValidationError(
+            "Model definition validation failed with the following "
+            f"message:\n\n{session.get_error_message(response)}\n\n"
+            "See "
+            "https://docs.secure.dafni.rl.ac.uk/docs/how-to/models/how-to-write-a-model-definition-file/ "
+            "for guidance on writing a model definition file"
+        )
 
 
 def get_model_upload_urls(session: DAFNISession) -> Tuple[str, dict]:
-    """
-    Obtains the model upload urls from the "models_upload_create" endpoint
+    """Obtains the model upload urls from the "models_upload_create" endpoint
 
     Args:
         session (DAFNISession): User session
@@ -72,7 +89,7 @@ def get_model_upload_urls(session: DAFNISession) -> Tuple[str, dict]:
         str: The ID for the upload
         dict: The urls for the definition and image with keys "definition" and "image", respectively.
     """
-    url = MODELS_API_URL + "/models/upload/"
+    url = f"{MODELS_API_URL}/models/upload/"
     data = {"image": True, "definition": True}
     urls_resp = session.post_request(url=url, json=data)
     upload_id = urls_resp["id"]
@@ -81,10 +98,13 @@ def get_model_upload_urls(session: DAFNISession) -> Tuple[str, dict]:
 
 
 def model_version_ingest(
-    session: DAFNISession, upload_id: str, version_message: str, model_id: str = None
+    session: DAFNISession,
+    upload_id: str,
+    version_message: str,
+    model_id: Optional[str] = None,
 ) -> dict:
-    """
-    Ingests a new version of a model using the "models_upload_ingest_create" endpoint
+    """Ingests a new version of a model using the "models_upload_ingest_create"
+    endpoint
 
     Args:
         session (DAFNISession): User session
@@ -96,22 +116,19 @@ def model_version_ingest(
         dict: JSON from response returned in post request
     """
     if model_id:
-        url = (
-            MODELS_API_URL + "/models/" + model_id + "/upload/" + upload_id + "/ingest/"
-        )
+        url = f"{MODELS_API_URL}/models/{model_id}/upload/{upload_id}/ingest/"
     else:
-        url = MODELS_API_URL + "/models/upload/" + upload_id + "/ingest/"
+        url = f"{MODELS_API_URL}/models/upload/{upload_id}/ingest/"
     data = {"version_message": version_message}
     return session.post_request(url=url, json=data)
 
 
-def delete_model(session: DAFNISession, model_version_id: str) -> Response:
-    """
-    Calls the "models_delete" endpoint
+def delete_model(session: DAFNISession, version_id: str) -> Response:
+    """Calls the "models_delete" endpoint
 
     Args:
         session (DAFNISession): User session
-        model_version_id (str): model version ID for selected model
+        version_id (str): Model version ID for selected model
     """
-    url = MODELS_API_URL + "/models/" + model_version_id
+    url = f"{MODELS_API_URL}/models/{version_id}"
     return session.delete_request(url)

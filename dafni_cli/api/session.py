@@ -5,18 +5,18 @@ from typing import BinaryIO, Literal, Optional, Union
 
 import click
 import requests
+from requests import HTTPError
 
+from dafni_cli.api.exceptions import DAFNIError, EndpointNotFoundError, LoginError
 from dafni_cli.consts import (
     LOGIN_API_ENDPOINT,
     LOGOUT_API_ENDPOINT,
+    MINIO_API_URL,
     REQUESTS_TIMEOUT,
+    SESSION_COOKIE,
     SESSION_SAVE_FILE,
 )
 from dafni_cli.utils import dataclass_from_dict
-
-
-class LoginError(Exception):
-    """Generic error to distinguish login failures"""
 
 
 @dataclass
@@ -278,8 +278,8 @@ class DAFNISession:
         json,
         allow_redirect: bool,
         recursion_level: int = 0,
-    ):
-        """Performs a an authenticated request from the DAFNI API.
+    ) -> requests.Response:
+        """Performs an authenticated request from the DAFNI API
 
         Args:
             url (str): The url endpoint that is being queried
@@ -292,27 +292,48 @@ class DAFNISession:
                                    while attempting to refresh the access token
 
         Returns:
-            Response
+            requests.Response: Response from the requests library
         """
 
-        response = requests.request(
-            method,
-            url=url,
-            headers={
-                "Authorization": f"Bearer {self._session_data.access_token}",
-                **headers,
-            },
-            data=data,
-            json=json,
-            allow_redirects=allow_redirect,
-            timeout=REQUESTS_TIMEOUT,
-        )
+        # Switch to cookie based authentication only for minio
+        if MINIO_API_URL in url:
+            response = requests.request(
+                method,
+                url=url,
+                headers=headers,
+                data=data,
+                json=json,
+                allow_redirects=allow_redirect,
+                timeout=REQUESTS_TIMEOUT,
+                cookies={SESSION_COOKIE: self._session_data.access_token},
+            )
+        else:
+            response = requests.request(
+                method,
+                url=url,
+                headers={
+                    "Authorization": f"Bearer {self._session_data.access_token}",
+                    **headers,
+                },
+                data=data,
+                json=json,
+                allow_redirects=allow_redirect,
+                timeout=REQUESTS_TIMEOUT,
+            )
 
-        # Check for any kind of authentication error
-        if response.status_code == 403:
+        # Check for any kind of authentication error, or an attempted redirect
+        # (this covers a case during file upload where a 302 is returned rather
+        # than an actual authentication error)
+        if response.status_code == 403 or (
+            response.status_code == 302 and not allow_redirect
+        ):
             # Try again, but only once
             if recursion_level > 1:
-                raise RuntimeError("Could not authenticate request")
+                # Provide further details from the response (if there is
+                # anything) - one place this occurs is running out of
+                # temporary buckets during upload
+                message = response.content.decode()
+                raise RuntimeError(f"Could not authenticate request: {message}")
             else:
                 self._refresh_tokens()
                 response = self._authenticated_request(
@@ -327,15 +348,88 @@ class DAFNISession:
 
         return response
 
+    def get_error_message(self, response: requests.Response) -> Optional[str]:
+        """Attempts to find an error message from a failed request response
+
+        Args:
+            response (requests.Response): The failed request response
+
+        Returns:
+            Optional[str]: String representing an error message or None
+                           if none was found
+        """
+
+        # Try and get JSON data from the response
+        try:
+            error_message = None
+            decoded_response = response.json()
+            # Some requests have an error and error_message, in which case we
+            # want to override with the latter
+            if "error" in decoded_response:
+                error_message = f"Error: {decoded_response['error']}"
+            if "error_message" in decoded_response:
+                error_message = f"{error_message}, {decoded_response['error_message']}"
+            elif "errors" in decoded_response:
+                error_message = "The following errors were returned:"
+                for error in decoded_response["errors"]:
+                    error_message += f"\nError: {error}"
+            # Special case when uploading dataset metadata that's invalid
+            # TODO: This is a bug, remove once fixed
+            elif "metadata" in decoded_response:
+                # This returns a list of errors, add them all to the
+                # message
+                error_message = "Found errors in metadata:"
+                for error in decoded_response["metadata"]:
+                    error_message += f"\n{error}"
+
+            return error_message
+        except requests.JSONDecodeError:
+            return None
+
+    def _check_response(self, url: str, response: requests.Response):
+        """Checks a requests response for any errors and raises them as
+        required
+
+        Args:
+            url (str): URL endpoint that was being queried
+            response (requests.Response): Response from requests
+
+        Raises:
+            EndpointNotFoundError: If the response returns a 404 status code
+            DAFNIError: If an error occurs with an error message from DAFNI
+            HTTPError: If any other error occurs without an error message from
+                       DAFNI
+        """
+
+        error_message = None
+
+        # Check for any error response
+        if not response.ok:
+            # Specialised error for when we get a 404 - helps to identify
+            # missing objects
+            if response.status_code == 404:
+                raise EndpointNotFoundError(f"Could not find {url}")
+
+            # Attempt to find an error message from the API itself
+            error_message = self.get_error_message(response)
+
+        # If there is an error from DAFNI raise a DAFNI exception as well
+        # with more details, otherwise leave as any errors are HTTPError's
+        try:
+            response.raise_for_status()
+        except HTTPError as err:
+            if error_message is None:
+                raise err
+            raise DAFNIError(error_message) from err
+
     def get_request(
         self,
         url: str,
         content_type: str = "application/json",
         allow_redirect: bool = False,
         content: bool = False,
-        raise_status: bool = True,
     ):
-        """Performs a GET request from the DAFNI API.
+        """Performs a GET request from the DAFNI API
 
         Args:
             url (str): The url endpoint that is being queried
@@ -344,14 +438,18 @@ class DAFNISession:
                                    Defaults to False.
             content (bool): Flag to define if the response content is
                             returned. default is the response json
-            raise_status (bool): Flag to define if failure status' should be
-                                 raised as HttpErrors. Default is True.
 
         Returns:
             List[dict]: For an endpoint returning several objects, a list is
                         returned (e.g. /models/).
             dict: For an endpoint returning one object, this will be a
                   dictionary (e.g. /models/<version_id>).
+
+        Raises:
+            EndpointNotFoundError: If the response returns a 404 status code
+            DAFNIError: If an error occurs with an error message from DAFNI
+            HTTPError: If any other error occurs without an error message from
+                       DAFNI
         """
         response = self._authenticated_request(
             method="get",
@@ -361,9 +459,8 @@ class DAFNISession:
             json=None,
             allow_redirect=allow_redirect,
         )
+        self._check_response(url, response)
 
-        if raise_status:
-            response.raise_for_status()
         if content:
             return response.content
         return response.json()
@@ -376,9 +473,8 @@ class DAFNISession:
         json=None,
         allow_redirect: bool = False,
         content: bool = False,
-        raise_status: bool = True,
     ):
-        """Performs a POST request to the DAFNI API.
+        """Performs a POST request to the DAFNI API
 
         Args:
             url (str): The url endpoint that is being queried
@@ -389,14 +485,18 @@ class DAFNISession:
                                    Defaults to False.
             content (bool): Flag to define if the response content is
                             returned. default is the response json
-            raise_status (bool): Flag to define if failure status' should be
-                                 raised as HttpErrors. Default is True.
 
         Returns:
             List[dict]: For an endpoint returning several objects, a list is
                         returned (e.g. /models/).
             dict: For an endpoint returning one object, this will be a
                   dictionary (e.g. /models/<version_id>).
+
+        Raises:
+            EndpointNotFoundError: If the response returns a 404 status code
+            DAFNIError: If an error occurs with an error message from DAFNI
+            HTTPError: If any other error occurs without an error message from
+                       DAFNI
         """
         response = self._authenticated_request(
             method="post",
@@ -407,8 +507,8 @@ class DAFNISession:
             allow_redirect=allow_redirect,
         )
 
-        if raise_status:
-            response.raise_for_status()
+        self._check_response(url, response)
+
         if content:
             return response.content
         return response.json()
@@ -421,9 +521,8 @@ class DAFNISession:
         json=None,
         allow_redirect: bool = False,
         content: bool = False,
-        raise_status: bool = True,
     ):
-        """Performs a PUT request to the DAFNI API.
+        """Performs a PUT request to the DAFNI API
 
         Args:
             url (str): The url endpoint that is being queried
@@ -434,14 +533,18 @@ class DAFNISession:
                                    Defaults to False.
             content (bool): Flag to define if the response content is
                             returned. default is the response json
-            raise_status (bool): Flag to define if failure status' should be
-                                 raised as HttpErrors. Default is True.
 
         Returns:
             List[dict]: For an endpoint returning several objects, a list is
                         returned (e.g. /models/).
             dict: For an endpoint returning one object, this will be a
                   dictionary (e.g. /models/<version_id>).
+
+        Raises:
+            EndpointNotFoundError: If the response returns a 404 status code
+            DAFNIError: If an error occurs with an error message from DAFNI
+            HTTPError: If any other error occurs without an error message from
+                       DAFNI
         """
         response = self._authenticated_request(
             method="put",
@@ -452,8 +555,8 @@ class DAFNISession:
             allow_redirect=allow_redirect,
         )
 
-        if raise_status:
-            response.raise_for_status()
+        self._check_response(url, response)
+
         if content:
             return response.content
         return response
@@ -466,9 +569,8 @@ class DAFNISession:
         json=None,
         allow_redirect: bool = False,
         content: bool = False,
-        raise_status: bool = True,
     ):
-        """Performs a PATCH request to the DAFNI API.
+        """Performs a PATCH request to the DAFNI API
 
         Args:
             url (str): The url endpoint that is being queried
@@ -479,14 +581,18 @@ class DAFNISession:
                                    Defaults to False.
             content (bool): Flag to define if the response content is
                             returned. default is the response json
-            raise_status (bool): Flag to define if failure status' should be
-                                 raised as HttpErrors. Default is True.
 
         Returns:
             List[dict]: For an endpoint returning several objects, a list is
                         returned (e.g. /models/).
             dict: For an endpoint returning one object, this will be a
                   dictionary (e.g. /models/<version_id>).
+
+        Raises:
+            EndpointNotFoundError: If the response returns a 404 status code
+            DAFNIError: If an error occurs with an error message from DAFNI
+            HTTPError: If any other error occurs without an error message from
+                       DAFNI
         """
         response = self._authenticated_request(
             method="patch",
@@ -497,20 +603,16 @@ class DAFNISession:
             allow_redirect=allow_redirect,
         )
 
-        if raise_status:
-            response.raise_for_status()
+        self._check_response(url, response)
+
         if content:
             return response.content
         return response.json()
 
     def delete_request(
-        self,
-        url: str,
-        allow_redirect: bool = False,
-        content: bool = False,
-        raise_status: bool = True,
+        self, url: str, allow_redirect: bool = False, content: bool = False
     ):
-        """Performs a PATCH request to the DAFNI API.
+        """Performs a DELETE request to the DAFNI API
 
         Args:
             url (str): The url endpoint that is being queried
@@ -518,14 +620,18 @@ class DAFNISession:
                                    Defaults to False.
             content (bool): Flag to define if the response content is
                             returned. default is the response json
-            raise_status (bool): Flag to define if failure status' should be
-                                 raised as HttpErrors. Default is True.
 
         Returns:
             List[dict]: For an endpoint returning several objects, a list is
                         returned (e.g. /models/).
             dict: For an endpoint returning one object, this will be a
                   dictionary (e.g. /models/<version_id>).
+
+        Raises:
+            EndpointNotFoundError: If the response returns a 404 status code
+            DAFNIError: If an error occurs with an error message from DAFNI
+            HTTPError: If any other error occurs without an error message from
+                       DAFNI
         """
         response = self._authenticated_request(
             method="delete",
@@ -536,8 +642,8 @@ class DAFNISession:
             allow_redirect=allow_redirect,
         )
 
-        if raise_status:
-            response.raise_for_status()
+        self._check_response(url, response)
+
         if content:
             return response.content
-        return response.json()
+        return response

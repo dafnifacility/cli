@@ -4,6 +4,7 @@ import click
 from click import Context
 
 from dafni_cli.api.datasets_api import get_all_datasets, get_latest_dataset_metadata
+from dafni_cli.api.exceptions import ResourceNotFoundError
 from dafni_cli.api.models_api import get_all_models, get_model
 from dafni_cli.api.session import DAFNISession
 from dafni_cli.api.workflows_api import (
@@ -120,7 +121,11 @@ def model(ctx: Context, version_id: List[str], version_history: bool, json: bool
         json (bool): Whether to output raw json from API or pretty print metadata/version history. Defaults to False.
     """
     for vid in version_id:
-        model_dictionary = get_model(ctx.obj["session"], vid)
+        # Attempt to get the model
+        try:
+            model_dictionary = get_model(ctx.obj["session"], vid)
+        except ResourceNotFoundError as err:
+            raise SystemExit(err) from err
 
         if version_history:
             if json:
@@ -236,7 +241,11 @@ def dataset(
         version_history (bool): Flag to view version history in place of metadata
         json (bool): Flag to view json returned from API
     """
-    metadata = get_latest_dataset_metadata(ctx.obj["session"], id, version_id)
+    # Attempt to get the metadata
+    try:
+        metadata = get_latest_dataset_metadata(ctx.obj["session"], id, version_id)
+    except ResourceNotFoundError as err:
+        raise SystemExit(err) from err
 
     if not version_history:
         if json:
@@ -345,7 +354,11 @@ def workflow(ctx: Context, version_id: List[str], version_history: bool, json: b
         json (bool): Whether to output raw json from API or pretty print metadata/version history. Defaults to False.
     """
     for vid in version_id:
-        workflow_dictionary = get_workflow(ctx.obj["session"], vid)
+        # Attempt to get the workflow
+        try:
+            workflow_dictionary = get_workflow(ctx.obj["session"], vid)
+        except ResourceNotFoundError as err:
+            raise SystemExit(err) from err
 
         if version_history:
             if json:
