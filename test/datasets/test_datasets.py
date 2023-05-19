@@ -27,7 +27,7 @@ class TestDataset(TestCase):
         self.assertEqual(dataset1.dataset_id, dataset1_metadata["id"]["dataset_uuid"])
         self.assertEqual(dataset1.version_id, dataset1_metadata["id"]["version_uuid"])
         self.assertEqual(dataset1.metadata_id, dataset1_metadata["id"]["metadata_uuid"])
-        self.assertEqual(dataset1.formats, dataset1_metadata["formats"])
+        self.assertEqual(dataset1.formats, [])
         self.assertEqual(
             dataset1.modified_date,
             datetime(2021, 3, 4, 15, 59, 26, tzinfo=tzutc()),

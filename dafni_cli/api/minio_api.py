@@ -8,6 +8,7 @@ from dafni_cli.consts import (
     DATA_DOWNLOAD_API_URL,
     DATA_DOWNLOAD_REDIRECT_API_URL,
     DATA_UPLOAD_API_URL,
+    DSS_API_URL,
     MINIO_UPLOAD_CT,
 )
 
@@ -27,88 +28,110 @@ def upload_file_to_minio(
     """
     with open(file_path, "rb") as file_data:
         return session.put_request(
-            url=url, content_type=MINIO_UPLOAD_CT, data=file_data
+            url=url,
+            content_type=MINIO_UPLOAD_CT,
+            data=file_data,
         )
 
 
-def get_data_upload_id(session: DAFNISession) -> str:
-    """Function to get a temporary upload ID from
+def create_temp_bucket(session: DAFNISession) -> str:
+    """Creates a temporary bucket and returns its ID using
     DAFNI data upload API
 
     Args:
         session (str): User session
 
     Returns:
-        str: Temporary Upload ID
+        str: Minio temporary bucket ID
     """
 
     url = f"{DATA_UPLOAD_API_URL}/nid/upload/"
-    # TODO remove this - no cancel tokens in cli - this is front-end-y
-    data = {"cancelToken": {"promise": {}}}
 
-    return session.post_request(url=url, json=data, allow_redirect=True)
+    return session.post_request(url=url, allow_redirect=True)
+
+
+def delete_temp_bucket(session: DAFNISession, temp_bucket_id: str):
+    """Deletes a temporary bucket given its ID
+
+    Args:
+        temp_bucket_id (str): Minio temporary bucket ID
+    """
+
+    # Strip out 'temp-' which will be present in the ID returned by
+    # create_temp_bucket
+    url = f"{DSS_API_URL}/assets/{temp_bucket_id.replace('temp-', '')}"
+
+    return session.delete_request(url=url)
 
 
 def get_data_upload_urls(
-    session: DAFNISession, upload_id: str, file_names: List[str]
+    session: DAFNISession, temp_bucket_id: str, file_names: List[str]
 ) -> dict:
-    """Function to get an upload URL for each file name given.
+    """Returns an upload URL for each file name given
+
     Returns a nested dict under the 'URLs' key, with each key being the file name,
     and the value being the upload URL
 
     Args:
         session (DAFNISession): User session
-        upload_id (str): Temporary Upload ID for the Upload API
+        temp_bucket_id (str): ID of the temporary Minio bucket to upload to
         file_names (List[str]): List of all file names to upload
 
     Returns:
         dict: Dict containing a url for each given file name
     """
     url = f"{DATA_UPLOAD_API_URL}/nid/upload/"
-    data = {"bucketId": upload_id, "datafiles": file_names}
+    data = {"bucketId": temp_bucket_id, "datafiles": file_names}
 
-    return session.patch_request(url=url, data=data, allow_redirect=True)
+    return session.patch_request(url=url, json=data, allow_redirect=True)
 
 
 def upload_dataset_metadata(
-    session: DAFNISession, upload_id: str, metadata: dict
+    session: DAFNISession, temp_bucket_id: str, metadata: dict
 ) -> requests.Response:
-    """Function to upload Dataset Metadata to Minio
+    """Uploads dataset metadata to Minio
+
+    This will commit the dataset and triggers the deletion of the temporary
+    bucket when successful.
 
     Args:
         session (DAFNISession): User session
-        upload_id (str): Minio Temporary Upload ID
+        temp_bucket_id (str): Minio Temporary Upload ID
         metadata (dict): Dataset Metadata
+
+    Raises:
+        EndpointNotFoundError: If the post request returns a 404 status
+                               code
+        DAFNIError: If an error occurs with an error message from DAFNI
+        HTTPError: If any other error occurs without an error message from
+                   DAFNI
 
     Returns:
         Response: Upload Response
     """
     url = f"{DATA_UPLOAD_API_URL}/nid/dataset/"
-    data = {"bucketId": upload_id, "metadata": metadata}
-    return session.post_request(url=url, json=data, raise_status=False)
+    data = {"bucketId": temp_bucket_id, "metadata": metadata}
+    return session.post_request(url=url, json=data)
 
 
 def minio_get_request(
-    url: str, session: DAFNISession, allow_redirect: bool = False, content: bool = False
+    session: DAFNISession, url: str, content: bool = False
 ) -> Union[List[dict], dict, bytes]:
-    """
-    GET data file from minio. If a status other than 200 is returned, an exception will be raised.
+    """Get a data file from Minio
 
     Args:
-        url (str): The url endpoint that is being queried
         session (DAFNISession): User session
-        allow_redirect (bool): Flag to allow redirects during API call. Defaults to False.
+        url (str): The url endpoint that is being queried
         content (bool): Flag to define if the response content is returned. default is the response json
 
     Returns:
         dict: For an endpoint returning one object, this will be a dictionary.
     """
-    # Substitute the minio URL returned in the request string with a
+    # Substitute the Minio URL returned in the request string with a redirect
     file_url = url.replace(DATA_DOWNLOAD_API_URL, DATA_DOWNLOAD_REDIRECT_API_URL)
     return session.get_request(
-        file_url,
+        url=file_url,
         content_type="application/json",
-        allow_redirect=allow_redirect,
+        allow_redirect=False,
         content=content,
-        raise_status=True,
     )

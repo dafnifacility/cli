@@ -14,12 +14,13 @@ LOGOUT_API_ENDPOINT = (
 DATA_UPLOAD_API_URL = "https://dafni-nid-api.secure.dafni.rl.ac.uk"
 DISCOVERY_API_URL = "https://dafni-search-and-discovery-api.secure.dafni.rl.ac.uk"
 DSS_API_URL = "https://dafni-dss-dssauth.secure.dafni.rl.ac.uk"
-DATA_DOWNLOAD_API_URL = "https://minio.secure.dafni.rl.ac.uk"
+MINIO_API_URL = "https://minio.secure.dafni.rl.ac.uk"
+DATA_DOWNLOAD_API_URL = MINIO_API_URL
 DATA_DOWNLOAD_REDIRECT_API_URL = "https://fwd.secure.dafni.rl.ac.uk/nidminio"
 
 # Authentication
 SESSION_SAVE_FILE = ".dafni-cli"
-# JWT_COOKIE = "__Secure-dafnijwt"
+SESSION_COOKIE = "__Secure-dafni"
 
 # Content types
 MINIO_UPLOAD_CT = "multipart/form-data"

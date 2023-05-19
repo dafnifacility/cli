@@ -9,10 +9,11 @@
 
 import json
 from pathlib import Path
-from typing import List, Tuple
+from typing import List, Optional, Tuple
 
 from requests import Response
 
+from dafni_cli.api.exceptions import EndpointNotFoundError, ResourceNotFoundError
 from dafni_cli.api.session import DAFNISession
 from dafni_cli.consts import WORKFLOWS_API_URL
 
@@ -27,30 +28,42 @@ def get_all_workflows(session: DAFNISession) -> List[dict]:
     Returns:
         List[dict]: list of dictionaries with raw response from API
     """
-    url = WORKFLOWS_API_URL + "/workflows/"
+    url = f"{WORKFLOWS_API_URL}/workflows/"
     return session.get_request(url)
 
 
-def get_workflow(session: DAFNISession, workflow_version_id: str) -> dict:
-    """
-    Call the "workflows" endpoint and return the resulting dictionary.
+def get_workflow(session: DAFNISession, version_id: str) -> dict:
+    """Call the "workflows" endpoint and return the resulting dictionary
 
     Args:
         session (DAFNISession): User session
-        workflow_version_id (str): workflow version ID for selected workflow
+        version_id (str): workflow version ID for selected workflow
 
     Returns:
         dict: dictionary for the details of selected workflow
+
+    Raises:
+        ResourceNotFoundError: If a workflow with the given version_id wasn't
+                               found
     """
-    url = WORKFLOWS_API_URL + "/workflows/" + workflow_version_id + "/"
-    return session.get_request(url)
+    url = f"{WORKFLOWS_API_URL}/workflows/{version_id}/"
+
+    try:
+        return session.get_request(url)
+    except EndpointNotFoundError as err:
+        # When the endpoint isn't found it means the workflow wasn't found
+        raise ResourceNotFoundError(
+            f"Unable to find a workflow with version id '{version_id}'"
+        ) from err
 
 
 def upload_workflow(
-    session: DAFNISession, file_path: Path, version_message: str, parent_id: str
+    session: DAFNISession,
+    file_path: Path,
+    version_message: Optional[str] = None,
+    parent_id: Optional[str] = None,
 ) -> Tuple[str, dict]:
-    """
-    Uploads a DAFNI workflow specified in a JSON file
+    """Uploads a DAFNI workflow specified in a JSON file
 
     Args:
         session (DAFNISession): User session
@@ -63,10 +76,10 @@ def upload_workflow(
         dict: The urls for the definition and image with keys "definition" and "image", respectively.
     """
     if parent_id:
-        url = WORKFLOWS_API_URL + "/workflows/" + parent_id + "/upload/"
+        url = f"{WORKFLOWS_API_URL}/workflows/{parent_id}/upload/"
     else:
-        url = WORKFLOWS_API_URL + "/workflows/upload/"
-    with open(file_path, "r") as f:
+        url = f"{WORKFLOWS_API_URL}/workflows/upload/"
+    with open(file_path, "r", encoding="utf-8") as f:
         workflow_description = json.load(f)
         if version_message:
             workflow_description["version_message"] = version_message
@@ -91,13 +104,13 @@ def upload_workflow(
 #    return dafni_post_request(url, jwt, workflow_description)
 
 
-def delete_workflow(session: DAFNISession, workflow_version_id: str) -> Response:
+def delete_workflow(session: DAFNISession, version_id: str) -> Response:
     """
     Calls the workflows_delete endpoint
 
     Args:
         session (DAFNISession): User session
-        workflow_version_id (str): version ID of workflow to be deleted
+        version_id (str): version ID of workflow to be deleted
     """
-    url = WORKFLOWS_API_URL + "/workflows/" + workflow_version_id
+    url = f"{WORKFLOWS_API_URL}/workflows/{version_id}"
     return session.delete_request(url)

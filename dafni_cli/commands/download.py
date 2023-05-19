@@ -5,9 +5,8 @@ import click
 from click import Context
 
 from dafni_cli.api.datasets_api import get_latest_dataset_metadata
-from dafni_cli.api.parser import ParserBaseObject
 from dafni_cli.api.session import DAFNISession
-from dafni_cli.datasets.dataset_metadata import DatasetMetadata
+from dafni_cli.datasets.dataset_metadata import parse_dataset_metadata
 from dafni_cli.utils import write_files_to_zip
 
 
@@ -46,14 +45,13 @@ def dataset(
         version_id (str): Dataset version ID
         directory (Optional[click.Path]): Directory to write zip folder to
     """
-    metadata = get_latest_dataset_metadata(ctx.obj["session"], dataset_id, version_id)
-    dataset_meta = ParserBaseObject.parse_from_dict(DatasetMetadata, metadata)
+    metadata = parse_dataset_metadata(
+        get_latest_dataset_metadata(ctx.obj["session"], dataset_id, version_id)
+    )
 
-    if len(dataset_meta.files) > 0:
+    if len(metadata.files) > 0:
         # Download all files
-        file_names, file_contents = dataset_meta.download_dataset_files(
-            ctx.obj["session"]
-        )
+        file_names, file_contents = metadata.download_dataset_files(ctx.obj["session"])
 
         # Setup file paths
         if not directory:
@@ -63,9 +61,9 @@ def dataset(
         # Write files to disk
         write_files_to_zip(path, file_names, file_contents)
         # Output file details
-        click.echo("\nThe dataset files have been downloaded to: ")
+        click.echo("\nThe dataset files have been downloaded to:")
         click.echo(os.path.join(directory, zip_name))
-        dataset_meta.output_datafiles_table()
+        metadata.output_datafiles_table()
     else:
         click.echo(
             "\nThere are no files currently associated with the Dataset to download"

@@ -77,7 +77,7 @@ class TestDataFile(TestCase):
 
         # ASSERT
         mock_minio_get_request.assert_called_once_with(
-            TEST_DATASET_METADATA_DATAFILE["dcat:downloadURL"], session, content=True
+            session, TEST_DATASET_METADATA_DATAFILE["dcat:downloadURL"], content=True
         )
 
         self.assertEqual(contents, datafile.contents.getvalue())

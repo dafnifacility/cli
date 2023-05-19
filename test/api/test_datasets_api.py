@@ -1,45 +1,73 @@
-import pytest
-from mock import patch
-from requests.exceptions import HTTPError
+from unittest import TestCase
+from unittest.mock import MagicMock
 
 from dafni_cli.api import datasets_api
+from dafni_cli.api.exceptions import EndpointNotFoundError, ResourceNotFoundError
 from dafni_cli.consts import DISCOVERY_API_URL
 
-from test.fixtures.jwt_fixtures import JWT, request_response_fixture
 
+class TestDatasetsAPI(TestCase):
+    """Test class to test the functions in datasets_api.py"""
 
-@patch("dafni_cli.api.datasets_api.dafni_post_request")
-class TestGetAllDatasets:
-    """Test class to test the get_all_datasets functionality"""
+    def test_get_all_datasets(self):
+        """Tests that get_all_datasets works as expected"""
 
-    @pytest.mark.parametrize(
-        "filters",
-        [
-            {"search_text": "DAFNI Search"},
-            {
-                "search_text": "DAFNI Search",
-                "date_range": {"begin": "Start Date", "end": "End Date"},
-            },
-            {},
-        ],
-        ids=[
-            "Case 1 - Single key on filters",
-            "Case 2 - Multiple nested keys on filters",
-            "Case 3 - Empty dict",
-        ],
-    )
-    def test_dafni_post_request_called_correctly(self, mock_post, filters):
         # SETUP
-        mock_post.return_value = [{"key": "value"}]
+        session = MagicMock()
+        filters = {
+            "search_text": "Some search text",
+            "date_range": {"begin": "Start Date", "end": "End Date"},
+        }
 
         # CALL
-        result = datasets_api.get_all_datasets(JWT, filters)
+        result = datasets_api.get_all_datasets(session, filters)
 
         # ASSERT
-        assert result == [{"key": "value"}]
-        mock_post.assert_called_once_with(
-            DISCOVERY_API_URL + "/catalogue/",
-            JWT,
-            {"offset": {"start": 0, "size": 1000}, "sort_by": "recent", **filters},
+        session.post_request.assert_called_once_with(
+            url=f"{DISCOVERY_API_URL}/catalogue/",
+            json={"offset": {"start": 0, "size": 1000}, "sort_by": "recent", **filters},
             allow_redirect=True,
+        )
+        self.assertEqual(result, session.post_request.return_value)
+
+    def test_get_latest_dataset_metadata(self):
+        """Tests that get_latest_dataset_metadata works as expected"""
+
+        # SETUP
+        session = MagicMock()
+        dataset_id = "some-dataset-id"
+        version_id = "some-version-id"
+
+        # CALL
+        result = datasets_api.get_latest_dataset_metadata(
+            session, dataset_id, version_id
+        )
+
+        # ASSERT
+        session.get_request.assert_called_once_with(
+            url=f"{DISCOVERY_API_URL}/metadata/{dataset_id}/{version_id}",
+            allow_redirect=True,
+        )
+        self.assertEqual(result, session.get_request.return_value)
+
+    def test_get_latest_dataset_metadata_raises_resource_not_found(self):
+        """Tests that get_latest_dataset_metadata handles an
+        EndpointNotFoundError as expected"""
+
+        # SETUP
+        session = MagicMock()
+        dataset_id = "some-dataset-id"
+        version_id = "some-version-id"
+        session.get_request.side_effect = EndpointNotFoundError(
+            "Some 404 error message"
+        )
+
+        # CALL
+        with self.assertRaises(ResourceNotFoundError) as err:
+            datasets_api.get_latest_dataset_metadata(session, dataset_id, version_id)
+
+        # ASSERT
+        self.assertEqual(
+            str(err.exception),
+            f"Unable to find a dataset with id '{dataset_id}' and version_id '{version_id}'",
         )

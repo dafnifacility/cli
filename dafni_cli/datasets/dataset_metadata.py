@@ -4,8 +4,8 @@ from io import BytesIO
 from typing import ClassVar, List, Optional, Tuple
 
 import click
-from dafni_cli.api.datasets_api import get_latest_dataset_metadata
 
+from dafni_cli.api.datasets_api import get_latest_dataset_metadata
 from dafni_cli.api.minio_api import minio_get_request
 from dafni_cli.api.parser import ParserBaseObject, ParserParam, parse_datetime
 from dafni_cli.api.session import DAFNISession
@@ -54,7 +54,7 @@ class DataFile(ParserBaseObject):
             session (DAFNISession): User session
         """
         self.contents = BytesIO(
-            minio_get_request(self.download_url, session, content=True)
+            minio_get_request(session, self.download_url, content=True)
         )
 
 
