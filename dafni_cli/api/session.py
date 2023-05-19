@@ -414,13 +414,12 @@ class DAFNISession:
 
         # If there is an error from DAFNI raise a DAFNI exception as well
         # with more details, otherwise leave as any errors are HTTPError's
-        if error_message is None:
+        try:
             response.raise_for_status()
-        else:
-            try:
-                response.raise_for_status()
-            except HTTPError as err:
-                raise DAFNIError(error_message) from err
+        except HTTPError as err:
+            if error_message is None:
+                raise err
+            raise DAFNIError(error_message) from err
 
     def get_request(
         self,
