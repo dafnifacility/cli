@@ -7,6 +7,7 @@ on:
     pull_request:
         branches:
         - main
+        types: [opened, reopened]
 
 jobs:
   black:
@@ -33,7 +34,7 @@ jobs:
 
   test:
     name: Test on Python ${{ matrix.python-version }} and ${{ matrix.os }}
-    needs: black # Only run when linting passes
+    needs: black # Only run when black passes
     runs-on:  ${{ matrix.os }}
     strategy:
       fail-fast: false
