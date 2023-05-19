@@ -62,7 +62,9 @@ def upload_files(session: DAFNISession, files: List[click.Path]) -> str:
     return upload_id
 
 
-def upload_metadata(session: DAFNISession, definition: click.Path, upload_id: str) -> dict:
+def upload_metadata(
+    session: DAFNISession, definition: click.Path, upload_id: str
+) -> dict:
     """Function to upload the Metadata to the Minio API, with the
     given Minio Temporary Upload ID
 
