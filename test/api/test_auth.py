@@ -5,6 +5,7 @@ from dafni_cli.api.parser import ParserBaseObject
 
 from test.fixtures.auth import TEST_AUTH_DATA_OBJECT, TEST_AUTH_DATA_OBJECTS
 
+
 class TestAuth(TestCase):
     """Tests the Auth dataclass parsing"""
 

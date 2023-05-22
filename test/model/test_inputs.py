@@ -2,17 +2,27 @@ from unittest import TestCase
 from unittest.mock import patch
 
 from dafni_cli.api.parser import ParserBaseObject
-from dafni_cli.consts import (INPUT_DEFAULT_HEADER, INPUT_DESCRIPTION_HEADER,
-                              INPUT_DESCRIPTION_LINE_WIDTH, INPUT_MAX_HEADER,
-                              INPUT_MIN_HEADER, INPUT_MIN_MAX_COLUMN_WIDTH,
-                              INPUT_TITLE_HEADER, INPUT_TYPE_COLUMN_WIDTH,
-                              INPUT_TYPE_HEADER, TAB_SPACE)
+from dafni_cli.consts import (
+    INPUT_DEFAULT_HEADER,
+    INPUT_DESCRIPTION_HEADER,
+    INPUT_DESCRIPTION_LINE_WIDTH,
+    INPUT_MAX_HEADER,
+    INPUT_MIN_HEADER,
+    INPUT_MIN_MAX_COLUMN_WIDTH,
+    INPUT_TITLE_HEADER,
+    INPUT_TYPE_COLUMN_WIDTH,
+    INPUT_TYPE_HEADER,
+    TAB_SPACE,
+)
 from dafni_cli.model.inputs import ModelDataslot, ModelInputs, ModelParameter
 
-from test.fixtures.model_inputs import (TEST_MODEL_INPUT_DATASLOT,
-                                        TEST_MODEL_INPUT_PARAMETER,
-                                        TEST_MODEL_INPUTS,
-                                        TEST_MODEL_INPUTS_DEFAULT)
+from test.fixtures.model_inputs import (
+    TEST_MODEL_INPUT_DATASLOT,
+    TEST_MODEL_INPUT_PARAMETER,
+    TEST_MODEL_INPUTS,
+    TEST_MODEL_INPUTS_DEFAULT,
+)
+
 
 class TestModelDataslot(TestCase):
     """Tests the ModelDataslot dataclass"""
