@@ -1,3 +1,4 @@
+from pathlib import Path
 from unittest import TestCase
 from unittest.mock import MagicMock, call, patch
 
@@ -89,7 +90,7 @@ class TestUpload(TestCase):
         # ASSERT
         mock_DAFNISession.assert_called_once()
         mock_validate_model_definition.assert_called_once_with(
-            session, "test_definition.yaml"
+            session, Path("test_definition.yaml")
         )
         mock_get_model_upload_urls.assert_called_once_with(session)
         mock_upload_file_to_minio.assert_has_calls(
@@ -97,12 +98,12 @@ class TestUpload(TestCase):
                 call(
                     session,
                     TEST_MODELS_UPLOAD_RESPONSE["urls"]["definition"],
-                    "test_definition.yaml",
+                    Path("test_definition.yaml"),
                 ),
                 call(
                     session,
                     TEST_MODELS_UPLOAD_RESPONSE["urls"]["image"],
-                    "test_image.txt",
+                    Path("test_image.txt"),
                 ),
             ]
         )
@@ -173,7 +174,7 @@ class TestUpload(TestCase):
         # ASSERT
         mock_DAFNISession.assert_called_once()
         mock_validate_model_definition.assert_called_once_with(
-            session, "test_definition.yaml"
+            session, Path("test_definition.yaml")
         )
         mock_get_model_upload_urls.assert_called_once_with(session)
         mock_upload_file_to_minio.assert_has_calls(
@@ -181,12 +182,12 @@ class TestUpload(TestCase):
                 call(
                     session,
                     TEST_MODELS_UPLOAD_RESPONSE["urls"]["definition"],
-                    "test_definition.yaml",
+                    Path("test_definition.yaml"),
                 ),
                 call(
                     session,
                     TEST_MODELS_UPLOAD_RESPONSE["urls"]["image"],
-                    "test_image.txt",
+                    Path("test_image.txt"),
                 ),
             ]
         )
@@ -258,7 +259,7 @@ class TestUpload(TestCase):
         # ASSERT
         mock_DAFNISession.assert_called_once()
         mock_validate_model_definition.assert_called_once_with(
-            session, "test_definition.yaml"
+            session, Path("test_definition.yaml")
         )
 
         self.assertEqual(
@@ -371,7 +372,7 @@ class TestUpload(TestCase):
         # ASSERT
         mock_DAFNISession.assert_called_once()
         mock_upload_new_dataset_files.assert_called_once_with(
-            session, "test_definition.json", ("test_dataset.txt",)
+            session, Path("test_definition.json"), (Path("test_dataset.txt"),)
         )
 
         self.assertEqual(
@@ -418,7 +419,9 @@ class TestUpload(TestCase):
         # ASSERT
         mock_DAFNISession.assert_called_once()
         mock_upload_new_dataset_files.assert_called_once_with(
-            session, "test_definition.json", ("test_dataset1.txt", "test_dataset2.txt")
+            session,
+            Path("test_definition.json"),
+            (Path("test_dataset1.txt"), Path("test_dataset2.txt")),
         )
 
         self.assertEqual(
@@ -504,7 +507,7 @@ class TestUpload(TestCase):
         # ASSERT
         mock_DAFNISession.assert_called_once()
         mock_upload_workflow.assert_called_once_with(
-            session, "test_definition.json", None, None
+            session, Path("test_definition.json"), None, None
         )
 
         self.assertEqual(
@@ -552,7 +555,7 @@ class TestUpload(TestCase):
         # ASSERT
         mock_DAFNISession.assert_called_once()
         mock_upload_workflow.assert_called_once_with(
-            session, "test_definition.json", "version_message", "parent-id"
+            session, Path("test_definition.json"), "version_message", "parent-id"
         )
 
         self.assertEqual(

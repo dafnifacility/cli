@@ -1,7 +1,7 @@
-from dataclasses import dataclass
-import os
 import tempfile
+from dataclasses import dataclass
 from io import BytesIO
+from pathlib import Path
 from typing import List, Optional
 from unittest import TestCase
 from unittest.mock import call, patch
@@ -574,7 +574,7 @@ class TestWriteFilesToZip(TestCase):
         with the correct contents"""
         # SETUP
         with tempfile.TemporaryDirectory() as temp_dir:
-            zip_path = os.path.join(temp_dir, "test.zip")
+            zip_path = Path(temp_dir, "test.zip")
 
             file_names = ["file_1.txt", "file_2.txt"]
             file_contents = [BytesIO(b"Test text 1"), BytesIO(b"Test text 2")]
@@ -583,7 +583,7 @@ class TestWriteFilesToZip(TestCase):
             utils.write_files_to_zip(zip_path, file_names, file_contents)
 
             # ASSERT
-            self.assertTrue(os.path.exists(zip_path))
+            self.assertTrue(zip_path.exists())
             with ZipFile(zip_path, "r") as zipObj:
                 self.assertEqual(zipObj.namelist(), file_names)
 
