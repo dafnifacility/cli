@@ -13,6 +13,7 @@ class EndpointNotFoundError(Exception):
 class ResourceNotFoundError(Exception):
     """An error distinguishing when a resource was not found"""
 
+
 class ValidationError(Exception):
     """An exception to distinguish when validation of an object fails e.g. a
     model definition"""
