@@ -102,8 +102,6 @@ class TestModel(TestCase):
         )
 
         self.assertEqual(model1.api_version, None)
-        self.assertEqual(model1.container, None)
-        self.assertEqual(model1.container_version, None)
         self.assertEqual(model1.type, model1_dict["type"])
         self.assertEqual(model1.spec, None)
 
@@ -170,8 +168,6 @@ class TestModel(TestCase):
         )
 
         self.assertEqual(model.api_version, TEST_MODEL["api_version"])
-        self.assertEqual(model.container, TEST_MODEL["container"])
-        self.assertEqual(model.container_version, TEST_MODEL["container_version"])
         self.assertEqual(model.type, TEST_MODEL["type"])
 
         # Model spec (contents tested in TestModelSpec)

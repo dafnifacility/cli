@@ -140,9 +140,6 @@ class Model(ParserBaseObject):
         --------
         api_version (Optional[str]): Version of the DAFNI API used to retrieve
                                    the model data
-        container (Optional[str]): Name of the docker image the model should
-                                   be run in
-        container_version (Optional[str]): Version of the docker image
         type (Optional[str]): Type of DAFNI object ("model")
         spec (Optional[ModelSpec]): Model specification - includes the image
                                     url and its inputs
@@ -161,8 +158,6 @@ class Model(ParserBaseObject):
     ingest_completed_date: Optional[datetime] = None
 
     api_version: Optional[str] = None
-    container: Optional[str] = None
-    container_version: Optional[str] = None
     type: Optional[str] = None
     spec: Optional[ModelSpec] = None
 
@@ -192,8 +187,6 @@ class Model(ParserBaseObject):
         ParserParam("ingest_completed_date", "ingest_completed_date", parse_datetime),
         ParserParam("_metadata", "metadata", ModelMetadata),
         ParserParam("api_version", "api_version", str),
-        ParserParam("container", "container", str),
-        ParserParam("container_version", "container_version", str),
         ParserParam("type", "type", str),
         ParserParam("spec", "spec", ModelSpec),
         ParserParam("_display_name", "display_name", str),

@@ -66,19 +66,16 @@ class Creator(ParserBaseObject):
         type (str): Creator type
         name (str): Creator name
         id (Optional[str]): Creator id
-        internal_id (Optional[str]): Internal id
     """
 
     type: str
     name: str
     id: Optional[str] = None
-    internal_id: Optional[str] = None
 
     _parser_params: ClassVar[List[ParserParam]] = [
         ParserParam("type", "@type", str),
         ParserParam("name", "foaf:name", str),
         ParserParam("id", "@id", str),
-        ParserParam("internal_id", "internalID", str),
     ]
 
 
@@ -136,19 +133,16 @@ class Publisher(ParserBaseObject):
         type (str or None): Publisher type
         id (str or None): Publisher id
         name (str or None): Publisher name
-        internal_id (str or None): Publisher internal id
     """
 
     type: str
     id: Optional[str] = None
     name: Optional[str] = None
-    internal_id: Optional[str] = None
 
     _parser_params: ClassVar[List[ParserParam]] = [
         ParserParam("type", "@type", str),
         ParserParam("id", "@id", str),
         ParserParam("name", "foaf:name", str),
-        ParserParam("internal_id", "internalID", str),
     ]
 
     def __str__(self) -> str:
