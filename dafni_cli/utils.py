@@ -7,6 +7,9 @@ from typing import Any, List, Optional, Type, Union
 from zipfile import ZipFile
 
 import click
+from tabulate import tabulate
+
+from dafni_cli.consts import TABULATE_ARGS
 
 
 def prose_print(prose: str, width: int):
@@ -67,55 +70,6 @@ def process_date_filter(date_str: str) -> str:
     """
     # TODO use this datetime format (ISO8601) and use as a constant here
     return dt.strptime(date_str, "%d/%m/%Y").strftime("%Y-%m-%dT%H:%M:%S")
-
-
-def output_table_row(
-    entries: List[str], widths: List[int], alignment: str = "<", header: bool = False
-) -> str:
-    """Function to generate a table row given values and column widths.
-    If the header argument is set to true, a dashed line of equal length is added underneath.
-
-    Args:
-        entries (List[str]): Table Values
-        widths (List[int]): Width associated with each column
-        alignment (str, optional): Direction to align entry. Defaults to "<".
-        header (bool): Flag to set if the given row is the table header. Defaults to False.
-
-    Returns:
-        str: String containing all entries with associated spacing and line breaks
-    """
-    table_items = [
-        f"{value:{alignment}{widths[idx]}}" for idx, value in enumerate(entries)
-    ]
-    table_str = " ".join(table_items)
-    table_str += "\n"
-
-    if header:
-        table_str += "-" * sum(widths, len(entries))
-        table_str += "\n"
-
-    return table_str
-
-
-def output_table(
-    columns: List[str], widths: List[int], values: List[List], alignment: str = "<"
-) -> str:
-    """Function to generate a table of data in the command console
-
-    Args:
-        columns (List[str]): Column names
-        widths (List[int]): Column widths, where values are > 0
-        values (List[List]): List of rows to display in table
-        alignment (str, optional): Alignment option for table contents. Defaults to "<".
-
-    Returns:
-        str: Table str with required spacing and line breaks for console
-    """
-    table_str = output_table_row(columns, widths, alignment, header=True)
-    rows = [output_table_row(row, widths, alignment) for row in values]
-    table_str += "".join(rows)
-
-    return table_str
 
 
 def process_file_size(file_size: str) -> str:
@@ -197,8 +151,7 @@ def print_json(response: Union[dict, List[dict]]) -> None:
 
 
 def dataclass_from_dict(class_type: Type, dictionary: dict):
-    """
-    Converts a dictionary of values into a particular dataclass type
+    """Converts a dictionary of values into a particular dataclass type
 
     Args:
         class_type (Type): Class type to convert the dictionary to
@@ -209,3 +162,34 @@ def dataclass_from_dict(class_type: Type, dictionary: dict):
     field_set = {f.name for f in fields(class_type) if f.init}
     filtered_arg_dict = {k: v for k, v in dictionary.items() if k in field_set}
     return class_type(**filtered_arg_dict)
+
+
+def format_table(
+    headers: List[str],
+    rows: List[List[Any]],
+    max_column_widths: Optional[List[Optional[int]]] = None,
+) -> str:
+    """Returns a table using tabulate
+
+    Can also wrap text within a column that exceeds a given maximum width.
+
+    Args:
+        headers (List[str]): List of headers of the table
+        rows (List[List[str]]): List of rows in the table. Each row is a
+                    list of values and there should be one for each header.
+        max_column_widths (Optional[List[Optional[int]]]): List of maximum
+                    widths for each column. When values are given for each
+                    heading will automatically wrap the text onto a new line
+                    within the column. (Useful for columns that may be
+                    extremely long)
+    """
+    # Apply text wrapping if needed
+    if max_column_widths:
+        for row in rows:
+            for value_idx, max_column_width in enumerate(max_column_widths):
+                if max_column_width and row[value_idx]:
+                    row[value_idx] = "\n".join(
+                        textwrap.wrap(row[value_idx], max_column_width)
+                    )
+
+    return tabulate(rows, headers, **TABULATE_ARGS)

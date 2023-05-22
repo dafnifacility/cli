@@ -29,6 +29,9 @@ VALIDATE_MODEL_CT = "application/yaml"
 # Formatting
 DATE_TIME_FORMAT = "%m/%d/%Y %H:%M:%S"
 
+# Tabulate arguments for table formatting
+TABULATE_ARGS = {"tablefmt": "simple", "stralign": "left", "numalign": "left"}
+
 # Model Input/Output Table Formatting
 INPUT_TITLE_HEADER = "Title"
 INPUT_TYPE_HEADER = "Type"
@@ -39,14 +42,14 @@ INPUT_DESCRIPTION_HEADER = "Description"
 
 INPUT_TYPE_COLUMN_WIDTH = 10
 INPUT_MIN_MAX_COLUMN_WIDTH = 10
-INPUT_DESCRIPTION_LINE_WIDTH = 20
+INPUT_DESCRIPTION_MAX_COLUMN_WIDTH = 80
 
 OUTPUT_NAME_HEADER = "Name"
 OUTPUT_FORMAT_HEADER = "Format"
 OUTPUT_SUMMARY_HEADER = "Summary"
 
 OUTPUT_FORMAT_COLUMN_WIDTH = 10
-OUTPUT_SUMMARY_COLUMN_WIDTH = 20
+OUTPUT_SUMMARY_MAX_COLUMN_WIDTH = 80
 
 CONSOLE_WIDTH = 120
 
