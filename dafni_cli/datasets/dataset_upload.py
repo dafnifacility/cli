@@ -1,5 +1,5 @@
 import json
-from os.path import basename, normpath
+from pathlib import Path
 from typing import List
 
 import click
@@ -17,14 +17,14 @@ from dafni_cli.api.session import DAFNISession
 
 
 def upload_new_dataset_files(
-    session: DAFNISession, definition_path: click.Path, file_paths: List[click.Path]
+    session: DAFNISession, definition_path: Path, file_paths: List[Path]
 ) -> None:
     """Function to upload all files associated with a new Dataset
 
     Args:
         session (DAFNISession): User session
-        definition_path (click.Path): Path to Dataset metadata file
-        file_paths (List[click.Path]): List of Paths to dataset data files
+        definition_path (Path): Path to Dataset metadata file
+        file_paths (List[Path]): List of Paths to dataset data files
     """
 
     click.echo("\nRetrieving temporary bucket ID")
@@ -48,19 +48,17 @@ def upload_new_dataset_files(
     click.echo(f"Metadata ID: {details['metadataId']}")
 
 
-def upload_files(
-    session: DAFNISession, temp_bucket_id: str, file_paths: List[click.Path]
-):
+def upload_files(session: DAFNISession, temp_bucket_id: str, file_paths: List[Path]):
     """Function to upload all given files to a temporary bucket via the Minio
     API
 
     Args:
         session (DAFNISession): User session
         temp_bucket_id (str): Minio temporary bucket ID to upload files to
-        file_paths (List[click.Path]): List of Paths to dataset data files
+        file_paths (List[Path]): List of Paths to dataset data files
     """
     click.echo("Retrieving file upload URls")
-    file_names = {basename(normpath(file_path)): file_path for file_path in file_paths}
+    file_names = {file_path.name: file_path for file_path in file_paths}
     upload_urls = get_data_upload_urls(session, temp_bucket_id, list(file_names.keys()))
 
     click.echo("Uploading files")
@@ -69,7 +67,7 @@ def upload_files(
 
 
 def upload_metadata(
-    session: DAFNISession, definition_path: click.Path, temp_bucket_id: str
+    session: DAFNISession, definition_path: Path, temp_bucket_id: str
 ) -> dict:
     """Function to upload the Metadata to the Minio API, with the
     given Minio Temporary Upload ID
@@ -79,7 +77,7 @@ def upload_metadata(
 
     Args:
         session ([type]): User session
-        definition_path (click.Path): Path to Metadata file
+        definition_path (Path): Path to Metadata file
         temp_bucket_id (str): Minio Temporary Bucket ID
 
     Returns:
