@@ -1,22 +1,35 @@
 # Timeout for requests (in seconds)
 REQUESTS_TIMEOUT = 100
 
+# Environment - Either 'production' or 'staging' for development purposes
+ENVIRONMENT = "production"
+ENVIRONMENT_DOMAIN = "secure" if ENVIRONMENT == "production" else "staging"
+
 # URLs
-WORKFLOWS_API_URL = "https://dafni-nims-api.secure.dafni.rl.ac.uk"
-MODELS_API_URL = "https://dafni-nims-api.secure.dafni.rl.ac.uk"
-LOGIN_API_URL = "https://keycloak.secure.dafni.rl.ac.uk"
-LOGIN_API_ENDPOINT = (
-    f"{LOGIN_API_URL}/auth/realms/Production/protocol/openid-connect/token/"
+DSS_API_URL = f"https://dafni-dss-dssauth.{ENVIRONMENT_DOMAIN}.dafni.rl.ac.uk"
+NIMS_API_URL = f"https://dafni-nims-api.{ENVIRONMENT_DOMAIN}.dafni.rl.ac.uk"
+NID_API_URL = f"https://dafni-nid-api.{ENVIRONMENT_DOMAIN}.dafni.rl.ac.uk"
+SEARCH_AND_DISCOVERY_API_URL = (
+    f"https://dafni-search-and-discovery-api.{ENVIRONMENT_DOMAIN}.dafni.rl.ac.uk"
 )
-LOGOUT_API_ENDPOINT = (
-    f"{LOGIN_API_URL}/auth/realms/Production/protocol/openid-connect/logout"
+MINIO_API_URL = f"https://minio.{ENVIRONMENT_DOMAIN}.dafni.rl.ac.uk"
+MINIO_DOWNLOAD_REDIRECT_API_URL = (
+    f"https://fwd.{ENVIRONMENT_DOMAIN}.dafni.rl.ac.uk/nidminio"
 )
-DATA_UPLOAD_API_URL = "https://dafni-nid-api.secure.dafni.rl.ac.uk"
-DISCOVERY_API_URL = "https://dafni-search-and-discovery-api.secure.dafni.rl.ac.uk"
-DSS_API_URL = "https://dafni-dss-dssauth.secure.dafni.rl.ac.uk"
-MINIO_API_URL = "https://minio.secure.dafni.rl.ac.uk"
+KEYCLOAK_API_URL = f"https://keycloak.{ENVIRONMENT_DOMAIN}.dafni.rl.ac.uk"
+
+WORKFLOWS_API_URL = NIMS_API_URL
+MODELS_API_URL = NIMS_API_URL
+DATA_UPLOAD_API_URL = NID_API_URL
 DATA_DOWNLOAD_API_URL = MINIO_API_URL
-DATA_DOWNLOAD_REDIRECT_API_URL = "https://fwd.secure.dafni.rl.ac.uk/nidminio"
+DATA_DOWNLOAD_REDIRECT_API_URL = MINIO_DOWNLOAD_REDIRECT_API_URL
+
+# Keycloak realm
+KEYCLOAK_API_REALM = ENVIRONMENT.capitalize()
+
+# Specific endpoints
+LOGIN_API_ENDPOINT = f"{KEYCLOAK_API_URL}/auth/realms/{KEYCLOAK_API_REALM}/protocol/openid-connect/token/"
+LOGOUT_API_ENDPOINT = f"{KEYCLOAK_API_URL}/auth/realms/{KEYCLOAK_API_REALM}/protocol/openid-connect/logout"
 
 # Authentication
 SESSION_SAVE_FILE = ".dafni-cli"
