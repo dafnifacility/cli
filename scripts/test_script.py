@@ -43,9 +43,15 @@ class SpecialCommand(ABC):
     def check_ran_correctly(self) -> bool:
         """Should return whether the command ran successfully or not"""
 
+    def get_snapshot_file_name(self, command_str: str) -> str:
+        """Should return the name snapshots of this command should be saved as"""
+        return clean_string(command_str)
+
 
 class DownloadDatasetCommand(SpecialCommand):
     """Command that downloads a dataset"""
+
+    BASE_COMMAND = "dafni download dataset b71f0880-ff95-4b68-82a1-aafa2e949825 c052d9b8-dbca-42b0-85b5-135016a2fbb1"
 
     def __init__(self) -> None:
         super().__init__()
@@ -56,7 +62,7 @@ class DownloadDatasetCommand(SpecialCommand):
         # Create a temporary directory for the datasets being downloaded
         self._temp_dir = tempfile.TemporaryDirectory()
 
-        return f"dafni download dataset b71f0880-ff95-4b68-82a1-aafa2e949825 c052d9b8-dbca-42b0-85b5-135016a2fbb1 --directory {self._temp_dir.name}"
+        return f"{self.BASE_COMMAND} --directory {self._temp_dir.name}"
 
     def check_ran_correctly(self) -> bool:
         file_path = Path(
@@ -66,6 +72,11 @@ class DownloadDatasetCommand(SpecialCommand):
         success = file_path.is_file()
         self._temp_dir.cleanup()
         return success
+
+    def get_snapshot_file_name(self, command_str: str) -> str:
+        # Force the name to be the same despite a temporary directory in the
+        # command itself
+        return clean_string(self.BASE_COMMAND)
 
 
 # Commands to test - organised into sections that can be executed separately
@@ -226,8 +237,10 @@ def save_and_check_snapshot(
     if isinstance(command, SpecialCommand):
         success = success and command.check_ran_correctly()
         command_str = command.get_command()
+        snapshot_filename = command.get_snapshot_file_name(command_str)
     else:
         command_str = command
+        snapshot_filename = clean_string(command_str)
 
     if not success:
         # Command itself failed to execute
@@ -237,7 +250,7 @@ def save_and_check_snapshot(
         return
 
     # Path to compare snapshot to
-    path = Path(DAFNI_SNAPSHOT_SAVE_LOCATION, f"{clean_string(command_str)}.out")
+    path = Path(DAFNI_SNAPSHOT_SAVE_LOCATION, f"{snapshot_filename}.out")
 
     # Store as a string array with new lines ready for saving/comparing
     string_output = run_result.stdout.decode().splitlines()
