@@ -1,4 +1,5 @@
-import os
+from pathlib import Path
+import pathlib
 from typing import List, Optional
 
 import click
@@ -25,7 +26,7 @@ def download(ctx: Context):
 @download.command(help="Download all dataset files for given version")
 @click.option(
     "--directory",
-    type=click.Path(exists=True, dir_okay=True),
+    type=click.Path(exists=True, dir_okay=True, path_type=Path),
     help="Directory to save the zipped Dataset files to. Default is the current working directory",
 )
 @click.argument("dataset-id", nargs=1, required=True, type=str)
@@ -35,7 +36,7 @@ def dataset(
     ctx: Context,
     dataset_id: str,
     version_id: List[str],
-    directory: Optional[click.Path],
+    directory: Optional[Path],
 ):
     """Download all files associated with the given Dataset Version.
 
@@ -43,7 +44,7 @@ def dataset(
         ctx (Context): CLI context
         dataset_id (str): Dataset ID
         version_id (str): Dataset version ID
-        directory (Optional[click.Path]): Directory to write zip folder to
+        directory (Optional[Path]): Directory to write zip folder to
     """
     metadata = parse_dataset_metadata(
         get_latest_dataset_metadata(ctx.obj["session"], dataset_id, version_id)
@@ -55,14 +56,14 @@ def dataset(
 
         # Setup file paths
         if not directory:
-            directory = os.getcwd()
+            directory = Path.cwd()
         zip_name = f"Dataset_{dataset_id}_{version_id}.zip"
-        path = os.path.join(directory, zip_name)
+        path = directory / zip_name
         # Write files to disk
         write_files_to_zip(path, file_names, file_contents)
         # Output file details
         click.echo("\nThe dataset files have been downloaded to:")
-        click.echo(os.path.join(directory, zip_name))
+        click.echo(path)
         metadata.output_datafiles_table()
     else:
         click.echo(

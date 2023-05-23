@@ -1,4 +1,5 @@
 import json
+from pathlib import Path
 import textwrap
 from dataclasses import fields
 from datetime import datetime as dt
@@ -172,12 +173,12 @@ def argument_confirmation(
 
 
 def write_files_to_zip(
-    zip_path: str, file_names: List[str], file_contents: List[BytesIO]
+    zip_path: Path, file_names: List[str], file_contents: List[BytesIO]
 ) -> None:
     """Function to compress a list of files to a zip folder, and write to disk
 
     Args:
-        zip_path (str): Full path including file name to write to
+        zip_path (Path): Full path including file name to write to
         file_names (List[str]): List of all file names
         file_contents (List[BytesIO]): List of file contents, 1 for each name
     """

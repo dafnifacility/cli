@@ -1,4 +1,5 @@
 import json
+from pathlib import Path
 from typing import List
 
 import click
@@ -37,8 +38,12 @@ def upload(ctx: Context):
 # COMMAND: Upload a MODEL to DAFNI
 ###############################################################################
 @upload.command(help="Upload a model to DAFNI")
-@click.argument("definition", nargs=1, required=True, type=click.Path(exists=True))
-@click.argument("image", nargs=1, required=True, type=click.Path(exists=True))
+@click.argument(
+    "definition", nargs=1, required=True, type=click.Path(exists=True, path_type=Path)
+)
+@click.argument(
+    "image", nargs=1, required=True, type=click.Path(exists=True, path_type=Path)
+)
 @click.option(
     "--version-message",
     "-m",
@@ -56,8 +61,8 @@ def upload(ctx: Context):
 @click.pass_context
 def model(
     ctx: Context,
-    definition: click.Path,
-    image: click.Path,
+    definition: Path,
+    image: Path,
     version_message: str,
     parent_id: str,
 ):
@@ -65,8 +70,8 @@ def model(
 
     Args:
         ctx (Context): contains user session for authentication
-        definition (click.Path): File path to the model definition file
-        image (click.Path): File path to the image file
+        definition (Path): File path to the model definition file
+        image (Path): File path to the image file
         version_message (str): Version message to be included with this model version
         parent_id (str): ID of the parent model that this is an update of
     """
@@ -114,16 +119,20 @@ def model(
 # COMMAND: Upload a DATASET to DAFNI
 ###############################################################################
 @upload.command(help="Upload a dataset to DAFNI")
-@click.argument("definition", nargs=1, required=True, type=click.Path(exists=True))
-@click.argument("files", nargs=-1, required=True, type=click.Path(exists=True))
+@click.argument(
+    "definition", nargs=1, required=True, type=click.Path(exists=True, path_type=Path)
+)
+@click.argument(
+    "files", nargs=-1, required=True, type=click.Path(exists=True, path_type=Path)
+)
 @click.pass_context
-def dataset(ctx: Context, definition: click.Path, files: List[click.Path]):
+def dataset(ctx: Context, definition: Path, files: List[Path]):
     """Uploads a Dataset to DAFNI from metadata and dataset files.
 
     Args:
         ctx (Context): contains user session for authentication
-        definition (click.Path): Dataset metadata file
-        files (List[click.Path]): Dataset data files
+        definition (Path): Dataset metadata file
+        files (List[Path]): Dataset data files
     """
     # Confirm upload details
     argument_names = ["Dataset definition file path"] + [
@@ -141,7 +150,9 @@ def dataset(ctx: Context, definition: click.Path, files: List[click.Path]):
 # COMMAND: Upload a WORKFLOW to DAFNI
 ###############################################################################
 @upload.command(help="Upload a workflow to DAFNI")
-@click.argument("definition", nargs=1, required=True, type=click.Path(exists=True))
+@click.argument(
+    "definition", nargs=1, required=True, type=click.Path(exists=True, path_type=Path)
+)
 @click.option(
     "--version-message",
     "-m",
@@ -162,7 +173,7 @@ def dataset(ctx: Context, definition: click.Path, files: List[click.Path]):
 @click.pass_context
 def workflow(
     ctx: Context,
-    definition: click.Path,
+    definition: Path,
     version_message: str,
     parent_id: str,
 ):
@@ -171,7 +182,7 @@ def workflow(
 
     Args:
         ctx (Context): contains user session for authentication
-        definition (click.Path): File path to the workflow definition file
+        definition (Path): File path to the workflow definition file
         version_message (str): Version message to be included with this workflow version
         parent_id (str): ID of the parent workflow that this is an update of
     """
@@ -202,8 +213,10 @@ def workflow(
 ###############################################################################
 # TODO - WIP
 @upload.command(help="Upload a parameterised workflow to DAFNI")
-@click.argument("definition", nargs=1, required=True, type=click.Path(exists=True))
-# @click.argument("image", nargs=1, required=True, type=click.Path(exists=True))
+@click.argument(
+    "definition", nargs=1, required=True, type=click.Path(exists=True, path_type=Path)
+)
+# @click.argument("image", nargs=1, required=True, type=click.Path(exists=True, path_type=Path))
 @click.option(
     "--version-message",
     "-m",
@@ -221,7 +234,7 @@ def workflow(
 @click.pass_context
 def workflow_params(
     ctx: Context,
-    definition: click.Path,
+    definition: Path,
     version_message: str,
     parent_id: str,
 ):
@@ -230,7 +243,7 @@ def workflow_params(
 
     Args:
         ctx (Context): contains user session for authentication
-        definition (click.Path): File path to the workflow definition file
+        definition (Path): File path to the workflow definition file
         version_message (str): Version message to be included with this model version
         parent_model (str): ID of the parent model that this is an update of
     """
