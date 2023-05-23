@@ -3,8 +3,6 @@ from unittest.mock import patch
 
 from dafni_cli.api.parser import ParserBaseObject
 from dafni_cli.consts import (
-    INPUT_TYPE_COLUMN_WIDTH,
-    OUTPUT_FORMAT_COLUMN_WIDTH,
     OUTPUT_FORMAT_HEADER,
     OUTPUT_NAME_HEADER,
     OUTPUT_SUMMARY_HEADER,
