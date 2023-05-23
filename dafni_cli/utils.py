@@ -1,3 +1,4 @@
+import copy
 import json
 import textwrap
 from dataclasses import fields
@@ -185,11 +186,13 @@ def format_table(
     """
     # Apply text wrapping if needed
     if max_column_widths:
+        # Don't modify the rows passed in by accident
+        rows = copy.deepcopy(rows)
+
         for row in rows:
             for value_idx, max_column_width in enumerate(max_column_widths):
                 if max_column_width and row[value_idx]:
-                    row[value_idx] = "\n".join(
-                        textwrap.wrap(row[value_idx], max_column_width)
-                    )
+                    wrapped_values = textwrap.wrap(row[value_idx], max_column_width)
+                    row[value_idx] = "\n".join(wrapped_values)
 
     return tabulate(rows, headers, **TABULATE_ARGS)

@@ -5,12 +5,10 @@ from dafni_cli.api.parser import ParserBaseObject
 from dafni_cli.consts import (
     INPUT_DEFAULT_HEADER,
     INPUT_DESCRIPTION_HEADER,
-    INPUT_DESCRIPTION_LINE_WIDTH,
+    INPUT_DESCRIPTION_MAX_COLUMN_WIDTH,
     INPUT_MAX_HEADER,
     INPUT_MIN_HEADER,
-    INPUT_MIN_MAX_COLUMN_WIDTH,
     INPUT_TITLE_HEADER,
-    INPUT_TYPE_COLUMN_WIDTH,
     INPUT_TYPE_HEADER,
     TAB_SPACE,
 )
@@ -102,94 +100,43 @@ class TestInputs(TestCase):
         # ModelDataslots (contents tested in TestModelDataslots)
         self.assertEqual(model_inputs.dataslots, [])
 
-    def test_header_row_is_formatted_properly(self):
-        """Tests params_table_header works as expected"""
-        # SETUP
-        title_column_width = 10
-        default_column_width = 10
-        # Expected headings string
-        expected = (
-            INPUT_TITLE_HEADER
-            + " " * (title_column_width - len(INPUT_TITLE_HEADER))
-            + INPUT_TYPE_HEADER
-            + " " * (INPUT_TYPE_COLUMN_WIDTH - len(INPUT_TYPE_HEADER))
-            + INPUT_MIN_HEADER
-            + " " * (INPUT_MIN_MAX_COLUMN_WIDTH - len(INPUT_MIN_HEADER))
-            + INPUT_MAX_HEADER
-            + " " * (INPUT_MIN_MAX_COLUMN_WIDTH - len(INPUT_MAX_HEADER))
-            + INPUT_DEFAULT_HEADER
-            + " " * (default_column_width - len(INPUT_DEFAULT_HEADER))
-            + INPUT_DESCRIPTION_HEADER
-        )
-
-        # CALL
-        header_string = ModelInputs.params_table_header(
-            title_column_width, default_column_width
-        )
-
-        # ASSERT
-        self.assertEqual(header_string.split("\n")[0], expected)
-
-    def test_dashed_line_is_of_expected_length(self):
-        """Tests params_table_header produces a dashed line of the expected
-        length"""
-        # SETUP
-        title_column_width = 10
-        default_column_width = 10
-        # Expected headings string
-        expected = "-" * (
-            title_column_width
-            + INPUT_TYPE_COLUMN_WIDTH
-            + 2 * INPUT_MIN_MAX_COLUMN_WIDTH
-            + default_column_width
-            + INPUT_DESCRIPTION_LINE_WIDTH
-        )
-
-        # CALL
-        header_string = ModelInputs.params_table_header(
-            title_column_width, default_column_width
-        )
-
-        # ASSERT
-        self.assertEqual(header_string.split("\n")[1], expected)
-
-    @patch.object(ModelInputs, "params_table_header")
-    @patch("dafni_cli.model.inputs.optional_column")
-    def test_parameters_table_is_formatted_properly(self, mock_column, mock_header):
+    @patch("dafni_cli.model.inputs.format_table")
+    def test_format_parameters(
+        self,
+        mock_format_table,
+    ):
         """Tests format_parameters works correctly"""
         # SETUP
         model_inputs: ModelInputs = ParserBaseObject.parse_from_dict(
             ModelInputs, TEST_MODEL_INPUTS_DEFAULT
         )
 
-        # Ignore table header
-        mock_header.return_value = ""
-        # Setup optional column return values
-        optional_column_outputs = [
-            "0.1" + " " * (INPUT_MIN_MAX_COLUMN_WIDTH - 3),
-            "2.0" + " " * (INPUT_MIN_MAX_COLUMN_WIDTH - 3),
-            "1.5" + " " * 16,
-            " " * INPUT_MIN_MAX_COLUMN_WIDTH,
-            " " * INPUT_MIN_MAX_COLUMN_WIDTH,
-            "long_default_name" + " " * 2,
-        ]
-        mock_column.side_effect = optional_column_outputs
-        # Expected table
-        expected_table = (
-            "Year input"
-            + " " * 2
-            + "integer"
-            + " " * (INPUT_TYPE_COLUMN_WIDTH - 7)
-            + optional_column_outputs[0]
-            + optional_column_outputs[1]
-            + optional_column_outputs[2]
-            + "Year input description\n"
-        )
         # CALL
-        table_string = model_inputs.format_parameters()
+        result = model_inputs.format_parameters()
 
         # ASSERT
-        self.assertEqual(expected_table, table_string)
+        mock_format_table.assert_called_once_with(
+            headers=[
+                INPUT_TITLE_HEADER,
+                INPUT_TYPE_HEADER,
+                INPUT_MIN_HEADER,
+                INPUT_MAX_HEADER,
+                INPUT_DEFAULT_HEADER,
+                INPUT_DESCRIPTION_HEADER,
+            ],
+            rows=[
+                ["Year input", "integer", 2016, 2025, 2018, "Year input description"]
+            ],
+            max_column_widths=[
+                None,
+                None,
+                None,
+                None,
+                None,
+                INPUT_DESCRIPTION_MAX_COLUMN_WIDTH,
+            ],
+        )
+        self.assertEqual(result, mock_format_table.return_value)
 
     def test_dataslots_string_is_formatted_properly_if_it_exists(self):
         """Tests format_dataslots works correctly"""

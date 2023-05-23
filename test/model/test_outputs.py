@@ -7,8 +7,8 @@ from dafni_cli.consts import (
     OUTPUT_FORMAT_COLUMN_WIDTH,
     OUTPUT_FORMAT_HEADER,
     OUTPUT_NAME_HEADER,
-    OUTPUT_SUMMARY_COLUMN_WIDTH,
     OUTPUT_SUMMARY_HEADER,
+    OUTPUT_SUMMARY_MAX_COLUMN_WIDTH,
 )
 from dafni_cli.model.outputs import ModelOutputDataset, ModelOutputs
 
@@ -50,44 +50,11 @@ class TestModelOutputs(TestCase):
         for dataset in model_outputs.datasets:
             self.assertEqual(type(dataset), ModelOutputDataset)
 
-    def test_header_row_is_formatted_properly(self):
-        """Tests params_table_header works as expected"""
-        # SETUP
-        name_column_width = 10
-        # Expected headings string
-        expected = (
-            OUTPUT_NAME_HEADER
-            + " " * (name_column_width - len(OUTPUT_NAME_HEADER))
-            + OUTPUT_FORMAT_HEADER
-            + " " * (OUTPUT_FORMAT_COLUMN_WIDTH - len(OUTPUT_FORMAT_HEADER))
-            + OUTPUT_SUMMARY_HEADER
-        )
-
-        # CALL
-        header_string = ModelOutputs.outputs_table_header(name_column_width)
-
-        # ASSERT
-        self.assertEqual(header_string.split("\n")[0], expected)
-
-    def test_dashed_line_is_of_expected_length(self):
-        """Tests params_table_header produces a dashed line of the expected
-        length"""
-        # SETUP
-        name_column_width = 10
-        # Expected headings string
-        expected = "-" * (
-            name_column_width + OUTPUT_FORMAT_COLUMN_WIDTH + OUTPUT_SUMMARY_COLUMN_WIDTH
-        )
-
-        # CALL
-        header_string = ModelOutputs.outputs_table_header(name_column_width)
-
-        # ASSERT
-        self.assertEqual(header_string.split("\n")[1], expected)
-
-    @patch.object(ModelOutputs, "outputs_table_header")
-    @patch("dafni_cli.model.outputs.optional_column")
-    def test_format_outputs(self, mock_column, mock_header):
+    @patch("dafni_cli.model.outputs.format_table")
+    def test_format_outputs(
+        self,
+        mock_format_table,
+    ):
         """Tests format_outputs works correctly"""
         # SETUP
         model_outputs: ModelOutputs = ParserBaseObject.parse_from_dict(
@@ -96,28 +63,59 @@ class TestModelOutputs(TestCase):
         # Repeat the first one twice
         model_outputs.datasets.append(model_outputs.datasets[0])
 
-        # Ignore table header
-        mock_header.return_value = ""
-        # Setup optional column return values
-        optional_column_outputs = ["Dataset 1 description", "Dataset 2 description"]
-        mock_column.side_effect = optional_column_outputs
-        # Expected table
-        expected_table = (
-            "example_dataset.csv"
-            + " " * 2
-            + "CSV"
-            + " " * (OUTPUT_FORMAT_COLUMN_WIDTH - 3)
-            + optional_column_outputs[0]
-            + "\n"
-            + "example_dataset.csv"
-            + " " * 2
-            + "CSV"
-            + " " * (INPUT_TYPE_COLUMN_WIDTH - 3)
-            + optional_column_outputs[1]
-            + "\n"
-        )
         # CALL
-        table_string = model_outputs.format_outputs()
+        result = model_outputs.format_outputs()
 
         # ASSERT
-        self.assertEqual(expected_table, table_string)
+        mock_format_table.assert_called_once_with(
+            headers=[
+                OUTPUT_NAME_HEADER,
+                OUTPUT_FORMAT_HEADER,
+                OUTPUT_SUMMARY_HEADER,
+            ],
+            rows=[
+                ["example_dataset.csv", "CSV", ""],
+                ["example_dataset.csv", "CSV", ""],
+            ],
+            max_column_widths=[
+                None,
+                None,
+                OUTPUT_SUMMARY_MAX_COLUMN_WIDTH,
+            ],
+        )
+        self.assertEqual(result, mock_format_table.return_value)
+
+    @patch("dafni_cli.model.outputs.format_table")
+    def test_format_outputs_when_name_and_type_none(
+        self,
+        mock_format_table,
+    ):
+        """Tests format_outputs works correctly when the dataset name or type
+        are None"""
+        # SETUP
+        model_outputs: ModelOutputs = ParserBaseObject.parse_from_dict(
+            ModelOutputs, TEST_MODEL_OUTPUTS
+        )
+        model_outputs.datasets[0].name = None
+        model_outputs.datasets[0].type = None
+
+        # CALL
+        result = model_outputs.format_outputs()
+
+        # ASSERT
+        mock_format_table.assert_called_once_with(
+            headers=[
+                OUTPUT_NAME_HEADER,
+                OUTPUT_FORMAT_HEADER,
+                OUTPUT_SUMMARY_HEADER,
+            ],
+            rows=[
+                ["Unknown", "Unknown", ""],
+            ],
+            max_column_widths=[
+                None,
+                None,
+                OUTPUT_SUMMARY_MAX_COLUMN_WIDTH,
+            ],
+        )
+        self.assertEqual(result, mock_format_table.return_value)

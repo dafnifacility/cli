@@ -550,9 +550,9 @@ class TestDatasetMetadataTestCase(TestCase):
         # ASSERT
         mock_extra_details.assert_called_once()
 
-    @patch("dafni_cli.datasets.dataset_metadata.output_table")
+    @patch("dafni_cli.datasets.dataset_metadata.format_table")
     @patch("dafni_cli.datasets.dataset_metadata.click")
-    def test_output_datafiles_table(self, mock_click, mock_output_table):
+    def test_output_datafiles_table(self, mock_click, mock_format_table):
         """Tests output_datafiles_table functions as expected"""
         # SETUP
         dataset_metadata: DatasetMetadata = parse_dataset_metadata(
@@ -563,16 +563,14 @@ class TestDatasetMetadataTestCase(TestCase):
         dataset_metadata.output_datafiles_table()
 
         # ASSERT
-        columns = ["Name", "Size", "Format"]
-        name_width = max([len(datafile.name) for datafile in dataset_metadata.files])
-        widths = [name_width, 10, 6]
+        headers = ["Name", "Size", "Format"]
         rows = [
             [datafile.name, datafile.size, datafile.format]
             for datafile in dataset_metadata.files
         ]
-        mock_output_table.assert_called_once_with(columns, widths, rows)
+        mock_format_table.assert_called_once_with(headers=headers, rows=rows)
         mock_click.echo.assert_has_calls(
-            [call("\nData Files"), call(mock_output_table.return_value)]
+            [call("\nData files:"), call(mock_format_table.return_value)]
         )
 
     @patch("dafni_cli.datasets.dataset_metadata.prose_print")
