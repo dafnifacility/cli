@@ -1,3 +1,4 @@
+from pathlib import Path
 from unittest import TestCase
 from unittest.mock import MagicMock, call, mock_open, patch
 
@@ -168,9 +169,11 @@ class TestDatasetUpload(TestCase):
         # SETUP
         session = MagicMock()
         temp_bucket_id = "some-temp-bucket"
-        file_paths = ["file_1.txt", "file_2.txt"]
-        urls = [f"upload/url/{file_name}" for file_name in file_paths]
-        upload_urls = {"URLs": {file_paths[idx]: url for idx, url in enumerate(urls)}}
+        file_paths = [Path("file_1.txt"), Path("file_2.txt")]
+        urls = [f"upload/url/{file_path.name}" for file_path in file_paths]
+        upload_urls = {
+            "URLs": {file_paths[idx].name: url for idx, url in enumerate(urls)}
+        }
 
         mock_get_data_upload_urls.return_value = upload_urls
 
@@ -179,7 +182,7 @@ class TestDatasetUpload(TestCase):
 
         # ASSERT
         mock_get_data_upload_urls.assert_called_once_with(
-            session, temp_bucket_id, file_paths
+            session, temp_bucket_id, [file_path.name for file_path in file_paths]
         )
         mock_upload_file_to_minio.assert_has_calls(
             [call(session, url, file_paths[idx]) for idx, url in enumerate(urls)]

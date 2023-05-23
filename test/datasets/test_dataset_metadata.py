@@ -95,9 +95,6 @@ class TestCreator(TestCase):
         self.assertEqual(creator.type, TEST_DATASET_METADATA_CREATOR["@type"])
         self.assertEqual(creator.name, TEST_DATASET_METADATA_CREATOR["foaf:name"])
         self.assertEqual(creator.id, TEST_DATASET_METADATA_CREATOR["@id"])
-        self.assertEqual(
-            creator.internal_id, TEST_DATASET_METADATA_CREATOR["internalID"]
-        )
 
     def test_parse_when_no_optional_values(self):
         """Tests parsing of creators with all values filled"""
@@ -110,7 +107,6 @@ class TestCreator(TestCase):
             creator.name, TEST_DATASET_METADATA_CREATOR_DEFAULT["foaf:name"]
         )
         self.assertEqual(creator.id, None)
-        self.assertEqual(creator.internal_id, None)
 
 
 class TestContact(TestCase):
@@ -153,9 +149,6 @@ class TestPublisher(TestCase):
         self.assertEqual(publisher.type, TEST_DATASET_METADATA_PUBLISHER["@type"])
         self.assertEqual(publisher.id, TEST_DATASET_METADATA_PUBLISHER["@id"])
         self.assertEqual(publisher.name, TEST_DATASET_METADATA_PUBLISHER["foaf:name"])
-        self.assertEqual(
-            publisher.internal_id, TEST_DATASET_METADATA_PUBLISHER["internalID"]
-        )
 
     def test_parse_when_no_optional_values(self):
         """Tests parsing of a publisher with optional values ignored"""
@@ -168,7 +161,6 @@ class TestPublisher(TestCase):
         )
         self.assertEqual(publisher.id, None)
         self.assertEqual(publisher.name, None)
-        self.assertEqual(publisher.internal_id, None)
 
 
 class TestStandard(TestCase):

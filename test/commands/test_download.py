@@ -1,4 +1,4 @@
-import os
+from pathlib import Path
 from unittest import TestCase
 from unittest.mock import MagicMock, patch
 
@@ -52,9 +52,7 @@ class TestDownload(TestCase):
         version_id = "version-id"
         file_names = ["file_name1", "file_name2"]
         file_contents = ["file_contents1", "file_contents2"]
-        expected_download_path = os.path.join(
-            os.getcwd(), f"Dataset_{dataset_id}_{version_id}.zip"
-        )
+        expected_download_path = Path.cwd() / f"Dataset_{dataset_id}_{version_id}.zip"
         metadata = MagicMock()
         metadata.files = [MagicMock(), MagicMock()]
         metadata.download_dataset_files = MagicMock()
@@ -113,8 +111,8 @@ class TestDownload(TestCase):
         file_names = ["file_name1", "file_name2"]
         file_contents = [b"file_contents1", b"file_contents2"]
         directory = "some_folder"
-        expected_download_path = os.path.join(
-            directory, f"Dataset_{dataset_id}_{version_id}.zip"
+        expected_download_path = (
+            Path(directory) / f"Dataset_{dataset_id}_{version_id}.zip"
         )
         metadata = MagicMock()
         metadata.files = [MagicMock(), MagicMock()]
@@ -127,7 +125,7 @@ class TestDownload(TestCase):
 
         # CALL
         with runner.isolated_filesystem():
-            os.mkdir(directory)
+            Path(directory).mkdir()
 
             result = runner.invoke(
                 download.download,
