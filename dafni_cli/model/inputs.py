@@ -8,6 +8,8 @@ from dafni_cli.consts import (
     INPUT_DESCRIPTION_MAX_COLUMN_WIDTH,
     INPUT_MAX_HEADER,
     INPUT_MIN_HEADER,
+    INPUT_NAME_HEADER,
+    INPUT_REQUIRED_HEADER,
     INPUT_TITLE_HEADER,
     INPUT_TYPE_HEADER,
     TAB_SPACE,
@@ -106,30 +108,36 @@ class ModelInputs(ParserBaseObject):
         return format_table(
             headers=[
                 INPUT_TITLE_HEADER,
+                INPUT_DESCRIPTION_HEADER,
+                INPUT_NAME_HEADER,
                 INPUT_TYPE_HEADER,
                 INPUT_MIN_HEADER,
                 INPUT_MAX_HEADER,
                 INPUT_DEFAULT_HEADER,
-                INPUT_DESCRIPTION_HEADER,
+                INPUT_REQUIRED_HEADER,
             ],
             rows=[
                 [
                     parameter.title,
+                    parameter.description,
+                    parameter.name,
                     parameter.type,
                     parameter.min,
                     parameter.max,
                     parameter.default,
-                    parameter.description,
+                    "Yes" if parameter.required else "No",
                 ]
                 for parameter in self.parameters
             ],
             max_column_widths=[
                 None,
-                None,
-                None,
-                None,
-                None,
                 INPUT_DESCRIPTION_MAX_COLUMN_WIDTH,
+                None,
+                None,
+                None,
+                None,
+                None,
+                None,
             ],
         )
 

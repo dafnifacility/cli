@@ -1,3 +1,4 @@
+import copy
 from unittest import TestCase
 from unittest.mock import patch
 
@@ -8,6 +9,8 @@ from dafni_cli.consts import (
     INPUT_DESCRIPTION_MAX_COLUMN_WIDTH,
     INPUT_MAX_HEADER,
     INPUT_MIN_HEADER,
+    INPUT_NAME_HEADER,
+    INPUT_REQUIRED_HEADER,
     INPUT_TITLE_HEADER,
     INPUT_TYPE_HEADER,
     TAB_SPACE,
@@ -111,6 +114,14 @@ class TestInputs(TestCase):
             ModelInputs, TEST_MODEL_INPUTS_DEFAULT
         )
 
+        # Two identical parameters but one required and one not
+        model_inputs.parameters = [
+            model_inputs.parameters[0],
+            copy.deepcopy(model_inputs.parameters[0]),
+        ]
+        model_inputs.parameters[0].required = True
+        model_inputs.parameters[1].required = False
+
         # CALL
         result = model_inputs.format_parameters()
 
@@ -118,22 +129,45 @@ class TestInputs(TestCase):
         mock_format_table.assert_called_once_with(
             headers=[
                 INPUT_TITLE_HEADER,
+                INPUT_DESCRIPTION_HEADER,
+                INPUT_NAME_HEADER,
                 INPUT_TYPE_HEADER,
                 INPUT_MIN_HEADER,
                 INPUT_MAX_HEADER,
                 INPUT_DEFAULT_HEADER,
-                INPUT_DESCRIPTION_HEADER,
+                INPUT_REQUIRED_HEADER,
             ],
             rows=[
-                ["Year input", "integer", 2016, 2025, 2018, "Year input description"]
+                [
+                    "Year input",
+                    "Year input description",
+                    "YEAR",
+                    "integer",
+                    2016,
+                    2025,
+                    2018,
+                    "Yes",
+                ],
+                [
+                    "Year input",
+                    "Year input description",
+                    "YEAR",
+                    "integer",
+                    2016,
+                    2025,
+                    2018,
+                    "No",
+                ],
             ],
             max_column_widths=[
                 None,
-                None,
-                None,
-                None,
-                None,
                 INPUT_DESCRIPTION_MAX_COLUMN_WIDTH,
+                None,
+                None,
+                None,
+                None,
+                None,
+                None,
             ],
         )
         self.assertEqual(result, mock_format_table.return_value)

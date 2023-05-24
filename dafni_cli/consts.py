@@ -34,11 +34,13 @@ TABULATE_ARGS = {"tablefmt": "simple", "stralign": "left", "numalign": "left"}
 
 # Model Input/Output Table Formatting
 INPUT_TITLE_HEADER = "Title"
+INPUT_DESCRIPTION_HEADER = "Description"
+INPUT_NAME_HEADER = "Name"
 INPUT_TYPE_HEADER = "Type"
 INPUT_MIN_HEADER = "Min"
 INPUT_MAX_HEADER = "Max"
 INPUT_DEFAULT_HEADER = "Default"
-INPUT_DESCRIPTION_HEADER = "Description"
+INPUT_REQUIRED_HEADER = "Required?"
 
 INPUT_DESCRIPTION_MAX_COLUMN_WIDTH = 80
 
