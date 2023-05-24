@@ -18,6 +18,12 @@ MINIO_DOWNLOAD_REDIRECT_API_URL = (
 )
 KEYCLOAK_API_URL = f"https://keycloak.{ENVIRONMENT_DOMAIN}.dafni.rl.ac.uk"
 
+# URLs that require cookie based auth instead of header based
+URLS_REQUIRING_COOKIE_AUTHENTICATION = [
+    MINIO_API_URL,
+    f"https://nid-minio.{ENVIRONMENT_DOMAIN}.dafni.rl.ac.uk",
+]
+
 # Keycloak realm
 KEYCLOAK_API_REALM = ENVIRONMENT.capitalize()
 

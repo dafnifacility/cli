@@ -25,16 +25,21 @@ Then run the following to add all of the required development dependencies:
 The requirements.txt file contains all required python module dependencies for both development and deployment.
 
 ___
+
+## Running against staging
+
+To run against staging, modify the `ENVIRONMENT` variable in `consts.py` to be `staging` instead of `production`.
+
 ## Running the tests
 Whilst running the activated venv created locally for the dafni-cli, ensure you are in the root directory of the git repository, and use the following to run all tests:
 
 `python -m unittest`
 
-**Note**: Some tests currently fail as they are outdated
-
 There is also a script for running full CLI commands against the current released version of DAFNI in the `/scripts` folder. To use this you first need to modify the `DAFNI_CLI_SCRIPT` variable to point to the installed CLI script or define it as an environment variable. You may be able to get away with assigning it to `dafni` but for some reason it didn't work for me so I had to use `whereis dafni` to find the location.
 
-Before running the tests make sure you login to the non-admin1 test account. If you are already logged in, logout first to ensure the refresh tokens wont expire during the execution.
+The script will modify the ID's of the models, dataset and workflows based on whether the CLI is installed for running on production or staging. (See [Running against staging](#running-against-staging))
+
+Before running the tests make sure you login to the non-admin1 test account if running on production, otherwise the account shouldn't matter. If you are already logged in, logout first to ensure the refresh tokens wont expire during the execution.
 
 You can then run the tests by using
 
