@@ -5,11 +5,11 @@ import requests
 
 from dafni_cli.api.session import DAFNISession
 from dafni_cli.consts import (
+    DSS_API_URL,
     MINIO_API_URL,
     MINIO_DOWNLOAD_REDIRECT_API_URL,
-    NID_API_URL,
-    DSS_API_URL,
     MINIO_UPLOAD_CT,
+    NID_API_URL,
 )
 
 

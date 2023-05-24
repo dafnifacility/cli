@@ -11,7 +11,6 @@ from dafni_cli.api.exceptions import DAFNIError, EndpointNotFoundError, LoginErr
 from dafni_cli.consts import (
     LOGIN_API_ENDPOINT,
     LOGOUT_API_ENDPOINT,
-    MINIO_API_URL,
     REQUESTS_TIMEOUT,
     SESSION_COOKIE,
     SESSION_SAVE_FILE,
