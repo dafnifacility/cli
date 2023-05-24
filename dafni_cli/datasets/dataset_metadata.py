@@ -10,7 +10,12 @@ from dafni_cli.api.minio_api import minio_get_request
 from dafni_cli.api.parser import ParserBaseObject, ParserParam, parse_datetime
 from dafni_cli.api.session import DAFNISession
 from dafni_cli.consts import CONSOLE_WIDTH, DATA_FORMATS, TAB_SPACE
-from dafni_cli.utils import output_table, print_json, process_file_size, prose_print
+from dafni_cli.utils import (
+    format_table,
+    print_json,
+    process_file_size,
+    prose_print,
+)
 
 
 @dataclass
@@ -397,16 +402,18 @@ class DatasetMetadata(ParserBaseObject):
         """Function to print the datafiles table to the console
         for all associated files
         """
-        click.echo("\nData Files")
-        # Setup table data
-        columns = ["Name", "Size", "Format"]
-        name_width = max([len(datafile.name) for datafile in self.files])
-        widths = [name_width, 10, 6]
-        rows = [
-            [datafile.name, datafile.size, datafile.format] for datafile in self.files
-        ]
+        click.echo("\nData files:")
+
         # Print table to console
-        click.echo(output_table(columns, widths, rows))
+        click.echo(
+            format_table(
+                headers=["Name", "Size", "Format"],
+                rows=[
+                    [datafile.name, datafile.size, datafile.format]
+                    for datafile in self.files
+                ],
+            )
+        )
 
     def output_metadata_extra_details(self):
         """Function to print additional metadata to the

@@ -3,18 +3,19 @@ from typing import Any, ClassVar, List, Optional
 
 from dafni_cli.api.parser import ParserBaseObject, ParserParam
 from dafni_cli.consts import (
+    INPUT_DEFAULT_DATASETS_HEADER,
     INPUT_DEFAULT_HEADER,
     INPUT_DESCRIPTION_HEADER,
-    INPUT_DESCRIPTION_LINE_WIDTH,
+    INPUT_DESCRIPTION_MAX_COLUMN_WIDTH,
     INPUT_MAX_HEADER,
     INPUT_MIN_HEADER,
-    INPUT_MIN_MAX_COLUMN_WIDTH,
+    INPUT_NAME_HEADER,
+    INPUT_PATH_IN_CONTAINER_HEADER,
+    INPUT_REQUIRED_HEADER,
     INPUT_TITLE_HEADER,
-    INPUT_TYPE_COLUMN_WIDTH,
     INPUT_TYPE_HEADER,
-    TAB_SPACE,
 )
-from dafni_cli.utils import optional_column
+from dafni_cli.utils import format_table
 
 
 @dataclass
@@ -98,43 +99,6 @@ class ModelInputs(ParserBaseObject):
         ParserParam("dataslots", "dataslots", ModelDataslot),
     ]
 
-    # TODO: Couldn't we use tabulate or something for this?
-    @staticmethod
-    def params_table_header(title_column_width: int, default_column_width: int) -> str:
-        """Formats the header row and the dashed line for an input parameters
-           table
-
-        Args:
-            title_column_width (int): Width of the title column to fit the
-                                      longest title (or "title") plus a buffer
-            default_column_width (int): Width of the default column to fit the
-                                        longest default (or "default") plus a
-                                        buffer
-
-        Returns:
-            str: Formatted string for the header and dashed line of the
-                 parameters table
-        """
-
-        header = (
-            f"{INPUT_TITLE_HEADER:{title_column_width}}"
-            f"{INPUT_TYPE_HEADER:{INPUT_TYPE_COLUMN_WIDTH}}"
-            f"{INPUT_MIN_HEADER:{INPUT_MIN_MAX_COLUMN_WIDTH}}"
-            f"{INPUT_MAX_HEADER:{INPUT_MIN_MAX_COLUMN_WIDTH}}"
-            f"{INPUT_DEFAULT_HEADER:{default_column_width}}"
-            f"{INPUT_DESCRIPTION_HEADER}\n"
-            + "-"
-            * (
-                title_column_width
-                + INPUT_TYPE_COLUMN_WIDTH
-                + 2 * INPUT_MIN_MAX_COLUMN_WIDTH
-                + default_column_width
-                + INPUT_DESCRIPTION_LINE_WIDTH
-            )
-            + "\n"
-        )
-        return header
-
     def format_parameters(self) -> str:
         """Formats input parameters for a model into a string which prints as
            a table
@@ -142,47 +106,76 @@ class ModelInputs(ParserBaseObject):
         Returns:
             str: Formatted string that will appear as a table when printed
         """
-
-        titles = [parameter.title for parameter in self.parameters] + ["title"]
-        defaults = ["default"]
-        for parameter in self.parameters:
-            if parameter.default is not None:
-                defaults.append(str(parameter.default))
-        title_column_width = len(max(titles, key=len)) + 2
-        default_column_width = len(max(defaults, key=len)) + 2
-        # Setup headers
-        params_table = ModelInputs.params_table_header(
-            title_column_width, default_column_width
+        return format_table(
+            headers=[
+                INPUT_TITLE_HEADER,
+                INPUT_DESCRIPTION_HEADER,
+                INPUT_NAME_HEADER,
+                INPUT_TYPE_HEADER,
+                INPUT_MIN_HEADER,
+                INPUT_MAX_HEADER,
+                INPUT_DEFAULT_HEADER,
+                INPUT_REQUIRED_HEADER,
+            ],
+            rows=[
+                [
+                    parameter.title,
+                    parameter.description,
+                    parameter.name,
+                    parameter.type,
+                    parameter.min,
+                    parameter.max,
+                    parameter.default,
+                    "Yes" if parameter.required else "No",
+                ]
+                for parameter in self.parameters
+            ],
+            max_column_widths=[
+                None,
+                INPUT_DESCRIPTION_MAX_COLUMN_WIDTH,
+                None,
+                None,
+                None,
+                None,
+                None,
+                None,
+            ],
         )
-        # Populate table
-        for parameter in self.parameters:
-            params_table += f"{parameter.title:{title_column_width}}{parameter.type:{INPUT_TYPE_COLUMN_WIDTH}}"
-            params_table += optional_column(parameter.min, INPUT_MIN_MAX_COLUMN_WIDTH)
-            params_table += optional_column(parameter.max, INPUT_MIN_MAX_COLUMN_WIDTH)
-            params_table += optional_column(parameter.default, default_column_width)
-            params_table += f"{parameter.description}\n"
-        return params_table
 
     def format_dataslots(self) -> Optional[str]:
-        """Formats input data slots to print in a clear way
+        """Formats input data slots for a model into a string which prints as
+           a table
 
         Returns:
-            Optional[str]: Formatted string that will present the dataslots
-                           clearly when printed
+            Optional[str]: str: Formatted string that will appear as a table
+                                when printed
         """
 
         if self.dataslots:
-            dataslots_list = ""
-            for dataslot in self.dataslots:
-                dataslots_list += "Name: " + dataslot.name + "\n"
-                dataslots_list += "Path in container: " + dataslot.path + "\n"
-                dataslots_list += f"Required: {dataslot.required}\n"
-                dataslots_list += "Default Datasets: \n"
-                for default_val in dataslot.defaults:
-                    # TODO print name using API call to databases
-                    dataslots_list += "ID: " + default_val + TAB_SPACE
-                    # dataslots_list += f'ID: {default["uid"]}' + TAB_SPACE
-                    # dataslots_list += f'Version ID: {default["versionUid"]}' + TAB_SPACE
-                dataslots_list += "\n"
-            return dataslots_list
+            return format_table(
+                headers=[
+                    INPUT_TITLE_HEADER,
+                    INPUT_DESCRIPTION_HEADER,
+                    INPUT_PATH_IN_CONTAINER_HEADER,
+                    INPUT_DEFAULT_DATASETS_HEADER,
+                    INPUT_REQUIRED_HEADER,
+                ],
+                rows=[
+                    [
+                        dataslot.name,
+                        dataslot.description,
+                        dataslot.path,
+                        "\n".join(dataslot.defaults),
+                        "Yes" if dataslot.required else "No",
+                    ]
+                    for dataslot in self.dataslots
+                ],
+                max_column_widths=[
+                    None,
+                    INPUT_DESCRIPTION_MAX_COLUMN_WIDTH,
+                    None,
+                    None,
+                    None,
+                ],
+            )
         return None

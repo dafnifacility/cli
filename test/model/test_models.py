@@ -9,6 +9,7 @@ from dafni_cli.api.parser import ParserBaseObject
 from dafni_cli.consts import CONSOLE_WIDTH, TAB_SPACE
 from dafni_cli.model.inputs import ModelInputs
 from dafni_cli.model.model import Model, ModelSpec, parse_model, parse_models
+from dafni_cli.model.outputs import ModelOutputs
 
 from test.fixtures.models import (
     TEST_MODEL,
@@ -51,6 +52,24 @@ class TestModelSpec(TestCase):
 
 class TestModel(TestCase):
     """Tests the Model dataclass"""
+
+    def setUp(
+        self,
+    ) -> None:
+        super().setUp()
+
+        # These are used for test_output_info_*
+        self.mock_inputs_format_parameters = patch.object(
+            ModelInputs, "format_parameters"
+        ).start()
+        self.mock_inputs_format_dataslots = patch.object(
+            ModelInputs, "format_dataslots"
+        ).start()
+        self.mock_outputs_format_outputs = patch.object(
+            ModelOutputs, "format_outputs"
+        ).start()
+
+        self.addCleanup(patch.stopall)
 
     def test_parse_models(self):
         """Tests parsing of models using test data for the /models endpoint"""
@@ -273,33 +292,39 @@ class TestModel(TestCase):
 
     @patch("dafni_cli.model.model.prose_print")
     @patch("dafni_cli.model.model.click")
-    def test_output_info(self, mock_click, mock_prose_print):
+    def test_output_info(
+        self,
+        mock_click,
+        mock_prose_print,
+    ):
         """Tests output_info works correctly"""
         # SETUP
         model = parse_model(TEST_MODEL)
 
+        # CALL
         model.output_info()
 
+        # ASSERT
+        self.mock_inputs_format_parameters.assert_called_once()
+        self.mock_inputs_format_dataslots.assert_called_once()
+        self.mock_outputs_format_outputs.assert_called_once()
         mock_click.echo.assert_has_calls(
             [
                 call("Name: Some display name"),
                 call("Date: July 17 2019"),
+                call("Parent ID: 0a0a0a0a-0a00-0a00-a000-0a0a0000000b"),
                 call("Summary: "),
                 call("For testing"),
                 call("Description: "),
                 call(""),
                 call("Input Parameters: "),
-                call(
-                    "Title       Type      Min       Max       Default  Description\n-----------------------------------------------------------------------\nYear input  integer   2016      2025      2018     Year input description\n"
-                ),
+                call(self.mock_inputs_format_parameters.return_value),
+                call(""),
                 call("Input Data Slots: "),
-                call(
-                    "Name: Inputs\nPath in container: inputs/\nRequired: True\nDefault Datasets: \nID: 0a0a0a0a-0a00-0a00-a000-0a0a0000000f    \n"
-                ),
+                call(self.mock_inputs_format_dataslots.return_value),
+                call(""),
                 call("Outputs: "),
-                call(
-                    "Name                 Format    Summary\n---------------------------------------------------\nexample_dataset.csv  CSV       \n"
-                ),
+                call(self.mock_outputs_format_outputs.return_value),
             ]
         )
         mock_prose_print.assert_called_once_with("Test description", CONSOLE_WIDTH)
@@ -314,24 +339,27 @@ class TestModel(TestCase):
         model = parse_model(TEST_MODEL)
         model.spec.outputs = None
 
+        # CALL
         model.output_info()
 
+        # ASSERT
+        self.mock_inputs_format_parameters.assert_called_once()
+        self.mock_inputs_format_dataslots.assert_called_once()
+        self.mock_outputs_format_outputs.assert_not_called()
         mock_click.echo.assert_has_calls(
             [
                 call("Name: Some display name"),
                 call("Date: July 17 2019"),
+                call("Parent ID: 0a0a0a0a-0a00-0a00-a000-0a0a0000000b"),
                 call("Summary: "),
                 call("For testing"),
                 call("Description: "),
                 call(""),
                 call("Input Parameters: "),
-                call(
-                    "Title       Type      Min       Max       Default  Description\n-----------------------------------------------------------------------\nYear input  integer   2016      2025      2018     Year input description\n"
-                ),
+                call(self.mock_inputs_format_parameters.return_value),
+                call(""),
                 call("Input Data Slots: "),
-                call(
-                    "Name: Inputs\nPath in container: inputs/\nRequired: True\nDefault Datasets: \nID: 0a0a0a0a-0a00-0a00-a000-0a0a0000000f    \n"
-                ),
+                call(self.mock_inputs_format_dataslots.return_value),
             ]
         )
         mock_prose_print.assert_called_once_with("Test description", CONSOLE_WIDTH)
@@ -346,20 +374,24 @@ class TestModel(TestCase):
         model = parse_model(TEST_MODEL)
         model.spec.inputs = None
 
+        # CALL
         model.output_info()
 
+        # ASSERT
+        self.mock_inputs_format_parameters.assert_not_called()
+        self.mock_inputs_format_dataslots.assert_not_called()
+        self.mock_outputs_format_outputs.assert_called_once()
         mock_click.echo.assert_has_calls(
             [
                 call("Name: Some display name"),
                 call("Date: July 17 2019"),
+                call("Parent ID: 0a0a0a0a-0a00-0a00-a000-0a0a0000000b"),
                 call("Summary: "),
                 call("For testing"),
                 call("Description: "),
                 call(""),
                 call("Outputs: "),
-                call(
-                    "Name                 Format    Summary\n---------------------------------------------------\nexample_dataset.csv  CSV       \n"
-                ),
+                call(self.mock_outputs_format_outputs.return_value),
             ]
         )
         mock_prose_print.assert_called_once_with("Test description", CONSOLE_WIDTH)
@@ -375,16 +407,21 @@ class TestModel(TestCase):
         model.spec.inputs = None
         model.spec.outputs = None
 
+        # CALL
         model.output_info()
 
+        # ASSERT
+        self.mock_inputs_format_parameters.assert_not_called()
+        self.mock_inputs_format_dataslots.assert_not_called()
+        self.mock_outputs_format_outputs.assert_not_called()
         mock_click.echo.assert_has_calls(
             [
                 call("Name: Some display name"),
                 call("Date: July 17 2019"),
+                call("Parent ID: 0a0a0a0a-0a00-0a00-a000-0a0a0000000b"),
                 call("Summary: "),
                 call("For testing"),
                 call("Description: "),
-                call(""),
             ]
         )
         mock_prose_print.assert_called_once_with("Test description", CONSOLE_WIDTH)

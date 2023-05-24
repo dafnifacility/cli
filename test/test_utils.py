@@ -8,6 +8,7 @@ from unittest.mock import call, patch
 from zipfile import ZipFile
 
 from dafni_cli import utils
+from dafni_cli.consts import TABULATE_ARGS
 
 
 @patch("dafni_cli.utils.click")
@@ -233,236 +234,6 @@ class TestProcessDateFilter(TestCase):
                 utils.process_date_filter(value)
 
 
-class TestOutputTableRow(TestCase):
-    """Test class to test the output_table_row function"""
-
-    def test_table_header_string_processed_correctly_with_default_alignment(self):
-        """Tests that table headers are processed correctly using the default
-        alignment"""
-
-        # SETUP
-        values_and_results = [
-            (["Column_1"], [10], "Column_1  \n-----------\n"),
-            (
-                ["Column_1", "Column_2", "Column_3"],
-                [10, 11, 12],
-                "Column_1   Column_2    Column_3    \n------------------------------------\n",
-            ),
-        ]
-
-        # CALL & ASSERT
-        for columns, widths, result in values_and_results:
-            self.assertEqual(
-                utils.output_table_row(columns, widths, header=True), result
-            )
-
-    def test_table_header_string_processed_correctly_with_alignment_given_for_multiple_columns(
-        self,
-    ):
-        """Tests that table headers are processed correctly when an alignment
-        is given for multiple columns"""
-
-        # SETUP
-        columns = ["Column_1", "Column_2", "Column_3"]
-        widths = [10, 11, 12]
-        values_and_results = [
-            (
-                "<",
-                "Column_1   Column_2    Column_3    \n------------------------------------\n",
-            ),
-            (
-                "^",
-                " Column_1   Column_2     Column_3  \n------------------------------------\n",
-            ),
-            (
-                ">",
-                "  Column_1    Column_2     Column_3\n------------------------------------\n",
-            ),
-        ]
-
-        # CALL & ASSERT
-        for alignment, result in values_and_results:
-            self.assertEqual(
-                utils.output_table_row(
-                    columns, widths, alignment=alignment, header=True
-                ),
-                result,
-            )
-
-    def test_table_header_string_processed_correctly_with_alignment_given_for_single_column(
-        self,
-    ):
-        """Tests that table headers are processed correctly when an alignment
-        is given for a single column"""
-
-        # SETUP
-        columns = ["Column_1"]
-        widths = [10]
-        values_and_results = [
-            (
-                "<",
-                "Column_1  \n-----------\n",
-            ),
-            (
-                "^",
-                " Column_1 \n-----------\n",
-            ),
-            (
-                ">",
-                "  Column_1\n-----------\n",
-            ),
-        ]
-
-        # CALL & ASSERT
-        for alignment, result in values_and_results:
-            self.assertEqual(
-                utils.output_table_row(
-                    columns, widths, alignment=alignment, header=True
-                ),
-                result,
-            )
-
-    def test_table_row_string_processed_correctly_with_default_alignment(self):
-        """Tests that a table row is processed correctly using the default
-        alignment"""
-
-        # SETUP
-        values_and_results = [
-            (["Value_1"], [10], "Value_1   \n"),
-            (
-                ["Value_1", "Value_2", "Value_3"],
-                [10, 11, 12],
-                "Value_1    Value_2     Value_3     \n",
-            ),
-        ]
-
-        # CALL & ASSERT
-        for entries, widths, result in values_and_results:
-            self.assertEqual(utils.output_table_row(entries, widths), result)
-
-    def test_table_row_string_processed_correctly_with_alignment_given_for_multiple_entries(
-        self,
-    ):
-        """Tests that a table row is processed correctly when an alignment
-        is given for multiple entries"""
-
-        # SETUP
-        entries = ["Value_1", "Value_2", "Value_3"]
-        widths = [10, 11, 12]
-        values_and_results = [
-            (
-                "<",
-                "Value_1    Value_2     Value_3     \n",
-            ),
-            (
-                "^",
-                " Value_1     Value_2     Value_3   \n",
-            ),
-            (
-                ">",
-                "   Value_1     Value_2      Value_3\n",
-            ),
-        ]
-
-        # CALL & ASSERT
-        for alignment, result in values_and_results:
-            self.assertEqual(
-                utils.output_table_row(entries, widths, alignment=alignment), result
-            )
-
-    def test_table_row_string_processed_correctly_with_alignment_given_for_single_entry(
-        self,
-    ):
-        """Tests that a table row is processed correctly when an alignment
-        is given for a single entries"""
-
-        # SETUP
-        entries = ["Value_1"]
-        widths = [10]
-        values_and_results = [
-            (
-                "<",
-                "Value_1   \n",
-            ),
-            (
-                "^",
-                " Value_1  \n",
-            ),
-            (
-                ">",
-                "   Value_1\n",
-            ),
-        ]
-
-        # CALL & ASSERT
-        for alignment, result in values_and_results:
-            self.assertEqual(
-                utils.output_table_row(entries, widths, alignment=alignment), result
-            )
-
-
-@patch("dafni_cli.utils.output_table_row")
-class TestOutputTable(TestCase):
-    """Test class to test the output_table function"""
-
-    def test_correct_table_str_returned_for_single_column_table_with_default_alignment(
-        self, mock_output
-    ):
-        """Tests that the correct string is returned for a single column table
-        with the default alignment"""
-
-        # SETUP
-        columns = ["Column_1"]
-        rows = [["Value_1"]]
-        widths = [10]
-        # Setup output_table_row to return the first column/value passed in
-        mock_output.side_effect = "Column_1  \n----------\n", "Value_1   \n"
-
-        # CALL
-        result = utils.output_table(columns, widths, rows)
-
-        # ASSERT
-        self.assertEqual(result, "Column_1  \n----------\nValue_1   \n")
-        mock_output.assert_has_calls(
-            [
-                call(columns, widths, "<", header=True),
-                call(rows[0], widths, "<"),
-            ]
-        )
-
-    def test_correct_table_str_returned_for_multiple_column_and_row_table_with_default_alignment(
-        self, mock_output
-    ):
-        """Tests that the correct string is returned for a table with multiple
-        columns and the default alignment"""
-        # SETUP
-        columns = ["Column_1", "Column_2"]
-        rows = [["Value_1", "Value_2"], ["Value_3", "Value_4"]]
-        widths = [10]
-        # setup output_table_row to return the firs column/value passed in
-        mock_output.side_effect = (
-            "Column_1  Column_2   \n----------\n",
-            "Value_1   Value_2    \n",
-            "Value_3   Value_4    \n",
-        )
-
-        # CALL
-        result = utils.output_table(columns, widths, rows)
-
-        # ASSERT
-        self.assertEqual(
-            result,
-            "Column_1  Column_2   \n----------\nValue_1   Value_2    \nValue_3   Value_4    \n",
-        )
-        mock_output.assert_has_calls(
-            [
-                call(columns, widths, "<", header=True),
-                call(rows[0], widths, "<"),
-                call(rows[1], widths, "<"),
-            ]
-        )
-
-
 class TestProcessFileSize(TestCase):
     """Test class to test the process_file_size functionality"""
 
@@ -666,3 +437,113 @@ class TestDataclassFromDict(TestCase):
         # CALL & ASSERT
         with self.assertRaises(TypeError):
             utils.dataclass_from_dict(self.TestDataclass, data)
+
+
+@patch("dafni_cli.utils.tabulate")
+class TestFormatTable(TestCase):
+    """Test class to test the format_table function"""
+
+    def test_format_table_with_no_max_widths(self, mock_tabulate):
+        """Tests that tabulate is called correctly when there are no max
+        column widths specified"""
+        # SETUP
+        headers = ["Header 1", "Header 2"]
+        rows = [
+            ["Row 1 Header 1", "Row 1 Header 2"],
+            ["Row 2 Header 1", "Row 2 Header 2"],
+        ]
+
+        # CALL
+        result = utils.format_table(headers, rows)
+
+        # ASSERT
+        mock_tabulate.assert_called_once_with(rows, headers, **TABULATE_ARGS)
+        self.assertEqual(mock_tabulate.return_value, result)
+
+    def test_format_table_with_one_max_column_width_without_wrapping(
+        self, mock_tabulate
+    ):
+        """Tests that tabulate is called correctly when there is one column
+        with a maximum width but it is not exceeded"""
+        # SETUP
+        headers = ["Header 1", "Header 2"]
+        rows = [
+            ["Row 1 Header 1", "Row 1 Header 2"],
+            ["Row 2 Header 1", "Row 2 Header 2"],
+        ]
+        max_column_widths = [None, 40]
+
+        # CALL
+        result = utils.format_table(headers, rows, max_column_widths)
+
+        # ASSERT
+        mock_tabulate.assert_called_once_with(rows, headers, **TABULATE_ARGS)
+        self.assertEqual(mock_tabulate.return_value, result)
+
+    def test_format_table_with_one_max_column_width_with_wrapping(self, mock_tabulate):
+        """Tests that tabulate is called correctly when there is one column
+        with a maximum width and it is exceeded by a value"""
+        # SETUP
+        headers = ["Header 1", "Header 2"]
+        rows = [
+            ["Row 1 Header 1", "Row 1 Header 2"],
+            ["Row 2 Header 1", "Row 2 Header 2"],
+        ]
+        max_column_widths = [None, 10]
+
+        # CALL
+        result = utils.format_table(headers, rows, max_column_widths)
+
+        # ASSERT
+        mock_tabulate.assert_called_once_with(
+            [
+                ["Row 1 Header 1", "Row 1\nHeader 2"],
+                ["Row 2 Header 1", "Row 2\nHeader 2"],
+            ],
+            headers,
+            **TABULATE_ARGS
+        )
+        self.assertEqual(mock_tabulate.return_value, result)
+
+    def test_format_table_with_column_width_without_wrapping(self, mock_tabulate):
+        """Tests that tabulate is called correctly when all columns have
+        a maximum width but it is not exceeded"""
+        # SETUP
+        headers = ["Header 1", "Header 2"]
+        rows = [
+            ["Row 1 Header 1", "Row 1 Header 2"],
+            ["Row 2 Header 1", "Row 2 Header 2"],
+        ]
+        max_column_widths = [40, 40]
+
+        # CALL
+        result = utils.format_table(headers, rows, max_column_widths)
+
+        # ASSERT
+        mock_tabulate.assert_called_once_with(rows, headers, **TABULATE_ARGS)
+        self.assertEqual(mock_tabulate.return_value, result)
+
+    def test_format_table_with_column_width_with_wrapping(self, mock_tabulate):
+        """Tests that tabulate is called correctly when all columns have
+        a maximum width and it is exceeded by a value"""
+        # SETUP
+        headers = ["Header 1", "Header 2"]
+        rows = [
+            ["Row 1 Header 1", "Row 1 Header 2"],
+            ["Row 2 Header 1", "Row 2 Header 2"],
+        ]
+        max_column_widths = [10, 10]
+
+        # CALL
+        result = utils.format_table(headers, rows, max_column_widths)
+
+        # ASSERT
+        mock_tabulate.assert_called_once_with(
+            [
+                ["Row 1\nHeader 1", "Row 1\nHeader 2"],
+                ["Row 2\nHeader 1", "Row 2\nHeader 2"],
+            ],
+            headers,
+            **TABULATE_ARGS
+        )
+        self.assertEqual(mock_tabulate.return_value, result)
