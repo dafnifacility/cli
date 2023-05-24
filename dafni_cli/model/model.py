@@ -276,17 +276,20 @@ class Model(ParserBaseObject):
 
         click.echo("Name: " + self.metadata.display_name)
         click.echo("Date: " + self.creation_date.strftime("%B %d %Y"))
+        click.echo("Parent ID: " + self.parent_id)
         click.echo("Summary: ")
         click.echo(self.metadata.summary)
         click.echo("Description: ")
         prose_print(self.metadata.description, CONSOLE_WIDTH)
-        click.echo("")
         if self.spec.inputs is not None:
+            click.echo("")
             click.echo("Input Parameters: ")
             click.echo(self.spec.inputs.format_parameters())
+            click.echo("")
             click.echo("Input Data Slots: ")
             click.echo(self.spec.inputs.format_dataslots())
         if self.spec.outputs is not None:
+            click.echo("")
             click.echo("Outputs: ")
             click.echo(self.spec.outputs.format_outputs())
 

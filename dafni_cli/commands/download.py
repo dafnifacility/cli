@@ -1,5 +1,4 @@
 from pathlib import Path
-import pathlib
 from typing import List, Optional
 
 import click

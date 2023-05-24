@@ -3,13 +3,12 @@ from typing import ClassVar, List, Optional
 
 from dafni_cli.api.parser import ParserBaseObject, ParserParam
 from dafni_cli.consts import (
-    OUTPUT_FORMAT_COLUMN_WIDTH,
     OUTPUT_FORMAT_HEADER,
     OUTPUT_NAME_HEADER,
-    OUTPUT_SUMMARY_COLUMN_WIDTH,
     OUTPUT_SUMMARY_HEADER,
+    OUTPUT_SUMMARY_MAX_COLUMN_WIDTH,
 )
-from dafni_cli.utils import optional_column
+from dafni_cli.utils import format_table
 
 
 @dataclass
@@ -47,47 +46,28 @@ class ModelOutputs(ParserBaseObject):
         ParserParam("datasets", "datasets", ModelOutputDataset),
     ]
 
-    @staticmethod
-    def outputs_table_header(name_column_width: int) -> str:
-        """Formats the header row and the dashed line for the output parameters
-           table
-
-        Args:
-            name_column_width (int): Width of the name column to fit the
-                                     longest name (or "name") plus a buffer
-
-        Returns:
-            str: Formatted string for the header and dashed line of the outputs table
-        """
-        header = (
-            f"{OUTPUT_NAME_HEADER:{name_column_width}}"
-            f"{OUTPUT_FORMAT_HEADER:{OUTPUT_FORMAT_COLUMN_WIDTH}}"
-            f"{OUTPUT_SUMMARY_HEADER}\n"
-            + "-"
-            * (
-                name_column_width
-                + OUTPUT_FORMAT_COLUMN_WIDTH
-                + OUTPUT_SUMMARY_COLUMN_WIDTH
-            )
-            + "\n"
-        )
-        return header
-
     def format_outputs(self) -> str:
         """Formats output files into a string which prints as a table
 
         Returns:
             str: Formatted string that will appear as a table when printed
         """
-        names = [dataset.name for dataset in self.datasets] + ["Name"]
-        max_name_length = len(max(names, key=len)) + 2
-        outputs_table = ModelOutputs.outputs_table_header(max_name_length)
 
         # The dataset outputs fields are not mandatory and any or all of them might not
         # exist. Unset fields will be reported as "Unknown" in the formatted output.
-        for dataset in self.datasets:
-            outputs_table += f"{dataset.name or 'Unknown':{max_name_length}}"
-            outputs_table += f"{dataset.type or 'Unknown':{OUTPUT_FORMAT_COLUMN_WIDTH}}"
-            outputs_table += optional_column(dataset.description)
-            outputs_table += "\n"
-        return outputs_table
+        return format_table(
+            headers=[
+                OUTPUT_NAME_HEADER,
+                OUTPUT_FORMAT_HEADER,
+                OUTPUT_SUMMARY_HEADER,
+            ],
+            rows=[
+                [
+                    dataset.name or "Unknown",
+                    dataset.type or "Unknown",
+                    dataset.description,
+                ]
+                for dataset in self.datasets
+            ],
+            max_column_widths=[None, None, OUTPUT_SUMMARY_MAX_COLUMN_WIDTH],
+        )
