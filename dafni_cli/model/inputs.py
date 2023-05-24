@@ -3,16 +3,17 @@ from typing import Any, ClassVar, List, Optional
 
 from dafni_cli.api.parser import ParserBaseObject, ParserParam
 from dafni_cli.consts import (
+    INPUT_DEFAULT_DATASETS_HEADER,
     INPUT_DEFAULT_HEADER,
     INPUT_DESCRIPTION_HEADER,
     INPUT_DESCRIPTION_MAX_COLUMN_WIDTH,
     INPUT_MAX_HEADER,
     INPUT_MIN_HEADER,
     INPUT_NAME_HEADER,
+    INPUT_PATH_IN_CONTAINER_HEADER,
     INPUT_REQUIRED_HEADER,
     INPUT_TITLE_HEADER,
     INPUT_TYPE_HEADER,
-    TAB_SPACE,
 )
 from dafni_cli.utils import format_table
 
@@ -142,25 +143,39 @@ class ModelInputs(ParserBaseObject):
         )
 
     def format_dataslots(self) -> Optional[str]:
-        """Formats input data slots to print in a clear way
+        """Formats input data slots for a model into a string which prints as
+           a table
 
         Returns:
-            Optional[str]: Formatted string that will present the dataslots
-                           clearly when printed
+            Optional[str]: str: Formatted string that will appear as a table
+                                when printed
         """
 
         if self.dataslots:
-            dataslots_list = ""
-            for dataslot in self.dataslots:
-                dataslots_list += "Name: " + dataslot.name + "\n"
-                dataslots_list += "Path in container: " + dataslot.path + "\n"
-                dataslots_list += f"Required: {dataslot.required}\n"
-                dataslots_list += "Default Datasets: \n"
-                for default_val in dataslot.defaults:
-                    # TODO print name using API call to databases
-                    dataslots_list += "ID: " + default_val + TAB_SPACE
-                    # dataslots_list += f'ID: {default["uid"]}' + TAB_SPACE
-                    # dataslots_list += f'Version ID: {default["versionUid"]}' + TAB_SPACE
-                dataslots_list += "\n"
-            return dataslots_list
+            return format_table(
+                headers=[
+                    INPUT_TITLE_HEADER,
+                    INPUT_DESCRIPTION_HEADER,
+                    INPUT_PATH_IN_CONTAINER_HEADER,
+                    INPUT_DEFAULT_DATASETS_HEADER,
+                    INPUT_REQUIRED_HEADER,
+                ],
+                rows=[
+                    [
+                        dataslot.name,
+                        dataslot.description,
+                        dataslot.path,
+                        "\n".join(dataslot.defaults),
+                        "Yes" if dataslot.required else "No",
+                    ]
+                    for dataslot in self.dataslots
+                ],
+                max_column_widths=[
+                    None,
+                    INPUT_DESCRIPTION_MAX_COLUMN_WIDTH,
+                    None,
+                    None,
+                    None,
+                ],
+            )
         return None

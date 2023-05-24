@@ -322,6 +322,7 @@ class TestModel(TestCase):
                 call(""),
                 call("Input Data Slots: "),
                 call(self.mock_inputs_format_dataslots.return_value),
+                call(""),
                 call("Outputs: "),
                 call(self.mock_outputs_format_outputs.return_value),
             ]
@@ -421,7 +422,6 @@ class TestModel(TestCase):
                 call("Summary: "),
                 call("For testing"),
                 call("Description: "),
-                call(""),
             ]
         )
         mock_prose_print.assert_called_once_with("Test description", CONSOLE_WIDTH)

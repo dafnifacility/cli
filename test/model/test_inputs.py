@@ -4,16 +4,17 @@ from unittest.mock import patch
 
 from dafni_cli.api.parser import ParserBaseObject
 from dafni_cli.consts import (
+    INPUT_DEFAULT_DATASETS_HEADER,
     INPUT_DEFAULT_HEADER,
     INPUT_DESCRIPTION_HEADER,
     INPUT_DESCRIPTION_MAX_COLUMN_WIDTH,
     INPUT_MAX_HEADER,
     INPUT_MIN_HEADER,
     INPUT_NAME_HEADER,
+    INPUT_PATH_IN_CONTAINER_HEADER,
     INPUT_REQUIRED_HEADER,
     INPUT_TITLE_HEADER,
     INPUT_TYPE_HEADER,
-    TAB_SPACE,
 )
 from dafni_cli.model.inputs import ModelDataslot, ModelInputs, ModelParameter
 
@@ -172,28 +173,106 @@ class TestInputs(TestCase):
         )
         self.assertEqual(result, mock_format_table.return_value)
 
-    def test_dataslots_string_is_formatted_properly_if_it_exists(self):
+    @patch("dafni_cli.model.inputs.format_table")
+    def test_format_dataslots_if_it_exists(self, mock_format_table):
         """Tests format_dataslots works correctly"""
         # SETUP
         model_inputs: ModelInputs = ParserBaseObject.parse_from_dict(
             ModelInputs, TEST_MODEL_INPUTS
         )
-        # Expected output
-        expected = (
-            "Name: Inputs\n"
-            + "Path in container: inputs/\n"
-            + "Required: True\n"
-            + "Default Datasets: \n"
-            + "ID: 0a0a0a0a-0a00-0a00-a000-0a0a0000000f"
-            + TAB_SPACE
-            + "\n"
-        )
+
+        # Two identical dataslots but one required and one not
+        model_inputs.dataslots = [
+            model_inputs.dataslots[0],
+            copy.deepcopy(model_inputs.dataslots[0]),
+        ]
+        model_inputs.dataslots[0].required = True
+        model_inputs.dataslots[1].required = False
 
         # CALL
-        dataslot_string = model_inputs.format_dataslots()
+        result = model_inputs.format_dataslots()
 
         # ASSERT
-        self.assertEqual(dataslot_string, expected)
+        mock_format_table.assert_called_once_with(
+            headers=[
+                INPUT_TITLE_HEADER,
+                INPUT_DESCRIPTION_HEADER,
+                INPUT_PATH_IN_CONTAINER_HEADER,
+                INPUT_DEFAULT_DATASETS_HEADER,
+                INPUT_REQUIRED_HEADER,
+            ],
+            rows=[
+                [
+                    "Inputs",
+                    None,
+                    "inputs/",
+                    "0a0a0a0a-0a00-0a00-a000-0a0a0000000f",
+                    "Yes",
+                ],
+                [
+                    "Inputs",
+                    None,
+                    "inputs/",
+                    "0a0a0a0a-0a00-0a00-a000-0a0a0000000f",
+                    "No",
+                ],
+            ],
+            max_column_widths=[
+                None,
+                INPUT_DESCRIPTION_MAX_COLUMN_WIDTH,
+                None,
+                None,
+                None,
+            ],
+        )
+        self.assertEqual(result, mock_format_table.return_value)
+
+    @patch("dafni_cli.model.inputs.format_table")
+    def test_format_dataslots_if_it_exists_and_a_slot_has_multiple_defaults(
+        self, mock_format_table
+    ):
+        """Tests format_dataslots works correctly"""
+        # SETUP
+        model_inputs: ModelInputs = ParserBaseObject.parse_from_dict(
+            ModelInputs, TEST_MODEL_INPUTS
+        )
+
+        # Ensure the list of defaults has multiple values
+        model_inputs.dataslots[0].defaults = [
+            "0a0a0a0a-0a00-0a00-a000-0a0a0000000a",
+            "0a0a0a0a-0a00-0a00-a000-0a0a0000000b",
+        ]
+
+        # CALL
+        result = model_inputs.format_dataslots()
+
+        # ASSERT
+        mock_format_table.assert_called_once_with(
+            headers=[
+                INPUT_TITLE_HEADER,
+                INPUT_DESCRIPTION_HEADER,
+                INPUT_PATH_IN_CONTAINER_HEADER,
+                INPUT_DEFAULT_DATASETS_HEADER,
+                INPUT_REQUIRED_HEADER,
+            ],
+            rows=[
+                [
+                    "Inputs",
+                    None,
+                    "inputs/",
+                    "0a0a0a0a-0a00-0a00-a000-0a0a0000000a\n0a0a0a0a-0a00-0a00-a000-0a0a0000000b",
+                    "Yes",
+                ]
+            ],
+            max_column_widths=[
+                None,
+                INPUT_DESCRIPTION_MAX_COLUMN_WIDTH,
+                None,
+                None,
+                None,
+            ],
+        )
+        self.assertEqual(result, mock_format_table.return_value)
 
     def test_none_returned_if_there_are_no_dataslots(self):
         """Tests format_dataslots works correctly when there are no dataslots"""
