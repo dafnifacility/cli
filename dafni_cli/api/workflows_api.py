@@ -86,24 +86,6 @@ def upload_workflow(
         return session.post_request(url=url, json=workflow_description)
 
 
-# TODO rename so different names and see if used
-# def upload_workflow(jwt: str, workflow_description: dict) -> Tuple[str, dict]:
-#    """
-#    Uploads a DAFNI workflow specified in a dictionary to the platform
-#
-#    Args:
-#        jwt (str): JWT
-#        workflow_description: A dictionary containing the workflow
-#
-#    Returns:
-#        str: The ID for the upload
-#        dict: The urls for the definition and image with keys "definition" and "image", respectively.
-#    """
-#    url = WORKFLOWS_API_URL + "/workflows/upload/"
-#    print(workflow_description)
-#    return dafni_post_request(url, jwt, workflow_description)
-
-
 def delete_workflow(session: DAFNISession, version_id: str) -> Response:
     """
     Calls the workflows_delete endpoint
