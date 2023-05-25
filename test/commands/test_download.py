@@ -21,9 +21,7 @@ class TestDownload(TestCase):
         ctx = {}
 
         # CALL
-        result = runner.invoke(
-            download.download, ["dataset", "dataset-id", "version-id"], obj=ctx
-        )
+        result = runner.invoke(download.download, ["dataset", "version-id"], obj=ctx)
 
         # ASSERT
         mock_DAFNISession.assert_called_once()
@@ -48,28 +46,28 @@ class TestDownload(TestCase):
         mock_DAFNISession.return_value = session
         runner = CliRunner()
 
-        dataset_id = "dataset-id"
         version_id = "version-id"
         file_names = ["file_name1", "file_name2"]
         file_contents = ["file_contents1", "file_contents2"]
-        expected_download_path = Path.cwd() / f"Dataset_{dataset_id}_{version_id}.zip"
         metadata = MagicMock()
+        metadata.dataset_id = "dataset-id"
         metadata.files = [MagicMock(), MagicMock()]
         metadata.download_dataset_files = MagicMock()
         metadata.download_dataset_files.return_value = (
             file_names,
             file_contents,
         )
+        expected_download_path = (
+            Path.cwd() / f"Dataset_{metadata.dataset_id}_{version_id}.zip"
+        )
         mock_parse_dataset_metadata.return_value = metadata
 
         # CALL
-        result = runner.invoke(download.download, ["dataset", dataset_id, version_id])
+        result = runner.invoke(download.download, ["dataset", version_id])
 
         # ASSERT
         mock_DAFNISession.assert_called_once()
-        mock_get_latest_dataset_metadata.assert_called_once_with(
-            session, dataset_id, version_id
-        )
+        mock_get_latest_dataset_metadata.assert_called_once_with(session, version_id)
         mock_parse_dataset_metadata.assert_called_once_with(
             mock_get_latest_dataset_metadata.return_value
         )
@@ -106,20 +104,20 @@ class TestDownload(TestCase):
         mock_DAFNISession.return_value = session
         runner = CliRunner()
 
-        dataset_id = "dataset-id"
         version_id = "version-id"
         file_names = ["file_name1", "file_name2"]
         file_contents = [b"file_contents1", b"file_contents2"]
         directory = "some_folder"
-        expected_download_path = (
-            Path(directory) / f"Dataset_{dataset_id}_{version_id}.zip"
-        )
         metadata = MagicMock()
+        metadata.dataset_id = "dataset-id"
         metadata.files = [MagicMock(), MagicMock()]
         metadata.download_dataset_files = MagicMock()
         metadata.download_dataset_files.return_value = (
             file_names,
             file_contents,
+        )
+        expected_download_path = (
+            Path(directory) / f"Dataset_{metadata.dataset_id}_{version_id}.zip"
         )
         mock_parse_dataset_metadata.return_value = metadata
 
@@ -129,14 +127,12 @@ class TestDownload(TestCase):
 
             result = runner.invoke(
                 download.download,
-                ["dataset", dataset_id, version_id, "--directory", directory],
+                ["dataset", version_id, "--directory", directory],
             )
 
         # ASSERT
         mock_DAFNISession.assert_called_once()
-        mock_get_latest_dataset_metadata.assert_called_once_with(
-            session, dataset_id, version_id
-        )
+        mock_get_latest_dataset_metadata.assert_called_once_with(session, version_id)
         mock_parse_dataset_metadata.assert_called_once_with(
             mock_get_latest_dataset_metadata.return_value
         )
@@ -171,19 +167,16 @@ class TestDownload(TestCase):
         mock_DAFNISession.return_value = session
         runner = CliRunner()
         metadata = MagicMock()
+        metadata.dataset_id = "dataset-id"
         metadata.files = []
         mock_parse_dataset_metadata.return_value = metadata
 
         # CALL
-        result = runner.invoke(
-            download.download, ["dataset", "dataset-id", "version-id"]
-        )
+        result = runner.invoke(download.download, ["dataset", "version-id"])
 
         # ASSERT
         mock_DAFNISession.assert_called_once()
-        mock_get_latest_dataset_metadata.assert_called_once_with(
-            session, "dataset-id", "version-id"
-        )
+        mock_get_latest_dataset_metadata.assert_called_once_with(session, "version-id")
         mock_parse_dataset_metadata.assert_called_once_with(
             mock_get_latest_dataset_metadata.return_value
         )

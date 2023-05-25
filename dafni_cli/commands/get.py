@@ -220,12 +220,10 @@ def datasets(
     help="Prints raw json returned from API. Default: -p",
     type=bool,
 )
-@click.argument("id", nargs=1, required=True, type=str)
 @click.argument("version-id", nargs=1, required=True, type=str)
 @click.pass_context
 def dataset(
     ctx: Context,
-    id: str,
     version_id: str,
     long: bool,
     version_history: bool,
@@ -235,7 +233,6 @@ def dataset(
 
     Args:
         ctx (Context): CLI context
-        id (str): Dataset ID
         version_id (str): Dataset version ID
         long (bool): Flag to view additional metadata attributes
         version_history (bool): Flag to view version history in place of metadata
@@ -243,7 +240,7 @@ def dataset(
     """
     # Attempt to get the metadata
     try:
-        metadata = get_latest_dataset_metadata(ctx.obj["session"], id, version_id)
+        metadata = get_latest_dataset_metadata(ctx.obj["session"], version_id)
     except ResourceNotFoundError as err:
         raise SystemExit(err) from err
 

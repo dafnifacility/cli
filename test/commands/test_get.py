@@ -624,13 +624,11 @@ class TestGet(TestCase):
         mock_parse_dataset_metadata.return_value = dataset
 
         # CALL
-        result = runner.invoke(get.get, ["dataset", "some_id", "some_version_id"])
+        result = runner.invoke(get.get, ["dataset", "some_version_id"])
 
         # ASSERT
         mock_DAFNISession.assert_called_once()
-        mock_get_latest_dataset_metadata.assert_called_with(
-            session, "some_id", "some_version_id"
-        )
+        mock_get_latest_dataset_metadata.assert_called_with(session, "some_version_id")
         dataset.output_metadata_details.assert_called_once()
         mock_print_json.assert_not_called()
 
@@ -657,15 +655,11 @@ class TestGet(TestCase):
         mock_parse_dataset_metadata.return_value = dataset
 
         # CALL
-        result = runner.invoke(
-            get.get, ["dataset", "some_id", "some_version_id", "--json"]
-        )
+        result = runner.invoke(get.get, ["dataset", "some_version_id", "--json"])
 
         # ASSERT
         mock_DAFNISession.assert_called_once()
-        mock_get_latest_dataset_metadata.assert_called_with(
-            session, "some_id", "some_version_id"
-        )
+        mock_get_latest_dataset_metadata.assert_called_with(session, "some_version_id")
         dataset.output_metadata_details.assert_not_called()
         mock_print_json.assert_called_once_with(dataset)
 
@@ -695,14 +689,12 @@ class TestGet(TestCase):
 
         # CALL
         result = runner.invoke(
-            get.get, ["dataset", "some_id", "some_version_id", "--version-history"]
+            get.get, ["dataset", "some_version_id", "--version-history"]
         )
 
         # ASSERT
         mock_DAFNISession.assert_called_once()
-        mock_get_latest_dataset_metadata.assert_called_with(
-            session, "some_id", "some_version_id"
-        )
+        mock_get_latest_dataset_metadata.assert_called_with(session, "some_version_id")
         dataset.version_history.process_and_output_version_history.assert_called_once_with(
             session, False
         )
@@ -735,14 +727,12 @@ class TestGet(TestCase):
         # CALL
         result = runner.invoke(
             get.get,
-            ["dataset", "some_id", "some_version_id", "--version-history", "--json"],
+            ["dataset", "some_version_id", "--version-history", "--json"],
         )
 
         # ASSERT
         mock_DAFNISession.assert_called_once()
-        mock_get_latest_dataset_metadata.assert_called_with(
-            session, "some_id", "some_version_id"
-        )
+        mock_get_latest_dataset_metadata.assert_called_with(session, "some_version_id")
         dataset.version_history.process_and_output_version_history.assert_called_once_with(
             session, True
         )

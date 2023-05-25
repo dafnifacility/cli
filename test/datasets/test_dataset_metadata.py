@@ -296,10 +296,7 @@ class TestDatasetVersionHistory(TestCase):
 
         # ASSERT
         mock_get_latest_dataset_metadata.assert_has_calls(
-            [
-                call(session, version_history.dataset_id, version.version_id)
-                for version in version_history.versions
-            ]
+            [call(session, version.version_id) for version in version_history.versions]
         )
         self.assertEqual(
             mock_output_version_details.call_count, len(version_history.versions)
@@ -332,10 +329,7 @@ class TestDatasetVersionHistory(TestCase):
 
         # ASSERT
         mock_get_latest_dataset_metadata.assert_has_calls(
-            [
-                call(session, version_history.dataset_id, version.version_id)
-                for version in version_history.versions
-            ]
+            [call(session, version.version_id) for version in version_history.versions]
         )
         self.assertEqual(mock_output_version_details.call_count, 0)
 
