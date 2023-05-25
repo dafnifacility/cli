@@ -29,9 +29,14 @@ class TestDownload(TestCase):
         self.assertEqual(ctx["session"], session)
         self.assertEqual(result.exit_code, 0)
 
-    @patch("dafni_cli.commands.download.get_latest_dataset_metadata")
-    @patch("dafni_cli.commands.download.parse_dataset_metadata")
-    @patch("dafni_cli.commands.download.write_files_to_zip")
+
+@patch("dafni_cli.commands.download.DAFNISession")
+@patch("dafni_cli.commands.download.get_latest_dataset_metadata")
+@patch("dafni_cli.commands.download.parse_dataset_metadata")
+@patch("dafni_cli.commands.download.write_files_to_zip")
+class TestDownloadDataset(TestCase):
+    """Test class to test the download dataset command"""
+
     def test_download_dataset(
         self,
         mock_write_files_to_zip,
@@ -87,9 +92,6 @@ class TestDownload(TestCase):
 
         self.assertEqual(result.exit_code, 0)
 
-    @patch("dafni_cli.commands.download.get_latest_dataset_metadata")
-    @patch("dafni_cli.commands.download.parse_dataset_metadata")
-    @patch("dafni_cli.commands.download.write_files_to_zip")
     def test_download_dataset_with_specific_directory(
         self,
         mock_write_files_to_zip,
@@ -152,10 +154,9 @@ class TestDownload(TestCase):
 
         self.assertEqual(result.exit_code, 0)
 
-    @patch("dafni_cli.commands.download.get_latest_dataset_metadata")
-    @patch("dafni_cli.commands.download.parse_dataset_metadata")
     def test_download_dataset_with_no_files(
         self,
+        mock_write_files_to_zip,
         mock_parse_dataset_metadata,
         mock_get_latest_dataset_metadata,
         mock_DAFNISession,
@@ -180,6 +181,7 @@ class TestDownload(TestCase):
         mock_parse_dataset_metadata.assert_called_once_with(
             mock_get_latest_dataset_metadata.return_value
         )
+        mock_write_files_to_zip.assert_not_called()
 
         self.assertEqual(
             result.output,

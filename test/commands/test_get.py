@@ -27,11 +27,14 @@ class TestGet(TestCase):
         self.assertEqual(ctx["session"], session)
         self.assertEqual(result.exit_code, 0)
 
-    # ----------------- MODELS
 
-    @patch("dafni_cli.commands.get.get_all_models")
-    @patch("dafni_cli.commands.get.parse_models")
-    @patch("dafni_cli.commands.get.print_json")
+@patch("dafni_cli.commands.get.DAFNISession")
+@patch("dafni_cli.commands.get.get_all_models")
+@patch("dafni_cli.commands.get.parse_models")
+@patch("dafni_cli.commands.get.print_json")
+class TestGetModels(TestCase):
+    """Test class to test the get models command"""
+
     def test_get_models(
         self, mock_print_json, mock_parse_models, mock_get_all_models, mock_DAFNISession
     ):
@@ -58,9 +61,6 @@ class TestGet(TestCase):
 
         self.assertEqual(result.exit_code, 0)
 
-    @patch("dafni_cli.commands.get.get_all_models")
-    @patch("dafni_cli.commands.get.parse_models")
-    @patch("dafni_cli.commands.get.print_json")
     def test_get_models_with_long_true(
         self, mock_print_json, mock_parse_models, mock_get_all_models, mock_DAFNISession
     ):
@@ -87,9 +87,6 @@ class TestGet(TestCase):
 
         self.assertEqual(result.exit_code, 0)
 
-    @patch("dafni_cli.commands.get.get_all_models")
-    @patch("dafni_cli.commands.get.parse_models")
-    @patch("dafni_cli.commands.get.print_json")
     def test_get_models_with_json_true(
         self, mock_print_json, mock_parse_models, mock_get_all_models, mock_DAFNISession
     ):
@@ -158,9 +155,6 @@ class TestGet(TestCase):
 
         self.assertEqual(result.exit_code, 0)
 
-    @patch("dafni_cli.commands.get.get_all_models")
-    @patch("dafni_cli.commands.get.parse_models")
-    @patch("dafni_cli.commands.get.print_json")
     def test_get_models_with_creation_date_filter(
         self,
         mock_print_json,
@@ -180,9 +174,6 @@ class TestGet(TestCase):
             False,
         )
 
-    @patch("dafni_cli.commands.get.get_all_models")
-    @patch("dafni_cli.commands.get.parse_models")
-    @patch("dafni_cli.commands.get.print_json")
     def test_get_models_with_publication_date_filter(
         self,
         mock_print_json,
@@ -202,9 +193,6 @@ class TestGet(TestCase):
             False,
         )
 
-    @patch("dafni_cli.commands.get.get_all_models")
-    @patch("dafni_cli.commands.get.parse_models")
-    @patch("dafni_cli.commands.get.print_json")
     def test_get_models_with_creation_date_filter_and_long_true(
         self,
         mock_print_json,
@@ -224,9 +212,6 @@ class TestGet(TestCase):
             True,
         )
 
-    @patch("dafni_cli.commands.get.get_all_models")
-    @patch("dafni_cli.commands.get.parse_models")
-    @patch("dafni_cli.commands.get.print_json")
     def test_get_models_with_publication_date_filter_and_long_true(
         self,
         mock_print_json,
@@ -285,9 +270,6 @@ class TestGet(TestCase):
 
         self.assertEqual(result.exit_code, 0)
 
-    @patch("dafni_cli.commands.get.get_all_models")
-    @patch("dafni_cli.commands.get.parse_models")
-    @patch("dafni_cli.commands.get.print_json")
     def test_get_models_with_creation_date_filter_json(
         self,
         mock_print_json,
@@ -306,9 +288,6 @@ class TestGet(TestCase):
             ("--creation-date", "creation"),
         )
 
-    @patch("dafni_cli.commands.get.get_all_models")
-    @patch("dafni_cli.commands.get.parse_models")
-    @patch("dafni_cli.commands.get.print_json")
     def test_get_models_with_publication_date_filter_json(
         self,
         mock_print_json,
@@ -327,11 +306,17 @@ class TestGet(TestCase):
             ("--publication-date", "publication"),
         )
 
-    # ----------------- MODEL
 
-    @patch("dafni_cli.commands.get.get_model")
-    @patch("dafni_cli.commands.get.parse_model")
-    def test_get_model(self, mock_parse_model, mock_get_model, mock_DAFNISession):
+@patch("dafni_cli.commands.get.DAFNISession")
+@patch("dafni_cli.commands.get.get_model")
+@patch("dafni_cli.commands.get.parse_model")
+@patch("dafni_cli.commands.get.print_json")
+class TestGetModel(TestCase):
+    """Test class to test the get model command"""
+
+    def test_get_model(
+        self, mock_print_json, mock_parse_model, mock_get_model, mock_DAFNISession
+    ):
         """Tests that the 'get model' command works correctly (with no
         optional arguments)"""
 
@@ -350,12 +335,10 @@ class TestGet(TestCase):
         mock_DAFNISession.assert_called_once()
         mock_get_model.assert_called_with(session, "some_version_id")
         model.output_info.assert_called_once()
+        mock_print_json.assert_not_called()
 
         self.assertEqual(result.exit_code, 0)
 
-    @patch("dafni_cli.commands.get.get_model")
-    @patch("dafni_cli.commands.get.parse_model")
-    @patch("dafni_cli.commands.get.print_json")
     def test_get_model_json(
         self, mock_print_json, mock_parse_model, mock_get_model, mock_DAFNISession
     ):
@@ -380,9 +363,6 @@ class TestGet(TestCase):
 
         self.assertEqual(result.exit_code, 0)
 
-    @patch("dafni_cli.commands.get.get_model")
-    @patch("dafni_cli.commands.get.parse_model")
-    @patch("dafni_cli.commands.get.print_json")
     def test_get_model_version_history(
         self, mock_print_json, mock_parse_model, mock_get_model, mock_DAFNISession
     ):
@@ -410,9 +390,6 @@ class TestGet(TestCase):
 
         self.assertEqual(result.exit_code, 0)
 
-    @patch("dafni_cli.commands.get.get_model")
-    @patch("dafni_cli.commands.get.parse_model")
-    @patch("dafni_cli.commands.get.print_json")
     def test_get_model_version_history_json(
         self, mock_print_json, mock_parse_model, mock_get_model, mock_DAFNISession
     ):
@@ -441,11 +418,14 @@ class TestGet(TestCase):
 
         self.assertEqual(result.exit_code, 0)
 
-    # ----------------- DATASETS
 
-    @patch("dafni_cli.commands.get.get_all_datasets")
-    @patch("dafni_cli.commands.get.parse_datasets")
-    @patch("dafni_cli.commands.get.print_json")
+@patch("dafni_cli.commands.get.DAFNISession")
+@patch("dafni_cli.commands.get.get_all_datasets")
+@patch("dafni_cli.commands.get.parse_datasets")
+@patch("dafni_cli.commands.get.print_json")
+class TestGetDatasets(TestCase):
+    """Test class to test the get datasets command"""
+
     def test_get_datasets(
         self,
         mock_print_json,
@@ -476,9 +456,6 @@ class TestGet(TestCase):
 
         self.assertEqual(result.exit_code, 0)
 
-    @patch("dafni_cli.commands.get.get_all_datasets")
-    @patch("dafni_cli.commands.get.parse_datasets")
-    @patch("dafni_cli.commands.get.print_json")
     def test_get_datasets_with_json_true(
         self,
         mock_print_json,
@@ -542,9 +519,6 @@ class TestGet(TestCase):
 
         self.assertEqual(result.exit_code, 0)
 
-    @patch("dafni_cli.commands.get.get_all_datasets")
-    @patch("dafni_cli.commands.get.parse_datasets")
-    @patch("dafni_cli.commands.get.print_json")
     def test_get_datasets_with_start_date_filter(
         self,
         mock_print_json,
@@ -571,9 +545,6 @@ class TestGet(TestCase):
             ),
         )
 
-    @patch("dafni_cli.commands.get.get_all_datasets")
-    @patch("dafni_cli.commands.get.parse_datasets")
-    @patch("dafni_cli.commands.get.print_json")
     def test_get_datasets_with_end_date_filter(
         self,
         mock_print_json,
@@ -600,11 +571,14 @@ class TestGet(TestCase):
             ),
         )
 
-    # ----------------- DATASET
 
-    @patch("dafni_cli.commands.get.get_latest_dataset_metadata")
-    @patch("dafni_cli.commands.get.parse_dataset_metadata")
-    @patch("dafni_cli.commands.get.print_json")
+@patch("dafni_cli.commands.get.DAFNISession")
+@patch("dafni_cli.commands.get.get_latest_dataset_metadata")
+@patch("dafni_cli.commands.get.parse_dataset_metadata")
+@patch("dafni_cli.commands.get.print_json")
+class TestGetDataset(TestCase):
+    """Test class to test the get dataset command"""
+
     def test_get_dataset(
         self,
         mock_print_json,
@@ -634,9 +608,6 @@ class TestGet(TestCase):
 
         self.assertEqual(result.exit_code, 0)
 
-    @patch("dafni_cli.commands.get.get_latest_dataset_metadata")
-    @patch("dafni_cli.commands.get.parse_dataset_metadata")
-    @patch("dafni_cli.commands.get.print_json")
     def test_get_dataset_json(
         self,
         mock_print_json,
@@ -665,9 +636,6 @@ class TestGet(TestCase):
 
         self.assertEqual(result.exit_code, 0)
 
-    @patch("dafni_cli.commands.get.get_latest_dataset_metadata")
-    @patch("dafni_cli.commands.get.parse_dataset_metadata")
-    @patch("dafni_cli.commands.get.print_json")
     def test_get_dataset_version_history(
         self,
         mock_print_json,
@@ -702,9 +670,6 @@ class TestGet(TestCase):
 
         self.assertEqual(result.exit_code, 0)
 
-    @patch("dafni_cli.commands.get.get_latest_dataset_metadata")
-    @patch("dafni_cli.commands.get.parse_dataset_metadata")
-    @patch("dafni_cli.commands.get.print_json")
     def test_get_dataset_version_history_json(
         self,
         mock_print_json,
@@ -740,11 +705,14 @@ class TestGet(TestCase):
 
         self.assertEqual(result.exit_code, 0)
 
-    # ----------------- WORKFLOWS
 
-    @patch("dafni_cli.commands.get.get_all_workflows")
-    @patch("dafni_cli.commands.get.parse_workflows")
-    @patch("dafni_cli.commands.get.print_json")
+@patch("dafni_cli.commands.get.DAFNISession")
+@patch("dafni_cli.commands.get.get_all_workflows")
+@patch("dafni_cli.commands.get.parse_workflows")
+@patch("dafni_cli.commands.get.print_json")
+class TestGetWorkflows(TestCase):
+    """Test class to test the get workflows command"""
+
     def test_get_workflows(
         self,
         mock_print_json,
@@ -775,9 +743,6 @@ class TestGet(TestCase):
 
         self.assertEqual(result.exit_code, 0)
 
-    @patch("dafni_cli.commands.get.get_all_workflows")
-    @patch("dafni_cli.commands.get.parse_workflows")
-    @patch("dafni_cli.commands.get.print_json")
     def test_get_workflows_with_long_true(
         self,
         mock_print_json,
@@ -808,9 +773,6 @@ class TestGet(TestCase):
 
         self.assertEqual(result.exit_code, 0)
 
-    @patch("dafni_cli.commands.get.get_all_workflows")
-    @patch("dafni_cli.commands.get.parse_workflows")
-    @patch("dafni_cli.commands.get.print_json")
     def test_get_workflows_with_json_true(
         self,
         mock_print_json,
@@ -882,9 +844,6 @@ class TestGet(TestCase):
 
         self.assertEqual(result.exit_code, 0)
 
-    @patch("dafni_cli.commands.get.get_all_workflows")
-    @patch("dafni_cli.commands.get.parse_workflows")
-    @patch("dafni_cli.commands.get.print_json")
     def test_get_workflows_with_creation_date_filter(
         self,
         mock_print_json,
@@ -904,9 +863,6 @@ class TestGet(TestCase):
             False,
         )
 
-    @patch("dafni_cli.commands.get.get_all_workflows")
-    @patch("dafni_cli.commands.get.parse_workflows")
-    @patch("dafni_cli.commands.get.print_json")
     def test_get_workflows_with_publication_date_filter(
         self,
         mock_print_json,
@@ -926,9 +882,6 @@ class TestGet(TestCase):
             False,
         )
 
-    @patch("dafni_cli.commands.get.get_all_workflows")
-    @patch("dafni_cli.commands.get.parse_workflows")
-    @patch("dafni_cli.commands.get.print_json")
     def test_get_workflows_with_creation_date_filter_and_long_true(
         self,
         mock_print_json,
@@ -948,9 +901,6 @@ class TestGet(TestCase):
             True,
         )
 
-    @patch("dafni_cli.commands.get.get_all_workflows")
-    @patch("dafni_cli.commands.get.parse_workflows")
-    @patch("dafni_cli.commands.get.print_json")
     def test_get_workflows_with_publication_date_filter_and_long_true(
         self,
         mock_print_json,
@@ -1008,9 +958,6 @@ class TestGet(TestCase):
 
         self.assertEqual(result.exit_code, 0)
 
-    @patch("dafni_cli.commands.get.get_all_workflows")
-    @patch("dafni_cli.commands.get.parse_workflows")
-    @patch("dafni_cli.commands.get.print_json")
     def test_get_workflows_with_creation_date_filter_json(
         self,
         mock_print_json,
@@ -1029,9 +976,6 @@ class TestGet(TestCase):
             ("--creation-date", "creation"),
         )
 
-    @patch("dafni_cli.commands.get.get_all_workflows")
-    @patch("dafni_cli.commands.get.parse_workflows")
-    @patch("dafni_cli.commands.get.print_json")
     def test_get_workflows_with_publication_date_filter_json(
         self,
         mock_print_json,
@@ -1050,11 +994,14 @@ class TestGet(TestCase):
             ("--publication-date", "publication"),
         )
 
-    # ----------------- WORKFLOW
 
-    @patch("dafni_cli.commands.get.get_workflow")
-    @patch("dafni_cli.commands.get.parse_workflow")
-    @patch("dafni_cli.commands.get.print_json")
+@patch("dafni_cli.commands.get.DAFNISession")
+@patch("dafni_cli.commands.get.get_workflow")
+@patch("dafni_cli.commands.get.parse_workflow")
+@patch("dafni_cli.commands.get.print_json")
+class TestGetWorkflow(TestCase):
+    """Test class to test the get workflow command"""
+
     def test_get_workflow(
         self, mock_print_json, mock_parse_workflow, mock_get_workflow, mock_DAFNISession
     ):
@@ -1080,9 +1027,6 @@ class TestGet(TestCase):
 
         self.assertEqual(result.exit_code, 0)
 
-    @patch("dafni_cli.commands.get.get_workflow")
-    @patch("dafni_cli.commands.get.parse_workflow")
-    @patch("dafni_cli.commands.get.print_json")
     def test_get_workflow_json(
         self, mock_print_json, mock_parse_workflow, mock_get_workflow, mock_DAFNISession
     ):
@@ -1107,9 +1051,6 @@ class TestGet(TestCase):
 
         self.assertEqual(result.exit_code, 0)
 
-    @patch("dafni_cli.commands.get.get_workflow")
-    @patch("dafni_cli.commands.get.parse_workflow")
-    @patch("dafni_cli.commands.get.print_json")
     def test_get_workflow_version_history(
         self, mock_print_json, mock_parse_workflow, mock_get_workflow, mock_DAFNISession
     ):
@@ -1137,9 +1078,6 @@ class TestGet(TestCase):
 
         self.assertEqual(result.exit_code, 0)
 
-    @patch("dafni_cli.commands.get.get_workflow")
-    @patch("dafni_cli.commands.get.parse_workflow")
-    @patch("dafni_cli.commands.get.print_json")
     def test_get_workflow_version_history_json(
         self, mock_print_json, mock_parse_workflow, mock_get_workflow, mock_DAFNISession
     ):
