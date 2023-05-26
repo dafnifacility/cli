@@ -9,8 +9,15 @@ from dafni_cli.api.datasets_api import get_latest_dataset_metadata
 from dafni_cli.api.minio_api import minio_get_request
 from dafni_cli.api.parser import ParserBaseObject, ParserParam, parse_datetime
 from dafni_cli.api.session import DAFNISession
-from dafni_cli.consts import CONSOLE_WIDTH, DATA_FORMATS, TAB_SPACE
+from dafni_cli.consts import (
+    CONSOLE_WIDTH,
+    DATA_FORMATS,
+    DATE_OUTPUT_FORMAT,
+    DATE_TIME_OUTPUT_FORMAT,
+    TAB_SPACE,
+)
 from dafni_cli.utils import (
+    format_datetime,
     format_table,
     print_json,
     process_file_size,
@@ -374,7 +381,7 @@ class DatasetMetadata(ParserBaseObject):
         Args:
             long (bool, optional): Flag to print additional metadata. Defaults to False.
         """
-        click.echo(f"\nCreated: {self.created}")
+        click.echo(f"\nCreated: {format_datetime(self.created, include_time=True)}")
         click.echo(f"Creator: {self.creators[0].name}")
         click.echo(f"Contact: {self.contact}")
         click.echo("Description:")
@@ -385,11 +392,9 @@ class DatasetMetadata(ParserBaseObject):
         )
         click.echo(f"Location: {self.location.label}")
         click.echo(
-            f"Start date: {self.start_date.strftime('%B %d %Y') if self.start_date else 'None'}"
+            f"Start date: {format_datetime(self.start_date, include_time=False)}"
         )
-        click.echo(
-            f"End date: {self.end_date.strftime('%B %d %Y') if self.end_date else 'None'}"
-        )
+        click.echo(f"End date: {format_datetime(self.end_date, include_time=False)}")
         click.echo(f"Key words:\n {self.keywords}")
 
         # DataFiles table
@@ -434,7 +439,10 @@ class DatasetMetadata(ParserBaseObject):
         click.echo(f"ID: {self.dataset_id}")
         click.echo(f"Version ID: {self.version_id}")
         click.echo(f"Publisher: {self.publisher.name}")
-        click.echo(f"From: {self.start_date}{TAB_SPACE}To: {self.end_date}")
+        click.echo(
+            f"From: {format_datetime(self.start_date, include_time=True)}{TAB_SPACE}"
+            f"To: {format_datetime(self.end_date, include_time=True)}"
+        )
         click.echo("Description: ")
         prose_print(self.description, CONSOLE_WIDTH)
 

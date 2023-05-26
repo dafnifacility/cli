@@ -8,6 +8,7 @@ from dateutil.tz import tzutc
 from dafni_cli.api.auth import Auth
 from dafni_cli.api.parser import ParserBaseObject
 from dafni_cli.consts import CONSOLE_WIDTH, TAB_SPACE
+from dafni_cli.utils import format_datetime
 from dafni_cli.workflow.instance import WorkflowInstance
 from dafni_cli.workflow.parameter_set import WorkflowParameterSet
 from dafni_cli.workflow.workflow import (
@@ -357,20 +358,18 @@ class TestWorkflow(TestCase):
     def test_output_details(self, mock_click):
         """Tests output_details works correctly"""
         # SETUP
-        model = parse_workflow(TEST_WORKFLOW)
+        workflow = parse_workflow(TEST_WORKFLOW)
 
         # CALL
-        model.output_details()
+        workflow.output_details()
 
         # ASSERT
         mock_click.echo.assert_has_calls(
             [
                 call(
-                    "Name: A Workflow"
-                    + TAB_SPACE
-                    + "ID: 0a0a0a0a-0a00-0a00-a000-0a0a0000000a"
-                    + TAB_SPACE
-                    + "Date: April 04 2023"
+                    f"Name: A Workflow{TAB_SPACE}"
+                    f"ID: 0a0a0a0a-0a00-0a00-a000-0a0a0000000a{TAB_SPACE}"
+                    f"Created: {format_datetime(workflow.creation_date, include_time=True)}"
                 ),
                 call("Summary: Test workflow created to learn about DAFNI"),
                 call(""),
@@ -391,11 +390,9 @@ class TestWorkflow(TestCase):
         mock_click.echo.assert_has_calls(
             [
                 call(
-                    "Name: A Workflow"
-                    + TAB_SPACE
-                    + "ID: 0a0a0a0a-0a00-0a00-a000-0a0a0000000a"
-                    + TAB_SPACE
-                    + "Date: April 04 2023"
+                    f"Name: A Workflow{TAB_SPACE}"
+                    f"ID: 0a0a0a0a-0a00-0a00-a000-0a0a0000000a{TAB_SPACE}"
+                    f"Created: {format_datetime(workflow.creation_date, include_time=True)}"
                 ),
                 call("Summary: Test workflow created to learn about DAFNI"),
                 call("Description: "),
@@ -409,14 +406,16 @@ class TestWorkflow(TestCase):
     def test_output_info(self, mock_click, mock_prose_print):
         """Tests output_info works correctly"""
         # SETUP
-        worfklow = parse_workflow(TEST_WORKFLOW)
+        workflow = parse_workflow(TEST_WORKFLOW)
 
-        worfklow.output_info()
+        workflow.output_info()
 
         mock_click.echo.assert_has_calls(
             [
                 call("Name: A Workflow"),
-                call("Date: April 04 2023"),
+                call(
+                    f"Created: {format_datetime(workflow.creation_date, include_time=True)}"
+                ),
                 call("Summary: "),
                 call("Test workflow created to learn about DAFNI"),
             ]
@@ -434,13 +433,10 @@ class TestWorkflow(TestCase):
         # ASSERT
         self.assertEqual(
             result,
-            "ID: 0a0a0a0a-0a00-0a00-a000-0a0a0000000a"
-            + TAB_SPACE
-            + "Name: A Workflow"
-            + TAB_SPACE
-            + "Publication date: April 04 2023"
-            + TAB_SPACE
-            + "Version message: Initial Workflow version",
+            f"ID: 0a0a0a0a-0a00-0a00-a000-0a0a0000000a{TAB_SPACE}"
+            f"Name: A Workflow{TAB_SPACE}"
+            f"Publication date: {format_datetime(workflow.publication_date, include_time=True)}{TAB_SPACE}"
+            "Version message: Initial Workflow version",
         )
 
     @patch("dafni_cli.workflow.workflow.click")
@@ -456,11 +452,9 @@ class TestWorkflow(TestCase):
         mock_click.echo.assert_has_calls(
             [
                 call(
-                    "Name: A Workflow"
-                    + TAB_SPACE
-                    + "ID: 0a0a0a0a-0a00-0a00-a000-0a0a0000000a"
-                    + TAB_SPACE
-                    + "Date: April 04 2023"
+                    f"Name: A Workflow{TAB_SPACE}"
+                    f"ID: 0a0a0a0a-0a00-0a00-a000-0a0a0000000a{TAB_SPACE}"
+                    f"Publication date: {format_datetime(workflow.publication_date, include_time=True)}"
                 ),
                 call("Version message: Initial Workflow version"),
                 call("Version tags: latest"),

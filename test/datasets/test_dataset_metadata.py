@@ -17,7 +17,7 @@ from dafni_cli.datasets.dataset_metadata import (
     Standard,
     parse_dataset_metadata,
 )
-from dafni_cli.utils import process_file_size
+from dafni_cli.utils import format_datetime, process_file_size
 
 from test.fixtures.dataset_metadata import (
     TEST_DATASET_METADATA,
@@ -431,11 +431,7 @@ class TestDatasetMetadataTestCase(TestCase):
     @patch("dafni_cli.datasets.dataset_metadata.prose_print")
     @patch("dafni_cli.datasets.dataset_metadata.click")
     def test_output_metadata_details(
-        self,
-        mock_click,
-        mock_prose,
-        mock_table,
-        mock_extra_details,
+        self, mock_click, mock_prose, mock_table, mock_extra_details
     ):
         """Tests output_metadata_details functions as expected"""
 
@@ -450,14 +446,20 @@ class TestDatasetMetadataTestCase(TestCase):
         # ASSERT
         mock_click.echo.assert_has_calls(
             [
-                call(f"\nCreated: {dataset_metadata.created}"),
+                call(
+                    f"\nCreated: {format_datetime(dataset_metadata.created, include_time=True)}"
+                ),
                 call(f"Creator: {dataset_metadata.creators[0].name}"),
                 call(f"Contact: {dataset_metadata.contact}"),
                 call("Description:"),
                 call("Identifiers:"),
                 call(f"Location: {dataset_metadata.location.label}"),
-                call(f"Start date: {dataset_metadata.start_date.strftime('%B %d %Y')}"),
-                call(f"End date: {dataset_metadata.end_date.strftime('%B %d %Y')}"),
+                call(
+                    f"Start date: {format_datetime(dataset_metadata.start_date, include_time=False)}"
+                ),
+                call(
+                    f"End date: {format_datetime(dataset_metadata.end_date, include_time=False)}"
+                ),
                 call(f"Key words:\n {dataset_metadata.keywords}"),
             ]
         )
@@ -497,14 +499,16 @@ class TestDatasetMetadataTestCase(TestCase):
         # ASSERT
         mock_click.echo.assert_has_calls(
             [
-                call(f"\nCreated: {dataset_metadata.created}"),
+                call(
+                    f"\nCreated: {format_datetime(dataset_metadata.created, include_time=True)}"
+                ),
                 call(f"Creator: {dataset_metadata.creators[0].name}"),
                 call(f"Contact: {dataset_metadata.contact}"),
                 call("Description:"),
                 call("Identifiers:"),
                 call(f"Location: {dataset_metadata.location.label}"),
-                call("Start date: None"),
-                call("End date: None"),
+                call("Start date: N/A"),
+                call("End date: N/A"),
                 call(f"Key words:\n {dataset_metadata.keywords}"),
             ]
         )
@@ -540,6 +544,40 @@ class TestDatasetMetadataTestCase(TestCase):
         dataset_metadata.output_metadata_details(long=True)
 
         # ASSERT
+        # SETUP
+        dataset_metadata: DatasetMetadata = parse_dataset_metadata(
+            TEST_DATASET_METADATA
+        )
+        dataset_metadata.start_date = None
+        dataset_metadata.end_date = None
+
+        # CALL
+        dataset_metadata.output_metadata_details()
+
+        # ASSERT
+        mock_click.echo.assert_has_calls(
+            [
+                call(
+                    f"\nCreated: {format_datetime(dataset_metadata.created, include_time=True)}"
+                ),
+                call(f"Creator: {dataset_metadata.creators[0].name}"),
+                call(f"Contact: {dataset_metadata.contact}"),
+                call("Description:"),
+                call("Identifiers:"),
+                call(f"Location: {dataset_metadata.location.label}"),
+                call("Start date: N/A"),
+                call("End date: N/A"),
+                call(f"Key words:\n {dataset_metadata.keywords}"),
+            ]
+        )
+        mock_prose.assert_has_calls(
+            [
+                call(dataset_metadata.description, CONSOLE_WIDTH),
+                call(" ".join(dataset_metadata.identifiers), CONSOLE_WIDTH),
+            ]
+        )
+
+        mock_table.assert_has_calls([call()])
         mock_extra_details.assert_called_once()
 
     @patch("dafni_cli.datasets.dataset_metadata.format_table")
@@ -612,7 +650,8 @@ class TestDatasetMetadataTestCase(TestCase):
                 call(f"Version ID: {dataset_metadata.version_id}"),
                 call(f"Publisher: {dataset_metadata.publisher}"),
                 call(
-                    f"From: {dataset_metadata.start_date}{TAB_SPACE}To: {dataset_metadata.end_date}"
+                    f"From: {format_datetime(dataset_metadata.start_date, include_time=True)}{TAB_SPACE}"
+                    f"To: {format_datetime(dataset_metadata.end_date, include_time=True)}"
                 ),
                 call("Description: "),
             ]

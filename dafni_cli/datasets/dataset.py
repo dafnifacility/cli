@@ -6,7 +6,7 @@ import click
 
 from dafni_cli.api.parser import ParserBaseObject, ParserParam, parse_datetime
 from dafni_cli.consts import CONSOLE_WIDTH, TAB_SPACE
-from dafni_cli.utils import prose_print
+from dafni_cli.utils import format_datetime, prose_print
 
 
 @dataclass
@@ -67,18 +67,10 @@ class Dataset(ParserBaseObject):
         click.echo("ID: " + self.dataset_id)
         click.echo("Latest Version: " + self.version_id)
         click.echo("Publisher: " + self.source)
-        start = (
-            self.date_range_start.date().strftime("%B %d %Y")
-            if self.date_range_start
-            else TAB_SPACE
+        click.echo(
+            f"From: {format_datetime(self.date_range_start, include_time=False)}{TAB_SPACE}"
+            f"To: {format_datetime(self.date_range_end, include_time=False)}"
         )
-        end = (
-            self.date_range_end.date().strftime("%B %d %Y")
-            if self.date_range_end
-            else TAB_SPACE
-        )
-        date_range_str = f"From: {start}{TAB_SPACE}To: {end}"
-        click.echo(date_range_str)
         click.echo("Description: ")
         prose_print(self.description or "", CONSOLE_WIDTH)
         click.echo("")

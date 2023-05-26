@@ -10,6 +10,7 @@ from dafni_cli.consts import CONSOLE_WIDTH, TAB_SPACE
 from dafni_cli.model.inputs import ModelInputs
 from dafni_cli.model.model import Model, ModelSpec, parse_model, parse_models
 from dafni_cli.model.outputs import ModelOutputs
+from dafni_cli.utils import format_datetime
 
 from test.fixtures.models import (
     TEST_MODEL,
@@ -252,11 +253,9 @@ class TestModel(TestCase):
         mock_click.echo.assert_has_calls(
             [
                 call(
-                    "Name: Some display name"
-                    + TAB_SPACE
-                    + "ID: 0a0a0a0a-0a00-0a00-a000-0a0a0000000a"
-                    + TAB_SPACE
-                    + "Date: July 17 2019"
+                    f"Name: Some display name{TAB_SPACE}"
+                    f"ID: 0a0a0a0a-0a00-0a00-a000-0a0a0000000a{TAB_SPACE}"
+                    f"Created: {format_datetime(model.creation_date, include_time=True)}"
                 ),
                 call("Summary: For testing"),
                 call(""),
@@ -277,11 +276,9 @@ class TestModel(TestCase):
         mock_click.echo.assert_has_calls(
             [
                 call(
-                    "Name: Some display name"
-                    + TAB_SPACE
-                    + "ID: 0a0a0a0a-0a00-0a00-a000-0a0a0000000a"
-                    + TAB_SPACE
-                    + "Date: July 17 2019"
+                    f"Name: Some display name{TAB_SPACE}"
+                    f"ID: 0a0a0a0a-0a00-0a00-a000-0a0a0000000a{TAB_SPACE}"
+                    f"Created: {format_datetime(model.creation_date, include_time=True)}"
                 ),
                 call("Summary: For testing"),
                 call("Description: "),
@@ -311,7 +308,9 @@ class TestModel(TestCase):
         mock_click.echo.assert_has_calls(
             [
                 call("Name: Some display name"),
-                call("Date: July 17 2019"),
+                call(
+                    f"Created: {format_datetime(model.creation_date, include_time=True)}"
+                ),
                 call("Parent ID: 0a0a0a0a-0a00-0a00-a000-0a0a0000000b"),
                 call("Summary: "),
                 call("For testing"),
@@ -349,7 +348,9 @@ class TestModel(TestCase):
         mock_click.echo.assert_has_calls(
             [
                 call("Name: Some display name"),
-                call("Date: July 17 2019"),
+                call(
+                    f"Created: {format_datetime(model.creation_date, include_time=True)}"
+                ),
                 call("Parent ID: 0a0a0a0a-0a00-0a00-a000-0a0a0000000b"),
                 call("Summary: "),
                 call("For testing"),
@@ -384,7 +385,9 @@ class TestModel(TestCase):
         mock_click.echo.assert_has_calls(
             [
                 call("Name: Some display name"),
-                call("Date: July 17 2019"),
+                call(
+                    f"Created: {format_datetime(model.creation_date, include_time=True)}"
+                ),
                 call("Parent ID: 0a0a0a0a-0a00-0a00-a000-0a0a0000000b"),
                 call("Summary: "),
                 call("For testing"),
@@ -417,7 +420,9 @@ class TestModel(TestCase):
         mock_click.echo.assert_has_calls(
             [
                 call("Name: Some display name"),
-                call("Date: July 17 2019"),
+                call(
+                    f"Created: {format_datetime(model.creation_date, include_time=True)}"
+                ),
                 call("Parent ID: 0a0a0a0a-0a00-0a00-a000-0a0a0000000b"),
                 call("Summary: "),
                 call("For testing"),
@@ -437,13 +442,10 @@ class TestModel(TestCase):
         # ASSERT
         self.assertEqual(
             result,
-            "ID: 0a0a0a0a-0a00-0a00-a000-0a0a0000000a"
-            + TAB_SPACE
-            + "Name: Some display name"
-            + TAB_SPACE
-            + "Publication date: April 02 2020"
-            + TAB_SPACE
-            + "Version message: ",
+            f"ID: 0a0a0a0a-0a00-0a00-a000-0a0a0000000a{TAB_SPACE}"
+            f"Name: Some display name{TAB_SPACE}"
+            f"Publication date: {format_datetime(model.publication_date, include_time=True)}{TAB_SPACE}"
+            "Version message: ",
         )
 
     @patch("dafni_cli.model.model.click")
@@ -459,11 +461,9 @@ class TestModel(TestCase):
         mock_click.echo.assert_has_calls(
             [
                 call(
-                    "Name: Some display name"
-                    + TAB_SPACE
-                    + "ID: 0a0a0a0a-0a00-0a00-a000-0a0a0000000d"
-                    + TAB_SPACE
-                    + "Date: April 02 2020"
+                    f"Name: Some display name{TAB_SPACE}"
+                    f"ID: 0a0a0a0a-0a00-0a00-a000-0a0a0000000d{TAB_SPACE}"
+                    f"Publication date: {format_datetime(model.publication_date, include_time=True)}"
                 ),
                 call("Version message: First version"),
                 call("Version tags: latest"),

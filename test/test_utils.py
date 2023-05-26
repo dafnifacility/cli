@@ -1,5 +1,6 @@
 import tempfile
 from dataclasses import dataclass
+from datetime import datetime
 from io import BytesIO
 from pathlib import Path
 from typing import List, Optional
@@ -8,7 +9,7 @@ from unittest.mock import call, patch
 from zipfile import ZipFile
 
 from dafni_cli import utils
-from dafni_cli.consts import TABULATE_ARGS
+from dafni_cli.consts import DATE_OUTPUT_FORMAT, DATE_TIME_OUTPUT_FORMAT, TABULATE_ARGS
 
 
 @patch("dafni_cli.utils.click")
@@ -547,3 +548,53 @@ class TestFormatTable(TestCase):
             **TABULATE_ARGS
         )
         self.assertEqual(mock_tabulate.return_value, result)
+
+
+class TestFormatDatetime(TestCase):
+    """Test class to test the format_datetime function"""
+
+    def test_formats_correctly_when_include_time_false(self):
+        """Tests the expected string is returned when include_time is False"""
+        # SETUP
+        test_value = datetime(2021, 3, 16, 9, 27, 21)
+
+        # CALL
+        result = utils.format_datetime(test_value, include_time=False)
+
+        # ASSERT
+        self.assertEqual(result, test_value.strftime(DATE_OUTPUT_FORMAT))
+
+    def test_formats_correctly_when_include_time_true(self):
+        """Tests the expected string is returned when include_time is True"""
+        # SETUP
+        test_value = datetime(2021, 3, 16, 9, 27, 21)
+
+        # CALL
+        result = utils.format_datetime(test_value, include_time=True)
+
+        # ASSERT
+        self.assertEqual(result, test_value.strftime(DATE_TIME_OUTPUT_FORMAT))
+
+    def test_returns_none_when_value_none_and_include_time_false(self):
+        """Tests the expected string is returned when include_time is False
+        and the given datetime value is None"""
+        # SETUP
+        test_value = None
+
+        # CALL
+        result = utils.format_datetime(test_value, include_time=False)
+
+        # ASSERT
+        self.assertEqual(result, "N/A")
+
+    def test_returns_none_when_value_none_and_include_time_true(self):
+        """Tests the expected string is returned when include_time is True
+        and the given datetime value is None"""
+        # SETUP
+        test_value = None
+
+        # CALL
+        result = utils.format_datetime(test_value, include_time=True)
+
+        # ASSERT
+        self.assertEqual(result, "N/A")
