@@ -214,9 +214,9 @@ class TestProcessDateFilter(TestCase):
 
         # SETUP
         values_and_results = [
-            ("1/2/2003", "2003-02-01T00:00:00"),
-            ("10/2/2003", "2003-02-10T00:00:00"),
-            ("10/12/2003", "2003-12-10T00:00:00"),
+            ("2003-02-01", "2003-02-01T00:00:00"),
+            ("2003-2-10", "2003-02-10T00:00:00"),
+            ("2003-12-10", "2003-12-10T00:00:00"),
         ]
 
         # CALL & ASSERT
@@ -227,7 +227,7 @@ class TestProcessDateFilter(TestCase):
         """Tests that invalid date strings raise ValueError's"""
 
         # SETUP
-        values = ["1/1/21", "1/13/2021", "32/2/2021"]
+        values = ["1/1/21", "2021-13-01", "2021-01-32"]
 
         # CALL & ASSERT
         for value in values:

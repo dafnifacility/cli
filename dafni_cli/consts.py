@@ -31,6 +31,9 @@ VALIDATE_MODEL_CT = "application/yaml"
 # ISO8601
 DATE_TIME_OUTPUT_FORMAT = "%Y-%m-%dT%H:%M:%S"
 DATE_OUTPUT_FORMAT = "%Y-%m-%d"
+DATE_INPUT_FORMAT = "%Y-%m-%d"
+# Same as above but for displaying to the user
+DATE_INPUT_FORMAT_VERBOSE = "YYYY-MM-DD"
 
 # Tabulate arguments for table formatting
 TABULATE_ARGS = {"tablefmt": "simple", "stralign": "left", "numalign": "left"}

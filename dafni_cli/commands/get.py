@@ -7,10 +7,8 @@ from dafni_cli.api.datasets_api import get_all_datasets, get_latest_dataset_meta
 from dafni_cli.api.exceptions import ResourceNotFoundError
 from dafni_cli.api.models_api import get_all_models, get_model
 from dafni_cli.api.session import DAFNISession
-from dafni_cli.api.workflows_api import (
-    get_all_workflows,
-    get_workflow,
-)
+from dafni_cli.api.workflows_api import get_all_workflows, get_workflow
+from dafni_cli.consts import DATE_INPUT_FORMAT_VERBOSE
 from dafni_cli.datasets import dataset_filtering
 from dafni_cli.datasets.dataset import parse_datasets
 from dafni_cli.datasets.dataset_metadata import parse_dataset_metadata
@@ -46,13 +44,13 @@ def get(ctx: Context):
 @click.option(
     "--creation-date",
     default=None,
-    help="Filter for models created since given date. Format: DD/MM/YYYY",
+    help=f"Filter for models created since given date. Format: {DATE_INPUT_FORMAT_VERBOSE}",
     type=str,
 )
 @click.option(
     "--publication-date",
     default=None,
-    help="Filter for models published since given date. Format: DD/MM/YYYY",
+    help=f"Filter for models published since given date. Format: {DATE_INPUT_FORMAT_VERBOSE}",
     type=str,
 )
 @click.option(
@@ -72,8 +70,10 @@ def models(
     Args:
         ctx (context): contains user session for authentication
         long (bool): whether to print the description of each model as well
-        creation_date (str): for filtering by creation date. Format: DD/MM/YYYY
-        publication_date (str): for filtering by publication date. Format: DD/MM/YYYY
+        creation_date (str): for filtering by creation date. Format:
+                             DATE_INPUT_FORMAT_VERBOSE
+        publication_date (str): for filtering by publication date. Format:
+                                DATE_INPUT_FORMAT_VERBOSE
         json (bool): whether to print the raw json returned by the DAFNI API
     """
     model_dict_list = get_all_models(ctx.obj["session"])
@@ -155,13 +155,13 @@ def model(ctx: Context, version_id: List[str], version_history: bool, json: bool
 @click.option(
     "--start-date",
     default=None,
-    help="Filter for datasets with a start date since given date. Format: DD/MM/YYYY",
+    help=f"Filter for datasets with a start date since given date. Format: {DATE_INPUT_FORMAT_VERBOSE}",
     type=str,
 )
 @click.option(
     "--end-date",
     default=None,
-    help="Filter for datasets with a end date up to given date. Format: DD/MM/YYYY",
+    help=f"Filter for datasets with a end date up to given date. Format: {DATE_INPUT_FORMAT_VERBOSE}",
     type=str,
 )
 @click.option(
@@ -185,8 +185,10 @@ def datasets(
     Args:
         ctx (context): contains user session for authentication
         search (Optional[str]): Search terms for elastic search. Format: "search terms"
-        start_date (Optional[str]): Filter for datasets with a start date since given date. Format: DD/MM/YYYY
-        end_date (Optional[str]): Filter for datasets with a end date up to given date. Format: DD/MM/YYYY
+        start_date (Optional[str]): Filter for datasets with a start date since given date. Format:
+                                    DATE_INPUT_FORMAT_VERBOSE
+        end_date (Optional[str]): Filter for datasets with a end date up to given date. Format:
+                                  DATE_INPUT_FORMAT_VERBOSE
         json (Optional[bool]): Whether to output raw json from API or pretty print information. Defaults to False.
     """
     filters = dataset_filtering.process_datasets_filters(search, start_date, end_date)
@@ -274,13 +276,13 @@ def dataset(
 @click.option(
     "--creation-date",
     default=None,
-    help="Filter for workflows created since given date. Format: DD/MM/YYYY",
+    help=f"Filter for workflows created since given date. Format: {DATE_INPUT_FORMAT_VERBOSE}",
     type=str,
 )
 @click.option(
     "--publication-date",
     default=None,
-    help="Filter for workflows published since given date. Format: DD/MM/YYYY",
+    help=f"Filter for workflows published since given date. Format: {DATE_INPUT_FORMAT_VERBOSE}",
     type=str,
 )
 @click.option(
@@ -301,8 +303,10 @@ def workflows(
     Args:
         ctx (context): contains user session for authentication
         long (bool): whether to print the description of each model as well
-        creation_date (str): for filtering by creation date. Format: DD/MM/YYYY
-        publication_date (str): for filtering by publication date. Format: DD/MM/YYYY
+        creation_date (str): for filtering by creation date. Format:
+                             DATE_INPUT_FORMAT_VERBOSE
+        publication_date (str): for filtering by publication date. Format:
+                                DATE_INPUT_FORMAT_VERBOSE
         json (bool): whether to print the raw json returned by the DAFNI API
     """
     workflow_dict_list = get_all_workflows(ctx.obj["session"])

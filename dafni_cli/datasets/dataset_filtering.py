@@ -11,8 +11,8 @@ def process_datasets_filters(
 
     Args:
         search_terms (Optional[str]): Elastic search query
-        start (Optional[str]): start date for date range
-        end (Optional[str]): end date for date range
+        start (Optional[str]): Start date for date range
+        end (Optional[str]): End date for date range
 
     Returns:
         dict: processed filters in an API ready format

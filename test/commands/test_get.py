@@ -530,7 +530,7 @@ class TestGet(TestCase):
         mock_parse_datasets.return_value = datasets
 
         # CALL
-        options = ["datasets", date_filter_options[0], "01/01/2023"]
+        options = ["datasets", date_filter_options[0], "2023-01-01"]
         result = runner.invoke(get.get, options)
 
         # ASSERT

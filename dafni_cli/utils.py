@@ -11,7 +11,12 @@ from zipfile import ZipFile
 import click
 from tabulate import tabulate
 
-from dafni_cli.consts import DATE_OUTPUT_FORMAT, DATE_TIME_OUTPUT_FORMAT, TABULATE_ARGS
+from dafni_cli.consts import (
+    DATE_INPUT_FORMAT,
+    DATE_OUTPUT_FORMAT,
+    DATE_TIME_OUTPUT_FORMAT,
+    TABULATE_ARGS,
+)
 
 
 def prose_print(prose: str, width: int):
@@ -65,13 +70,12 @@ def process_date_filter(date_str: str) -> str:
     and process into a format to submit to the DAFNI API's
 
     Args:
-        date_str (str): Date Str in format dd/mm/yyyy
+        date_str (str): Date string in the format given by DATE_INPUT_FORMAT
 
     Returns:
-        str: Processed date str to YYYY-MM-DDT00:00:00
+        str: Processed date string to ISO8601 format
     """
-    # TODO use this datetime format (ISO8601) and use as a constant here
-    return datetime.strptime(date_str, "%d/%m/%Y").strftime("%Y-%m-%dT%H:%M:%S")
+    return datetime.strptime(date_str, DATE_INPUT_FORMAT).isoformat()
 
 
 def process_file_size(file_size: str) -> str:

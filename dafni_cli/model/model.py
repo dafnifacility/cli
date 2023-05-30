@@ -6,10 +6,7 @@ import click
 
 from dafni_cli.api.auth import Auth
 from dafni_cli.api.parser import ParserBaseObject, ParserParam, parse_datetime
-from dafni_cli.consts import (
-    CONSOLE_WIDTH,
-    TAB_SPACE,
-)
+from dafni_cli.consts import CONSOLE_WIDTH, DATE_INPUT_FORMAT, TAB_SPACE
 from dafni_cli.model.inputs import ModelInputs
 from dafni_cli.model.outputs import ModelOutputs
 from dafni_cli.utils import format_datetime, prose_print
@@ -232,15 +229,14 @@ class Model(ParserBaseObject):
         Args:
             key (str): Key for which date to check must be either 'creation'
                        or 'publication'
-            date_str (str): Date for which models are to be filtered on - format
-                            DD/MM/YYYY
+            date_str (str): Date string for which workflows are to be filtered
+                            in the format given by DATE_INPUT_FORMAT
 
         Returns:
             bool: Whether the given date is less than or equal to the
                   chosen date
         """
-        day, month, year = date_str.split("/")
-        date_val = date(int(year), int(month), int(day))
+        date_val = datetime.strptime(date_str, DATE_INPUT_FORMAT).date()
         if key.lower() == "creation":
             return self.creation_date.date() >= date_val
         if key.lower() == "publication":

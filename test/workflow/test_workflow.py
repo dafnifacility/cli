@@ -345,14 +345,14 @@ class TestWorkflow(TestCase):
         # CALL
 
         # Before
-        self._test_filter_by_date(workflow, "creation", "16/05/2018", True)
-        self._test_filter_by_date(workflow, "publication", "16/05/2018", True)
+        self._test_filter_by_date(workflow, "creation", "2018-05-16", True)
+        self._test_filter_by_date(workflow, "publication", "2018-05-16", True)
         # Equal
-        self._test_filter_by_date(workflow, "creation", "04/04/2023", True)
-        self._test_filter_by_date(workflow, "publication", "04/04/2023", True)
+        self._test_filter_by_date(workflow, "creation", "2023-04-04", True)
+        self._test_filter_by_date(workflow, "publication", "2023-04-04", True)
         # After
-        self._test_filter_by_date(workflow, "creation", "25/04/2023", False)
-        self._test_filter_by_date(workflow, "publication", "25/04/2023", False)
+        self._test_filter_by_date(workflow, "creation", "2023-04-25", False)
+        self._test_filter_by_date(workflow, "publication", "2023-04-25", False)
 
     @patch("dafni_cli.workflow.workflow.click")
     def test_output_details(self, mock_click):
