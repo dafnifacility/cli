@@ -107,7 +107,9 @@ COMMAND_PARAMS = (
 class DownloadDatasetCommand(SpecialCommand):
     """Command that downloads a dataset"""
 
-    BASE_COMMAND = f"dafni download dataset {COMMAND_PARAMS['datasets'][1]['id']} {COMMAND_PARAMS['datasets'][1]['version_id']}"
+    BASE_COMMAND = (
+        f"dafni download dataset {COMMAND_PARAMS['datasets'][1]['version_id']}"
+    )
 
     def __init__(self) -> None:
         super().__init__()
@@ -177,12 +179,12 @@ COMMANDS = {
         ],
         "dataset": [
             "dafni get dataset --help",
-            f"dafni get dataset {COMMAND_PARAMS['datasets'][0]['id']} {COMMAND_PARAMS['datasets'][0]['version_id']}",
-            f"dafni get dataset {COMMAND_PARAMS['datasets'][0]['id']} {COMMAND_PARAMS['datasets'][0]['version_id']} --long",
-            f"dafni get dataset {COMMAND_PARAMS['datasets'][0]['id']} {COMMAND_PARAMS['datasets'][0]['version_id']} -l",
-            f"dafni get dataset {COMMAND_PARAMS['datasets'][0]['id']} {COMMAND_PARAMS['datasets'][0]['version_id']} --version-history",
-            f"dafni get dataset {COMMAND_PARAMS['datasets'][0]['id']} {COMMAND_PARAMS['datasets'][0]['version_id']} --json",
-            f"dafni get dataset {COMMAND_PARAMS['datasets'][0]['id']} {COMMAND_PARAMS['datasets'][0]['version_id']} --version-history --json",
+            f"dafni get dataset {COMMAND_PARAMS['datasets'][0]['version_id']}",
+            f"dafni get dataset {COMMAND_PARAMS['datasets'][0]['version_id']} --long",
+            f"dafni get dataset {COMMAND_PARAMS['datasets'][0]['version_id']} -l",
+            f"dafni get dataset {COMMAND_PARAMS['datasets'][0]['version_id']} --version-history",
+            f"dafni get dataset {COMMAND_PARAMS['datasets'][0]['version_id']} --json",
+            f"dafni get dataset {COMMAND_PARAMS['datasets'][0]['version_id']} --version-history --json",
         ],
         "workflows": [
             "dafni get workflows --help",
