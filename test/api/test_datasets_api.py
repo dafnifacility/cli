@@ -3,7 +3,7 @@ from unittest.mock import MagicMock
 
 from dafni_cli.api import datasets_api
 from dafni_cli.api.exceptions import EndpointNotFoundError, ResourceNotFoundError
-from dafni_cli.consts import DISCOVERY_API_URL
+from dafni_cli.consts import SEARCH_AND_DISCOVERY_API_URL
 
 
 class TestDatasetsAPI(TestCase):
@@ -24,7 +24,7 @@ class TestDatasetsAPI(TestCase):
 
         # ASSERT
         session.post_request.assert_called_once_with(
-            url=f"{DISCOVERY_API_URL}/catalogue/",
+            url=f"{SEARCH_AND_DISCOVERY_API_URL}/catalogue/",
             json={"offset": {"start": 0, "size": 1000}, "sort_by": "recent", **filters},
             allow_redirect=True,
         )
@@ -45,7 +45,7 @@ class TestDatasetsAPI(TestCase):
 
         # ASSERT
         session.get_request.assert_called_once_with(
-            url=f"{DISCOVERY_API_URL}/metadata/{dataset_id}/{version_id}",
+            url=f"{SEARCH_AND_DISCOVERY_API_URL}/metadata/{dataset_id}/{version_id}",
             allow_redirect=True,
         )
         self.assertEqual(result, session.get_request.return_value)

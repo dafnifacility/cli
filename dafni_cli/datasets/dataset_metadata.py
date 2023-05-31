@@ -10,12 +10,7 @@ from dafni_cli.api.minio_api import minio_get_request
 from dafni_cli.api.parser import ParserBaseObject, ParserParam, parse_datetime
 from dafni_cli.api.session import DAFNISession
 from dafni_cli.consts import CONSOLE_WIDTH, DATA_FORMATS, TAB_SPACE
-from dafni_cli.utils import (
-    format_table,
-    print_json,
-    process_file_size,
-    prose_print,
-)
+from dafni_cli.utils import format_table, print_json, process_file_size, prose_print
 
 
 @dataclass
@@ -37,7 +32,7 @@ class DataFile(ParserBaseObject):
     name: str
     size: str
     format: str
-    download_url: str
+    download_url: str = None
 
     # Separate - only used when actually downloading
     contents: Optional[BytesIO] = None
@@ -114,18 +109,18 @@ class Location(ParserBaseObject):
     """Dataclass representing the contact listed in a dataset's metadata
 
     Attributes:
-        id (str): Location id
         type (str): Location type
-        label (str): Location label
+        id (Optional[str]): Location id
+        label (Optional[str]): Location label
     """
 
-    id: str
     type: str
-    label: str
+    id: Optional[str] = None
+    label: Optional[str] = None
 
     _parser_params: ClassVar[List[ParserParam]] = [
-        ParserParam("id", "@id", str),
         ParserParam("type", "@type", str),
+        ParserParam("id", "@id", str),
         ParserParam("label", "rdfs:label", str),
     ]
 

@@ -7,10 +7,7 @@ from dafni_cli.api.datasets_api import get_all_datasets, get_latest_dataset_meta
 from dafni_cli.api.exceptions import ResourceNotFoundError
 from dafni_cli.api.models_api import get_all_models, get_model
 from dafni_cli.api.session import DAFNISession
-from dafni_cli.api.workflows_api import (
-    get_all_workflows,
-    get_workflow,
-)
+from dafni_cli.api.workflows_api import get_all_workflows, get_workflow
 from dafni_cli.datasets import dataset_filtering
 from dafni_cli.datasets.dataset import parse_datasets
 from dafni_cli.datasets.dataset_metadata import parse_dataset_metadata

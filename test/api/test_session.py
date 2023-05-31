@@ -13,6 +13,7 @@ from dafni_cli.consts import (
     MINIO_API_URL,
     REQUESTS_TIMEOUT,
     SESSION_COOKIE,
+    URLS_REQUIRING_COOKIE_AUTHENTICATION,
 )
 
 from test.fixtures.session import create_mock_response
@@ -430,15 +431,15 @@ class TestDAFNISession(TestCase):
             timeout=REQUESTS_TIMEOUT,
         )
 
-    def test_authenticated_request_cookie_auth(self, mock_requests):
-        """Tests sending a request via the DAFNISession uses cookie
-        authentication for minio"""
+    def _test_authenticated_request_cookie_auth(self, mock_requests, url: str):
+        """Helper function that tests sending a request via the DAFNISession
+        uses cookie authentication for a specific URL"""
 
         session = self.create_mock_session(True)
 
         session._authenticated_request(
             "get",
-            url=f"{MINIO_API_URL}/testendpoint",
+            url=url,
             headers={},
             data=None,
             json=None,
@@ -447,7 +448,7 @@ class TestDAFNISession(TestCase):
 
         mock_requests.request.assert_called_once_with(
             "get",
-            url=f"{MINIO_API_URL}/testendpoint",
+            url=url,
             headers={},
             data=None,
             json=None,
@@ -455,6 +456,15 @@ class TestDAFNISession(TestCase):
             timeout=REQUESTS_TIMEOUT,
             cookies={SESSION_COOKIE: TEST_ACCESS_TOKEN},
         )
+
+    def test_authenticated_request_cookie_auth(self, mock_requests):
+        """Tests sending a request via the DAFNISession uses cookie
+        authentication for any URL that should require it"""
+        for url in URLS_REQUIRING_COOKIE_AUTHENTICATION:
+            mock_requests.reset_mock()
+            self._test_authenticated_request_cookie_auth(
+                mock_requests, f"{url}/testendpoint"
+            )
 
     def test_get_request(self, mock_requests):
         """Tests sending a get request via the DAFNISession"""

@@ -4,7 +4,7 @@ from unittest.mock import MagicMock, mock_open, patch
 
 from dafni_cli.api import workflows_api
 from dafni_cli.api.exceptions import EndpointNotFoundError, ResourceNotFoundError
-from dafni_cli.consts import WORKFLOWS_API_URL
+from dafni_cli.consts import NIMS_API_URL
 
 
 class TestWorkflowsAPI(TestCase):
@@ -21,7 +21,7 @@ class TestWorkflowsAPI(TestCase):
 
         # ASSERT
         session.get_request.assert_called_once_with(
-            f"{WORKFLOWS_API_URL}/workflows/",
+            f"{NIMS_API_URL}/workflows/",
         )
         self.assertEqual(result, session.get_request.return_value)
 
@@ -37,7 +37,7 @@ class TestWorkflowsAPI(TestCase):
 
         # ASSERT
         session.get_request.assert_called_once_with(
-            f"{WORKFLOWS_API_URL}/workflows/{version_id}/",
+            f"{NIMS_API_URL}/workflows/{version_id}/",
         )
         self.assertEqual(result, session.get_request.return_value)
 
@@ -87,7 +87,7 @@ class TestWorkflowsAPI(TestCase):
         # ASSERT
         open_mock.assert_called_once_with(file_path, "r", encoding="utf-8")
         session.post_request.assert_called_once_with(
-            url=f"{WORKFLOWS_API_URL}/workflows/upload/",
+            url=f"{NIMS_API_URL}/workflows/upload/",
             json={
                 "version_message": "initial version message",
                 "other_data": "other_data",
@@ -123,7 +123,7 @@ class TestWorkflowsAPI(TestCase):
         # ASSERT
         open_mock.assert_called_once_with(file_path, "r", encoding="utf-8")
         session.post_request.assert_called_once_with(
-            url=f"{WORKFLOWS_API_URL}/workflows/upload/",
+            url=f"{NIMS_API_URL}/workflows/upload/",
             json={
                 "version_message": version_message,
                 "other_data": "other_data",
@@ -158,7 +158,7 @@ class TestWorkflowsAPI(TestCase):
         # ASSERT
         open_mock.assert_called_once_with(file_path, "r", encoding="utf-8")
         session.post_request.assert_called_once_with(
-            url=f"{WORKFLOWS_API_URL}/workflows/{parent_id}/upload/",
+            url=f"{NIMS_API_URL}/workflows/{parent_id}/upload/",
             json={
                 "version_message": "initial version message",
                 "other_data": "other_data",
@@ -178,6 +178,6 @@ class TestWorkflowsAPI(TestCase):
 
         # ASSERT
         session.delete_request.assert_called_once_with(
-            f"{WORKFLOWS_API_URL}/workflows/{version_id}",
+            f"{NIMS_API_URL}/workflows/{version_id}",
         )
         self.assertEqual(result, session.delete_request.return_value)

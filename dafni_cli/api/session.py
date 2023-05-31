@@ -11,10 +11,10 @@ from dafni_cli.api.exceptions import DAFNIError, EndpointNotFoundError, LoginErr
 from dafni_cli.consts import (
     LOGIN_API_ENDPOINT,
     LOGOUT_API_ENDPOINT,
-    MINIO_API_URL,
     REQUESTS_TIMEOUT,
     SESSION_COOKIE,
     SESSION_SAVE_FILE,
+    URLS_REQUIRING_COOKIE_AUTHENTICATION,
 )
 from dafni_cli.utils import dataclass_from_dict
 
@@ -295,8 +295,11 @@ class DAFNISession:
             requests.Response: Response from the requests library
         """
 
-        # Switch to cookie based authentication only for minio
-        if MINIO_API_URL in url:
+        # Switch to cookie based authentication only for those that require it
+        if any(
+            url_requiring_cookie in url
+            for url_requiring_cookie in URLS_REQUIRING_COOKIE_AUTHENTICATION
+        ):
             response = requests.request(
                 method,
                 url=url,
