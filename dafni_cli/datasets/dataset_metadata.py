@@ -9,13 +9,7 @@ from dafni_cli.api.datasets_api import get_latest_dataset_metadata
 from dafni_cli.api.minio_api import minio_get_request
 from dafni_cli.api.parser import ParserBaseObject, ParserParam, parse_datetime
 from dafni_cli.api.session import DAFNISession
-from dafni_cli.consts import (
-    CONSOLE_WIDTH,
-    DATA_FORMATS,
-    DATE_OUTPUT_FORMAT,
-    DATE_TIME_OUTPUT_FORMAT,
-    TAB_SPACE,
-)
+from dafni_cli.consts import CONSOLE_WIDTH, DATA_FORMATS, TAB_SPACE
 from dafni_cli.utils import (
     format_datetime,
     format_table,
