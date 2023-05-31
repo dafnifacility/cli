@@ -345,14 +345,22 @@ class TestWorkflow(TestCase):
         # CALL
 
         # Before
-        self._test_filter_by_date(workflow, "creation", "2018-05-16", True)
-        self._test_filter_by_date(workflow, "publication", "2018-05-16", True)
+        self._test_filter_by_date(workflow, "creation", datetime(2018, 5, 16), True)
+        self._test_filter_by_date(workflow, "publication", datetime(2018, 5, 16), True)
         # Equal
-        self._test_filter_by_date(workflow, "creation", "2023-04-04", True)
-        self._test_filter_by_date(workflow, "publication", "2023-04-04", True)
+        self._test_filter_by_date(workflow, "creation", datetime(2023, 4, 4), True)
+        self._test_filter_by_date(workflow, "publication", datetime(2023, 4, 4), True)
         # After
-        self._test_filter_by_date(workflow, "creation", "2023-04-25", False)
-        self._test_filter_by_date(workflow, "publication", "2023-04-25", False)
+        self._test_filter_by_date(workflow, "creation", datetime(2023, 4, 25), False)
+        self._test_filter_by_date(workflow, "publication", datetime(2023, 4, 25), False)
+
+    def test_filter_by_date_error(self):
+        """Tests filter_by_date raises an error if the key is wrong"""
+        # SETUP
+        workflow = parse_workflow(TEST_WORKFLOW)
+
+        with self.assertRaises(KeyError):
+            workflow.filter_by_date("key", datetime(2020, 12, 11))
 
     @patch("dafni_cli.workflow.workflow.click")
     def test_output_details(self, mock_click):

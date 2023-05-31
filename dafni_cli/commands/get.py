@@ -8,7 +8,7 @@ from dafni_cli.api.exceptions import ResourceNotFoundError
 from dafni_cli.api.models_api import get_all_models, get_model
 from dafni_cli.api.session import DAFNISession
 from dafni_cli.api.workflows_api import get_all_workflows, get_workflow
-from dafni_cli.consts import DATE_INPUT_FORMAT_VERBOSE
+from dafni_cli.consts import DATE_INPUT_FORMAT, DATE_INPUT_FORMAT_VERBOSE
 from dafni_cli.datasets import dataset_filtering
 from dafni_cli.datasets.dataset import parse_datasets
 from dafni_cli.datasets.dataset_metadata import parse_dataset_metadata
@@ -45,13 +45,13 @@ def get(ctx: Context):
     "--creation-date",
     default=None,
     help=f"Filter for models created since given date. Format: {DATE_INPUT_FORMAT_VERBOSE}",
-    type=str,
+    type=click.DateTime(formats=[DATE_INPUT_FORMAT]),
 )
 @click.option(
     "--publication-date",
     default=None,
     help=f"Filter for models published since given date. Format: {DATE_INPUT_FORMAT_VERBOSE}",
-    type=str,
+    type=click.DateTime(formats=[DATE_INPUT_FORMAT]),
 )
 @click.option(
     "--json/--pretty",
@@ -156,13 +156,13 @@ def model(ctx: Context, version_id: List[str], version_history: bool, json: bool
     "--start-date",
     default=None,
     help=f"Filter for datasets with a start date since given date. Format: {DATE_INPUT_FORMAT_VERBOSE}",
-    type=str,
+    type=click.DateTime(formats=[DATE_INPUT_FORMAT]),
 )
 @click.option(
     "--end-date",
     default=None,
     help=f"Filter for datasets with a end date up to given date. Format: {DATE_INPUT_FORMAT_VERBOSE}",
-    type=str,
+    type=click.DateTime(formats=[DATE_INPUT_FORMAT]),
 )
 @click.option(
     "--json/--pretty",
@@ -277,13 +277,13 @@ def dataset(
     "--creation-date",
     default=None,
     help=f"Filter for workflows created since given date. Format: {DATE_INPUT_FORMAT_VERBOSE}",
-    type=str,
+    type=click.DateTime(formats=[DATE_INPUT_FORMAT]),
 )
 @click.option(
     "--publication-date",
     default=None,
     help=f"Filter for workflows published since given date. Format: {DATE_INPUT_FORMAT_VERBOSE}",
-    type=str,
+    type=click.DateTime(formats=[DATE_INPUT_FORMAT]),
 )
 @click.option(
     "--json/--pretty",

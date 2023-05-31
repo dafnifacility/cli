@@ -13,6 +13,7 @@ from tabulate import tabulate
 
 from dafni_cli.consts import (
     DATE_INPUT_FORMAT,
+    DATE_INPUT_FORMAT_VERBOSE,
     DATE_OUTPUT_FORMAT,
     DATE_TIME_OUTPUT_FORMAT,
     TABULATE_ARGS,
@@ -63,19 +64,6 @@ def optional_column(value: Optional[Any], column_width: int = 0, alignment: str 
     else:
         entry = " " * column_width
     return entry
-
-
-def process_date_filter(date_str: str) -> str:
-    """Function to take a date str used for filtering on date
-    and process into a format to submit to the DAFNI API's
-
-    Args:
-        date_str (str): Date string in the format given by DATE_INPUT_FORMAT
-
-    Returns:
-        str: Processed date string to ISO8601 format
-    """
-    return datetime.strptime(date_str, DATE_INPUT_FORMAT).isoformat()
 
 
 def process_file_size(file_size: str) -> str:

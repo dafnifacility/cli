@@ -223,14 +223,14 @@ class TestModel(TestCase):
         # CALL
 
         # Before
-        self._test_filter_by_date(model, "creation", "2018-05-16", True)
-        self._test_filter_by_date(model, "publication", "2018-05-16", True)
+        self._test_filter_by_date(model, "creation", datetime(2018, 5, 16), True)
+        self._test_filter_by_date(model, "publication", datetime(2018, 5, 16), True)
         # Equal
-        self._test_filter_by_date(model, "creation", "2019-07-17", True)
-        self._test_filter_by_date(model, "publication", "2020-04-02", True)
+        self._test_filter_by_date(model, "creation", datetime(2019, 7, 17), True)
+        self._test_filter_by_date(model, "publication", datetime(2020, 4, 2), True)
         # After
-        self._test_filter_by_date(model, "creation", "2019-08-11", False)
-        self._test_filter_by_date(model, "publication", "2022-05-16", False)
+        self._test_filter_by_date(model, "creation", datetime(2019, 8, 11), False)
+        self._test_filter_by_date(model, "publication", datetime(2022, 5, 16), False)
 
     def test_filter_by_date_error(self):
         """Tests filter_by_date raises an error if the key is wrong"""
@@ -238,7 +238,7 @@ class TestModel(TestCase):
         model = parse_model(TEST_MODEL)
 
         with self.assertRaises(KeyError):
-            model.filter_by_date("key", "2020-12-11")
+            model.filter_by_date("key", datetime(2020, 12, 11))
 
     @patch("dafni_cli.model.model.click")
     def test_output_details(self, mock_click):

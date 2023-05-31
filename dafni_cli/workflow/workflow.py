@@ -6,7 +6,7 @@ import click
 
 from dafni_cli.api.auth import Auth
 from dafni_cli.api.parser import ParserBaseObject, ParserParam, parse_datetime
-from dafni_cli.consts import CONSOLE_WIDTH, DATE_INPUT_FORMAT, TAB_SPACE
+from dafni_cli.consts import CONSOLE_WIDTH, TAB_SPACE
 from dafni_cli.utils import format_datetime, prose_print
 from dafni_cli.workflow.instance import WorkflowInstance
 from dafni_cli.workflow.parameter_set import WorkflowParameterSet
@@ -184,21 +184,20 @@ class Workflow(ParserBaseObject):
         return self._metadata
 
     # TODO: Unify with Model
-    def filter_by_date(self, key: str, date_str: str) -> bool:
+    def filter_by_date(self, key: str, date: datetime) -> bool:
         """Returns whether a particular date is less than or equal to the
            creation/publication date of this workflow.
 
         Args:
             key (str): Key for which date to check must be either 'creation'
                        or 'publication'
-            date_str (str): Date string for which workflows are to be filtered
-                            in the format given by DATE_INPUT_FORMAT
+            date (datetime): Datetime object (only the date will be used)
 
         Returns:
             bool: Whether the given date is less than or equal to the
                   chosen date
         """
-        date_val = datetime.strptime(date_str, DATE_INPUT_FORMAT).date()
+        date_val = date.date()
         if key.lower() == "creation":
             return self.creation_date.date() >= date_val
         if key.lower() == "publication":

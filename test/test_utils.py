@@ -206,35 +206,6 @@ class TestOptionalColumn(TestCase):
         )
 
 
-class TestProcessDateFilter(TestCase):
-    """Test class to test the process_date_filter function"""
-
-    def test_valid_date_strings_are_formatted_correctly(self):
-        """Tests that valid date strings are formatted correctly"""
-
-        # SETUP
-        values_and_results = [
-            ("2003-02-01", "2003-02-01T00:00:00"),
-            ("2003-2-10", "2003-02-10T00:00:00"),
-            ("2003-12-10", "2003-12-10T00:00:00"),
-        ]
-
-        # CALL & ASSERT
-        for value, result in values_and_results:
-            self.assertEqual(result, utils.process_date_filter(value))
-
-    def test_value_error_raised_if_given_invalid_date(self):
-        """Tests that invalid date strings raise ValueError's"""
-
-        # SETUP
-        values = ["1/1/21", "2021-13-01", "2021-01-32"]
-
-        # CALL & ASSERT
-        for value in values:
-            with self.assertRaises(ValueError):
-                utils.process_date_filter(value)
-
-
 class TestProcessFileSize(TestCase):
     """Test class to test the process_file_size functionality"""
 
