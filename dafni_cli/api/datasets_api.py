@@ -23,15 +23,11 @@ def get_all_datasets(session: DAFNISession, filters: dict) -> List[dict]:
     return session.post_request(url=url, json=data, allow_redirect=True)
 
 
-# TODO: Make dataset_id optional? - Can search just by version ID now
-def get_latest_dataset_metadata(
-    session: DAFNISession, dataset_id: str, version_id: str
-) -> dict:
+def get_latest_dataset_metadata(session: DAFNISession, version_id: str) -> dict:
     """Function to get the dataset metadata for a given dataset
 
     Args:
         session (str): User session
-        dataset_id (str): Dataset ID
         version_id (str): Dataset Version ID
 
     Returns:
@@ -40,7 +36,7 @@ def get_latest_dataset_metadata(
     Raises:
         ResourceNotFoundError: If a dataset with the given id's wasn't found
     """
-    url = f"{SEARCH_AND_DISCOVERY_API_URL}/metadata/{dataset_id}/{version_id}"
+    url = f"{SEARCH_AND_DISCOVERY_API_URL}/metadata/{version_id}"
 
     try:
         return session.get_request(url=url, allow_redirect=True)
@@ -48,5 +44,5 @@ def get_latest_dataset_metadata(
         # When the endpoint isn't found it means a dataset with the given id's
         # wasn't found
         raise ResourceNotFoundError(
-            f"Unable to find a dataset with id '{dataset_id}' and version_id '{version_id}'"
+            f"Unable to find a dataset with version_id '{version_id}'"
         ) from err

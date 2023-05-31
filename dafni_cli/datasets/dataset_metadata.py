@@ -254,9 +254,7 @@ class DatasetVersionHistory(ParserBaseObject):
         """
         json_list = []
         for version in self.versions:
-            metadata = get_latest_dataset_metadata(
-                session, self.dataset_id, version.version_id
-            )
+            metadata = get_latest_dataset_metadata(session, version.version_id)
             if json_flag:
                 json_list.append(metadata)
             else:

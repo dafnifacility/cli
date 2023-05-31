@@ -35,17 +35,14 @@ class TestDatasetsAPI(TestCase):
 
         # SETUP
         session = MagicMock()
-        dataset_id = "some-dataset-id"
         version_id = "some-version-id"
 
         # CALL
-        result = datasets_api.get_latest_dataset_metadata(
-            session, dataset_id, version_id
-        )
+        result = datasets_api.get_latest_dataset_metadata(session, version_id)
 
         # ASSERT
         session.get_request.assert_called_once_with(
-            url=f"{SEARCH_AND_DISCOVERY_API_URL}/metadata/{dataset_id}/{version_id}",
+            url=f"{SEARCH_AND_DISCOVERY_API_URL}/metadata/{version_id}",
             allow_redirect=True,
         )
         self.assertEqual(result, session.get_request.return_value)
@@ -56,7 +53,6 @@ class TestDatasetsAPI(TestCase):
 
         # SETUP
         session = MagicMock()
-        dataset_id = "some-dataset-id"
         version_id = "some-version-id"
         session.get_request.side_effect = EndpointNotFoundError(
             "Some 404 error message"
@@ -64,10 +60,10 @@ class TestDatasetsAPI(TestCase):
 
         # CALL
         with self.assertRaises(ResourceNotFoundError) as err:
-            datasets_api.get_latest_dataset_metadata(session, dataset_id, version_id)
+            datasets_api.get_latest_dataset_metadata(session, version_id)
 
         # ASSERT
         self.assertEqual(
             str(err.exception),
-            f"Unable to find a dataset with id '{dataset_id}' and version_id '{version_id}'",
+            f"Unable to find a dataset with version_id '{version_id}'",
         )
