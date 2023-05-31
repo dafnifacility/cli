@@ -19,6 +19,8 @@ from typing import Optional, Union
 
 import click
 
+from dafni_cli.consts import ENVIRONMENT
+
 home_dir = Path.home()
 
 # Where cli executable is
@@ -43,9 +45,69 @@ class SpecialCommand(ABC):
     def check_ran_correctly(self) -> bool:
         """Should return whether the command ran successfully or not"""
 
+    def get_snapshot_file_name(self, command_str: str) -> str:
+        """Should return the name snapshots of this command should be saved as"""
+        return clean_string(command_str)
+
+
+# Dictionary of object IDs to be used in the various test commands
+COMMAND_PARAMS_PRODUCTION = {
+    "models": [
+        {"version_id": "9de4ad50-fd98-4def-9bfc-39378854e6a1"},
+        {"version_id": "ef4b22c8-63be-4b53-ba7c-c1cf301774b2"},
+        {"version_id": "399cdaac-aab6-494d-870a-66de8a4217bb"},
+    ],
+    "datasets": [
+        {
+            "id": "6f6c7fb8-2f04-4ffc-b7a9-58dc2739d8c2",
+            "version_id": "d8d8b3ae-9d33-42fe-bfb6-ba1d7c5f0d58",
+        },
+        # Used for download test
+        {
+            "id": "b71f0880-ff95-4b68-82a1-aafa2e949825",
+            "version_id": "c052d9b8-dbca-42b0-85b5-135016a2fbb1",
+        },
+    ],
+    "workflows": [
+        {"version_id": "cfb164b2-59de-4156-85ea-36049e147322"},
+        {"version_id": "4a7c1897-e902-4966-b4a8-d8c4c64ff092"},
+        {"version_id": "797e8ba2-539d-4284-ba86-dea4a930206e"},
+    ],
+}
+
+COMMAND_PARAMS_STAGING = {
+    "models": [
+        {"version_id": "9de4ad50-fd98-4def-9bfc-39378854e6a1"},
+        {"version_id": "ef4b22c8-63be-4b53-ba7c-c1cf301774b2"},
+        {"version_id": "399cdaac-aab6-494d-870a-66de8a4217bb"},
+    ],
+    "datasets": [
+        {
+            "id": "b7410a50-ba42-4a9e-9865-e973408033ad",
+            "version_id": "be4e7635-8ba9-476e-89ec-34d29e639254",
+        },
+        # Used for download test
+        {
+            "id": "b7410a50-ba42-4a9e-9865-e973408033ad",
+            "version_id": "be4e7635-8ba9-476e-89ec-34d29e639254",
+        },
+    ],
+    "workflows": [
+        {"version_id": "851bf5bf-2e09-4340-922a-205e8cf430fd"},
+        {"version_id": "4f8cc1da-38ee-45ec-91e0-88de700a83ef"},
+        {"version_id": "1b296249-d06f-4195-9291-2c65efdba3f5"},
+    ],
+}
+
+COMMAND_PARAMS = (
+    COMMAND_PARAMS_PRODUCTION if ENVIRONMENT == "production" else COMMAND_PARAMS_STAGING
+)
+
 
 class DownloadDatasetCommand(SpecialCommand):
     """Command that downloads a dataset"""
+
+    BASE_COMMAND = f"dafni download dataset {COMMAND_PARAMS['datasets'][1]['id']} {COMMAND_PARAMS['datasets'][1]['version_id']}"
 
     def __init__(self) -> None:
         super().__init__()
@@ -56,16 +118,21 @@ class DownloadDatasetCommand(SpecialCommand):
         # Create a temporary directory for the datasets being downloaded
         self._temp_dir = tempfile.TemporaryDirectory()
 
-        return f"dafni download dataset b71f0880-ff95-4b68-82a1-aafa2e949825 c052d9b8-dbca-42b0-85b5-135016a2fbb1 --directory {self._temp_dir.name}"
+        return f"{self.BASE_COMMAND} --directory {self._temp_dir.name}"
 
     def check_ran_correctly(self) -> bool:
         file_path = Path(
             self._temp_dir.name,
-            "Dataset_b71f0880-ff95-4b68-82a1-aafa2e949825_c052d9b8-dbca-42b0-85b5-135016a2fbb1.zip",
+            f"Dataset_{COMMAND_PARAMS['datasets'][1]['id']}_{COMMAND_PARAMS['datasets'][1]['version_id']}.zip",
         )
         success = file_path.is_file()
         self._temp_dir.cleanup()
         return success
+
+    def get_snapshot_file_name(self, command_str: str) -> str:
+        # Force the name to be the same despite a temporary directory in the
+        # command itself
+        return clean_string(self.BASE_COMMAND)
 
 
 # Commands to test - organised into sections that can be executed separately
@@ -88,12 +155,12 @@ COMMANDS = {
         ],
         "model": [
             "dafni get model --help",
-            "dafni get model 9de4ad50-fd98-4def-9bfc-39378854e6a1",
-            "dafni get model 9de4ad50-fd98-4def-9bfc-39378854e6a1 --json",
-            "dafni get model ef4b22c8-63be-4b53-ba7c-c1cf301774b2 399cdaac-aab6-494d-870a-66de8a4217bb",
-            "dafni get model 9de4ad50-fd98-4def-9bfc-39378854e6a1 --version-history",
-            "dafni get model ef4b22c8-63be-4b53-ba7c-c1cf301774b2 399cdaac-aab6-494d-870a-66de8a4217bb --version-history",
-            "dafni get model ef4b22c8-63be-4b53-ba7c-c1cf301774b2 399cdaac-aab6-494d-870a-66de8a4217bb --version-history --json",
+            f"dafni get model {COMMAND_PARAMS['models'][0]['version_id']}",
+            f"dafni get model {COMMAND_PARAMS['models'][0]['version_id']} --json",
+            f"dafni get model {COMMAND_PARAMS['models'][1]['version_id']} {COMMAND_PARAMS['models'][2]['version_id']}",
+            f"dafni get model {COMMAND_PARAMS['models'][0]['version_id']} --version-history",
+            f"dafni get model {COMMAND_PARAMS['models'][1]['version_id']} {COMMAND_PARAMS['models'][2]['version_id']} --version-history",
+            f"dafni get model {COMMAND_PARAMS['models'][1]['version_id']} {COMMAND_PARAMS['models'][2]['version_id']} --version-history --json",
         ],
         "datasets": [
             "dafni get datasets --help",
@@ -110,12 +177,12 @@ COMMANDS = {
         ],
         "dataset": [
             "dafni get dataset --help",
-            "dafni get dataset 6f6c7fb8-2f04-4ffc-b7a9-58dc2739d8c2 d8d8b3ae-9d33-42fe-bfb6-ba1d7c5f0d58",
-            "dafni get dataset 6f6c7fb8-2f04-4ffc-b7a9-58dc2739d8c2 d8d8b3ae-9d33-42fe-bfb6-ba1d7c5f0d58 --long",
-            "dafni get dataset 6f6c7fb8-2f04-4ffc-b7a9-58dc2739d8c2 d8d8b3ae-9d33-42fe-bfb6-ba1d7c5f0d58 -l",
-            "dafni get dataset 6f6c7fb8-2f04-4ffc-b7a9-58dc2739d8c2 d8d8b3ae-9d33-42fe-bfb6-ba1d7c5f0d58 --version-history",
-            "dafni get dataset 6f6c7fb8-2f04-4ffc-b7a9-58dc2739d8c2 d8d8b3ae-9d33-42fe-bfb6-ba1d7c5f0d58 --json",
-            "dafni get dataset 6f6c7fb8-2f04-4ffc-b7a9-58dc2739d8c2 d8d8b3ae-9d33-42fe-bfb6-ba1d7c5f0d58 --version-history --json",
+            f"dafni get dataset {COMMAND_PARAMS['datasets'][0]['id']} {COMMAND_PARAMS['datasets'][0]['version_id']}",
+            f"dafni get dataset {COMMAND_PARAMS['datasets'][0]['id']} {COMMAND_PARAMS['datasets'][0]['version_id']} --long",
+            f"dafni get dataset {COMMAND_PARAMS['datasets'][0]['id']} {COMMAND_PARAMS['datasets'][0]['version_id']} -l",
+            f"dafni get dataset {COMMAND_PARAMS['datasets'][0]['id']} {COMMAND_PARAMS['datasets'][0]['version_id']} --version-history",
+            f"dafni get dataset {COMMAND_PARAMS['datasets'][0]['id']} {COMMAND_PARAMS['datasets'][0]['version_id']} --json",
+            f"dafni get dataset {COMMAND_PARAMS['datasets'][0]['id']} {COMMAND_PARAMS['datasets'][0]['version_id']} --version-history --json",
         ],
         "workflows": [
             "dafni get workflows --help",
@@ -132,12 +199,12 @@ COMMANDS = {
         ],
         "workflow": [
             "dafni get workflow --help",
-            "dafni get workflow cfb164b2-59de-4156-85ea-36049e147322",
-            "dafni get workflow cfb164b2-59de-4156-85ea-36049e147322 --json",
-            "dafni get workflow 4a7c1897-e902-4966-b4a8-d8c4c64ff092 797e8ba2-539d-4284-ba86-dea4a930206e",
-            "dafni get workflow cfb164b2-59de-4156-85ea-36049e147322 --version-history",
-            "dafni get workflow 4a7c1897-e902-4966-b4a8-d8c4c64ff092 797e8ba2-539d-4284-ba86-dea4a930206e --version-history",
-            "dafni get workflow 4a7c1897-e902-4966-b4a8-d8c4c64ff092 797e8ba2-539d-4284-ba86-dea4a930206e --version-history --json",
+            f"dafni get workflow {COMMAND_PARAMS['workflows'][0]['version_id']}",
+            f"dafni get workflow {COMMAND_PARAMS['workflows'][0]['version_id']} --json",
+            f"dafni get workflow {COMMAND_PARAMS['workflows'][1]['version_id']} {COMMAND_PARAMS['workflows'][2]['version_id']}",
+            f"dafni get workflow {COMMAND_PARAMS['workflows'][0]['version_id']} --version-history",
+            f"dafni get workflow {COMMAND_PARAMS['workflows'][1]['version_id']} {COMMAND_PARAMS['workflows'][2]['version_id']} --version-history",
+            f"dafni get workflow {COMMAND_PARAMS['workflows'][1]['version_id']} {COMMAND_PARAMS['workflows'][2]['version_id']} --version-history --json",
         ],
     },
     # The following commented out tests may be automated, but are tricker and
@@ -226,8 +293,10 @@ def save_and_check_snapshot(
     if isinstance(command, SpecialCommand):
         success = success and command.check_ran_correctly()
         command_str = command.get_command()
+        snapshot_filename = command.get_snapshot_file_name(command_str)
     else:
         command_str = command
+        snapshot_filename = clean_string(command_str)
 
     if not success:
         # Command itself failed to execute
@@ -237,7 +306,7 @@ def save_and_check_snapshot(
         return
 
     # Path to compare snapshot to
-    path = Path(DAFNI_SNAPSHOT_SAVE_LOCATION, f"{clean_string(command_str)}.out")
+    path = Path(DAFNI_SNAPSHOT_SAVE_LOCATION, f"{snapshot_filename}.out")
 
     # Store as a string array with new lines ready for saving/comparing
     string_output = run_result.stdout.decode().splitlines()

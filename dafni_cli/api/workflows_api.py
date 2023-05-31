@@ -15,7 +15,7 @@ from requests import Response
 
 from dafni_cli.api.exceptions import EndpointNotFoundError, ResourceNotFoundError
 from dafni_cli.api.session import DAFNISession
-from dafni_cli.consts import WORKFLOWS_API_URL
+from dafni_cli.consts import NIMS_API_URL
 
 
 def get_all_workflows(session: DAFNISession) -> List[dict]:
@@ -28,7 +28,7 @@ def get_all_workflows(session: DAFNISession) -> List[dict]:
     Returns:
         List[dict]: list of dictionaries with raw response from API
     """
-    url = f"{WORKFLOWS_API_URL}/workflows/"
+    url = f"{NIMS_API_URL}/workflows/"
     return session.get_request(url)
 
 
@@ -46,7 +46,7 @@ def get_workflow(session: DAFNISession, version_id: str) -> dict:
         ResourceNotFoundError: If a workflow with the given version_id wasn't
                                found
     """
-    url = f"{WORKFLOWS_API_URL}/workflows/{version_id}/"
+    url = f"{NIMS_API_URL}/workflows/{version_id}/"
 
     try:
         return session.get_request(url)
@@ -76,9 +76,9 @@ def upload_workflow(
         dict: The urls for the definition and image with keys "definition" and "image", respectively.
     """
     if parent_id:
-        url = f"{WORKFLOWS_API_URL}/workflows/{parent_id}/upload/"
+        url = f"{NIMS_API_URL}/workflows/{parent_id}/upload/"
     else:
-        url = f"{WORKFLOWS_API_URL}/workflows/upload/"
+        url = f"{NIMS_API_URL}/workflows/upload/"
     with open(file_path, "r", encoding="utf-8") as f:
         workflow_description = json.load(f)
         if version_message:
@@ -94,5 +94,5 @@ def delete_workflow(session: DAFNISession, version_id: str) -> Response:
         session (DAFNISession): User session
         version_id (str): version ID of workflow to be deleted
     """
-    url = f"{WORKFLOWS_API_URL}/workflows/{version_id}"
+    url = f"{NIMS_API_URL}/workflows/{version_id}"
     return session.delete_request(url)

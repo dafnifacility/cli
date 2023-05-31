@@ -5,11 +5,11 @@ import requests
 
 from dafni_cli.api.session import DAFNISession
 from dafni_cli.consts import (
-    DATA_DOWNLOAD_API_URL,
-    DATA_DOWNLOAD_REDIRECT_API_URL,
-    DATA_UPLOAD_API_URL,
     DSS_API_URL,
+    MINIO_API_URL,
+    MINIO_DOWNLOAD_REDIRECT_API_URL,
     MINIO_UPLOAD_CT,
+    NID_API_URL,
 )
 
 
@@ -45,7 +45,7 @@ def create_temp_bucket(session: DAFNISession) -> str:
         str: Minio temporary bucket ID
     """
 
-    url = f"{DATA_UPLOAD_API_URL}/nid/upload/"
+    url = f"{NID_API_URL}/nid/upload/"
 
     return session.post_request(url=url, allow_redirect=True)
 
@@ -80,7 +80,7 @@ def get_data_upload_urls(
     Returns:
         dict: Dict containing a url for each given file name
     """
-    url = f"{DATA_UPLOAD_API_URL}/nid/upload/"
+    url = f"{NID_API_URL}/nid/upload/"
     data = {"bucketId": temp_bucket_id, "datafiles": file_names}
 
     return session.patch_request(url=url, json=data, allow_redirect=True)
@@ -109,7 +109,7 @@ def upload_dataset_metadata(
     Returns:
         Response: Upload Response
     """
-    url = f"{DATA_UPLOAD_API_URL}/nid/dataset/"
+    url = f"{NID_API_URL}/nid/dataset/"
     data = {"bucketId": temp_bucket_id, "metadata": metadata}
     return session.post_request(url=url, json=data)
 
@@ -128,7 +128,7 @@ def minio_get_request(
         dict: For an endpoint returning one object, this will be a dictionary.
     """
     # Substitute the Minio URL returned in the request string with a redirect
-    file_url = url.replace(DATA_DOWNLOAD_API_URL, DATA_DOWNLOAD_REDIRECT_API_URL)
+    file_url = url.replace(MINIO_API_URL, MINIO_DOWNLOAD_REDIRECT_API_URL)
     return session.get_request(
         url=file_url,
         content_type="application/json",
