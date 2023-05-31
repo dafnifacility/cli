@@ -26,22 +26,22 @@ class ModelDataslot(ParserBaseObject):
     Attributes:
         name (str): Name of the slot
         path (str): Path of the file expected in the container
-        defaults (List[str]): List of default dataset ids
         required (str): Whether the slot is required
+        defaults (List[str]): List of default dataset ids
         description (Optional[str]): Description of the slot if applicable
     """
 
     name: str
     path: str
-    defaults: List[str]
     required: bool
+    defaults: List[str] = field(default_factory=list)
     description: Optional[str] = None
 
     _parser_params: ClassVar[List[ParserParam]] = [
         ParserParam("name", "name", str),
         ParserParam("path", "path", str),
-        ParserParam("defaults", "default"),
         ParserParam("required", "required"),
+        ParserParam("defaults", "default"),
         ParserParam("description", "description", str),
     ]
 

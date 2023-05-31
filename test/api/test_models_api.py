@@ -8,7 +8,7 @@ from dafni_cli.api.exceptions import (
     ResourceNotFoundError,
     ValidationError,
 )
-from dafni_cli.consts import MODELS_API_URL, VALIDATE_MODEL_CT
+from dafni_cli.consts import NIMS_API_URL, VALIDATE_MODEL_CT
 
 from test.fixtures.session import create_mock_response
 
@@ -36,7 +36,7 @@ class TestModelsAPI(TestCase):
 
         # ASSERT
         session.get_request.assert_called_once_with(
-            f"{MODELS_API_URL}/models/",
+            f"{NIMS_API_URL}/models/",
         )
         self.assertEqual(result, session.get_request.return_value)
 
@@ -52,7 +52,7 @@ class TestModelsAPI(TestCase):
 
         # ASSERT
         session.get_request.assert_called_once_with(
-            f"{MODELS_API_URL}/models/{version_id}/",
+            f"{NIMS_API_URL}/models/{version_id}/",
         )
         self.assertEqual(result, session.get_request.return_value)
 
@@ -97,7 +97,7 @@ class TestModelsAPI(TestCase):
         # ASSERT
         open_mock.assert_called_once_with(model_definition_path, "rb")
         session.put_request.assert_called_once_with(
-            url=f"{MODELS_API_URL}/models/validate/",
+            url=f"{NIMS_API_URL}/models/validate/",
             content_type=VALIDATE_MODEL_CT,
             data=open(model_definition_path, "rb"),
         )
@@ -131,7 +131,7 @@ class TestModelsAPI(TestCase):
         # ASSERT
         open_mock.assert_called_once_with(model_definition_path, "rb")
         session.put_request.assert_called_once_with(
-            url=f"{MODELS_API_URL}/models/validate/",
+            url=f"{NIMS_API_URL}/models/validate/",
             content_type=VALIDATE_MODEL_CT,
             data=open(model_definition_path, "rb"),
         )
@@ -148,7 +148,7 @@ class TestModelsAPI(TestCase):
 
         # ASSERT
         session.post_request.assert_called_once_with(
-            url=f"{MODELS_API_URL}/models/upload/",
+            url=f"{NIMS_API_URL}/models/upload/",
             json={"image": True, "definition": True},
         )
         self.assertEqual(
@@ -178,7 +178,7 @@ class TestModelsAPI(TestCase):
 
         # ASSERT
         session.post_request.assert_called_once_with(
-            url=f"{MODELS_API_URL}/models/upload/{upload_id}/ingest/",
+            url=f"{NIMS_API_URL}/models/upload/{upload_id}/ingest/",
             json={"version_message": version_message},
         )
         self.assertEqual(result, session.post_request.return_value)
@@ -203,7 +203,7 @@ class TestModelsAPI(TestCase):
 
         # ASSERT
         session.post_request.assert_called_once_with(
-            url=f"{MODELS_API_URL}/models/{model_id}/upload/{upload_id}/ingest/",
+            url=f"{NIMS_API_URL}/models/{model_id}/upload/{upload_id}/ingest/",
             json={"version_message": version_message},
         )
         self.assertEqual(result, session.post_request.return_value)
@@ -220,6 +220,6 @@ class TestModelsAPI(TestCase):
 
         # ASSERT
         session.delete_request.assert_called_once_with(
-            f"{MODELS_API_URL}/models/{version_id}",
+            f"{NIMS_API_URL}/models/{version_id}",
         )
         self.assertEqual(result, session.delete_request.return_value)

@@ -27,6 +27,7 @@ from test.fixtures.dataset_metadata import (
     TEST_DATASET_METADATA_DATAFILE,
     TEST_DATASET_METADATA_DEFAULT,
     TEST_DATASET_METADATA_LOCATION,
+    TEST_DATASET_METADATA_LOCATION_DEFAULT,
     TEST_DATASET_METADATA_PUBLISHER,
     TEST_DATASET_METADATA_PUBLISHER_DEFAULT,
     TEST_DATASET_METADATA_STANDARD,
@@ -135,6 +136,16 @@ class TestLocation(TestCase):
         self.assertEqual(location.id, TEST_DATASET_METADATA_LOCATION["@id"])
         self.assertEqual(location.type, TEST_DATASET_METADATA_LOCATION["@type"])
         self.assertEqual(location.label, TEST_DATASET_METADATA_LOCATION["rdfs:label"])
+
+    def test_parse_when_no_optional_values(self):
+        """Tests parsing of Location with optional values ignored"""
+
+        location: Location = ParserBaseObject.parse_from_dict(
+            Location, TEST_DATASET_METADATA_LOCATION_DEFAULT
+        )
+        self.assertEqual(location.id, None)
+        self.assertEqual(location.type, TEST_DATASET_METADATA_LOCATION["@type"])
+        self.assertEqual(location.label, None)
 
 
 class TestPublisher(TestCase):

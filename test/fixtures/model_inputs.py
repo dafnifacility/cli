@@ -1,7 +1,14 @@
 TEST_MODEL_INPUT_DATASLOT: dict = {
     "name": "Inputs",
     "path": "inputs/",
+    "required": True,
     "default": ["0a0a0a0a-0a00-0a00-a000-0a0a0000000f"],
+    "description": "Dataslot description",
+}
+
+TEST_MODEL_INPUT_DATASLOT_DEFAULT: dict = {
+    "name": "Inputs",
+    "path": "inputs/",
     "required": True,
 }
 

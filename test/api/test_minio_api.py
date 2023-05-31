@@ -4,9 +4,9 @@ from unittest.mock import MagicMock, mock_open, patch
 
 from dafni_cli.api import minio_api
 from dafni_cli.consts import (
-    DATA_DOWNLOAD_API_URL,
-    DATA_DOWNLOAD_REDIRECT_API_URL,
-    DATA_UPLOAD_API_URL,
+    MINIO_API_URL,
+    MINIO_DOWNLOAD_REDIRECT_API_URL,
+    NID_API_URL,
     DSS_API_URL,
     MINIO_UPLOAD_CT,
 )
@@ -45,7 +45,7 @@ class TestMinioAPI(TestCase):
 
         # ASSERT
         session.post_request.assert_called_once_with(
-            url=f"{DATA_UPLOAD_API_URL}/nid/upload/", allow_redirect=True
+            url=f"{NID_API_URL}/nid/upload/", allow_redirect=True
         )
         self.assertEqual(result, session.post_request.return_value)
 
@@ -78,7 +78,7 @@ class TestMinioAPI(TestCase):
 
         # ASSERT
         session.patch_request.assert_called_once_with(
-            url=f"{DATA_UPLOAD_API_URL}/nid/upload/",
+            url=f"{NID_API_URL}/nid/upload/",
             json={"bucketId": temp_bucket_id, "datafiles": file_names},
             allow_redirect=True,
         )
@@ -97,7 +97,7 @@ class TestMinioAPI(TestCase):
 
         # ASSERT
         session.post_request.assert_called_once_with(
-            url=f"{DATA_UPLOAD_API_URL}/nid/dataset/",
+            url=f"{NID_API_URL}/nid/dataset/",
             json={"bucketId": temp_bucket_id, "metadata": metadata},
         )
         self.assertEqual(result, session.post_request.return_value)
@@ -107,7 +107,7 @@ class TestMinioAPI(TestCase):
 
         # SETUP
         session = MagicMock()
-        url = f"{DATA_DOWNLOAD_API_URL}/example_file.zip"
+        url = f"{MINIO_API_URL}/example_file.zip"
         content = MagicMock()
 
         # CALL
@@ -115,7 +115,7 @@ class TestMinioAPI(TestCase):
 
         # ASSERT
         session.get_request.assert_called_once_with(
-            url=f"{DATA_DOWNLOAD_REDIRECT_API_URL}/example_file.zip",
+            url=f"{MINIO_DOWNLOAD_REDIRECT_API_URL}/example_file.zip",
             content_type="application/json",
             allow_redirect=False,
             content=content,

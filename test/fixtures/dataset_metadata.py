@@ -33,6 +33,12 @@ TEST_DATASET_METADATA_LOCATION: dict = {
     "rdfs:label": "England",
 }
 
+TEST_DATASET_METADATA_LOCATION_DEFAULT: dict = {
+    "@id": None,
+    "@type": "dct:Location",
+    "rdfs:label": None,
+}
+
 TEST_DATASET_METADATA_PUBLISHER: dict = {
     "@id": None,
     "@type": "foaf:Organization",

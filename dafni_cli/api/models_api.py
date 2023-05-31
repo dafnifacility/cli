@@ -9,7 +9,7 @@ from dafni_cli.api.exceptions import (
     ValidationError,
 )
 from dafni_cli.api.session import DAFNISession
-from dafni_cli.consts import MODELS_API_URL, VALIDATE_MODEL_CT
+from dafni_cli.consts import NIMS_API_URL, VALIDATE_MODEL_CT
 
 
 def get_all_models(session: DAFNISession) -> List[dict]:
@@ -22,7 +22,7 @@ def get_all_models(session: DAFNISession) -> List[dict]:
     Returns:
         List[dict]: list of dictionaries with raw response from API
     """
-    url = f"{MODELS_API_URL}/models/"
+    url = f"{NIMS_API_URL}/models/"
     return session.get_request(url)
 
 
@@ -41,7 +41,7 @@ def get_model(session: DAFNISession, version_id: str) -> dict:
         ResourceNotFoundError: If a model with the given version_id wasn't
                                found
     """
-    url = f"{MODELS_API_URL}/models/{version_id}/"
+    url = f"{NIMS_API_URL}/models/{version_id}/"
 
     try:
         return session.get_request(url)
@@ -64,7 +64,7 @@ def validate_model_definition(session: DAFNISession, model_definition_path: Path
         ValidationError: If the validation fails
     """
     content_type = VALIDATE_MODEL_CT
-    url = f"{MODELS_API_URL}/models/validate/"
+    url = f"{NIMS_API_URL}/models/validate/"
     with open(model_definition_path, "rb") as md:
         response = session.put_request(url=url, content_type=content_type, data=md)
     # This response returns a property "valid" and any errors found (although
@@ -89,7 +89,7 @@ def get_model_upload_urls(session: DAFNISession) -> Tuple[str, dict]:
         str: The ID for the upload
         dict: The urls for the definition and image with keys "definition" and "image", respectively.
     """
-    url = f"{MODELS_API_URL}/models/upload/"
+    url = f"{NIMS_API_URL}/models/upload/"
     data = {"image": True, "definition": True}
     urls_resp = session.post_request(url=url, json=data)
     upload_id = urls_resp["id"]
@@ -116,9 +116,9 @@ def model_version_ingest(
         dict: JSON from response returned in post request
     """
     if model_id:
-        url = f"{MODELS_API_URL}/models/{model_id}/upload/{upload_id}/ingest/"
+        url = f"{NIMS_API_URL}/models/{model_id}/upload/{upload_id}/ingest/"
     else:
-        url = f"{MODELS_API_URL}/models/upload/{upload_id}/ingest/"
+        url = f"{NIMS_API_URL}/models/upload/{upload_id}/ingest/"
     data = {"version_message": version_message}
     return session.post_request(url=url, json=data)
 
@@ -130,5 +130,5 @@ def delete_model(session: DAFNISession, version_id: str) -> Response:
         session (DAFNISession): User session
         version_id (str): Model version ID for selected model
     """
-    url = f"{MODELS_API_URL}/models/{version_id}"
+    url = f"{NIMS_API_URL}/models/{version_id}"
     return session.delete_request(url)

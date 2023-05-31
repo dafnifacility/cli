@@ -20,6 +20,7 @@ from dafni_cli.model.inputs import ModelDataslot, ModelInputs, ModelParameter
 
 from test.fixtures.model_inputs import (
     TEST_MODEL_INPUT_DATASLOT,
+    TEST_MODEL_INPUT_DATASLOT_DEFAULT,
     TEST_MODEL_INPUT_PARAMETER,
     TEST_MODEL_INPUTS,
     TEST_MODEL_INPUTS_DEFAULT,
@@ -38,11 +39,28 @@ class TestModelDataslot(TestCase):
         self.assertEqual(model_input_dataslot.name, TEST_MODEL_INPUT_DATASLOT["name"])
         self.assertEqual(model_input_dataslot.path, TEST_MODEL_INPUT_DATASLOT["path"])
         self.assertEqual(
+            model_input_dataslot.required, TEST_MODEL_INPUT_DATASLOT["required"]
+        )
+        self.assertEqual(
             model_input_dataslot.defaults, TEST_MODEL_INPUT_DATASLOT["default"]
         )
         self.assertEqual(
+            model_input_dataslot.description, TEST_MODEL_INPUT_DATASLOT["description"]
+        )
+
+    def test_parse_default(self):
+        """Tests parsing of ModelDataslot when all optional values are
+        excluded"""
+        model_input_dataslot: ModelDataslot = ParserBaseObject.parse_from_dict(
+            ModelDataslot, TEST_MODEL_INPUT_DATASLOT_DEFAULT
+        )
+
+        self.assertEqual(model_input_dataslot.name, TEST_MODEL_INPUT_DATASLOT["name"])
+        self.assertEqual(model_input_dataslot.path, TEST_MODEL_INPUT_DATASLOT["path"])
+        self.assertEqual(
             model_input_dataslot.required, TEST_MODEL_INPUT_DATASLOT["required"]
         )
+        self.assertEqual(model_input_dataslot.defaults, [])
         self.assertEqual(model_input_dataslot.description, None)
 
 
@@ -91,7 +109,8 @@ class TestInputs(TestCase):
             self.assertEqual(type(dataslot), ModelDataslot)
 
     def test_parse_default(self):
-        """Tests parsing of ModelInputs when all optional values excluded"""
+        """Tests parsing of ModelInputs when all optional values are
+        excluded"""
         model_inputs: ModelInputs = ParserBaseObject.parse_from_dict(
             ModelInputs, TEST_MODEL_INPUTS_DEFAULT
         )
@@ -204,14 +223,14 @@ class TestInputs(TestCase):
             rows=[
                 [
                     "Inputs",
-                    None,
+                    "Dataslot description",
                     "inputs/",
                     "0a0a0a0a-0a00-0a00-a000-0a0a0000000f",
                     "Yes",
                 ],
                 [
                     "Inputs",
-                    None,
+                    "Dataslot description",
                     "inputs/",
                     "0a0a0a0a-0a00-0a00-a000-0a0a0000000f",
                     "No",
@@ -258,7 +277,7 @@ class TestInputs(TestCase):
             rows=[
                 [
                     "Inputs",
-                    None,
+                    "Dataslot description",
                     "inputs/",
                     "0a0a0a0a-0a00-0a00-a000-0a0a0000000a\n0a0a0a0a-0a00-0a00-a000-0a0a0000000b",
                     "Yes",
