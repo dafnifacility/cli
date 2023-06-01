@@ -1,6 +1,6 @@
 import json
 from pathlib import Path
-from typing import List
+from typing import List, Optional
 
 import click
 from click import Context
@@ -75,22 +75,18 @@ def model(
         version_message (str): Version message to be included with this model version
         parent_id (str): ID of the parent model that this is an update of
     """
-    argument_names = [
-        "Model definition file path",
-        "Image file path",
-        "Version message",
+    arguments = [
+        ("Model definition file path", definition),
+        ("Image file path", image),
+        ("Version message", version_message),
     ]
-    arguments = [definition, image, version_message]
     confirmation_message = "Confirm model upload?"
     if parent_id:
-        argument_names.append("Parent model ID")
-        arguments.append(parent_id)
+        arguments.append(("Parent model ID", parent_id))
         additional_message = None
     else:
         additional_message = ["No parent model: New model to be created"]
-    argument_confirmation(
-        argument_names, arguments, confirmation_message, additional_message
-    )
+    argument_confirmation(arguments, confirmation_message, additional_message)
 
     click.echo("Validating model definition")
     try:
@@ -116,18 +112,24 @@ def model(
 
 
 ###############################################################################
-# COMMAND: Upload a DATASET to DAFNI
+# COMMAND: Upload a new DATASET to DAFNI
 ###############################################################################
-@upload.command(help="Upload a dataset to DAFNI")
+@upload.command(help="Upload a new dataset to DAFNI")
 @click.argument(
-    "definition", nargs=1, required=True, type=click.Path(exists=True, path_type=Path)
+    "definition",
+    nargs=1,
+    required=True,
+    type=click.Path(exists=True, path_type=Path),
 )
 @click.argument(
-    "files", nargs=-1, required=True, type=click.Path(exists=True, path_type=Path)
+    "files",
+    nargs=-1,
+    required=True,
+    type=click.Path(exists=True, path_type=Path),
 )
 @click.pass_context
 def dataset(ctx: Context, definition: Path, files: List[Path]):
-    """Uploads a Dataset to DAFNI from metadata and dataset files.
+    """Uploads a new Dataset to DAFNI from metadata and dataset files.
 
     Args:
         ctx (Context): contains user session for authentication
@@ -135,15 +137,57 @@ def dataset(ctx: Context, definition: Path, files: List[Path]):
         files (List[Path]): Dataset data files
     """
     # Confirm upload details
-    argument_names = ["Dataset definition file path"] + [
-        "Dataset file path" for _ in files
+    arguments = [("Dataset definition file path", definition)] + [
+        ("Dataset file path", file) for file in files
     ]
-    arguments = [definition, *files]
     confirmation_message = "Confirm dataset upload?"
-    argument_confirmation(argument_names, arguments, confirmation_message)
+    argument_confirmation(arguments, confirmation_message)
 
     # Upload all files
     upload_new_dataset_files(ctx.obj["session"], definition, files)
+
+
+# ###############################################################################
+# # COMMAND: Upload a new version of a DATASET to DAFNI
+# ###############################################################################
+# @upload.command(help="Upload a new version of a dataset to DAFNI")
+# @click.argument("dataset_id", required=True, type=str)
+# @click.argument(
+#     "files",
+#     nargs=-1,
+#     required=True,
+#     type=click.Path(exists=True, path_type=Path),
+# )
+# @click.option(
+#     "--definition",
+#     type=click.Path(exists=True, path_type=Path),
+#     help="Path to a dataset metadata definition file to upload",
+# )
+# @click.pass_context
+# def dataset_version(
+#     ctx: Context, dataset_id: str, files: List[Path], definition: Optional[Path]
+# ):
+#     """Uploads a new version of a Dataset to DAFNI from dataset files
+
+#     Args:
+#         ctx (Context): contains user session for authentication
+#         dataset_id (str): ID of the dataset to update
+#         definition (Path): Dataset metadata file
+#         files (List[Path]): Dataset data files
+#     """
+#     # # Confirm upload details
+#     argument_names = ["Dataset ID"] + ["Dataset file path" for _ in files]
+#     arguments = [dataset_id, *files, definition]
+
+#     if definition:
+#         argument_names.append("Dataset definition file path")
+#         arguments.append(arguments)
+
+#     confirmation_message = "Confirm dataset upload?"
+#     argument_confirmation(argument_names, arguments, confirmation_message)
+
+#     # # Upload all files
+#     # upload_new_dataset_files(ctx.obj["session"], definition, files)
 
 
 ###############################################################################
@@ -186,21 +230,17 @@ def workflow(
         version_message (str): Version message to be included with this workflow version
         parent_id (str): ID of the parent workflow that this is an update of
     """
-    argument_names = [
-        "Workflow definition file path",
-        "Version message",
+    arguments = [
+        ("Workflow definition file path", definition),
+        ("Version message", version_message),
     ]
-    arguments = [definition, version_message]
     confirmation_message = "Confirm workflow upload?"
     if parent_id:
-        argument_names.append("Parent workflow ID")
-        arguments.append(parent_id)
+        arguments.append(("Parent workflow ID", parent_id))
         additional_message = None
     else:
         additional_message = ["No parent workflow: new workflow to be created"]
-    argument_confirmation(
-        argument_names, arguments, confirmation_message, additional_message
-    )
+    argument_confirmation(arguments, confirmation_message, additional_message)
 
     # TODO: Validate workflow definition using workflows/validate?
 
@@ -247,21 +287,17 @@ def workflow_params(
         version_message (str): Version message to be included with this model version
         parent_model (str): ID of the parent model that this is an update of
     """
-    argument_names = [
-        "Workflow definition file path",
-        "Version message",
+    arguments = [
+        ("Workflow definition file path", definition),
+        ("Version message", version_message),
     ]
-    arguments = [definition, version_message]
     confirmation_message = "Confirm workflow upload?"
     if parent_id:
-        argument_names.append("Parent workflow ID")
-        arguments.append(parent_id)
+        arguments.append(("Parent workflow ID", parent_id))
         additional_message = None
     else:
         additional_message = ["No parent workflow: new workflow to be created"]
-    argument_confirmation(
-        argument_names, arguments, confirmation_message, additional_message
-    )
+    argument_confirmation(arguments, confirmation_message, additional_message)
 
     click.echo("Validating workflow definition")
     with open(definition, "r") as f:

@@ -72,9 +72,7 @@ def model(ctx: Context, version_id: List[str]):
     model_version_details_list = collate_model_version_details(
         ctx.obj["session"], version_id
     )
-    argument_confirmation(
-        [], [], "Confirm deletion of models?", model_version_details_list
-    )
+    argument_confirmation([], "Confirm deletion of models?", model_version_details_list)
     for vid in version_id:
         delete_model(ctx.obj["session"], vid)
     # Confirm action
@@ -128,7 +126,7 @@ def workflow(ctx: Context, version_id: List[str]):
         ctx.obj["session"], version_id
     )
     argument_confirmation(
-        [], [], "Confirm deletion of workflows?", workflow_version_details_list
+        [], "Confirm deletion of workflows?", workflow_version_details_list
     )
     for vid in version_id:
         delete_workflow(ctx.obj["session"], vid)
