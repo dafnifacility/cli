@@ -16,41 +16,6 @@ from dafni_cli.api.minio_api import (
 from dafni_cli.api.session import DAFNISession
 
 
-def upload_new_dataset_files(
-    session: DAFNISession, definition_path: Path, file_paths: List[Path]
-) -> None:
-    """Function to upload all files associated with a new Dataset
-
-    Args:
-        session (DAFNISession): User session
-        definition_path (Path): Path to Dataset metadata file
-        file_paths (List[Path]): List of Paths to dataset data files
-    """
-
-    click.echo("\nRetrieving temporary bucket ID")
-    temp_bucket_id = create_temp_bucket(session)
-
-    # If any exception happens now, we want to make sure we delete the
-    # temporary bucket to prevent a build up in the user's quota
-    try:
-        # Upload all files
-        upload_files(session, temp_bucket_id, file_paths)
-        with open(definition_path, "r", encoding="utf-8") as definition_file:
-            details = upload_metadata(
-                session, json.load(definition_file), temp_bucket_id
-            )
-    except BaseException:
-        click.echo("Deleting temporary bucket")
-        delete_temp_bucket(session, temp_bucket_id)
-        raise
-
-    # Output Details
-    click.echo("\nUpload successful")
-    click.echo(f"Dataset ID: {details['datasetId']}")
-    click.echo(f"Version ID: {details['versionId']}")
-    click.echo(f"Metadata ID: {details['metadataId']}")
-
-
 def remove_dataset_metadata_invalid_for_upload(metadata: dict):
     """Function to remove metadata for a dataset that is given when getting it
     but are not valid during upload
@@ -105,44 +70,6 @@ def modify_dataset_metadata_for_upload(
     return metadata
 
 
-def upload_dataset_version(
-    session: DAFNISession,
-    dataset_id: str,
-    metadata: dict,
-    file_paths: List[Path],
-) -> None:
-    """Function to upload all files associated with a new Dataset
-
-    Args:
-        session (DAFNISession): User session
-        dataset_id (str): ID of the existing dataset to add a version to
-        metadata (dict): Metadata to upload
-        file_paths (List[Path]): List of Paths to dataset data files
-    """
-
-    click.echo("\nRetrieving temporary bucket ID")
-    temp_bucket_id = create_temp_bucket(session)
-
-    # If any exception happens now, we want to make sure we delete the
-    # temporary bucket to prevent a build up in the user's quota
-    try:
-        # Upload all files
-        upload_files(session, temp_bucket_id, file_paths)
-        details = upload_metadata(
-            session, metadata, temp_bucket_id, dataset_id=dataset_id
-        )
-    except BaseException:
-        click.echo("Deleting temporary bucket")
-        delete_temp_bucket(session, temp_bucket_id)
-        raise
-
-    # Output Details
-    click.echo("\nUpload successful")
-    click.echo(f"Dataset ID: {details['datasetId']}")
-    click.echo(f"Version ID: {details['versionId']}")
-    click.echo(f"Metadata ID: {details['metadataId']}")
-
-
 def upload_files(session: DAFNISession, temp_bucket_id: str, file_paths: List[Path]):
     """Function to upload all given files to a temporary bucket via the Minio
     API
@@ -193,3 +120,42 @@ def upload_metadata(
         raise SystemExit(1) from err
 
     return response
+
+
+def upload_dataset(
+    session: DAFNISession,
+    metadata: dict,
+    file_paths: List[Path],
+    dataset_id: Optional[str] = None,
+) -> None:
+    """Function to upload all files associated with a new Dataset
+
+    Args:
+        session (DAFNISession): User session
+        metadata (dict): Metadata to upload
+        file_paths (List[Path]): List of Paths to dataset data files
+        dataset_id (Optional[str]): ID of an existing dataset to add a version
+                              to. Creates a new dataset if None.
+    """
+
+    click.echo("\nRetrieving temporary bucket ID")
+    temp_bucket_id = create_temp_bucket(session)
+
+    # If any exception happens now, we want to make sure we delete the
+    # temporary bucket to prevent a build up in the user's quota
+    try:
+        # Upload all files
+        upload_files(session, temp_bucket_id, file_paths)
+        details = upload_metadata(
+            session, metadata, temp_bucket_id, dataset_id=dataset_id
+        )
+    except BaseException:
+        click.echo("Deleting temporary bucket")
+        delete_temp_bucket(session, temp_bucket_id)
+        raise
+
+    # Output Details
+    click.echo("\nUpload successful")
+    click.echo(f"Dataset ID: {details['datasetId']}")
+    click.echo(f"Version ID: {details['versionId']}")
+    click.echo(f"Metadata ID: {details['metadataId']}")

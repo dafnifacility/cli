@@ -258,7 +258,7 @@ class DatasetVersionHistory(ParserBaseObject):
             if json_flag:
                 json_list.append(metadata)
             else:
-                dataset_meta = ParserBaseObject.parse_from_dict(
+                dataset_meta: DatasetMetadata = ParserBaseObject.parse_from_dict(
                     DatasetMetadata, metadata
                 )
                 dataset_meta.output_version_details()
