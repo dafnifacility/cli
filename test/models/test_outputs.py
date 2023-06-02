@@ -8,7 +8,7 @@ from dafni_cli.consts import (
     OUTPUT_SUMMARY_HEADER,
     OUTPUT_SUMMARY_MAX_COLUMN_WIDTH,
 )
-from dafni_cli.model.outputs import ModelOutputDataset, ModelOutputs
+from dafni_cli.models.outputs import ModelOutputDataset, ModelOutputs
 
 from test.fixtures.model_outputs import TEST_MODEL_OUTPUTS
 
@@ -48,7 +48,7 @@ class TestModelOutputs(TestCase):
         for dataset in model_outputs.datasets:
             self.assertEqual(type(dataset), ModelOutputDataset)
 
-    @patch("dafni_cli.model.outputs.format_table")
+    @patch("dafni_cli.models.outputs.format_table")
     def test_format_outputs(
         self,
         mock_format_table,
@@ -83,7 +83,7 @@ class TestModelOutputs(TestCase):
         )
         self.assertEqual(result, mock_format_table.return_value)
 
-    @patch("dafni_cli.model.outputs.format_table")
+    @patch("dafni_cli.models.outputs.format_table")
     def test_format_outputs_when_name_and_type_none(
         self,
         mock_format_table,

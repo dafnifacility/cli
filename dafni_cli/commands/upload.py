@@ -21,6 +21,7 @@ from dafni_cli.datasets.dataset_upload import (
     modify_dataset_metadata_for_upload,
     upload_dataset,
 )
+from dafni_cli.models.upload import upload_model
 from dafni_cli.utils import argument_confirmation
 
 
@@ -69,7 +70,7 @@ def model(
     definition: Path,
     image: Path,
     version_message: str,
-    parent_id: str,
+    parent_id: Optional[str],
 ):
     """Uploads model to DAFNI from metadata and image files
 
@@ -93,27 +94,13 @@ def model(
         additional_message = ["No parent model: New model to be created"]
     argument_confirmation(arguments, confirmation_message, additional_message)
 
-    click.echo("Validating model definition")
-    try:
-        validate_model_definition(ctx.obj["session"], definition)
-    except ValidationError as err:
-        click.echo(err)
-
-        raise SystemExit(1) from err
-
-    click.echo("Getting urls")
-    upload_id, urls = get_model_upload_urls(ctx.obj["session"])
-    definition_url = urls["definition"]
-    image_url = urls["image"]
-
-    click.echo("Uploading model definition and image")
-    upload_file_to_minio(ctx.obj["session"], definition_url, definition)
-    upload_file_to_minio(ctx.obj["session"], image_url, image)
-
-    click.echo("Ingesting model")
-    model_version_ingest(ctx.obj["session"], upload_id, version_message, parent_id)
-
-    click.echo("Model upload complete")
+    upload_model(
+        ctx.obj["session"],
+        definition_path=definition,
+        image_path=image,
+        version_message=version_message,
+        parent_id=parent_id,
+    )
 
 
 ###############################################################################

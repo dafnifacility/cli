@@ -46,74 +46,52 @@ class TestUpload(TestCase):
 
 
 @patch("dafni_cli.commands.upload.DAFNISession")
-@patch("dafni_cli.commands.upload.validate_model_definition")
-@patch("dafni_cli.commands.upload.get_model_upload_urls")
-@patch("dafni_cli.commands.upload.upload_file_to_minio")
-@patch("dafni_cli.commands.upload.model_version_ingest")
+@patch("dafni_cli.commands.upload.upload_model")
 class TestUploadModel(TestCase):
     """Test class to test the upload model commands"""
 
     def test_upload_model(
         self,
-        mock_model_version_ingest,
-        mock_upload_file_to_minio,
-        mock_get_model_upload_urls,
-        mock_validate_model_definition,
+        mock_upload_model,
         mock_DAFNISession,
     ):
         """Tests that the 'upload model' command works correctly when
-        no parent is given"""
+        no parent id is given"""
 
         # SETUP
         session = MagicMock()
         mock_DAFNISession.return_value = session
         runner = CliRunner()
-
-        mock_get_model_upload_urls.return_value = (
-            TEST_MODELS_UPLOAD_RESPONSE["id"],
-            TEST_MODELS_UPLOAD_RESPONSE["urls"],
-        )
+        definition_path = "test_definition.yaml"
+        image_path = "test_image.txt"
+        version_message = "version_message"
 
         # CALL
         with runner.isolated_filesystem():
-            with open("test_definition.yaml", "w", encoding="utf-8") as file:
+            with open(definition_path, "w", encoding="utf-8") as file:
                 file.write("test definition file")
-            with open("test_image.txt", "w", encoding="utf-8") as file:
+            with open(image_path, "w", encoding="utf-8") as file:
                 file.write("test image file")
             result = runner.invoke(
                 upload.upload,
                 [
                     "model",
-                    "test_definition.yaml",
-                    "test_image.txt",
+                    definition_path,
+                    image_path,
                     "--version-message",
-                    "version_message",
+                    version_message,
                 ],
                 input="y",
             )
 
         # ASSERT
         mock_DAFNISession.assert_called_once()
-        mock_validate_model_definition.assert_called_once_with(
-            session, Path("test_definition.yaml")
-        )
-        mock_get_model_upload_urls.assert_called_once_with(session)
-        mock_upload_file_to_minio.assert_has_calls(
-            [
-                call(
-                    session,
-                    TEST_MODELS_UPLOAD_RESPONSE["urls"]["definition"],
-                    Path("test_definition.yaml"),
-                ),
-                call(
-                    session,
-                    TEST_MODELS_UPLOAD_RESPONSE["urls"]["image"],
-                    Path("test_image.txt"),
-                ),
-            ]
-        )
-        mock_model_version_ingest.assert_called_once_with(
-            session, TEST_MODELS_UPLOAD_RESPONSE["id"], "version_message", None
+        mock_upload_model.assert_called_with(
+            session,
+            definition_path=Path(definition_path),
+            image_path=Path(image_path),
+            version_message=version_message,
+            parent_id=None,
         )
 
         self.assertEqual(
@@ -122,21 +100,13 @@ class TestUploadModel(TestCase):
             "Image file path: test_image.txt\n"
             "Version message: version_message\n"
             "No parent model: New model to be created\n"
-            "Confirm model upload? [y/N]: y\n"
-            "Validating model definition\n"
-            "Getting urls\n"
-            "Uploading model definition and image\n"
-            "Ingesting model\n"
-            "Model upload complete\n",
+            "Confirm model upload? [y/N]: y\n",
         )
         self.assertEqual(result.exit_code, 0)
 
     def test_upload_model_with_parent(
         self,
-        mock_model_version_ingest,
-        mock_upload_file_to_minio,
-        mock_get_model_upload_urls,
-        mock_validate_model_definition,
+        mock_upload_model,
         mock_DAFNISession,
     ):
         """Tests that the 'upload model' command works correctly when
@@ -146,54 +116,39 @@ class TestUploadModel(TestCase):
         session = MagicMock()
         mock_DAFNISession.return_value = session
         runner = CliRunner()
-
-        mock_get_model_upload_urls.return_value = (
-            TEST_MODELS_UPLOAD_RESPONSE["id"],
-            TEST_MODELS_UPLOAD_RESPONSE["urls"],
-        )
+        definition_path = "test_definition.yaml"
+        image_path = "test_image.txt"
+        version_message = "version_message"
+        parent_id = "parent-id"
 
         # CALL
         with runner.isolated_filesystem():
-            with open("test_definition.yaml", "w", encoding="utf-8") as file:
+            with open(definition_path, "w", encoding="utf-8") as file:
                 file.write("test definition file")
-            with open("test_image.txt", "w", encoding="utf-8") as file:
+            with open(image_path, "w", encoding="utf-8") as file:
                 file.write("test image file")
             result = runner.invoke(
                 upload.upload,
                 [
                     "model",
-                    "test_definition.yaml",
-                    "test_image.txt",
+                    definition_path,
+                    image_path,
                     "--version-message",
-                    "version_message",
+                    version_message,
                     "--parent-id",
-                    "parent-id",
+                    parent_id,
                 ],
                 input="y",
             )
 
         # ASSERT
         mock_DAFNISession.assert_called_once()
-        mock_validate_model_definition.assert_called_once_with(
-            session, Path("test_definition.yaml")
-        )
-        mock_get_model_upload_urls.assert_called_once_with(session)
-        mock_upload_file_to_minio.assert_has_calls(
-            [
-                call(
-                    session,
-                    TEST_MODELS_UPLOAD_RESPONSE["urls"]["definition"],
-                    Path("test_definition.yaml"),
-                ),
-                call(
-                    session,
-                    TEST_MODELS_UPLOAD_RESPONSE["urls"]["image"],
-                    Path("test_image.txt"),
-                ),
-            ]
-        )
-        mock_model_version_ingest.assert_called_once_with(
-            session, TEST_MODELS_UPLOAD_RESPONSE["id"], "version_message", "parent-id"
+        mock_upload_model.assert_called_with(
+            session,
+            definition_path=Path(definition_path),
+            image_path=Path(image_path),
+            version_message=version_message,
+            parent_id=parent_id,
         )
 
         self.assertEqual(
@@ -202,81 +157,13 @@ class TestUploadModel(TestCase):
             "Image file path: test_image.txt\n"
             "Version message: version_message\n"
             "Parent model ID: parent-id\n"
-            "Confirm model upload? [y/N]: y\n"
-            "Validating model definition\n"
-            "Getting urls\n"
-            "Uploading model definition and image\n"
-            "Ingesting model\n"
-            "Model upload complete\n",
+            "Confirm model upload? [y/N]: y\n",
         )
         self.assertEqual(result.exit_code, 0)
 
-    def test_upload_model_with_validation_error(
-        self,
-        mock_model_version_ingest,
-        mock_upload_file_to_minio,
-        mock_get_model_upload_urls,
-        mock_validate_model_definition,
-        mock_DAFNISession,
-    ):
-        """Tests that the 'upload model' command exits correctly when
-        a validation error occurs"""
-
-        # SETUP
-        session = MagicMock()
-        mock_DAFNISession.return_value = session
-        runner = CliRunner()
-
-        mock_get_model_upload_urls.return_value = (
-            TEST_MODELS_UPLOAD_RESPONSE["id"],
-            TEST_MODELS_UPLOAD_RESPONSE["urls"],
-        )
-        mock_validate_model_definition.side_effect = ValidationError(
-            "Some validation error message"
-        )
-
-        # CALL
-        with runner.isolated_filesystem():
-            with open("test_definition.yaml", "w", encoding="utf-8") as file:
-                file.write("test definition file")
-            with open("test_image.txt", "w", encoding="utf-8") as file:
-                file.write("test image file")
-            result = runner.invoke(
-                upload.upload,
-                [
-                    "model",
-                    "test_definition.yaml",
-                    "test_image.txt",
-                    "--version-message",
-                    "version_message",
-                ],
-                input="y",
-            )
-
-        # ASSERT
-        mock_DAFNISession.assert_called_once()
-        mock_validate_model_definition.assert_called_once_with(
-            session, Path("test_definition.yaml")
-        )
-
-        self.assertEqual(
-            result.output,
-            "Model definition file path: test_definition.yaml\n"
-            "Image file path: test_image.txt\n"
-            "Version message: version_message\n"
-            "No parent model: New model to be created\n"
-            "Confirm model upload? [y/N]: y\n"
-            "Validating model definition\n"
-            "Some validation error message\n",
-        )
-        self.assertEqual(result.exit_code, 1)
-
     def test_upload_model_cancel(
         self,
-        mock_model_version_ingest,
-        mock_upload_file_to_minio,
-        mock_get_model_upload_urls,
-        mock_validate_model_definition,
+        mock_model_upload,
         mock_DAFNISession,
     ):
         """Tests that the 'upload model' command can be canceled"""
@@ -285,39 +172,31 @@ class TestUploadModel(TestCase):
         session = MagicMock()
         mock_DAFNISession.return_value = session
         runner = CliRunner()
-
-        mock_get_model_upload_urls.return_value = (
-            TEST_MODELS_UPLOAD_RESPONSE["id"],
-            TEST_MODELS_UPLOAD_RESPONSE["urls"],
-        )
-        mock_validate_model_definition.side_effect = ValidationError(
-            "Some validation error message"
-        )
+        definition_path = "test_definition.yaml"
+        image_path = "test_image.txt"
+        version_message = "version_message"
 
         # CALL
         with runner.isolated_filesystem():
-            with open("test_definition.yaml", "w", encoding="utf-8") as file:
+            with open(definition_path, "w", encoding="utf-8") as file:
                 file.write("test definition file")
-            with open("test_image.txt", "w", encoding="utf-8") as file:
+            with open(image_path, "w", encoding="utf-8") as file:
                 file.write("test image file")
             result = runner.invoke(
                 upload.upload,
                 [
                     "model",
-                    "test_definition.yaml",
-                    "test_image.txt",
+                    definition_path,
+                    image_path,
                     "--version-message",
-                    "version_message",
+                    version_message,
                 ],
                 input="n",
             )
 
         # ASSERT
         mock_DAFNISession.assert_called_once()
-        mock_validate_model_definition.assert_not_called()
-        mock_get_model_upload_urls.assert_not_called()
-        mock_upload_file_to_minio.assert_not_called()
-        mock_model_version_ingest.assert_not_called()
+        mock_model_upload.assert_not_called()
 
         self.assertEqual(
             result.output,

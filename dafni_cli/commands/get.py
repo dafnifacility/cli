@@ -11,9 +11,9 @@ from dafni_cli.api.workflows_api import get_all_workflows, get_workflow
 from dafni_cli.datasets import dataset_filtering
 from dafni_cli.datasets.dataset import parse_datasets
 from dafni_cli.datasets.dataset_metadata import parse_dataset_metadata
-from dafni_cli.model.model import parse_model, parse_models
+from dafni_cli.models.model import parse_model, parse_models
 from dafni_cli.utils import print_json
-from dafni_cli.workflow.workflow import parse_workflow, parse_workflows
+from dafni_cli.workflows.workflow import parse_workflow, parse_workflows
 
 
 @click.group(help="Lists entities available to the user")

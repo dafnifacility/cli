@@ -7,9 +7,9 @@ from dateutil.tz import tzutc
 from dafni_cli.api.auth import Auth
 from dafni_cli.api.parser import ParserBaseObject
 from dafni_cli.consts import CONSOLE_WIDTH, TAB_SPACE
-from dafni_cli.model.inputs import ModelInputs
-from dafni_cli.model.model import Model, ModelSpec, parse_model, parse_models
-from dafni_cli.model.outputs import ModelOutputs
+from dafni_cli.models.inputs import ModelInputs
+from dafni_cli.models.model import Model, ModelSpec, parse_model, parse_models
+from dafni_cli.models.outputs import ModelOutputs
 
 from test.fixtures.models import (
     TEST_MODEL,
@@ -239,7 +239,7 @@ class TestModel(TestCase):
         with self.assertRaises(KeyError):
             model.filter_by_date("key", "11/12/2020")
 
-    @patch("dafni_cli.model.model.click")
+    @patch("dafni_cli.models.model.click")
     def test_output_details(self, mock_click):
         """Tests output_details works correctly"""
         # SETUP
@@ -263,8 +263,8 @@ class TestModel(TestCase):
             ]
         )
 
-    @patch("dafni_cli.model.model.prose_print")
-    @patch("dafni_cli.model.model.click")
+    @patch("dafni_cli.models.model.prose_print")
+    @patch("dafni_cli.models.model.click")
     def test_output_details_with_long(self, mock_click, mock_prose_print):
         """Tests output_details works correctly when 'long' is set to True"""
         # SETUP
@@ -290,8 +290,8 @@ class TestModel(TestCase):
         )
         mock_prose_print.called_once_with("description", CONSOLE_WIDTH)
 
-    @patch("dafni_cli.model.model.prose_print")
-    @patch("dafni_cli.model.model.click")
+    @patch("dafni_cli.models.model.prose_print")
+    @patch("dafni_cli.models.model.click")
     def test_output_info(
         self,
         mock_click,
@@ -329,8 +329,8 @@ class TestModel(TestCase):
         )
         mock_prose_print.assert_called_once_with("Test description", CONSOLE_WIDTH)
 
-    @patch("dafni_cli.model.model.prose_print")
-    @patch("dafni_cli.model.model.click")
+    @patch("dafni_cli.models.model.prose_print")
+    @patch("dafni_cli.models.model.click")
     def test_output_info_correct_when_inputs_present_but_not_outputs(
         self, mock_click, mock_prose_print
     ):
@@ -364,8 +364,8 @@ class TestModel(TestCase):
         )
         mock_prose_print.assert_called_once_with("Test description", CONSOLE_WIDTH)
 
-    @patch("dafni_cli.model.model.prose_print")
-    @patch("dafni_cli.model.model.click")
+    @patch("dafni_cli.models.model.prose_print")
+    @patch("dafni_cli.models.model.click")
     def test_output_info_correct_when_outputs_present_but_not_inputs(
         self, mock_click, mock_prose_print
     ):
@@ -396,8 +396,8 @@ class TestModel(TestCase):
         )
         mock_prose_print.assert_called_once_with("Test description", CONSOLE_WIDTH)
 
-    @patch("dafni_cli.model.model.prose_print")
-    @patch("dafni_cli.model.model.click")
+    @patch("dafni_cli.models.model.prose_print")
+    @patch("dafni_cli.models.model.click")
     def test_output_info_correct_when_neither_inputs_nor_outputs_are_present(
         self, mock_click, mock_prose_print
     ):
@@ -446,7 +446,7 @@ class TestModel(TestCase):
             + "Version message: ",
         )
 
-    @patch("dafni_cli.model.model.click")
+    @patch("dafni_cli.models.model.click")
     def test_output_version_history(self, mock_click):
         """Tests output_version_history works correctly"""
         # SETUP
