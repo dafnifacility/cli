@@ -377,8 +377,8 @@ class TestWorkflow(TestCase):
             ]
         )
 
-    @patch("dafni_cli.workflow.workflow.prose_print")
-    @patch("dafni_cli.workflow.workflow.click")
+    @patch("dafni_cli.workflows.workflow.prose_print")
+    @patch("dafni_cli.workflows.workflow.click")
     def test_output_details_with_long(self, mock_click, mock_prose_print):
         """Tests output_details works correctly when 'long' is set to True"""
         # SETUP
@@ -404,8 +404,8 @@ class TestWorkflow(TestCase):
         )
         mock_prose_print.called_once_with("description", CONSOLE_WIDTH)
 
-    @patch("dafni_cli.workflow.workflow.prose_print")
-    @patch("dafni_cli.workflow.workflow.click")
+    @patch("dafni_cli.workflows.workflow.prose_print")
+    @patch("dafni_cli.workflows.workflow.click")
     def test_output_info(self, mock_click, mock_prose_print):
         """Tests output_info works correctly"""
         # SETUP
@@ -443,7 +443,7 @@ class TestWorkflow(TestCase):
             + "Version message: Initial Workflow version",
         )
 
-    @patch("dafni_cli.workflow.workflow.click")
+    @patch("dafni_cli.workflows.workflow.click")
     def test_output_version_history(self, mock_click):
         """Tests output_version_history works correctly"""
         # SETUP
