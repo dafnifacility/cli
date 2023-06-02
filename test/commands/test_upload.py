@@ -44,12 +44,15 @@ class TestUpload(TestCase):
         self.assertEqual(ctx["session"], session)
         self.assertEqual(result.exit_code, 0)
 
-    # ----------------- MODELS
 
-    @patch("dafni_cli.commands.upload.validate_model_definition")
-    @patch("dafni_cli.commands.upload.get_model_upload_urls")
-    @patch("dafni_cli.commands.upload.upload_file_to_minio")
-    @patch("dafni_cli.commands.upload.model_version_ingest")
+@patch("dafni_cli.commands.upload.DAFNISession")
+@patch("dafni_cli.commands.upload.validate_model_definition")
+@patch("dafni_cli.commands.upload.get_model_upload_urls")
+@patch("dafni_cli.commands.upload.upload_file_to_minio")
+@patch("dafni_cli.commands.upload.model_version_ingest")
+class TestUploadModel(TestCase):
+    """Test class to test the upload model commands"""
+
     def test_upload_model(
         self,
         mock_model_version_ingest,
@@ -128,10 +131,6 @@ class TestUpload(TestCase):
         )
         self.assertEqual(result.exit_code, 0)
 
-    @patch("dafni_cli.commands.upload.validate_model_definition")
-    @patch("dafni_cli.commands.upload.get_model_upload_urls")
-    @patch("dafni_cli.commands.upload.upload_file_to_minio")
-    @patch("dafni_cli.commands.upload.model_version_ingest")
     def test_upload_model_with_parent(
         self,
         mock_model_version_ingest,
@@ -212,10 +211,6 @@ class TestUpload(TestCase):
         )
         self.assertEqual(result.exit_code, 0)
 
-    @patch("dafni_cli.commands.upload.validate_model_definition")
-    @patch("dafni_cli.commands.upload.get_model_upload_urls")
-    @patch("dafni_cli.commands.upload.upload_file_to_minio")
-    @patch("dafni_cli.commands.upload.model_version_ingest")
     def test_upload_model_with_validation_error(
         self,
         mock_model_version_ingest,
@@ -276,10 +271,6 @@ class TestUpload(TestCase):
         )
         self.assertEqual(result.exit_code, 1)
 
-    @patch("dafni_cli.commands.upload.validate_model_definition")
-    @patch("dafni_cli.commands.upload.get_model_upload_urls")
-    @patch("dafni_cli.commands.upload.upload_file_to_minio")
-    @patch("dafni_cli.commands.upload.model_version_ingest")
     def test_upload_model_cancel(
         self,
         mock_model_version_ingest,
@@ -339,9 +330,12 @@ class TestUpload(TestCase):
         )
         self.assertEqual(result.exit_code, 1)
 
-    # ----------------- DATASET
 
-    @patch("dafni_cli.commands.upload.upload_dataset")
+@patch("dafni_cli.commands.upload.DAFNISession")
+@patch("dafni_cli.commands.upload.upload_dataset")
+class TestUploadDataset(TestCase):
+    """Test class to test the upload dataset commands"""
+
     def test_upload_dataset(
         self,
         mock_upload_dataset,
@@ -384,7 +378,6 @@ class TestUpload(TestCase):
         )
         self.assertEqual(result.exit_code, 0)
 
-    @patch("dafni_cli.commands.upload.upload_dataset")
     def test_upload_dataset_with_multiple_files(
         self,
         mock_upload_dataset,
@@ -434,7 +427,6 @@ class TestUpload(TestCase):
         )
         self.assertEqual(result.exit_code, 0)
 
-    @patch("dafni_cli.commands.upload.upload_dataset")
     def test_upload_dataset_cancel(
         self,
         mock_upload_dataset,
@@ -476,11 +468,14 @@ class TestUpload(TestCase):
         )
         self.assertEqual(result.exit_code, 1)
 
-    # ----------------- DATASET-VERSION
 
-    @patch("dafni_cli.commands.upload.upload_dataset")
-    @patch("dafni_cli.commands.upload.get_latest_dataset_metadata")
-    @patch("dafni_cli.commands.upload.modify_dataset_metadata_for_upload")
+@patch("dafni_cli.commands.upload.DAFNISession")
+@patch("dafni_cli.commands.upload.upload_dataset")
+@patch("dafni_cli.commands.upload.get_latest_dataset_metadata")
+@patch("dafni_cli.commands.upload.modify_dataset_metadata_for_upload")
+class TestUploadDatasetVersion(TestCase):
+    """Test class to test the upload dataset-version commands"""
+
     def test_upload_dataset_version(
         self,
         mock_modify_dataset_metadata_for_upload,
@@ -540,9 +535,6 @@ class TestUpload(TestCase):
         )
         self.assertEqual(result.exit_code, 0)
 
-    @patch("dafni_cli.commands.upload.upload_dataset")
-    @patch("dafni_cli.commands.upload.get_latest_dataset_metadata")
-    @patch("dafni_cli.commands.upload.modify_dataset_metadata_for_upload")
     def test_upload_dataset_version_with_multiple_files(
         self,
         mock_modify_dataset_metadata_for_upload,
@@ -602,9 +594,6 @@ class TestUpload(TestCase):
         )
         self.assertEqual(result.exit_code, 0)
 
-    @patch("dafni_cli.commands.upload.upload_dataset")
-    @patch("dafni_cli.commands.upload.get_latest_dataset_metadata")
-    @patch("dafni_cli.commands.upload.modify_dataset_metadata_for_upload")
     def test_upload_dataset_version_cancel(
         self,
         mock_modify_dataset_metadata_for_upload,
@@ -660,9 +649,6 @@ class TestUpload(TestCase):
         )
         self.assertEqual(result.exit_code, 1)
 
-    @patch("dafni_cli.commands.upload.upload_dataset")
-    @patch("dafni_cli.commands.upload.get_latest_dataset_metadata")
-    @patch("dafni_cli.commands.upload.modify_dataset_metadata_for_upload")
     def test_upload_dataset_version_with_definition_and_version_message(
         self,
         mock_modify_dataset_metadata_for_upload,
@@ -679,7 +665,7 @@ class TestUpload(TestCase):
         runner = CliRunner()
         dataset_version_id = "some-existing-version-id"
         file_path = "test_dataset.txt"
-        definition_path = "defintion.json"
+        definition_path = "definition.json"
         version_message = "version_message"
         mock_get_latest_dataset_metadata.return_value = TEST_DATASET_METADATA
         metadata = parse_dataset_metadata(TEST_DATASET_METADATA)
@@ -732,9 +718,12 @@ class TestUpload(TestCase):
         )
         self.assertEqual(result.exit_code, 0)
 
-    # ----------------- WORKFLOW
 
-    @patch("dafni_cli.commands.upload.upload_workflow")
+@patch("dafni_cli.commands.upload.DAFNISession")
+@patch("dafni_cli.commands.upload.upload_workflow")
+class TestUploadWorkflow(TestCase):
+    """Test class to test the upload workflow commands"""
+
     def test_upload_workflow(
         self,
         mock_upload_workflow,
@@ -778,7 +767,6 @@ class TestUpload(TestCase):
         )
         self.assertEqual(result.exit_code, 0)
 
-    @patch("dafni_cli.commands.upload.upload_workflow")
     def test_upload_workflow_with_parent_and_version_message(
         self,
         mock_upload_workflow,
@@ -826,7 +814,6 @@ class TestUpload(TestCase):
         )
         self.assertEqual(result.exit_code, 0)
 
-    @patch("dafni_cli.commands.upload.upload_workflow")
     def test_upload_workflow_cancel(
         self,
         mock_upload_workflow,
