@@ -1,4 +1,5 @@
 import json
+from copy import deepcopy
 from pathlib import Path
 from typing import List, Optional
 
@@ -15,6 +16,18 @@ from dafni_cli.api.minio_api import (
 )
 from dafni_cli.api.session import DAFNISession
 
+# Keys inside dataset metadata returned from the API that are invalid for
+# uploading
+METADATA_KEYS_INVALID_FOR_UPLOAD = [
+    "@id",
+    "dct:issued",
+    "dct:modified",
+    "mediatypes",
+    "version_history",
+    "auth",
+    "dcat:distribution",
+]
+
 
 def remove_dataset_metadata_invalid_for_upload(metadata: dict):
     """Function to remove metadata for a dataset that is given when getting it
@@ -24,13 +37,8 @@ def remove_dataset_metadata_invalid_for_upload(metadata: dict):
         metadata (dict): The metadata to modify
     """
 
-    del metadata["@id"]
-    del metadata["dct:issued"]
-    del metadata["dct:modified"]
-    del metadata["mediatypes"]
-    del metadata["version_history"]
-    del metadata["auth"]
-    del metadata["dcat:distribution"]
+    for key in METADATA_KEYS_INVALID_FOR_UPLOAD:
+        del metadata[key]
 
 
 def modify_dataset_metadata_for_upload(
@@ -58,7 +66,7 @@ def modify_dataset_metadata_for_upload(
         with open(definition_path, "r", encoding="utf-8") as definition_file:
             metadata = json.load(definition_file)
     else:
-        metadata = existing_metadata.copy()
+        metadata = deepcopy(existing_metadata)
         remove_dataset_metadata_invalid_for_upload(metadata)
 
     # Make modifications to the metadata from the inputs
@@ -128,14 +136,14 @@ def upload_dataset(
     file_paths: List[Path],
     dataset_id: Optional[str] = None,
 ) -> None:
-    """Function to upload all files associated with a new Dataset
+    """Function to upload a Dataset
 
     Args:
         session (DAFNISession): User session
         metadata (dict): Metadata to upload
         file_paths (List[Path]): List of Paths to dataset data files
         dataset_id (Optional[str]): ID of an existing dataset to add a version
-                              to. Creates a new dataset if None.
+                                    to. Creates a new dataset if None.
     """
 
     click.echo("\nRetrieving temporary bucket ID")
