@@ -4,7 +4,6 @@ from typing import List, Optional
 
 import click
 from requests.exceptions import HTTPError
-from dafni_cli.api.datasets_api import get_latest_dataset_metadata
 
 from dafni_cli.api.exceptions import DAFNIError, EndpointNotFoundError
 from dafni_cli.api.minio_api import (
@@ -15,7 +14,6 @@ from dafni_cli.api.minio_api import (
     upload_file_to_minio,
 )
 from dafni_cli.api.session import DAFNISession
-from dafni_cli.utils import print_json
 
 
 def upload_new_dataset_files(
@@ -53,47 +51,74 @@ def upload_new_dataset_files(
     click.echo(f"Metadata ID: {details['metadataId']}")
 
 
+def remove_dataset_metadata_invalid_for_upload(metadata: dict):
+    """Function to remove metadata for a dataset that is given when getting it
+    but are not valid during upload
+
+    Args:
+        metadata (dict): The metadata to modify
+    """
+
+    del metadata["@id"]
+    del metadata["dct:issued"]
+    del metadata["dct:modified"]
+    del metadata["mediatypes"]
+    del metadata["version_history"]
+    del metadata["auth"]
+    del metadata["dcat:distribution"]
+
+
+def modify_dataset_metadata_for_upload(
+    existing_metadata: dict,
+    definition_path: Optional[Path],
+    version_message: Optional[str],
+) -> dict:
+    """Modifies existing dataset metadata or that loaded from a file according
+    to user specified parameters and in a format ready for upload
+
+    Args:
+        existing_metadata (dict): Dictionary of existing metadata from the API
+        definition_path (Optional[Path]): Path to a Dataset metadata file.
+                        When None will use the existing_metadata instead but
+                        will delete any keys invalid for upload.
+        version_message (Optional[str]): Version message - Will replace
+                        whatever already exists in the loaded metadata
+    Returns:
+        dict: The modified dataset metadata
+    """
+
+    # Load the metadata from the definition file if present, or otherwise
+    # use the existing but remove parts invalid for reupload
+    if definition_path:
+        with open(definition_path, "r", encoding="utf-8") as definition_file:
+            metadata = json.load(definition_file)
+    else:
+        metadata = existing_metadata.copy()
+        remove_dataset_metadata_invalid_for_upload(metadata)
+
+    # Make modifications to the metadata from the inputs
+    if version_message:
+        # TODO: Find a more robust solution for this - could reparse from the
+        # structures using existing definitions?
+        metadata["dafni_version_note"] = version_message
+
+    return metadata
+
+
 def upload_dataset_version(
     session: DAFNISession,
     dataset_id: str,
-    existing_metadata: dict,
+    metadata: dict,
     file_paths: List[Path],
-    definition_path: Optional[Path],
-    version_message: Optional[str],
 ) -> None:
     """Function to upload all files associated with a new Dataset
 
     Args:
         session (DAFNISession): User session
         dataset_id (str): ID of the existing dataset to add a version to
-        existing_metadata (dict): Dictionary of existing metadata
+        metadata (dict): Metadata to upload
         file_paths (List[Path]): List of Paths to dataset data files
-        definition_path (Optional[Path]): Path to Dataset metadata file. When
-                        None will load the latest existing metadata for the
-                        dataset and will reupload that instead.
-        version_message (Optional[str]): Version message - Will replace
-                        whatever already exists in the metadata file
     """
-
-    # Load the metadata from the definition file if present
-    metadata = existing_metadata
-    if definition_path:
-        with open(definition_path, "r", encoding="utf-8") as definition_file:
-            metadata = json.load(definition_file)
-    else:
-        # These are returned by the API's but are invalid for upload
-        del metadata["@id"]
-        del metadata["dct:issued"]
-        del metadata["dct:modified"]
-        del metadata["mediatypes"]
-        del metadata["version_history"]
-        del metadata["auth"]
-        del metadata["dcat:distribution"]
-
-    if version_message:
-        # TODO: Find a more robust solution for this - could reparse from the
-        # structures using existing definitions?
-        metadata["dafni_version_note"] = version_message
 
     click.echo("\nRetrieving temporary bucket ID")
     temp_bucket_id = create_temp_bucket(session)
