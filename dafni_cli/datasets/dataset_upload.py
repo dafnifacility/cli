@@ -1,9 +1,10 @@
 import json
 from pathlib import Path
-from typing import List
+from typing import List, Optional
 
 import click
 from requests.exceptions import HTTPError
+from dafni_cli.api.datasets_api import get_latest_dataset_metadata
 
 from dafni_cli.api.exceptions import DAFNIError, EndpointNotFoundError
 from dafni_cli.api.minio_api import (
@@ -14,6 +15,7 @@ from dafni_cli.api.minio_api import (
     upload_file_to_minio,
 )
 from dafni_cli.api.session import DAFNISession
+from dafni_cli.utils import print_json
 
 
 def upload_new_dataset_files(
@@ -35,7 +37,75 @@ def upload_new_dataset_files(
     try:
         # Upload all files
         upload_files(session, temp_bucket_id, file_paths)
-        details = upload_metadata(session, definition_path, temp_bucket_id)
+        with open(definition_path, "r", encoding="utf-8") as definition_file:
+            details = upload_metadata(
+                session, json.load(definition_file), temp_bucket_id
+            )
+    except BaseException:
+        click.echo("Deleting temporary bucket")
+        delete_temp_bucket(session, temp_bucket_id)
+        raise
+
+    # Output Details
+    click.echo("\nUpload successful")
+    click.echo(f"Dataset ID: {details['datasetId']}")
+    click.echo(f"Version ID: {details['versionId']}")
+    click.echo(f"Metadata ID: {details['metadataId']}")
+
+
+def upload_dataset_version(
+    session: DAFNISession,
+    dataset_id: str,
+    existing_metadata: dict,
+    file_paths: List[Path],
+    definition_path: Optional[Path],
+    version_message: Optional[str],
+) -> None:
+    """Function to upload all files associated with a new Dataset
+
+    Args:
+        session (DAFNISession): User session
+        dataset_id (str): ID of the existing dataset to add a version to
+        existing_metadata (dict): Dictionary of existing metadata
+        file_paths (List[Path]): List of Paths to dataset data files
+        definition_path (Optional[Path]): Path to Dataset metadata file. When
+                        None will load the latest existing metadata for the
+                        dataset and will reupload that instead.
+        version_message (Optional[str]): Version message - Will replace
+                        whatever already exists in the metadata file
+    """
+
+    # Load the metadata from the definition file if present
+    metadata = existing_metadata
+    if definition_path:
+        with open(definition_path, "r", encoding="utf-8") as definition_file:
+            metadata = json.load(definition_file)
+    else:
+        # These are returned by the API's but are invalid for upload
+        del metadata["@id"]
+        del metadata["dct:issued"]
+        del metadata["dct:modified"]
+        del metadata["mediatypes"]
+        del metadata["version_history"]
+        del metadata["auth"]
+        del metadata["dcat:distribution"]
+
+    if version_message:
+        # TODO: Find a more robust solution for this - could reparse from the
+        # structures using existing definitions?
+        metadata["dafni_version_note"] = version_message
+
+    click.echo("\nRetrieving temporary bucket ID")
+    temp_bucket_id = create_temp_bucket(session)
+
+    # If any exception happens now, we want to make sure we delete the
+    # temporary bucket to prevent a build up in the user's quota
+    try:
+        # Upload all files
+        upload_files(session, temp_bucket_id, file_paths)
+        details = upload_metadata(
+            session, metadata, temp_bucket_id, dataset_id=dataset_id
+        )
     except BaseException:
         click.echo("Deleting temporary bucket")
         delete_temp_bucket(session, temp_bucket_id)
@@ -67,7 +137,10 @@ def upload_files(session: DAFNISession, temp_bucket_id: str, file_paths: List[Pa
 
 
 def upload_metadata(
-    session: DAFNISession, definition_path: Path, temp_bucket_id: str
+    session: DAFNISession,
+    metadata: dict,
+    temp_bucket_id: str,
+    dataset_id: Optional[str] = None,
 ) -> dict:
     """Function to upload the Metadata to the Minio API, with the
     given Minio Temporary Upload ID
@@ -77,21 +150,21 @@ def upload_metadata(
 
     Args:
         session ([type]): User session
-        definition_path (Path): Path to Metadata file
+        metadata (dict): The metadata to upload
         temp_bucket_id (str): Minio Temporary Bucket ID
+        dataset_id (str): ID of an existing dataset to upload the metadata to
 
     Returns:
         dict: Upload response in json format
     """
     click.echo("Uploading metadata file")
-    with open(definition_path, "r", encoding="utf-8") as definition_file:
-        try:
-            response = upload_dataset_metadata(
-                session, temp_bucket_id, json.load(definition_file)
-            )
-        except (EndpointNotFoundError, DAFNIError, HTTPError) as err:
-            click.echo(f"\nMetadata upload failed: {err}")
+    try:
+        response = upload_dataset_metadata(
+            session, temp_bucket_id, metadata, dataset_id=dataset_id
+        )
+    except (EndpointNotFoundError, DAFNIError, HTTPError) as err:
+        click.echo(f"\nMetadata upload failed: {err}")
 
-            raise SystemExit(1) from err
+        raise SystemExit(1) from err
 
     return response

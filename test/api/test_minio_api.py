@@ -85,7 +85,8 @@ class TestMinioAPI(TestCase):
         self.assertEqual(result, session.patch_request.return_value)
 
     def test_upload_dataset_metadata(self):
-        """Tests that upload_dataset_metadata works as expected"""
+        """Tests that upload_dataset_metadata works as expected using
+        default values"""
 
         # SETUP
         session = MagicMock()
@@ -98,6 +99,28 @@ class TestMinioAPI(TestCase):
         # ASSERT
         session.post_request.assert_called_once_with(
             url=f"{NID_API_URL}/nid/dataset/",
+            json={"bucketId": temp_bucket_id, "metadata": metadata},
+        )
+        self.assertEqual(result, session.post_request.return_value)
+
+    def test_upload_dataset_metadata_with_dataset_id(self):
+        """Tests that upload_dataset_metadata works as expected when given
+        a dataset_id"""
+
+        # SETUP
+        session = MagicMock()
+        temp_bucket_id = "temp-bucket-id"
+        metadata = {"test": "dictionary"}
+        dataset_id = "some-dataset-id"
+
+        # CALL
+        result = minio_api.upload_dataset_metadata(
+            session, temp_bucket_id, metadata, dataset_id=dataset_id
+        )
+
+        # ASSERT
+        session.post_request.assert_called_once_with(
+            url=f"{NID_API_URL}/nid/dataset/{dataset_id}",
             json={"bucketId": temp_bucket_id, "metadata": metadata},
         )
         self.assertEqual(result, session.post_request.return_value)
