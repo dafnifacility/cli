@@ -431,6 +431,20 @@ class DatasetMetadata(ParserBaseObject):
         click.echo("Description: ")
         prose_print(self.description, CONSOLE_WIDTH)
 
+    def get_dataset_details(self) -> str:
+        """Returns a string with details about the dataset (used prior to
+        deletion)"""
+        version_ids = "\n".join(
+            [version.version_id for version in self.version_history.versions]
+        )
+        return (
+            f"ID: {self.dataset_id}\n"
+            f"Title: {self.title}\n"
+            f"Contact: {self.contact.name} ({self.contact.email})\n"
+            f"Publisher: {self.publisher.name}\n"
+            f"Version IDs: \n{version_ids}\n"
+        )
+
     def download_dataset_files(
         self, session: DAFNISession
     ) -> Tuple[List[str], List[BytesIO]]:
