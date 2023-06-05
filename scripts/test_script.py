@@ -235,6 +235,10 @@ COMMANDS = {
             "dafni delete model --help",
             # "dafni delete model 5ec7ebcc-7fcc-451d-8bd3-74e25ab9ccc9",
         ],
+        "dataset": [
+            "dafni delete dataset --help",
+            # "dafni delete dataset a4173ff8-2265-46de-89c3-02f814de4c35",
+        ],
         "workflow": [
             "dafni delete workflow --help",
             # "dafni delete workflow 5ec7ebcc-7fcc-451d-8bd3-74e25ab9ccc9",
