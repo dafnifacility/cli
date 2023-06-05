@@ -139,7 +139,7 @@ def dataset(ctx: Context, version_id: List[str]):
     for dataset_id in dataset_ids:
         delete_dataset(ctx.obj["session"], dataset_id)
     # Confirm action
-    click.echo("Dataset versions deleted")
+    click.echo("Datasets deleted")
 
 
 ###############################################################################
