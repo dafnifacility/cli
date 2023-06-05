@@ -28,7 +28,7 @@ Datasets:
 * Download dataset data and metadata - BROKEN (fixed in https://github.com/NewcastleRSE/dafni-cli, is dataset zip only - metadata accessed separately)
 * Upload a new dataset - DONE (But not clear how to define the json definition file)
 * Update dataset metadata
-* Update dataset data files to create new version
+* Update dataset data files to create new version - DONE
 
 Deleting models and datasets
 * Delete a model - DONE

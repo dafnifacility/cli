@@ -223,6 +223,10 @@ COMMANDS = {
             "dafni upload dataset --help",
             # "dafni upload dataset metadata.json file_1.txt file_2.csv file_3.dat",
         ],
+        "dataset-version": [
+            "dafni upload dataset-version --help",
+            # "dafni upload dataset-version d0bc2c54-69f8-4057-bae4-99476125f15c sunshine-tiny.zip --version-message \"Yet another new version test\"",
+        ],
         "workflow": [
             "dafni upload workflow --help",
             # "dafni upload workflow workflow-upload.json",
