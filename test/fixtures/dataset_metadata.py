@@ -4,9 +4,14 @@
 # and are used to test the values still parse correctly
 TEST_DATASET_METADATA_DATAFILE: dict = {
     "spdx:fileName": "workflow_def.csv",
-    "dcat:mediaType": "text/csv",
     "dcat:byteSize": 6720,
+    "dcat:mediaType": "text/csv",
     "dcat:downloadURL": "url/to/file",
+}
+
+TEST_DATASET_METADATA_DATAFILE_DEFAULT: dict = {
+    "spdx:fileName": "workflow_def.csv",
+    "dcat:byteSize": 6720,
 }
 
 TEST_DATASET_METADATA_CREATOR: dict = {

@@ -25,6 +25,7 @@ from test.fixtures.dataset_metadata import (
     TEST_DATASET_METADATA_CREATOR,
     TEST_DATASET_METADATA_CREATOR_DEFAULT,
     TEST_DATASET_METADATA_DATAFILE,
+    TEST_DATASET_METADATA_DATAFILE_DEFAULT,
     TEST_DATASET_METADATA_DEFAULT,
     TEST_DATASET_METADATA_LOCATION,
     TEST_DATASET_METADATA_LOCATION_DEFAULT,
@@ -60,6 +61,26 @@ class TestDataFile(TestCase):
         self.assertEqual(
             datafile.download_url, TEST_DATASET_METADATA_DATAFILE["dcat:downloadURL"]
         )
+
+    def test_parse_default(self):
+        """Tests parsing of data files"""
+
+        datafile: DataFile = ParserBaseObject.parse_from_dict(
+            DataFile, TEST_DATASET_METADATA_DATAFILE_DEFAULT
+        )
+
+        self.assertEqual(
+            datafile.name, TEST_DATASET_METADATA_DATAFILE_DEFAULT["spdx:fileName"]
+        )
+        self.assertEqual(
+            datafile.size,
+            process_file_size(TEST_DATASET_METADATA_DATAFILE_DEFAULT["dcat:byteSize"]),
+        )
+        self.assertEqual(
+            datafile.format,
+            "Unknown",
+        )
+        self.assertEqual(datafile.download_url, None)
 
     @patch("dafni_cli.datasets.dataset_metadata.minio_get_request")
     def test_contents_set_to_returned_file_contents(self, mock_minio_get_request):

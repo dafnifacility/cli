@@ -9,7 +9,12 @@ from dafni_cli.api.datasets_api import get_latest_dataset_metadata
 from dafni_cli.api.minio_api import minio_get_request
 from dafni_cli.api.parser import ParserBaseObject, ParserParam, parse_datetime
 from dafni_cli.api.session import DAFNISession
-from dafni_cli.consts import CONSOLE_WIDTH, DATA_FORMATS, TAB_SPACE
+from dafni_cli.consts import (
+    CONSOLE_WIDTH,
+    DATA_FORMATS,
+    OUTPUT_UNKNOWN_FORMAT,
+    TAB_SPACE,
+)
 from dafni_cli.utils import format_table, print_json, process_file_size, prose_print
 
 
@@ -23,7 +28,8 @@ class DataFile(ParserBaseObject):
     Attributes:
         name (str): File name
         size (str): File size
-        format (str): File format
+        format (str): File format (Defaults to OUTPUT_UNKNOWN_FORMAT if not
+                      known)
         download_url (str): File download url
         contents (BytesIO): Downloaded file contents (only assigned after
                             download_contents called)
@@ -31,7 +37,7 @@ class DataFile(ParserBaseObject):
 
     name: str
     size: str
-    format: str
+    format: str = OUTPUT_UNKNOWN_FORMAT
     download_url: str = None
 
     # Separate - only used when actually downloading
@@ -41,7 +47,9 @@ class DataFile(ParserBaseObject):
         ParserParam("name", "spdx:fileName", str),
         ParserParam("size", "dcat:byteSize", process_file_size),
         ParserParam(
-            "format", "dcat:mediaType", lambda value: DATA_FORMATS.get(value, "Unknown")
+            "format",
+            "dcat:mediaType",
+            lambda value: DATA_FORMATS.get(value, OUTPUT_UNKNOWN_FORMAT),
         ),
         ParserParam("download_url", "dcat:downloadURL", str),
     ]
