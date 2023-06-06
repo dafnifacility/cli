@@ -1,5 +1,6 @@
 import tempfile
 from dataclasses import dataclass
+from datetime import datetime
 from io import BytesIO
 from pathlib import Path
 from typing import List, Optional
@@ -8,7 +9,7 @@ from unittest.mock import call, patch
 from zipfile import ZipFile
 
 from dafni_cli import utils
-from dafni_cli.consts import TABULATE_ARGS
+from dafni_cli.consts import DATE_OUTPUT_FORMAT, DATE_TIME_OUTPUT_FORMAT, TABULATE_ARGS
 
 
 @patch("dafni_cli.utils.click")
@@ -203,35 +204,6 @@ class TestOptionalColumn(TestCase):
         self.assertEqual(
             str(err.exception), "Column width for optional column must be non-negative"
         )
-
-
-class TestProcessDateFilter(TestCase):
-    """Test class to test the process_date_filter function"""
-
-    def test_valid_date_strings_are_formatted_correctly(self):
-        """Tests that valid date strings are formatted correctly"""
-
-        # SETUP
-        values_and_results = [
-            ("1/2/2003", "2003-02-01T00:00:00"),
-            ("10/2/2003", "2003-02-10T00:00:00"),
-            ("10/12/2003", "2003-12-10T00:00:00"),
-        ]
-
-        # CALL & ASSERT
-        for value, result in values_and_results:
-            self.assertEqual(result, utils.process_date_filter(value))
-
-    def test_value_error_raised_if_given_invalid_date(self):
-        """Tests that invalid date strings raise ValueError's"""
-
-        # SETUP
-        values = ["1/1/21", "1/13/2021", "32/2/2021"]
-
-        # CALL & ASSERT
-        for value in values:
-            with self.assertRaises(ValueError):
-                utils.process_date_filter(value)
 
 
 class TestProcessFileSize(TestCase):
@@ -547,3 +519,53 @@ class TestFormatTable(TestCase):
             **TABULATE_ARGS
         )
         self.assertEqual(mock_tabulate.return_value, result)
+
+
+class TestFormatDatetime(TestCase):
+    """Test class to test the format_datetime function"""
+
+    def test_formats_correctly_when_include_time_false(self):
+        """Tests the expected string is returned when include_time is False"""
+        # SETUP
+        test_value = datetime(2021, 3, 16, 9, 27, 21)
+
+        # CALL
+        result = utils.format_datetime(test_value, include_time=False)
+
+        # ASSERT
+        self.assertEqual(result, test_value.strftime(DATE_OUTPUT_FORMAT))
+
+    def test_formats_correctly_when_include_time_true(self):
+        """Tests the expected string is returned when include_time is True"""
+        # SETUP
+        test_value = datetime(2021, 3, 16, 9, 27, 21)
+
+        # CALL
+        result = utils.format_datetime(test_value, include_time=True)
+
+        # ASSERT
+        self.assertEqual(result, test_value.strftime(DATE_TIME_OUTPUT_FORMAT))
+
+    def test_returns_none_when_value_none_and_include_time_false(self):
+        """Tests the expected string is returned when include_time is False
+        and the given datetime value is None"""
+        # SETUP
+        test_value = None
+
+        # CALL
+        result = utils.format_datetime(test_value, include_time=False)
+
+        # ASSERT
+        self.assertEqual(result, "N/A")
+
+    def test_returns_none_when_value_none_and_include_time_true(self):
+        """Tests the expected string is returned when include_time is True
+        and the given datetime value is None"""
+        # SETUP
+        test_value = None
+
+        # CALL
+        result = utils.format_datetime(test_value, include_time=True)
+
+        # ASSERT
+        self.assertEqual(result, "N/A")

@@ -139,7 +139,7 @@ class TestGetModels(TestCase):
         mock_parse_models.return_value = models
 
         # CALL
-        options = ["models", date_filter_options[0], "01/01/2023"]
+        options = ["models", date_filter_options[0], "2023-01-01"]
         if long:
             options.append("--long")
         result = runner.invoke(get.get, options)
@@ -256,7 +256,7 @@ class TestGetModels(TestCase):
         mock_parse_models.return_value = models
 
         # CALL
-        options = ["models", date_filter_options[0], "01/01/2023", "--json"]
+        options = ["models", date_filter_options[0], "2023-01-01", "--json"]
         result = runner.invoke(get.get, options)
 
         # ASSERT
@@ -507,7 +507,7 @@ class TestGetDatasets(TestCase):
         mock_parse_datasets.return_value = datasets
 
         # CALL
-        options = ["datasets", date_filter_options[0], "01/01/2023"]
+        options = ["datasets", date_filter_options[0], "2023-01-01"]
         result = runner.invoke(get.get, options)
 
         # ASSERT
@@ -829,7 +829,7 @@ class TestGetWorkflows(TestCase):
         mock_parse_workflows.return_value = workflows
 
         # CALL
-        options = ["workflows", date_filter_options[0], "01/01/2023"]
+        options = ["workflows", date_filter_options[0], "2023-01-01"]
         if long:
             options.append("--long")
         result = runner.invoke(get.get, options)
@@ -945,7 +945,7 @@ class TestGetWorkflows(TestCase):
         mock_parse_workflows.return_value = workflows
 
         # CALL
-        options = ["workflows", date_filter_options[0], "01/01/2023", "--json"]
+        options = ["workflows", date_filter_options[0], "2023-01-01", "--json"]
         result = runner.invoke(get.get, options)
 
         # ASSERT
