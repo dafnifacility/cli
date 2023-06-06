@@ -550,20 +550,11 @@ class TestDatasetMetadataTestCase(TestCase):
         dataset_metadata: DatasetMetadata = parse_dataset_metadata(
             TEST_DATASET_METADATA
         )
-
-        # CALL
-        dataset_metadata.output_metadata_details(long=True)
-
-        # ASSERT
-        # SETUP
-        dataset_metadata: DatasetMetadata = parse_dataset_metadata(
-            TEST_DATASET_METADATA
-        )
         dataset_metadata.start_date = None
         dataset_metadata.end_date = None
 
         # CALL
-        dataset_metadata.output_metadata_details()
+        dataset_metadata.output_metadata_details(long=True)
 
         # ASSERT
         mock_click.echo.assert_has_calls(
