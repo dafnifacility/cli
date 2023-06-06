@@ -627,6 +627,28 @@ class TestDatasetMetadataTestCase(TestCase):
             dataset_metadata.description, CONSOLE_WIDTH
         )
 
+    def test_get_dataset_details(self):
+        """Tests test_output_version_details functions as expected"""
+        # SETUP
+        dataset_metadata: DatasetMetadata = parse_dataset_metadata(
+            TEST_DATASET_METADATA
+        )
+
+        # CALL
+        result = dataset_metadata.get_dataset_details()
+
+        # ASSERT
+        self.assertEqual(
+            result,
+            f"Title: {dataset_metadata.title}\n"
+            f"ID: {dataset_metadata.dataset_id}\n"
+            f"Latest version: {dataset_metadata.version_id}\n"
+            f"Publisher: {dataset_metadata.publisher.name}\n"
+            f"Version IDs:\n"
+            f"{dataset_metadata.version_history.versions[0].version_id}\n"
+            f"{dataset_metadata.version_history.versions[1].version_id}\n",
+        )
+
     @patch.object(DataFile, "download_contents")
     def test_download_dataset_files_returns_empty_arrays_when_no_files(
         self, mock_download

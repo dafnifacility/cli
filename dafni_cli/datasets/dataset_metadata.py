@@ -438,11 +438,11 @@ class DatasetMetadata(ParserBaseObject):
             [version.version_id for version in self.version_history.versions]
         )
         return (
-            f"ID: {self.dataset_id}\n"
             f"Title: {self.title}\n"
-            f"Contact: {self.contact.name} ({self.contact.email})\n"
+            f"ID: {self.dataset_id}\n"
+            f"Latest version: {self.version_id}\n"
             f"Publisher: {self.publisher.name}\n"
-            f"Version IDs: \n{version_ids}\n"
+            f"Version IDs:\n{version_ids}\n"
         )
 
     def download_dataset_files(
