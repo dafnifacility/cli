@@ -4,7 +4,7 @@ from unittest import TestCase
 from dateutil.tz import tzutc
 
 from dafni_cli.api.parser import ParserBaseObject
-from dafni_cli.workflow.instance import (
+from dafni_cli.workflows.instance import (
     WorkflowInstance,
     WorkflowInstanceParameterSet,
     WorkflowInstanceWorkflowVersion,

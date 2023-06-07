@@ -261,12 +261,15 @@ class TestArgumentConfirmation(TestCase):
         """Tests that the arguments are printed correctly and the right calls
         are made to click"""
         # SETUP
-        argument_names = ["arg 1", "arg 2", "arg 3"]
-        arguments = ["string option", "12", "{'key': 'value'}"]
+        arguments = [
+            ("arg 1", "string option"),
+            ("arg 2", "12"),
+            ("arg 3", "{'key': 'value'}"),
+        ]
         confirmation_message = "confirmation message"
 
         # CALL
-        utils.argument_confirmation(argument_names, arguments, confirmation_message)
+        utils.argument_confirmation(arguments, confirmation_message)
 
         # ASSERT
         self.assertEqual(
@@ -283,14 +286,17 @@ class TestArgumentConfirmation(TestCase):
         """Tests that the arguments are printed correctly and the right calls
         are made to click when additional messages are given"""
         # SETUP
-        argument_names = ["arg 1", "arg 2", "arg 3"]
-        arguments = ["string option", "12", "{'key': 'value'}"]
+        arguments = [
+            ("arg 1", "string option"),
+            ("arg 2", "12"),
+            ("arg 3", "{'key': 'value'}"),
+        ]
         confirmation_message = "confirmation message"
         additional_messages = ["additional message 1", "additional message 2"]
 
         # CALL
         utils.argument_confirmation(
-            argument_names, arguments, confirmation_message, additional_messages
+            arguments, confirmation_message, additional_messages
         )
 
         # ASSERT

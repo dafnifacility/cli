@@ -1,10 +1,11 @@
 import json
 from pathlib import Path
-from typing import List
+from typing import List, Optional
 
 import click
 from click import Context
 
+from dafni_cli.api.datasets_api import get_latest_dataset_metadata
 from dafni_cli.api.exceptions import ValidationError
 from dafni_cli.api.minio_api import upload_file_to_minio
 from dafni_cli.api.models_api import (
@@ -15,7 +16,12 @@ from dafni_cli.api.models_api import (
 )
 from dafni_cli.api.session import DAFNISession
 from dafni_cli.api.workflows_api import upload_workflow
-from dafni_cli.datasets.dataset_upload import upload_new_dataset_files
+from dafni_cli.datasets.dataset_metadata import parse_dataset_metadata
+from dafni_cli.datasets.dataset_upload import (
+    modify_dataset_metadata_for_upload,
+    upload_dataset,
+)
+from dafni_cli.models.upload import upload_model
 from dafni_cli.utils import argument_confirmation
 
 
@@ -64,7 +70,7 @@ def model(
     definition: Path,
     image: Path,
     version_message: str,
-    parent_id: str,
+    parent_id: Optional[str],
 ):
     """Uploads model to DAFNI from metadata and image files
 
@@ -75,59 +81,47 @@ def model(
         version_message (str): Version message to be included with this model version
         parent_id (str): ID of the parent model that this is an update of
     """
-    argument_names = [
-        "Model definition file path",
-        "Image file path",
-        "Version message",
+    arguments = [
+        ("Model definition file path", definition),
+        ("Image file path", image),
+        ("Version message", version_message),
     ]
-    arguments = [definition, image, version_message]
     confirmation_message = "Confirm model upload?"
     if parent_id:
-        argument_names.append("Parent model ID")
-        arguments.append(parent_id)
+        arguments.append(("Parent model ID", parent_id))
         additional_message = None
     else:
         additional_message = ["No parent model: New model to be created"]
-    argument_confirmation(
-        argument_names, arguments, confirmation_message, additional_message
+    argument_confirmation(arguments, confirmation_message, additional_message)
+
+    upload_model(
+        ctx.obj["session"],
+        definition_path=definition,
+        image_path=image,
+        version_message=version_message,
+        parent_id=parent_id,
     )
 
-    click.echo("Validating model definition")
-    try:
-        validate_model_definition(ctx.obj["session"], definition)
-    except ValidationError as err:
-        click.echo(err)
-
-        raise SystemExit(1) from err
-
-    click.echo("Getting urls")
-    upload_id, urls = get_model_upload_urls(ctx.obj["session"])
-    definition_url = urls["definition"]
-    image_url = urls["image"]
-
-    click.echo("Uploading model definition and image")
-    upload_file_to_minio(ctx.obj["session"], definition_url, definition)
-    upload_file_to_minio(ctx.obj["session"], image_url, image)
-
-    click.echo("Ingesting model")
-    model_version_ingest(ctx.obj["session"], upload_id, version_message, parent_id)
-
-    click.echo("Model upload complete")
-
 
 ###############################################################################
-# COMMAND: Upload a DATASET to DAFNI
+# COMMAND: Upload a new DATASET to DAFNI
 ###############################################################################
-@upload.command(help="Upload a dataset to DAFNI")
+@upload.command(help="Upload a new dataset to DAFNI")
 @click.argument(
-    "definition", nargs=1, required=True, type=click.Path(exists=True, path_type=Path)
+    "definition",
+    nargs=1,
+    required=True,
+    type=click.Path(exists=True, path_type=Path),
 )
 @click.argument(
-    "files", nargs=-1, required=True, type=click.Path(exists=True, path_type=Path)
+    "files",
+    nargs=-1,
+    required=True,
+    type=click.Path(exists=True, path_type=Path),
 )
 @click.pass_context
 def dataset(ctx: Context, definition: Path, files: List[Path]):
-    """Uploads a Dataset to DAFNI from metadata and dataset files.
+    """Uploads a new Dataset to DAFNI from metadata and dataset files.
 
     Args:
         ctx (Context): contains user session for authentication
@@ -135,15 +129,111 @@ def dataset(ctx: Context, definition: Path, files: List[Path]):
         files (List[Path]): Dataset data files
     """
     # Confirm upload details
-    argument_names = ["Dataset definition file path"] + [
-        "Dataset file path" for _ in files
+    arguments = [("Dataset definition file path", definition)] + [
+        ("Dataset file path", file) for file in files
     ]
-    arguments = [definition, *files]
     confirmation_message = "Confirm dataset upload?"
-    argument_confirmation(argument_names, arguments, confirmation_message)
+    argument_confirmation(arguments, confirmation_message)
 
-    # Upload all files
-    upload_new_dataset_files(ctx.obj["session"], definition, files)
+    # Obtain the metadata
+    with open(definition, "r", encoding="utf-8") as definition_file:
+        metadata = json.load(definition_file)
+
+        # Upload the dataset
+        upload_dataset(ctx.obj["session"], metadata, files)
+
+
+###############################################################################
+# COMMAND: Upload a new version of a DATASET to DAFNI
+###############################################################################
+@upload.command(help="Upload a new version of a dataset to DAFNI")
+@click.argument("existing_version_id", required=True, type=str)
+@click.argument(
+    "files",
+    nargs=-1,
+    required=True,
+    type=click.Path(exists=True, path_type=Path),
+)
+@click.option(
+    "--definition",
+    type=click.Path(exists=True, path_type=Path),
+    help="Path to a dataset metadata definition file to upload",
+)
+@click.option(
+    "--version-message",
+    type=str,
+    default=None,
+    help="Version message to replace in any existing or provided metadata",
+)
+@click.option(
+    "--save",
+    type=click.Path(exists=False, path_type=Path),
+    default=None,
+    help="When given will only save the existing metadata to the specified file allowing it to be modified.",
+)
+@click.pass_context
+def dataset_version(
+    ctx: Context,
+    existing_version_id: str,
+    files: List[Path],
+    definition: Optional[Path],
+    version_message: Optional[str],
+    save: Optional[Path],
+):
+    """Uploads a new version of a Dataset to DAFNI from dataset files
+
+    Args:
+        ctx (Context): contains user session for authentication
+        existing_version_id (str): Existing version id of the dataset to add a
+                                   new version to
+        files (List[Path]): Dataset data files
+        definition (Optional[Path]): Dataset metadata file
+        version_message (Optional[str]): Version message
+        save (Optional[Path]): Path to save existing metadata in for editing
+    """
+
+    # We need the version id to get the existing metadata, but the
+    # dataset id for the actual upload - instead of requiring both, we look up
+    # dataset with the version_id here and obtain both the id and existing
+    # metadata once
+    dataset_metadata_dict = get_latest_dataset_metadata(
+        ctx.obj["session"], existing_version_id
+    )
+    dataset_metadata = parse_dataset_metadata(dataset_metadata_dict)
+
+    # Load/modify the existing metdata according to the user input
+    dataset_metadata_dict = modify_dataset_metadata_for_upload(
+        existing_metadata=dataset_metadata_dict,
+        definition_path=definition,
+        version_message=version_message,
+    )
+
+    if save:
+        with open(save, "w", encoding="utf-8") as file:
+            file.write(json.dumps(dataset_metadata_dict, indent=4, sort_keys=True))
+
+        click.echo(f"Saved existing dataset metadata to {save}")
+    else:
+        # Confirm upload details
+        arguments = [
+            ("Dataset Title", dataset_metadata.title),
+            ("Dataset ID", dataset_metadata.dataset_id),
+            ("Dataset Version ID", dataset_metadata.version_id),
+        ] + [("Dataset file path", file) for file in files]
+
+        if definition:
+            arguments.append(("Dataset definition file path", definition))
+
+        confirmation_message = "Confirm dataset upload?"
+        argument_confirmation(arguments, confirmation_message)
+
+        # Upload all files
+        upload_dataset(
+            ctx.obj["session"],
+            dataset_id=dataset_metadata.dataset_id,
+            metadata=dataset_metadata_dict,
+            file_paths=files,
+        )
 
 
 ###############################################################################
@@ -186,21 +276,17 @@ def workflow(
         version_message (str): Version message to be included with this workflow version
         parent_id (str): ID of the parent workflow that this is an update of
     """
-    argument_names = [
-        "Workflow definition file path",
-        "Version message",
+    arguments = [
+        ("Workflow definition file path", definition),
+        ("Version message", version_message),
     ]
-    arguments = [definition, version_message]
     confirmation_message = "Confirm workflow upload?"
     if parent_id:
-        argument_names.append("Parent workflow ID")
-        arguments.append(parent_id)
+        arguments.append(("Parent workflow ID", parent_id))
         additional_message = None
     else:
         additional_message = ["No parent workflow: new workflow to be created"]
-    argument_confirmation(
-        argument_names, arguments, confirmation_message, additional_message
-    )
+    argument_confirmation(arguments, confirmation_message, additional_message)
 
     # TODO: Validate workflow definition using workflows/validate?
 
@@ -247,21 +333,17 @@ def workflow_params(
         version_message (str): Version message to be included with this model version
         parent_model (str): ID of the parent model that this is an update of
     """
-    argument_names = [
-        "Workflow definition file path",
-        "Version message",
+    arguments = [
+        ("Workflow definition file path", definition),
+        ("Version message", version_message),
     ]
-    arguments = [definition, version_message]
     confirmation_message = "Confirm workflow upload?"
     if parent_id:
-        argument_names.append("Parent workflow ID")
-        arguments.append(parent_id)
+        arguments.append(("Parent workflow ID", parent_id))
         additional_message = None
     else:
         additional_message = ["No parent workflow: new workflow to be created"]
-    argument_confirmation(
-        argument_names, arguments, confirmation_message, additional_message
-    )
+    argument_confirmation(arguments, confirmation_message, additional_message)
 
     click.echo("Validating workflow definition")
     with open(definition, "r") as f:

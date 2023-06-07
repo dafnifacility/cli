@@ -5,7 +5,7 @@ from dataclasses import fields
 from datetime import datetime
 from io import BytesIO
 from pathlib import Path
-from typing import Any, List, Optional, Type, Union
+from typing import Any, List, Optional, Tuple, Type, Union
 from zipfile import ZipFile
 
 import click
@@ -97,8 +97,7 @@ def process_file_size(file_size: str) -> str:
 
 
 def argument_confirmation(
-    argument_names: List[str],
-    arguments: List[str],
+    arguments: List[Tuple[str, str]],
     confirmation_message: str,
     additional_messages: Optional[List[str]] = None,
 ):
@@ -106,13 +105,15 @@ def argument_confirmation(
     and ask for confirmation
 
     Args:
-        argument_names (List[str]): List of the names of the arguments/options for the command
-        arguments (List[str]): List of values chosen for each corresponding argument/option
-        confirmation_message (str): String to display after arguments which prompts the user to confirm or reject
-        additional_messages (Optional[List[str]]): Other messages to be added after options are listed
+        arguments (List[Tuple[str, str]]): Dictionary of the names and values
+                               of the arguments/options for the command
+        confirmation_message (str): String to display after arguments which
+                                    prompts the user to confirm or reject
+        additional_messages (Optional[List[str]]): Other messages to be added
+                                    after options are listed
     """
-    for i, value in enumerate(argument_names):
-        click.echo(f"{value}: {arguments[i]}")
+    for name, value in arguments:
+        click.echo(f"{name}: {value}")
     if additional_messages:
         for message in additional_messages:
             click.echo(message)
