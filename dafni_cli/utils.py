@@ -12,8 +12,6 @@ import click
 from tabulate import tabulate
 
 from dafni_cli.consts import (
-    DATE_INPUT_FORMAT,
-    DATE_INPUT_FORMAT_VERBOSE,
     DATE_OUTPUT_FORMAT,
     DATE_TIME_OUTPUT_FORMAT,
     TABULATE_ARGS,

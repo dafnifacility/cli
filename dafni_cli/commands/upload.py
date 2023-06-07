@@ -135,8 +135,8 @@ def dataset(ctx: Context, definition: Path, files: List[Path]):
     with open(definition, "r", encoding="utf-8") as definition_file:
         metadata = json.load(definition_file)
 
-        # Upload the dataset
-        upload_dataset(ctx.obj["session"], metadata, files)
+    # Upload the dataset
+    upload_dataset(ctx.obj["session"], metadata, files)
 
 
 ###############################################################################
