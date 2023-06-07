@@ -153,13 +153,13 @@ def dataset(ctx: Context, definition: Path, files: List[Path]):
 @click.option(
     "--definition",
     type=click.Path(exists=True, path_type=Path),
-    help="Path to a dataset metadata definition file to upload",
+    help="Path to a dataset metadata definition file to upload.",
 )
 @click.option(
     "--version-message",
     type=str,
     default=None,
-    help="Version message to replace in any existing or provided metadata",
+    help="Version message to replace in any existing or provided metadata.",
 )
 @click.option(
     "--save",
@@ -240,13 +240,13 @@ def dataset_version(
 @click.option(
     "--definition",
     type=click.Path(exists=True, path_type=Path),
-    help="Path to a dataset metadata definition file to upload",
+    help="Path to a dataset metadata definition file to upload.",
 )
 @click.option(
     "--version-message",
     type=str,
     default=None,
-    help="Version message to replace in any existing or provided metadata",
+    help="Version message to replace in any existing or provided metadata.",
 )
 @click.option(
     "--save",

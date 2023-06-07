@@ -1,14 +1,12 @@
 from pathlib import Path
 from unittest import TestCase
-from unittest.mock import MagicMock, call, patch
+from unittest.mock import MagicMock, patch
 
 from click.testing import CliRunner
 
-from dafni_cli.api.exceptions import ValidationError
 from dafni_cli.commands import upload
 from dafni_cli.datasets.dataset_metadata import parse_dataset_metadata
 
-from test.api.test_models_api import TEST_MODELS_UPLOAD_RESPONSE
 from test.fixtures.dataset_metadata import TEST_DATASET_METADATA
 
 
