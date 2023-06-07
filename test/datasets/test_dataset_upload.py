@@ -65,7 +65,8 @@ class TestModifyDatasetMetadataForUpload(TestCase):
 
     def test_with_definition_path(self, mock_open, mock_remove_invalid):
         """Tests that calling the function with a definition path loads
-        existing metadata from a file and returns it"""
+        existing metadata from a file and returns it while deleting any
+        invalid fields for upload"""
 
         # SETUP
         metadata = TEST_DATASET_METADATA
@@ -78,7 +79,7 @@ class TestModifyDatasetMetadataForUpload(TestCase):
 
         # ASSERT
         mock_open.assert_called_once_with(definition_path, "r", encoding="utf-8")
-        mock_remove_invalid.assert_not_called()
+        mock_remove_invalid.assert_called_once_with(MOCK_DEFINITION_DATA)
         self.assertEqual(result, MOCK_DEFINITION_DATA)
 
     def test_with_version_message(self, mock_open, mock_remove_invalid):

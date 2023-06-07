@@ -38,7 +38,8 @@ def remove_dataset_metadata_invalid_for_upload(metadata: dict):
     """
 
     for key in METADATA_KEYS_INVALID_FOR_UPLOAD:
-        del metadata[key]
+        if key in metadata:
+            del metadata[key]
 
 
 def modify_dataset_metadata_for_upload(
@@ -61,13 +62,14 @@ def modify_dataset_metadata_for_upload(
     """
 
     # Load the metadata from the definition file if present, or otherwise
-    # use the existing but remove parts invalid for reupload
+    # use the existing
     if definition_path:
         with open(definition_path, "r", encoding="utf-8") as definition_file:
             metadata = json.load(definition_file)
     else:
         metadata = deepcopy(existing_metadata)
-        remove_dataset_metadata_invalid_for_upload(metadata)
+
+    remove_dataset_metadata_invalid_for_upload(metadata)
 
     # Make modifications to the metadata from the inputs
     if version_message:
