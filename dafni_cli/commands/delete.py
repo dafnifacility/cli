@@ -108,6 +108,11 @@ def collate_dataset_details(
         dataset_version: DatasetMetadata = parse_dataset_metadata(
             get_latest_dataset_metadata(session, did)
         )
+        # Exit if user doesn't have necessary permissions
+        if not dataset_version.auth.destroy:
+            click.echo("You do not have sufficient permissions to delete dataset:")
+            click.echo(dataset_version.get_dataset_details())
+            raise SystemExit(1)
         dataset_details_list.append(dataset_version.get_dataset_details())
         dataset_ids.append(dataset_version.dataset_id)
     return dataset_details_list, dataset_ids

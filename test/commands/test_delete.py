@@ -148,10 +148,11 @@ class TestCollateModelVersionDetails(TestCase):
 class TestCollateDatasetDetails(TestCase):
     """Test class to collate_dataset_details function"""
 
-    def test_single_dataset_returns_single_dataset_details(
+    def test_single_dataset_with_valid_permissions_returns_single_dataset_details(
         self, mock_parse_dataset_metadata, mock_get_latest_dataset_metadata
     ):
-        """Tests collate_dataset_details works correctly for a single dataset"""
+        """Tests collate_dataset_details works correctly for a single dataset
+        with delete permissions"""
 
         # SETUP
         session = MagicMock()
@@ -160,6 +161,7 @@ class TestCollateDatasetDetails(TestCase):
 
         dataset_mock = MagicMock()
         dataset_mock.dataset_id = "dataset-id"
+        dataset_mock.auth.destroy = True
 
         mock_parse_dataset_metadata.return_value = dataset_mock
 
@@ -179,11 +181,45 @@ class TestCollateDatasetDetails(TestCase):
             ),
         )
 
-    def test_multiple_datasets_returns_multiple_dataset_details(
+    @patch("dafni_cli.commands.delete.click")
+    def test_single_dataset_without_valid_permissions_exits(
+        self, mock_click, mock_parse_dataset_metadata, mock_get_latest_dataset_metadata
+    ):
+        """Tests collate_dataset_details works correctly for a single dataset
+        without delete permissions"""
+
+        # SETUP
+        session = MagicMock()
+        version_id = "version-id"
+        version_id_list = [version_id]
+
+        dataset_mock = MagicMock()
+        dataset_mock.dataset_id = "dataset-id"
+        dataset_mock.auth.destroy = False
+
+        mock_parse_dataset_metadata.return_value = dataset_mock
+
+        # CALL
+        with self.assertRaises(SystemExit):
+            delete.collate_dataset_details(session, version_id_list)
+
+        # ASSERT
+        mock_get_latest_dataset_metadata.assert_called_once_with(session, version_id)
+        mock_parse_dataset_metadata.assert_called_once_with(
+            mock_get_latest_dataset_metadata.return_value
+        )
+        mock_click.echo.assert_has_calls(
+            [
+                call("You do not have sufficient permissions to delete dataset:"),
+                call(dataset_mock.get_dataset_details.return_value),
+            ]
+        )
+
+    def test_multiple_datasets_with_valid_permissions_returns_multiple_dataset_details(
         self, mock_parse_dataset_metadata, mock_get_latest_dataset_metadata
     ):
         """Tests collate_dataset_details works correctly for a list
-        of datasets"""
+        of datasets with delete permissions"""
 
         # SETUP
         session = MagicMock()
@@ -193,8 +229,10 @@ class TestCollateDatasetDetails(TestCase):
 
         dataset_mock1 = MagicMock()
         dataset_mock1.dataset_id = "dataset-id-1"
+        dataset_mock1.auth.destroy = True
         dataset_mock2 = MagicMock()
         dataset_mock2.dataset_id = "dataset-id-2"
+        dataset_mock2.auth.destroy = True
 
         mock_parse_dataset_metadata.side_effect = [dataset_mock1, dataset_mock2]
 
@@ -220,6 +258,51 @@ class TestCollateDatasetDetails(TestCase):
                 ],
                 [dataset_mock1.dataset_id, dataset_mock2.dataset_id],
             ),
+        )
+
+    @patch("dafni_cli.commands.delete.click")
+    def test_first_dataset_with_permissions_but_second_without_exits_and_shows_dataset_without_permissions(
+        self, mock_click, mock_parse_dataset_metadata, mock_get_latest_dataset_metadata
+    ):
+        """Tests collate_dataset_details works correctly for a list of
+        datasets where the first has delete permissions and the second does
+        not"""
+
+        # SETUP
+        session = MagicMock()
+        version_id1 = "version-id-1"
+        version_id2 = "version-id-2"
+        version_id_list = [version_id1, version_id2]
+
+        dataset_mock1 = MagicMock()
+        dataset_mock1.dataset_id = "dataset-id-1"
+        dataset_mock1.auth.destroy = True
+        dataset_mock2 = MagicMock()
+        dataset_mock2.dataset_id = "dataset-id-2"
+        dataset_mock2.auth.destroy = False
+
+        mock_parse_dataset_metadata.side_effect = [dataset_mock1, dataset_mock2]
+
+        # CALL
+        with self.assertRaises(SystemExit):
+            delete.collate_dataset_details(session, version_id_list)
+
+        # ASSERT
+        mock_get_latest_dataset_metadata.assert_has_calls(
+            [call(session, version_id1), call(session, version_id2)]
+        )
+        mock_parse_dataset_metadata.assert_has_calls(
+            [
+                call(mock_get_latest_dataset_metadata.return_value),
+                call(mock_get_latest_dataset_metadata.return_value),
+            ]
+        )
+        self.assertEqual(
+            mock_click.echo.call_args_list,
+            [
+                call("You do not have sufficient permissions to delete dataset:"),
+                call(dataset_mock2.get_dataset_details.return_value),
+            ],
         )
 
 
