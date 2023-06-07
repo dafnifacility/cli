@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from datetime import date, datetime
+from datetime import datetime
 from typing import ClassVar, List, Optional
 
 import click
@@ -8,8 +8,8 @@ from dafni_cli.api.auth import Auth
 from dafni_cli.api.parser import ParserBaseObject, ParserParam, parse_datetime
 from dafni_cli.consts import CONSOLE_WIDTH, TAB_SPACE
 from dafni_cli.utils import format_datetime, prose_print
-from dafni_cli.workflow.instance import WorkflowInstance
-from dafni_cli.workflow.parameter_set import WorkflowParameterSet
+from dafni_cli.workflows.instance import WorkflowInstance
+from dafni_cli.workflows.parameter_set import WorkflowParameterSet
 
 
 @dataclass

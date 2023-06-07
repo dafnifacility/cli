@@ -16,7 +16,7 @@ from dafni_cli.consts import (
     INPUT_TITLE_HEADER,
     INPUT_TYPE_HEADER,
 )
-from dafni_cli.model.inputs import ModelDataslot, ModelInputs, ModelParameter
+from dafni_cli.models.inputs import ModelDataslot, ModelInputs, ModelParameter
 
 from test.fixtures.model_inputs import (
     TEST_MODEL_INPUT_DATASLOT,
@@ -123,7 +123,7 @@ class TestInputs(TestCase):
         # ModelDataslots (contents tested in TestModelDataslots)
         self.assertEqual(model_inputs.dataslots, [])
 
-    @patch("dafni_cli.model.inputs.format_table")
+    @patch("dafni_cli.models.inputs.format_table")
     def test_format_parameters(
         self,
         mock_format_table,
@@ -192,7 +192,7 @@ class TestInputs(TestCase):
         )
         self.assertEqual(result, mock_format_table.return_value)
 
-    @patch("dafni_cli.model.inputs.format_table")
+    @patch("dafni_cli.models.inputs.format_table")
     def test_format_dataslots_if_it_exists(self, mock_format_table):
         """Tests format_dataslots works correctly"""
         # SETUP
@@ -246,7 +246,7 @@ class TestInputs(TestCase):
         )
         self.assertEqual(result, mock_format_table.return_value)
 
-    @patch("dafni_cli.model.inputs.format_table")
+    @patch("dafni_cli.models.inputs.format_table")
     def test_format_dataslots_if_it_exists_and_a_slot_has_multiple_defaults(
         self, mock_format_table
     ):

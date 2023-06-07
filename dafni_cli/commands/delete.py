@@ -8,9 +8,9 @@ from dafni_cli.api.models_api import delete_model, get_model
 from dafni_cli.api.session import DAFNISession
 from dafni_cli.api.workflows_api import delete_workflow, get_workflow
 from dafni_cli.datasets.dataset_metadata import DatasetMetadata, parse_dataset_metadata
-from dafni_cli.model.model import Model, parse_model
+from dafni_cli.models.model import Model, parse_model
 from dafni_cli.utils import argument_confirmation
-from dafni_cli.workflow.workflow import parse_workflow
+from dafni_cli.workflows.workflow import parse_workflow
 
 
 ###############################################################################
@@ -74,9 +74,7 @@ def model(ctx: Context, version_id: List[str]):
     model_version_details_list = collate_model_version_details(
         ctx.obj["session"], version_id
     )
-    argument_confirmation(
-        [], [], "Confirm deletion of models?", model_version_details_list
-    )
+    argument_confirmation([], "Confirm deletion of models?", model_version_details_list)
     for vid in version_id:
         delete_model(ctx.obj["session"], vid)
     # Confirm action
@@ -135,7 +133,7 @@ def dataset(ctx: Context, version_id: List[str]):
     dataset_details_list, dataset_ids = collate_dataset_details(
         ctx.obj["session"], version_id
     )
-    argument_confirmation([], [], "Confirm deletion of datasets?", dataset_details_list)
+    argument_confirmation([], "Confirm deletion of datasets?", dataset_details_list)
     for dataset_id in dataset_ids:
         delete_dataset(ctx.obj["session"], dataset_id)
     # Confirm action
@@ -189,7 +187,7 @@ def workflow(ctx: Context, version_id: List[str]):
         ctx.obj["session"], version_id
     )
     argument_confirmation(
-        [], [], "Confirm deletion of workflows?", workflow_version_details_list
+        [], "Confirm deletion of workflows?", workflow_version_details_list
     )
     for vid in version_id:
         delete_workflow(ctx.obj["session"], vid)

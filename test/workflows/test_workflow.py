@@ -9,9 +9,9 @@ from dafni_cli.api.auth import Auth
 from dafni_cli.api.parser import ParserBaseObject
 from dafni_cli.consts import CONSOLE_WIDTH, TAB_SPACE
 from dafni_cli.utils import format_datetime
-from dafni_cli.workflow.instance import WorkflowInstance
-from dafni_cli.workflow.parameter_set import WorkflowParameterSet
-from dafni_cli.workflow.workflow import (
+from dafni_cli.workflows.instance import WorkflowInstance
+from dafni_cli.workflows.parameter_set import WorkflowParameterSet
+from dafni_cli.workflows.workflow import (
     Workflow,
     WorkflowVersion,
     parse_workflow,
@@ -19,8 +19,8 @@ from dafni_cli.workflow.workflow import (
 )
 
 from test.fixtures.auth import TEST_AUTH_DATA_OBJECT, TEST_AUTH_DATA_OBJECTS
-from test.workflow.test_instance import TEST_WORKFLOW_INSTANCE
-from test.workflow.test_parameter_set import TEST_WORKFLOW_PARAMETER_SET
+from test.workflows.test_instance import TEST_WORKFLOW_INSTANCE
+from test.workflows.test_parameter_set import TEST_WORKFLOW_PARAMETER_SET
 
 TEST_WORKFLOW_METADATA: dict = {
     "description": "Test workflow",
@@ -362,7 +362,7 @@ class TestWorkflow(TestCase):
         with self.assertRaises(KeyError):
             workflow.filter_by_date("key", datetime(2020, 12, 11))
 
-    @patch("dafni_cli.workflow.workflow.click")
+    @patch("dafni_cli.workflows.workflow.click")
     def test_output_details(self, mock_click):
         """Tests output_details works correctly"""
         # SETUP
@@ -384,8 +384,8 @@ class TestWorkflow(TestCase):
             ]
         )
 
-    @patch("dafni_cli.workflow.workflow.prose_print")
-    @patch("dafni_cli.workflow.workflow.click")
+    @patch("dafni_cli.workflows.workflow.prose_print")
+    @patch("dafni_cli.workflows.workflow.click")
     def test_output_details_with_long(self, mock_click, mock_prose_print):
         """Tests output_details works correctly when 'long' is set to True"""
         # SETUP
@@ -409,8 +409,8 @@ class TestWorkflow(TestCase):
         )
         mock_prose_print.called_once_with("description", CONSOLE_WIDTH)
 
-    @patch("dafni_cli.workflow.workflow.prose_print")
-    @patch("dafni_cli.workflow.workflow.click")
+    @patch("dafni_cli.workflows.workflow.prose_print")
+    @patch("dafni_cli.workflows.workflow.click")
     def test_output_info(self, mock_click, mock_prose_print):
         """Tests output_info works correctly"""
         # SETUP
@@ -447,7 +447,7 @@ class TestWorkflow(TestCase):
             "Version message: Initial Workflow version",
         )
 
-    @patch("dafni_cli.workflow.workflow.click")
+    @patch("dafni_cli.workflows.workflow.click")
     def test_output_version_history(self, mock_click):
         """Tests output_version_history works correctly"""
         # SETUP

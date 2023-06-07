@@ -12,9 +12,9 @@ from dafni_cli.consts import DATE_INPUT_FORMAT, DATE_INPUT_FORMAT_VERBOSE
 from dafni_cli.datasets import dataset_filtering
 from dafni_cli.datasets.dataset import parse_datasets
 from dafni_cli.datasets.dataset_metadata import parse_dataset_metadata
-from dafni_cli.model.model import parse_model, parse_models
+from dafni_cli.models.model import parse_model, parse_models
 from dafni_cli.utils import print_json
-from dafni_cli.workflow.workflow import parse_workflow, parse_workflows
+from dafni_cli.workflows.workflow import parse_workflow, parse_workflows
 
 
 @click.group(help="Lists entities available to the user")
@@ -125,7 +125,7 @@ def model(ctx: Context, version_id: List[str], version_history: bool, json: bool
         try:
             model_dictionary = get_model(ctx.obj["session"], vid)
         except ResourceNotFoundError as err:
-            raise SystemExit(err) from err
+            raise SystemExit(1) from err
 
         if version_history:
             if json:
@@ -244,7 +244,7 @@ def dataset(
     try:
         metadata = get_latest_dataset_metadata(ctx.obj["session"], version_id)
     except ResourceNotFoundError as err:
-        raise SystemExit(err) from err
+        raise SystemExit(1) from err
 
     if not version_history:
         if json:
@@ -359,7 +359,7 @@ def workflow(ctx: Context, version_id: List[str], version_history: bool, json: b
         try:
             workflow_dictionary = get_workflow(ctx.obj["session"], vid)
         except ResourceNotFoundError as err:
-            raise SystemExit(err) from err
+            raise SystemExit(1) from err
 
         if version_history:
             if json:

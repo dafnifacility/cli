@@ -7,8 +7,8 @@ import click
 from dafni_cli.api.auth import Auth
 from dafni_cli.api.parser import ParserBaseObject, ParserParam, parse_datetime
 from dafni_cli.consts import CONSOLE_WIDTH, TAB_SPACE
-from dafni_cli.model.inputs import ModelInputs
-from dafni_cli.model.outputs import ModelOutputs
+from dafni_cli.models.inputs import ModelInputs
+from dafni_cli.models.outputs import ModelOutputs
 from dafni_cli.utils import format_datetime, prose_print
 
 
