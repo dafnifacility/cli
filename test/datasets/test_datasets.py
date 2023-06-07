@@ -6,6 +6,7 @@ from dateutil.tz import tzutc
 
 from dafni_cli.consts import CONSOLE_WIDTH, TAB_SPACE
 from dafni_cli.datasets.dataset import parse_datasets
+from dafni_cli.utils import format_datetime
 
 from test.fixtures.datasets import TEST_DATASETS_DATA
 
@@ -82,7 +83,7 @@ class TestDataset(TestCase):
                 call("ID: " + dataset1.dataset_id),
                 call("Latest Version: " + dataset1.version_id),
                 call("Publisher: " + dataset1.source),
-                call(f"From: {TAB_SPACE}{TAB_SPACE}To: {TAB_SPACE}"),
+                call(f"From: N/A{TAB_SPACE}To: N/A"),
                 call("Description: "),
                 call(""),
             ]
@@ -99,9 +100,9 @@ class TestDataset(TestCase):
         datasets = parse_datasets(TEST_DATASETS_DATA)
         dataset2 = datasets[1]
 
-        # setup expected date strings
-        start = dataset2.date_range_start.date().strftime("%B %d %Y")
-        end = dataset2.date_range_end.date().strftime("%B %d %Y")
+        # Setup expected date strings
+        start = format_datetime(dataset2.date_range_start, include_time=False)
+        end = format_datetime(dataset2.date_range_end, include_time=False)
 
         dataset2.output_dataset_details()
 

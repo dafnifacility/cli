@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from datetime import date, datetime
+from datetime import datetime
 from typing import ClassVar, List, Optional
 
 import click
@@ -9,7 +9,7 @@ from dafni_cli.api.parser import ParserBaseObject, ParserParam, parse_datetime
 from dafni_cli.consts import CONSOLE_WIDTH, TAB_SPACE
 from dafni_cli.model.inputs import ModelInputs
 from dafni_cli.model.outputs import ModelOutputs
-from dafni_cli.utils import prose_print
+from dafni_cli.utils import format_datetime, prose_print
 
 
 @dataclass
@@ -222,22 +222,20 @@ class Model(ParserBaseObject):
         return self._metadata
 
     # TODO: Replace with .filter???
-    def filter_by_date(self, key: str, date_str: str) -> bool:
+    def filter_by_date(self, key: str, date: datetime) -> bool:
         """Returns whether a particular date is less than or equal to the
            creation/publication date of this model.
 
         Args:
             key (str): Key for which date to check must be either 'creation'
                        or 'publication'
-            date_str (str): Date for which models are to be filtered on - format
-                            DD/MM/YYYY
+            date (datetime): Datetime object (only the date will be used)
 
         Returns:
             bool: Whether the given date is less than or equal to the
                   chosen date
         """
-        day, month, year = date_str.split("/")
-        date_val = date(int(year), int(month), int(day))
+        date_val = date.date()
         if key.lower() == "creation":
             return self.creation_date.date() >= date_val
         if key.lower() == "publication":
@@ -259,8 +257,8 @@ class Model(ParserBaseObject):
             + "ID: "
             + self.model_id
             + TAB_SPACE
-            + "Date: "
-            + self.creation_date.date().strftime("%B %d %Y")
+            + "Created: "
+            + format_datetime(self.creation_date, include_time=True)
         )
         click.echo("Summary: " + self.metadata.summary)
         if long and self.metadata.description is not None:
@@ -272,7 +270,7 @@ class Model(ParserBaseObject):
         """Prints information about the model to command line"""
 
         click.echo("Name: " + self.metadata.display_name)
-        click.echo("Date: " + self.creation_date.strftime("%B %d %Y"))
+        click.echo("Created: " + format_datetime(self.creation_date, include_time=True))
         click.echo("Parent ID: " + self.parent_id)
         click.echo("Summary: ")
         click.echo(self.metadata.summary)
@@ -295,31 +293,19 @@ class Model(ParserBaseObject):
         and version message on one line
         """
         return (
-            "ID: "
-            + self.model_id
-            + TAB_SPACE
-            + "Name: "
-            + self.metadata.display_name
-            + TAB_SPACE
-            + "Publication date: "
-            + self.publication_date.date().strftime("%B %d %Y")
-            + TAB_SPACE
-            + "Version message: "
-            + self.version_message
+            f"ID: {self.model_id}{TAB_SPACE}"
+            f"Name: {self.metadata.display_name}{TAB_SPACE}"
+            f"Publication date: {format_datetime(self.publication_date, include_time=True)}{TAB_SPACE}"
+            f"Version message: {self.version_message}"
         )
 
     def output_version_history(self):
         """Prints the version history for the model to the command line"""
         for version in self.version_history:
             click.echo(
-                "Name: "
-                + self.metadata.display_name
-                + TAB_SPACE
-                + "ID: "
-                + version.version_id
-                + TAB_SPACE
-                + "Date: "
-                + version.publication_date.strftime("%B %d %Y")
+                f"Name: {self.metadata.display_name}{TAB_SPACE}"
+                f"ID: {version.version_id}{TAB_SPACE}"
+                f"Publication date: {format_datetime(version.publication_date, include_time=True)}"
             )
             click.echo(f"Version message: {version.version_message}")
             click.echo(f"Version tags: {', '.join(version.version_tags)}")
