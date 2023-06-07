@@ -227,7 +227,7 @@ class TestUploadDataset(TestCase):
 
         # CALL
         with runner.isolated_filesystem():
-            with open("test_definition.json", "w", encoding="utf-8") as file:
+            with open("test_metadata.json", "w", encoding="utf-8") as file:
                 file.write("{}")
             with open("test_dataset.txt", "w", encoding="utf-8") as file:
                 file.write("test dataset file")
@@ -235,7 +235,7 @@ class TestUploadDataset(TestCase):
                 upload.upload,
                 [
                     "dataset",
-                    "test_definition.json",
+                    "test_metadata.json",
                     "test_dataset.txt",
                 ],
                 input="y",
@@ -249,7 +249,7 @@ class TestUploadDataset(TestCase):
 
         self.assertEqual(
             result.output,
-            "Dataset definition file path: test_definition.json\n"
+            "Dataset metadata file path: test_metadata.json\n"
             "Dataset file path: test_dataset.txt\n"
             "Confirm dataset upload? [y/N]: y\n",
         )
@@ -270,7 +270,7 @@ class TestUploadDataset(TestCase):
 
         # CALL
         with runner.isolated_filesystem():
-            with open("test_definition.json", "w", encoding="utf-8") as file:
+            with open("test_metadata.json", "w", encoding="utf-8") as file:
                 file.write("{}")
             with open("test_dataset1.txt", "w", encoding="utf-8") as file:
                 file.write("test dataset file1")
@@ -280,7 +280,7 @@ class TestUploadDataset(TestCase):
                 upload.upload,
                 [
                     "dataset",
-                    "test_definition.json",
+                    "test_metadata.json",
                     "test_dataset1.txt",
                     "test_dataset2.txt",
                 ],
@@ -297,7 +297,7 @@ class TestUploadDataset(TestCase):
 
         self.assertEqual(
             result.output,
-            "Dataset definition file path: test_definition.json\n"
+            "Dataset metadata file path: test_metadata.json\n"
             "Dataset file path: test_dataset1.txt\n"
             "Dataset file path: test_dataset2.txt\n"
             "Confirm dataset upload? [y/N]: y\n",
@@ -318,7 +318,7 @@ class TestUploadDataset(TestCase):
 
         # CALL
         with runner.isolated_filesystem():
-            with open("test_definition.json", "w", encoding="utf-8") as file:
+            with open("test_metadata.json", "w", encoding="utf-8") as file:
                 file.write("{}")
             with open("test_dataset.txt", "w", encoding="utf-8") as file:
                 file.write("test dataset file")
@@ -326,7 +326,7 @@ class TestUploadDataset(TestCase):
                 upload.upload,
                 [
                     "dataset",
-                    "test_definition.json",
+                    "test_metadata.json",
                     "test_dataset.txt",
                 ],
                 input="n",
@@ -338,7 +338,7 @@ class TestUploadDataset(TestCase):
 
         self.assertEqual(
             result.output,
-            "Dataset definition file path: test_definition.json\n"
+            "Dataset metadata file path: test_metadata.json\n"
             "Dataset file path: test_dataset.txt\n"
             "Confirm dataset upload? [y/N]: n\n"
             "Aborted!\n",
@@ -392,7 +392,7 @@ class TestUploadDatasetVersion(TestCase):
         )
         mock_modify_dataset_metadata_for_upload.assert_called_once_with(
             existing_metadata=TEST_DATASET_METADATA,
-            definition_path=None,
+            metadata_path=None,
             version_message=None,
         )
         mock_upload_dataset.assert_called_once_with(
@@ -450,7 +450,7 @@ class TestUploadDatasetVersion(TestCase):
         )
         mock_modify_dataset_metadata_for_upload.assert_called_once_with(
             existing_metadata=TEST_DATASET_METADATA,
-            definition_path=None,
+            metadata_path=None,
             version_message=None,
         )
         mock_upload_dataset.assert_called_once_with(
@@ -510,7 +510,7 @@ class TestUploadDatasetVersion(TestCase):
         )
         mock_modify_dataset_metadata_for_upload.assert_called_once_with(
             existing_metadata=TEST_DATASET_METADATA,
-            definition_path=None,
+            metadata_path=None,
             version_message=None,
         )
         mock_upload_dataset.assert_not_called()
@@ -526,7 +526,7 @@ class TestUploadDatasetVersion(TestCase):
         )
         self.assertEqual(result.exit_code, 1)
 
-    def test_upload_dataset_version_with_definition_and_version_message(
+    def test_upload_dataset_version_with_metadata_and_version_message(
         self,
         mock_modify_dataset_metadata_for_upload,
         mock_get_latest_dataset_metadata,
@@ -542,7 +542,7 @@ class TestUploadDatasetVersion(TestCase):
         runner = CliRunner()
         dataset_version_id = "some-existing-version-id"
         file_path = "test_dataset.txt"
-        definition_path = "definition.json"
+        metadata_path = "definition.json"
         version_message = "version_message"
         mock_get_latest_dataset_metadata.return_value = TEST_DATASET_METADATA
         metadata = parse_dataset_metadata(TEST_DATASET_METADATA)
@@ -551,16 +551,16 @@ class TestUploadDatasetVersion(TestCase):
         with runner.isolated_filesystem():
             with open(file_path, "w", encoding="utf-8") as file:
                 file.write("test dataset file")
-            with open(definition_path, "w", encoding="utf-8") as file:
-                file.write("test definition file")
+            with open(metadata_path, "w", encoding="utf-8") as file:
+                file.write("test metadata file")
             result = runner.invoke(
                 upload.upload,
                 [
                     "dataset-version",
                     dataset_version_id,
                     file_path,
-                    "--definition",
-                    definition_path,
+                    "--metadata",
+                    metadata_path,
                     "--version-message",
                     version_message,
                 ],
@@ -574,7 +574,7 @@ class TestUploadDatasetVersion(TestCase):
         )
         mock_modify_dataset_metadata_for_upload.assert_called_once_with(
             existing_metadata=TEST_DATASET_METADATA,
-            definition_path=Path(definition_path),
+            metadata_path=Path(metadata_path),
             version_message=version_message,
         )
         mock_upload_dataset.assert_called_once_with(
@@ -590,7 +590,7 @@ class TestUploadDatasetVersion(TestCase):
             f"Dataset ID: {metadata.dataset_id}\n"
             f"Dataset Version ID: {metadata.version_id}\n"
             f"Dataset file path: {file_path}\n"
-            f"Dataset definition file path: {definition_path}\n"
+            f"Dataset metadata file path: {metadata_path}\n"
             "Confirm dataset upload? [y/N]: y\n",
         )
         self.assertEqual(result.exit_code, 0)
@@ -638,7 +638,7 @@ class TestUploadDatasetMetadata(TestCase):
         )
         mock_modify_dataset_metadata_for_upload.assert_called_once_with(
             existing_metadata=TEST_DATASET_METADATA,
-            definition_path=None,
+            metadata_path=None,
             version_message=None,
         )
         mock_upload_dataset_metadata_version.assert_called_once_with(
@@ -692,7 +692,7 @@ class TestUploadDatasetMetadata(TestCase):
         )
         mock_modify_dataset_metadata_for_upload.assert_called_once_with(
             existing_metadata=TEST_DATASET_METADATA,
-            definition_path=None,
+            metadata_path=None,
             version_message=None,
         )
         mock_upload_dataset_metadata_version.assert_not_called()
@@ -707,7 +707,7 @@ class TestUploadDatasetMetadata(TestCase):
         )
         self.assertEqual(result.exit_code, 1)
 
-    def test_upload_dataset_metadata_with_definition_and_version_message(
+    def test_upload_dataset_metadata_with_metadata_and_version_message(
         self,
         mock_modify_dataset_metadata_for_upload,
         mock_get_latest_dataset_metadata,
@@ -722,22 +722,22 @@ class TestUploadDatasetMetadata(TestCase):
         mock_DAFNISession.return_value = session
         runner = CliRunner()
         dataset_version_id = "some-existing-version-id"
-        definition_path = "definition.json"
+        metadata_path = "metadata.json"
         version_message = "version_message"
         mock_get_latest_dataset_metadata.return_value = TEST_DATASET_METADATA
         metadata = parse_dataset_metadata(TEST_DATASET_METADATA)
 
         # CALL
         with runner.isolated_filesystem():
-            with open(definition_path, "w", encoding="utf-8") as file:
-                file.write("test definition file")
+            with open(metadata_path, "w", encoding="utf-8") as file:
+                file.write("test metadata file")
             result = runner.invoke(
                 upload.upload,
                 [
                     "dataset-metadata",
                     dataset_version_id,
-                    "--definition",
-                    definition_path,
+                    "--metadata",
+                    metadata_path,
                     "--version-message",
                     version_message,
                 ],
@@ -751,7 +751,7 @@ class TestUploadDatasetMetadata(TestCase):
         )
         mock_modify_dataset_metadata_for_upload.assert_called_once_with(
             existing_metadata=TEST_DATASET_METADATA,
-            definition_path=Path(definition_path),
+            metadata_path=Path(metadata_path),
             version_message=version_message,
         )
         mock_upload_dataset_metadata_version.assert_called_once_with(
@@ -766,7 +766,7 @@ class TestUploadDatasetMetadata(TestCase):
             f"Dataset Title: {metadata.title}\n"
             f"Dataset ID: {metadata.dataset_id}\n"
             f"Dataset Version ID: {metadata.version_id}\n"
-            f"Dataset definition file path: {definition_path}\n"
+            f"Dataset metadata file path: {metadata_path}\n"
             "Confirm metadata upload? [y/N]: y\n",
         )
         self.assertEqual(result.exit_code, 0)

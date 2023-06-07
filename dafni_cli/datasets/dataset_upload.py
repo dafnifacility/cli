@@ -44,7 +44,7 @@ def remove_dataset_metadata_invalid_for_upload(metadata: dict):
 
 def modify_dataset_metadata_for_upload(
     existing_metadata: dict,
-    definition_path: Optional[Path],
+    metadata_path: Optional[Path],
     version_message: Optional[str],
 ) -> dict:
     """Modifies existing dataset metadata or that loaded from a file according
@@ -52,7 +52,7 @@ def modify_dataset_metadata_for_upload(
 
     Args:
         existing_metadata (dict): Dictionary of existing metadata from the API
-        definition_path (Optional[Path]): Path to a Dataset metadata file.
+        metadata_path (Optional[Path]): Path to a Dataset metadata file.
                         When None will use the existing_metadata instead but
                         will delete any keys invalid for upload.
         version_message (Optional[str]): Version message - Will replace
@@ -61,11 +61,10 @@ def modify_dataset_metadata_for_upload(
         dict: The modified dataset metadata
     """
 
-    # Load the metadata from the definition file if present, or otherwise
-    # use the existing
-    if definition_path:
-        with open(definition_path, "r", encoding="utf-8") as definition_file:
-            metadata = json.load(definition_file)
+    # Load the metadata from a file if present, or otherwise use the existing
+    if metadata_path:
+        with open(metadata_path, "r", encoding="utf-8") as metadata_file:
+            metadata = json.load(metadata_file)
     else:
         metadata = deepcopy(existing_metadata)
 
