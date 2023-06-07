@@ -6,13 +6,8 @@ import click
 from click import Context
 
 from dafni_cli.api.datasets_api import get_latest_dataset_metadata
-from dafni_cli.api.exceptions import ValidationError
-from dafni_cli.api.minio_api import upload_file_to_minio
 from dafni_cli.api.models_api import (
     get_all_models,
-    get_model_upload_urls,
-    model_version_ingest,
-    validate_model_definition,
 )
 from dafni_cli.api.session import DAFNISession
 from dafni_cli.api.workflows_api import upload_workflow
@@ -20,6 +15,7 @@ from dafni_cli.datasets.dataset_metadata import parse_dataset_metadata
 from dafni_cli.datasets.dataset_upload import (
     modify_dataset_metadata_for_upload,
     upload_dataset,
+    upload_dataset_metadata_version,
 )
 from dafni_cli.models.upload import upload_model
 from dafni_cli.utils import argument_confirmation
@@ -199,7 +195,7 @@ def dataset_version(
     dataset_metadata_dict = get_latest_dataset_metadata(
         ctx.obj["session"], existing_version_id
     )
-    dataset_metadata = parse_dataset_metadata(dataset_metadata_dict)
+    dataset_metadata_obj = parse_dataset_metadata(dataset_metadata_dict)
 
     # Load/modify the existing metdata according to the user input
     dataset_metadata_dict = modify_dataset_metadata_for_upload(
@@ -216,9 +212,9 @@ def dataset_version(
     else:
         # Confirm upload details
         arguments = [
-            ("Dataset Title", dataset_metadata.title),
-            ("Dataset ID", dataset_metadata.dataset_id),
-            ("Dataset Version ID", dataset_metadata.version_id),
+            ("Dataset Title", dataset_metadata_obj.title),
+            ("Dataset ID", dataset_metadata_obj.dataset_id),
+            ("Dataset Version ID", dataset_metadata_obj.version_id),
         ] + [("Dataset file path", file) for file in files]
 
         if definition:
@@ -230,7 +226,7 @@ def dataset_version(
         # Upload all files
         upload_dataset(
             ctx.obj["session"],
-            dataset_id=dataset_metadata.dataset_id,
+            dataset_id=dataset_metadata_obj.dataset_id,
             metadata=dataset_metadata_dict,
             file_paths=files,
         )
@@ -284,7 +280,7 @@ def dataset_metadata(
     dataset_metadata_dict = get_latest_dataset_metadata(
         ctx.obj["session"], existing_version_id
     )
-    dataset_metadata = parse_dataset_metadata(dataset_metadata_dict)
+    dataset_metadata_obj = parse_dataset_metadata(dataset_metadata_dict)
 
     # Load/modify the existing metdata according to the user input
     dataset_metadata_dict = modify_dataset_metadata_for_upload(
@@ -301,9 +297,9 @@ def dataset_metadata(
     else:
         # Confirm upload details
         arguments = [
-            ("Dataset Title", dataset_metadata.title),
-            ("Dataset ID", dataset_metadata.dataset_id),
-            ("Dataset Version ID", dataset_metadata.version_id),
+            ("Dataset Title", dataset_metadata_obj.title),
+            ("Dataset ID", dataset_metadata_obj.dataset_id),
+            ("Dataset Version ID", dataset_metadata_obj.version_id),
         ]
 
         if definition:
@@ -312,13 +308,13 @@ def dataset_metadata(
         confirmation_message = "Confirm metadata upload?"
         argument_confirmation(arguments, confirmation_message)
 
-    #     # Upload all files
-    #     upload_dataset(
-    #         ctx.obj["session"],
-    #         dataset_id=dataset_metadata.dataset_id,
-    #         metadata=dataset_metadata_dict,
-    #         file_paths=files,
-    #     )
+        # Upload
+        upload_dataset_metadata_version(
+            ctx.obj["session"],
+            dataset_id=dataset_metadata_obj.dataset_id,
+            version_id=existing_version_id,
+            metadata=dataset_metadata_dict,
+        )
 
 
 ###############################################################################

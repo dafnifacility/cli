@@ -6,7 +6,7 @@ from typing import List, Optional
 import click
 from requests.exceptions import HTTPError
 
-from dafni_cli.api.datasets_api import upload_dataset_metadata
+import dafni_cli.api.datasets_api as datasets_api
 from dafni_cli.api.exceptions import DAFNIError, EndpointNotFoundError
 from dafni_cli.api.minio_api import (
     create_temp_bucket,
@@ -121,7 +121,7 @@ def _commit_metadata(
     """
     click.echo("Uploading metadata file")
     try:
-        response = upload_dataset_metadata(
+        response = datasets_api.upload_dataset_metadata(
             session, temp_bucket_id, metadata, dataset_id=dataset_id
         )
     except (EndpointNotFoundError, DAFNIError, HTTPError) as err:
@@ -163,6 +163,35 @@ def upload_dataset(
         click.echo("Deleting temporary bucket")
         delete_temp_bucket(session, temp_bucket_id)
         raise
+
+    # Output Details
+    click.echo("\nUpload successful")
+    click.echo(f"Dataset ID: {details['datasetId']}")
+    click.echo(f"Version ID: {details['versionId']}")
+    click.echo(f"Metadata ID: {details['metadataId']}")
+
+
+def upload_dataset_metadata_version(
+    session: DAFNISession,
+    dataset_id: str,
+    version_id: str,
+    metadata: dict,
+) -> None:
+    """Function to upload a Dataset
+
+    Args:
+        session (DAFNISession): User session
+        dataset_id (str): ID of an existing dataset to add the new metadata
+                          version to
+        version_id (str): Version ID fo an existing dataset to add the new
+                          metadata version to
+        metadata (dict): Metadata to upload
+
+    """
+
+    details = datasets_api.upload_dataset_metadata_version(
+        session, dataset_id=dataset_id, version_id=version_id, metadata=metadata
+    )
 
     # Output Details
     click.echo("\nUpload successful")
