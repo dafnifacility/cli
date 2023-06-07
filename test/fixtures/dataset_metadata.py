@@ -155,14 +155,9 @@ TEST_DATASET_METADATA_DEFAULT: dict = {
     "@type": "dcat:Dataset",
     "dct:title": "An example workflow definition",
     "dct:description": "Dataset description",
-    "dct:identifier": [
-        "0a0a0a0a-0a00-0a00-a000-0a0a0000000a:0a0a0a0a-0a00-0a00-a000-0a0a0000000b:0a0a0a0a-0a00-0a00-a000-0a0a0000000c"
-    ],
     "dct:subject": "Subject",
-    "dcat:theme": [],
     "dct:language": "en",
     "dcat:keyword": ["test"],
-    "dct:conformsTo": TEST_DATASET_METADATA_STANDARD,
     "dct:spatial": TEST_DATASET_METADATA_LOCATION,
     "geojson": {},
     "dct:creator": [
@@ -170,7 +165,6 @@ TEST_DATASET_METADATA_DEFAULT: dict = {
         TEST_DATASET_METADATA_CREATOR_DEFAULT,
     ],
     "dct:created": "2021-03-16",
-    "dct:publisher": TEST_DATASET_METADATA_PUBLISHER,
     "dcat:contactPoint": TEST_DATASET_METADATA_CONTACT,
     "dct:license": {
         "@type": "LicenseDocument",
