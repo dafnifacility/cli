@@ -7,7 +7,7 @@ import click
 from dafni_cli.api.auth import Auth
 from dafni_cli.api.parser import ParserBaseObject, ParserParam, parse_datetime
 from dafni_cli.consts import CONSOLE_WIDTH, TAB_SPACE
-from dafni_cli.utils import prose_print
+from dafni_cli.utils import format_datetime, prose_print
 from dafni_cli.workflows.instance import WorkflowInstance
 from dafni_cli.workflows.parameter_set import WorkflowParameterSet
 
@@ -184,22 +184,20 @@ class Workflow(ParserBaseObject):
         return self._metadata
 
     # TODO: Unify with Model
-    def filter_by_date(self, key: str, date_str: str) -> bool:
+    def filter_by_date(self, key: str, date: datetime) -> bool:
         """Returns whether a particular date is less than or equal to the
            creation/publication date of this workflow.
 
         Args:
             key (str): Key for which date to check must be either 'creation'
                        or 'publication'
-            date_str (str): Date for which workflows are to be filtered on -
-                            format DD/MM/YYYY
+            date (datetime): Datetime object (only the date will be used)
 
         Returns:
             bool: Whether the given date is less than or equal to the
                   chosen date
         """
-        day, month, year = date_str.split("/")
-        date_val = date(int(year), int(month), int(day))
+        date_val = date.date()
         if key.lower() == "creation":
             return self.creation_date.date() >= date_val
         if key.lower() == "publication":
@@ -214,16 +212,11 @@ class Workflow(ParserBaseObject):
                          description (ignored if description is None)
         """
         click.echo(
-            "Name: "
-            + self.metadata.display_name
-            + TAB_SPACE
-            + "ID: "
-            + self.workflow_id
-            + TAB_SPACE
-            + "Date: "
-            + self.creation_date.date().strftime("%B %d %Y")
+            f"Name: {self.metadata.display_name}{TAB_SPACE}"
+            f"ID: {self.workflow_id}{TAB_SPACE}"
+            f"Created: {format_datetime(self.creation_date, include_time=True)}"
         )
-        click.echo("Summary: " + self.metadata.summary)
+        click.echo(f"Summary: {self.metadata.summary}")
         if long and self.metadata.description is not None:
             click.echo("Description: ")
             prose_print(self.metadata.description, CONSOLE_WIDTH)
@@ -232,8 +225,8 @@ class Workflow(ParserBaseObject):
     def output_info(self):
         """Prints information about the workflow to command line"""
 
-        click.echo("Name: " + self.metadata.display_name)
-        click.echo("Date: " + self.creation_date.strftime("%B %d %Y"))
+        click.echo(f"Name: {self.metadata.display_name}")
+        click.echo(f"Created: {format_datetime(self.creation_date, include_time=True)}")
         click.echo("Summary: ")
         click.echo(self.metadata.summary)
         prose_print(self.metadata.description, CONSOLE_WIDTH)
@@ -254,31 +247,19 @@ class Workflow(ParserBaseObject):
         time and version message on one line
         """
         return (
-            "ID: "
-            + self.workflow_id
-            + TAB_SPACE
-            + "Name: "
-            + self.metadata.display_name
-            + TAB_SPACE
-            + "Publication date: "
-            + self.publication_date.date().strftime("%B %d %Y")
-            + TAB_SPACE
-            + "Version message: "
-            + self.version_message
+            f"ID: {self.workflow_id}{TAB_SPACE}"
+            f"Name: {self.metadata.display_name}{TAB_SPACE}"
+            f"Publication date: {format_datetime(self.publication_date, include_time=True)}{TAB_SPACE}"
+            f"Version message: {self.version_message}"
         )
 
     def output_version_history(self):
         """Prints the version history for the workflow to the command line"""
         for version in self.version_history:
             click.echo(
-                "Name: "
-                + self.metadata.display_name
-                + TAB_SPACE
-                + "ID: "
-                + version.version_id
-                + TAB_SPACE
-                + "Date: "
-                + version.publication_date.strftime("%B %d %Y")
+                f"Name: {self.metadata.display_name}{TAB_SPACE}"
+                f"ID: {version.version_id}{TAB_SPACE}"
+                f"Publication date: {format_datetime(version.publication_date, include_time=True)}"
             )
             click.echo(f"Version message: {version.version_message}")
             click.echo(f"Version tags: {', '.join(version.version_tags)}")

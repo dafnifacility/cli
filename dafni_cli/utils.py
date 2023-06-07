@@ -2,7 +2,7 @@ import copy
 import json
 import textwrap
 from dataclasses import fields
-from datetime import datetime as dt
+from datetime import datetime
 from io import BytesIO
 from pathlib import Path
 from typing import Any, List, Optional, Tuple, Type, Union
@@ -11,7 +11,13 @@ from zipfile import ZipFile
 import click
 from tabulate import tabulate
 
-from dafni_cli.consts import TABULATE_ARGS
+from dafni_cli.consts import (
+    DATE_INPUT_FORMAT,
+    DATE_INPUT_FORMAT_VERBOSE,
+    DATE_OUTPUT_FORMAT,
+    DATE_TIME_OUTPUT_FORMAT,
+    TABULATE_ARGS,
+)
 
 
 def prose_print(prose: str, width: int):
@@ -58,20 +64,6 @@ def optional_column(value: Optional[Any], column_width: int = 0, alignment: str 
     else:
         entry = " " * column_width
     return entry
-
-
-def process_date_filter(date_str: str) -> str:
-    """Function to take a date str used for filtering on date
-    and process into a format to submit to the DAFNI API's
-
-    Args:
-        date_str (str): Date Str in format dd/mm/yyyy
-
-    Returns:
-        str: Processed date str to YYYY-MM-DDT00:00:00
-    """
-    # TODO use this datetime format (ISO8601) and use as a constant here
-    return dt.strptime(date_str, "%d/%m/%Y").strftime("%Y-%m-%dT%H:%M:%S")
 
 
 def process_file_size(file_size: str) -> str:
@@ -198,3 +190,20 @@ def format_table(
                     row[value_idx] = "\n".join(wrapped_values)
 
     return tabulate(rows, headers, **TABULATE_ARGS)
+
+
+def format_datetime(value: Optional[datetime], include_time: bool) -> str:
+    """Returns a string representation of a datetime object for output
+
+    Will return 'N/A' if the datetime value given is None
+
+    Args:
+        value (datetime): Datetime value to format
+        include_time: Whether to include the time in the returned string
+    """
+    if value:
+        if include_time:
+            return value.strftime(DATE_TIME_OUTPUT_FORMAT)
+        else:
+            return value.strftime(DATE_OUTPUT_FORMAT)
+    return "N/A"
