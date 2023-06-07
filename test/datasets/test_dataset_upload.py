@@ -148,19 +148,19 @@ class TestDatasetUpload(TestCase):
         )
 
     @patch("dafni_cli.datasets.dataset_upload.upload_dataset_metadata")
-    def test_upload_metadata(
+    def test_commit_metadata(
         self,
         mock_upload_dataset_metadata,
         mock_click,
     ):
-        """Tests that upload_metadata works as expected without a dataset_id"""
+        """Tests that _commit_metadata works as expected without a dataset_id"""
         # SETUP
         session = MagicMock()
         metadata = MOCK_DEFINITION_DATA
         temp_bucket_id = "some-temp-bucket"
 
         # CALL
-        result = dataset_upload.upload_metadata(session, metadata, temp_bucket_id)
+        result = dataset_upload._commit_metadata(session, metadata, temp_bucket_id)
 
         # ASSERT
         mock_upload_dataset_metadata.assert_called_with(
@@ -175,12 +175,12 @@ class TestDatasetUpload(TestCase):
         self.assertEqual(result, mock_upload_dataset_metadata.return_value)
 
     @patch("dafni_cli.datasets.dataset_upload.upload_dataset_metadata")
-    def test_upload_metadata_with_dataset_id(
+    def test_commit_metadata_with_dataset_id(
         self,
         mock_upload_dataset_metadata,
         mock_click,
     ):
-        """Tests that upload_metadata works as expected with a dataset_id"""
+        """Tests that _commit_metadata works as expected with a dataset_id"""
         # SETUP
         session = MagicMock()
         metadata = MOCK_DEFINITION_DATA
@@ -188,7 +188,7 @@ class TestDatasetUpload(TestCase):
         dataset_id = "some-dataset-id"
 
         # CALL
-        result = dataset_upload.upload_metadata(
+        result = dataset_upload._commit_metadata(
             session, metadata, temp_bucket_id, dataset_id=dataset_id
         )
 
@@ -205,12 +205,12 @@ class TestDatasetUpload(TestCase):
         self.assertEqual(result, mock_upload_dataset_metadata.return_value)
 
     @patch("dafni_cli.datasets.dataset_upload.upload_dataset_metadata")
-    def test_upload_metadata_exits_on_error(
+    def test_commit_metadata_exits_on_error(
         self,
         mock_upload_dataset_metadata,
         mock_click,
     ):
-        """Tests that upload_metadata calls SystemExit(1) when an error occurs"""
+        """Tests that _commit_metadata calls SystemExit(1) when an error occurs"""
         # SETUP
         session = MagicMock()
         metadata = MOCK_DEFINITION_DATA
@@ -221,7 +221,7 @@ class TestDatasetUpload(TestCase):
 
         # CALL
         with self.assertRaises(SystemExit):
-            dataset_upload.upload_metadata(session, metadata, temp_bucket_id)
+            dataset_upload._commit_metadata(session, metadata, temp_bucket_id)
 
         # ASSERT
         mock_click.echo.assert_has_calls(
@@ -232,12 +232,12 @@ class TestDatasetUpload(TestCase):
         )
 
     @patch("dafni_cli.datasets.dataset_upload.upload_files")
-    @patch("dafni_cli.datasets.dataset_upload.upload_metadata")
+    @patch("dafni_cli.datasets.dataset_upload._commit_metadata")
     @patch("dafni_cli.datasets.dataset_upload.create_temp_bucket")
     def test_upload_dataset(
         self,
         mock_create_temp_bucket,
-        mock_upload_metadata,
+        mock_commit_metadata,
         mock_upload_files,
         mock_click,
     ):
@@ -255,7 +255,7 @@ class TestDatasetUpload(TestCase):
         }
 
         mock_create_temp_bucket.return_value = temp_bucket_id
-        mock_upload_metadata.return_value = details
+        mock_commit_metadata.return_value = details
 
         # CALL
         dataset_upload.upload_dataset(session, definition_path, file_paths, dataset_id)
@@ -267,7 +267,7 @@ class TestDatasetUpload(TestCase):
             temp_bucket_id,
             file_paths,
         )
-        mock_upload_metadata.assert_called_once_with(
+        mock_commit_metadata.assert_called_once_with(
             session, definition_path, temp_bucket_id, dataset_id=dataset_id
         )
 
@@ -282,14 +282,14 @@ class TestDatasetUpload(TestCase):
         )
 
     @patch("dafni_cli.datasets.dataset_upload.upload_files")
-    @patch("dafni_cli.datasets.dataset_upload.upload_metadata")
+    @patch("dafni_cli.datasets.dataset_upload._commit_metadata")
     @patch("dafni_cli.datasets.dataset_upload.create_temp_bucket")
     @patch("dafni_cli.datasets.dataset_upload.delete_temp_bucket")
     def test_upload_dataset_deletes_bucket_on_error(
         self,
         mock_delete_temp_bucket,
         mock_create_temp_bucket,
-        mock_upload_metadata,
+        mock_commit_metadata,
         mock_upload_files,
         mock_click,
     ):
@@ -302,7 +302,7 @@ class TestDatasetUpload(TestCase):
         temp_bucket_id = "some-temp-bucket"
 
         mock_create_temp_bucket.return_value = temp_bucket_id
-        mock_upload_metadata.side_effect = HTTPError(400)
+        mock_commit_metadata.side_effect = HTTPError(400)
 
         # CALL
         with self.assertRaises(HTTPError):
@@ -315,7 +315,7 @@ class TestDatasetUpload(TestCase):
             temp_bucket_id,
             file_paths,
         )
-        mock_upload_metadata.assert_called_once_with(
+        mock_commit_metadata.assert_called_once_with(
             session, definition_path, temp_bucket_id, dataset_id=None
         )
         mock_delete_temp_bucket.assert_called_once_with(session, temp_bucket_id)
@@ -328,14 +328,14 @@ class TestDatasetUpload(TestCase):
         )
 
     @patch("dafni_cli.datasets.dataset_upload.upload_files")
-    @patch("dafni_cli.datasets.dataset_upload.upload_metadata")
+    @patch("dafni_cli.datasets.dataset_upload._commit_metadata")
     @patch("dafni_cli.datasets.dataset_upload.create_temp_bucket")
     @patch("dafni_cli.datasets.dataset_upload.delete_temp_bucket")
     def test_upload_dataset_deletes_bucket_on_system_exit(
         self,
         mock_delete_temp_bucket,
         mock_create_temp_bucket,
-        mock_upload_metadata,
+        mock_commit_metadata,
         mock_upload_files,
         mock_click,
     ):
@@ -348,7 +348,7 @@ class TestDatasetUpload(TestCase):
         temp_bucket_id = "some-temp-bucket"
 
         mock_create_temp_bucket.return_value = temp_bucket_id
-        mock_upload_metadata.side_effect = SystemExit(1)
+        mock_commit_metadata.side_effect = SystemExit(1)
 
         # CALL
         with self.assertRaises(SystemExit):
@@ -361,7 +361,7 @@ class TestDatasetUpload(TestCase):
             temp_bucket_id,
             file_paths,
         )
-        mock_upload_metadata.assert_called_once_with(
+        mock_commit_metadata.assert_called_once_with(
             session, definition_path, temp_bucket_id, dataset_id=None
         )
         mock_delete_temp_bucket.assert_called_once_with(session, temp_bucket_id)

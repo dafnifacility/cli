@@ -6,12 +6,12 @@ from typing import List, Optional
 import click
 from requests.exceptions import HTTPError
 
+from dafni_cli.api.datasets_api import upload_dataset_metadata
 from dafni_cli.api.exceptions import DAFNIError, EndpointNotFoundError
 from dafni_cli.api.minio_api import (
     create_temp_bucket,
     delete_temp_bucket,
     get_data_upload_urls,
-    upload_dataset_metadata,
     upload_file_to_minio,
 )
 from dafni_cli.api.session import DAFNISession
@@ -98,14 +98,14 @@ def upload_files(session: DAFNISession, temp_bucket_id: str, file_paths: List[Pa
         upload_file_to_minio(session, value, file_names[key])
 
 
-def upload_metadata(
+def _commit_metadata(
     session: DAFNISession,
     metadata: dict,
     temp_bucket_id: str,
     dataset_id: Optional[str] = None,
 ) -> dict:
-    """Function to upload the Metadata to the Minio API, with the
-    given Minio Temporary Upload ID
+    """Function to upload the metadata to the NID API and
+    commit the dataset
 
     Deletes the temporary upload bucket if unsuccessful to avoid
     any unnecessary build up
@@ -156,7 +156,7 @@ def upload_dataset(
     try:
         # Upload all files
         upload_files(session, temp_bucket_id, file_paths)
-        details = upload_metadata(
+        details = _commit_metadata(
             session, metadata, temp_bucket_id, dataset_id=dataset_id
         )
     except BaseException:

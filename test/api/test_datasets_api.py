@@ -3,7 +3,7 @@ from unittest.mock import MagicMock
 
 from dafni_cli.api import datasets_api
 from dafni_cli.api.exceptions import EndpointNotFoundError, ResourceNotFoundError
-from dafni_cli.consts import SEARCH_AND_DISCOVERY_API_URL
+from dafni_cli.consts import NID_API_URL, SEARCH_AND_DISCOVERY_API_URL
 
 
 class TestDatasetsAPI(TestCase):
@@ -67,3 +67,66 @@ class TestDatasetsAPI(TestCase):
             str(err.exception),
             f"Unable to find a dataset with version_id '{version_id}'",
         )
+
+    def test_upload_dataset_metadata(self):
+        """Tests that upload_dataset_metadata works as expected using
+        default values"""
+
+        # SETUP
+        session = MagicMock()
+        temp_bucket_id = "temp-bucket-id"
+        metadata = {"test": "dictionary"}
+
+        # CALL
+        result = datasets_api.upload_dataset_metadata(session, temp_bucket_id, metadata)
+
+        # ASSERT
+        session.post_request.assert_called_once_with(
+            url=f"{NID_API_URL}/nid/dataset/",
+            json={"bucketId": temp_bucket_id, "metadata": metadata},
+        )
+        self.assertEqual(result, session.post_request.return_value)
+
+    def test_upload_dataset_metadata_with_dataset_id(self):
+        """Tests that upload_dataset_metadata works as expected when given
+        a dataset_id"""
+
+        # SETUP
+        session = MagicMock()
+        temp_bucket_id = "temp-bucket-id"
+        metadata = {"test": "dictionary"}
+        dataset_id = "some-dataset-id"
+
+        # CALL
+        result = datasets_api.upload_dataset_metadata(
+            session, temp_bucket_id, metadata, dataset_id=dataset_id
+        )
+
+        # ASSERT
+        session.post_request.assert_called_once_with(
+            url=f"{NID_API_URL}/nid/dataset/{dataset_id}",
+            json={"bucketId": temp_bucket_id, "metadata": metadata},
+        )
+        self.assertEqual(result, session.post_request.return_value)
+
+    def test_upload_dataset_metadata_version(self):
+        """Tests that upload_dataset_metadata_version works as expected using
+        default values"""
+
+        # SETUP
+        session = MagicMock()
+        dataset_id = "dataset-id"
+        version_id = "version-id"
+        metadata = {"test": "dictionary"}
+
+        # CALL
+        result = datasets_api.upload_dataset_metadata_version(
+            session, dataset_id, version_id, metadata
+        )
+
+        # ASSERT
+        session.post_request.assert_called_once_with(
+            url=f"{NID_API_URL}/nid/metadata/{dataset_id}/{version_id}",
+            json={"metadata": metadata},
+        )
+        self.assertEqual(result, session.post_request.return_value)
