@@ -3,9 +3,11 @@ from typing import List
 import click
 from click import Context
 
+from dafni_cli.api.datasets_api import delete_dataset, get_latest_dataset_metadata
 from dafni_cli.api.models_api import delete_model, get_model
 from dafni_cli.api.session import DAFNISession
 from dafni_cli.api.workflows_api import delete_workflow, get_workflow
+from dafni_cli.datasets.dataset_metadata import DatasetMetadata, parse_dataset_metadata
 from dafni_cli.models.model import Model, parse_model
 from dafni_cli.utils import argument_confirmation
 from dafni_cli.workflows.workflow import parse_workflow
@@ -77,6 +79,69 @@ def model(ctx: Context, version_id: List[str]):
         delete_model(ctx.obj["session"], vid)
     # Confirm action
     click.echo("Model versions deleted")
+
+
+###############################################################################
+# Datasets
+###############################################################################
+def collate_dataset_details(
+    session: DAFNISession, version_id_list: List[str]
+) -> List[str]:
+    """
+    Checks for destroy privileges for the user, and produces a list of the
+    details of each dataset to be deleted
+
+    Args:
+        session (DAFNISession): User session
+        version_id_list (List[str]): List of the dataset version IDs of each
+                                     dataset to be deleted
+
+    Returns:
+        List[str]: List of the dataset details to be displayed during deletion
+                   confirmation
+        List[str]: Dataset IDs that should be deleted
+    """
+    dataset_details_list = []
+    dataset_ids = []
+    for did in version_id_list:
+        # Find details of each dataset that will be deleted
+        dataset_version: DatasetMetadata = parse_dataset_metadata(
+            get_latest_dataset_metadata(session, did)
+        )
+        # Exit if user doesn't have necessary permissions
+        if not dataset_version.auth.destroy:
+            click.echo("You do not have sufficient permissions to delete dataset:")
+            click.echo(dataset_version.get_dataset_details())
+            raise SystemExit(1)
+        dataset_details_list.append(dataset_version.get_dataset_details())
+        dataset_ids.append(dataset_version.dataset_id)
+    return dataset_details_list, dataset_ids
+
+
+@delete.command(help="Delete one or more datasets")
+@click.argument("version-id", nargs=-1, required=True, type=str)
+@click.pass_context
+def dataset(ctx: Context, version_id: List[str]):
+    """
+    Delete one or more dataset(s) from DAFNI.
+
+    Args:
+        ctx (context): contains user session for authentication
+        version_id (str): Version ID(s) of the datasets to be deleted
+    """
+
+    # We need the version id to get the metadata, but the dataset id for the
+    # actual delete - instead of requiring both, we look up dataset with the
+    # version_id and obtain both the id and metadata once
+
+    dataset_details_list, dataset_ids = collate_dataset_details(
+        ctx.obj["session"], version_id
+    )
+    argument_confirmation([], "Confirm deletion of datasets?", dataset_details_list)
+    for dataset_id in dataset_ids:
+        delete_dataset(ctx.obj["session"], dataset_id)
+    # Confirm action
+    click.echo("Datasets deleted")
 
 
 ###############################################################################

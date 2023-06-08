@@ -2,6 +2,8 @@ from typing import List, Optional
 
 import requests
 
+from requests import Response
+
 from dafni_cli.api.exceptions import EndpointNotFoundError, ResourceNotFoundError
 from dafni_cli.api.session import DAFNISession
 from dafni_cli.consts import NID_API_URL, SEARCH_AND_DISCOVERY_API_URL
@@ -113,3 +115,14 @@ def upload_dataset_metadata_version(
     url = f"{NID_API_URL}/nid/metadata/{dataset_id}/{version_id}"
     data = {"metadata": metadata}
     return session.post_request(url=url, json=data)
+
+
+def delete_dataset(session: DAFNISession, dataset_id: str) -> Response:
+    """Calls the NID to delete a dataset
+
+    Args:
+        session (DAFNISession): User session
+        dataset_id (str): Dataset ID for selected dataset
+    """
+    url = f"{NID_API_URL}/nid/dataset/{dataset_id}"
+    return session.delete_request(url)

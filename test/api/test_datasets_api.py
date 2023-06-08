@@ -130,3 +130,19 @@ class TestDatasetsAPI(TestCase):
             json={"metadata": metadata},
         )
         self.assertEqual(result, session.post_request.return_value)
+
+    def test_delete_dataset(self):
+        """Tests that delete_dataset works as expected"""
+
+        # SETUP
+        session = MagicMock()
+        dataset_id = "dataset-id"
+
+        # CALL
+        result = datasets_api.delete_dataset(session, dataset_id=dataset_id)
+
+        # ASSERT
+        session.delete_request.assert_called_once_with(
+            f"{NID_API_URL}/nid/dataset/{dataset_id}",
+        )
+        self.assertEqual(result, session.delete_request.return_value)
