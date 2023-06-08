@@ -7,7 +7,7 @@ import click
 from dafni_cli.api.auth import Auth
 from dafni_cli.api.parser import ParserBaseObject, ParserParam, parse_datetime
 from dafni_cli.consts import CONSOLE_WIDTH, TAB_SPACE
-from dafni_cli.utils import format_datetime, prose_print
+from dafni_cli.utils import format_datetime, format_table, prose_print
 from dafni_cli.workflows.instance import WorkflowInstance
 from dafni_cli.workflows.parameter_set import WorkflowParameterSet
 
@@ -222,15 +222,72 @@ class Workflow(ParserBaseObject):
             prose_print(self.metadata.description, CONSOLE_WIDTH)
         click.echo("")
 
+    def format_parameter_sets(self) -> str:
+        """Formats parameter_sets into a string which prints as a table
+
+        Returns:
+            str: Formatted string that will appear as a table when printed
+        """
+        return format_table(
+            headers=["ID", "Name", "Published by", "Date published"],
+            rows=[
+                [
+                    parameter_set.parameter_set_id,
+                    parameter_set.metadata.display_name,
+                    parameter_set.metadata.publisher,
+                    format_datetime(parameter_set.publication_date, include_time=False),
+                ]
+                for parameter_set in self.parameter_sets
+            ],
+        )
+
+    def format_instances(self) -> str:
+        """Formats instances into a string which prints as a table
+
+        Returns:
+            str: Formatted string that will appear as a table when printed
+        """
+        return format_table(
+            headers=[
+                "ID",
+                "Workflow version",
+                "Parameter set",
+                "Started",
+                "Finished",
+                "Status",
+            ],
+            rows=[
+                [
+                    instance.instance_id,
+                    instance.workflow_version.version_message,
+                    instance.parameter_set.display_name,
+                    format_datetime(instance.submission_time, include_time=True),
+                    format_datetime(instance.finished_time, include_time=True),
+                    instance.overall_status,
+                ]
+                for instance in self.instances
+            ],
+        )
+
     def output_info(self):
         """Prints information about the workflow to command line"""
 
         click.echo(f"Name: {self.metadata.display_name}")
         click.echo(f"Created: {format_datetime(self.creation_date, include_time=True)}")
-        click.echo("Summary: ")
+        click.echo("Version message:")
+        click.echo(self.version_message)
+        click.echo("Summary:")
         click.echo(self.metadata.summary)
+        click.echo("Description:")
         prose_print(self.metadata.description, CONSOLE_WIDTH)
-        click.echo("")
+        if self.parameter_sets is not None:
+            click.echo("")
+            click.echo("Parameter sets:")
+            click.echo(self.format_parameter_sets())
+        if self.instances is not None:
+            click.echo("")
+            click.echo("Instances:")
+            click.echo(self.format_instances())
 
         # TODO: Update this so can view inputs and outputs?
         # if self.metadata_obj.inputs:
