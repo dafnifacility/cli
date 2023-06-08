@@ -6,7 +6,19 @@ import click
 
 from dafni_cli.api.auth import Auth
 from dafni_cli.api.parser import ParserBaseObject, ParserParam, parse_datetime
-from dafni_cli.consts import CONSOLE_WIDTH, TAB_SPACE
+from dafni_cli.consts import (
+    CONSOLE_WIDTH,
+    TAB_SPACE,
+    TABLE_FINISHED_HEADER,
+    TABLE_ID_HEADER,
+    TABLE_NAME_HEADER,
+    TABLE_PARAMETER_SET_HEADER,
+    TABLE_PUBLISHED_BY_HEADER,
+    TABLE_PUBLISHED_DATE_HEADER,
+    TABLE_STARTED_HEADER,
+    TABLE_STATUS_HEADER,
+    TABLE_WORKFLOW_VERSION_ID_HEADER,
+)
 from dafni_cli.utils import format_datetime, format_table, prose_print
 from dafni_cli.workflows.instance import WorkflowInstance
 from dafni_cli.workflows.parameter_set import WorkflowParameterSet
@@ -229,7 +241,12 @@ class Workflow(ParserBaseObject):
             str: Formatted string that will appear as a table when printed
         """
         return format_table(
-            headers=["ID", "Name", "Published by", "Date published"],
+            headers=[
+                TABLE_ID_HEADER,
+                TABLE_NAME_HEADER,
+                TABLE_PUBLISHED_BY_HEADER,
+                TABLE_PUBLISHED_DATE_HEADER,
+            ],
             rows=[
                 [
                     parameter_set.parameter_set_id,
@@ -249,12 +266,12 @@ class Workflow(ParserBaseObject):
         """
         return format_table(
             headers=[
-                "ID",
-                "Workflow version ID",
-                "Parameter set",
-                "Started",
-                "Finished",
-                "Status",
+                TABLE_ID_HEADER,
+                TABLE_WORKFLOW_VERSION_ID_HEADER,
+                TABLE_PARAMETER_SET_HEADER,
+                TABLE_STARTED_HEADER,
+                TABLE_FINISHED_HEADER,
+                TABLE_STATUS_HEADER,
             ],
             rows=[
                 [
@@ -288,16 +305,6 @@ class Workflow(ParserBaseObject):
             click.echo("")
             click.echo("Instances:")
             click.echo(self.format_instances())
-
-        # TODO: Update this so can view inputs and outputs?
-        # if self.metadata_obj.inputs:
-        #     click.echo("Input Parameters: ")
-        #     click.echo(self.metadata_obj.format_parameters())
-        #     click.echo("Input Data Slots: ")
-        #     click.echo(self.metadata_obj.format_dataslots())
-        # if self.metadata_obj.outputs:
-        #     click.echo("Outputs: ")
-        #     click.echo(self.metadata_obj.format_outputs())
 
     def get_version_details(self) -> str:
         """Returns a string with the workflow ID, display name, publication
