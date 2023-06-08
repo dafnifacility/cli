@@ -3,10 +3,10 @@ from typing import ClassVar, List, Optional
 
 from dafni_cli.api.parser import ParserBaseObject, ParserParam
 from dafni_cli.consts import (
-    OUTPUT_FORMAT_HEADER,
-    OUTPUT_NAME_HEADER,
-    OUTPUT_SUMMARY_HEADER,
-    OUTPUT_SUMMARY_MAX_COLUMN_WIDTH,
+    TABLE_FORMAT_HEADER,
+    TABLE_NAME_HEADER,
+    TABLE_SUMMARY_HEADER,
+    TABLE_SUMMARY_MAX_COLUMN_WIDTH,
 )
 from dafni_cli.utils import format_table
 
@@ -57,9 +57,9 @@ class ModelOutputs(ParserBaseObject):
         # exist. Unset fields will be reported as "Unknown" in the formatted output.
         return format_table(
             headers=[
-                OUTPUT_NAME_HEADER,
-                OUTPUT_FORMAT_HEADER,
-                OUTPUT_SUMMARY_HEADER,
+                TABLE_NAME_HEADER,
+                TABLE_FORMAT_HEADER,
+                TABLE_SUMMARY_HEADER,
             ],
             rows=[
                 [
@@ -69,5 +69,5 @@ class ModelOutputs(ParserBaseObject):
                 ]
                 for dataset in self.datasets
             ],
-            max_column_widths=[None, None, OUTPUT_SUMMARY_MAX_COLUMN_WIDTH],
+            max_column_widths=[None, None, TABLE_SUMMARY_MAX_COLUMN_WIDTH],
         )

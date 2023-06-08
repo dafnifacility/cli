@@ -250,7 +250,7 @@ class Workflow(ParserBaseObject):
         return format_table(
             headers=[
                 "ID",
-                "Workflow version",
+                "Workflow version ID",
                 "Parameter set",
                 "Started",
                 "Finished",
@@ -259,7 +259,7 @@ class Workflow(ParserBaseObject):
             rows=[
                 [
                     instance.instance_id,
-                    instance.workflow_version.version_message,
+                    instance.workflow_version.version_id,
                     instance.parameter_set.display_name,
                     format_datetime(instance.submission_time, include_time=True),
                     format_datetime(instance.finished_time, include_time=True),

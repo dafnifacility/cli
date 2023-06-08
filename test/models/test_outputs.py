@@ -3,10 +3,10 @@ from unittest.mock import patch
 
 from dafni_cli.api.parser import ParserBaseObject
 from dafni_cli.consts import (
-    OUTPUT_FORMAT_HEADER,
-    OUTPUT_NAME_HEADER,
-    OUTPUT_SUMMARY_HEADER,
-    OUTPUT_SUMMARY_MAX_COLUMN_WIDTH,
+    TABLE_FORMAT_HEADER,
+    TABLE_NAME_HEADER,
+    TABLE_SUMMARY_HEADER,
+    TABLE_SUMMARY_MAX_COLUMN_WIDTH,
 )
 from dafni_cli.models.outputs import ModelOutputDataset, ModelOutputs
 
@@ -67,9 +67,9 @@ class TestModelOutputs(TestCase):
         # ASSERT
         mock_format_table.assert_called_once_with(
             headers=[
-                OUTPUT_NAME_HEADER,
-                OUTPUT_FORMAT_HEADER,
-                OUTPUT_SUMMARY_HEADER,
+                TABLE_NAME_HEADER,
+                TABLE_FORMAT_HEADER,
+                TABLE_SUMMARY_HEADER,
             ],
             rows=[
                 ["example_dataset.csv", "CSV", ""],
@@ -78,7 +78,7 @@ class TestModelOutputs(TestCase):
             max_column_widths=[
                 None,
                 None,
-                OUTPUT_SUMMARY_MAX_COLUMN_WIDTH,
+                TABLE_SUMMARY_MAX_COLUMN_WIDTH,
             ],
         )
         self.assertEqual(result, mock_format_table.return_value)
@@ -103,9 +103,9 @@ class TestModelOutputs(TestCase):
         # ASSERT
         mock_format_table.assert_called_once_with(
             headers=[
-                OUTPUT_NAME_HEADER,
-                OUTPUT_FORMAT_HEADER,
-                OUTPUT_SUMMARY_HEADER,
+                TABLE_NAME_HEADER,
+                TABLE_FORMAT_HEADER,
+                TABLE_SUMMARY_HEADER,
             ],
             rows=[
                 ["Unknown", "Unknown", ""],
@@ -113,7 +113,7 @@ class TestModelOutputs(TestCase):
             max_column_widths=[
                 None,
                 None,
-                OUTPUT_SUMMARY_MAX_COLUMN_WIDTH,
+                TABLE_SUMMARY_MAX_COLUMN_WIDTH,
             ],
         )
         self.assertEqual(result, mock_format_table.return_value)
