@@ -130,10 +130,9 @@ def dataset(ctx: Context, version_id: List[str]):
         version_id (str): Version ID(s) of the datasets to be deleted
     """
 
-    # We need the version id to get the existing metadata, but the
-    # dataset id for the actual upload - instead of requiring both, we look up
-    # dataset with the version_id and obtain both the id and existing
-    # metadata once
+    # We need the version id to get the metadata, but the dataset id for the
+    # actual delete - instead of requiring both, we look up dataset with the
+    # version_id and obtain both the id and metadata once
 
     dataset_details_list, dataset_ids = collate_dataset_details(
         ctx.obj["session"], version_id
