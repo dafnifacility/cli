@@ -1,8 +1,10 @@
 from typing import List
 
+from requests import Response
+
 from dafni_cli.api.exceptions import EndpointNotFoundError, ResourceNotFoundError
 from dafni_cli.api.session import DAFNISession
-from dafni_cli.consts import SEARCH_AND_DISCOVERY_API_URL
+from dafni_cli.consts import NID_API_URL, SEARCH_AND_DISCOVERY_API_URL
 
 
 # TODO this should work with pagination - check
@@ -46,3 +48,14 @@ def get_latest_dataset_metadata(session: DAFNISession, version_id: str) -> dict:
         raise ResourceNotFoundError(
             f"Unable to find a dataset with version_id '{version_id}'"
         ) from err
+
+
+def delete_dataset(session: DAFNISession, dataset_id: str) -> Response:
+    """Calls the NID to delete a dataset
+
+    Args:
+        session (DAFNISession): User session
+        dataset_id (str): Dataset ID for selected dataset
+    """
+    url = f"{NID_API_URL}/nid/dataset/{dataset_id}"
+    return session.delete_request(url)

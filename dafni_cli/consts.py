@@ -74,6 +74,9 @@ OUTPUT_SUMMARY_MAX_COLUMN_WIDTH = 80
 
 CONSOLE_WIDTH = 120
 
+# What to display if a data format is unknown
+OUTPUT_UNKNOWN_FORMAT = "Unknown"
+
 TAB_SPACE = "    "
 
 # Datasets

@@ -3,6 +3,7 @@ from unittest import TestCase
 from unittest.mock import MagicMock, call, patch
 
 from dateutil.tz import tzutc
+from dafni_cli.api.auth import Auth
 
 from dafni_cli.api.parser import ParserBaseObject
 from dafni_cli.consts import CONSOLE_WIDTH, DATA_FORMATS, TAB_SPACE
@@ -25,6 +26,7 @@ from test.fixtures.dataset_metadata import (
     TEST_DATASET_METADATA_CREATOR,
     TEST_DATASET_METADATA_CREATOR_DEFAULT,
     TEST_DATASET_METADATA_DATAFILE,
+    TEST_DATASET_METADATA_DATAFILE_DEFAULT,
     TEST_DATASET_METADATA_DEFAULT,
     TEST_DATASET_METADATA_LOCATION,
     TEST_DATASET_METADATA_LOCATION_DEFAULT,
@@ -60,6 +62,26 @@ class TestDataFile(TestCase):
         self.assertEqual(
             datafile.download_url, TEST_DATASET_METADATA_DATAFILE["dcat:downloadURL"]
         )
+
+    def test_parse_default(self):
+        """Tests parsing of data files"""
+
+        datafile: DataFile = ParserBaseObject.parse_from_dict(
+            DataFile, TEST_DATASET_METADATA_DATAFILE_DEFAULT
+        )
+
+        self.assertEqual(
+            datafile.name, TEST_DATASET_METADATA_DATAFILE_DEFAULT["spdx:fileName"]
+        )
+        self.assertEqual(
+            datafile.size,
+            process_file_size(TEST_DATASET_METADATA_DATAFILE_DEFAULT["dcat:byteSize"]),
+        )
+        self.assertEqual(
+            datafile.format,
+            "Unknown",
+        )
+        self.assertEqual(datafile.download_url, None)
 
     @patch("dafni_cli.datasets.dataset_metadata.minio_get_request")
     def test_contents_set_to_returned_file_contents(self, mock_minio_get_request):
@@ -372,24 +394,15 @@ class TestDatasetMetadataTestCase(TestCase):
         # Contact (Contents tested in TestContact)
         self.assertEqual(type(metadata.contact), Contact)
 
-        self.assertEqual(metadata.identifiers, TEST_DATASET_METADATA["dct:identifier"])
-
         # Location (Contents tested in TestLocation)
         self.assertEqual(type(metadata.location), Location)
 
         self.assertEqual(metadata.keywords, TEST_DATASET_METADATA["dcat:keyword"])
-        self.assertEqual(metadata.themes, TEST_DATASET_METADATA["dcat:theme"])
-
-        # Publisher (Contents tested in TestPublisher)
-        self.assertEqual(type(metadata.publisher), Publisher)
 
         self.assertEqual(
             metadata.issued, datetime(2021, 3, 16, 9, 27, 21, tzinfo=tzutc())
         )
         self.assertEqual(metadata.language, TEST_DATASET_METADATA["dct:language"])
-
-        # Standard (Contents tested in TestStandard)
-        self.assertEqual(type(metadata.standard), Standard)
 
         self.assertEqual(metadata.asset_id, TEST_DATASET_METADATA["@id"]["asset_id"])
         self.assertEqual(
@@ -402,12 +415,28 @@ class TestDatasetMetadataTestCase(TestCase):
             metadata.metadata_id, TEST_DATASET_METADATA["@id"]["metadata_uuid"]
         )
 
+        # Auth tested in test_auth anyway
+        self.assertEqual(type(metadata.auth), Auth)
+
         # Files (Contents tested in TestDataFile)
         self.assertEqual(len(metadata.files), 1)
         self.assertEqual(type(metadata.files[0]), DataFile)
 
+        self.assertEqual(
+            metadata.version_message, TEST_DATASET_METADATA["dafni_version_note"]
+        )
+
         # Version history (Contents tested in TestVersionHistory)
         self.assertEqual(type(metadata.version_history), DatasetVersionHistory)
+
+        self.assertEqual(metadata.identifiers, TEST_DATASET_METADATA["dct:identifier"])
+        self.assertEqual(metadata.themes, TEST_DATASET_METADATA["dcat:theme"])
+
+        # Standard (Contents tested in TestStandard)
+        self.assertEqual(type(metadata.standard), Standard)
+
+        # Publisher (Contents tested in TestPublisher)
+        self.assertEqual(type(metadata.publisher), Publisher)
 
         self.assertEqual(metadata.rights, TEST_DATASET_METADATA["dct:rights"])
         self.assertEqual(
@@ -426,6 +455,10 @@ class TestDatasetMetadataTestCase(TestCase):
         # above anyway)
         metadata = parse_dataset_metadata(TEST_DATASET_METADATA_DEFAULT)
 
+        self.assertEqual(metadata.identifiers, [])
+        self.assertEqual(metadata.themes, [])
+        self.assertEqual(metadata.standard, None)
+        self.assertEqual(metadata.publisher, None)
         self.assertEqual(metadata.rights, None)
         self.assertEqual(metadata.update_frequency, None)
         self.assertEqual(metadata.start_date, None)
@@ -655,6 +688,28 @@ class TestDatasetMetadataTestCase(TestCase):
 
         mock_prose_print.assert_called_once_with(
             dataset_metadata.description, CONSOLE_WIDTH
+        )
+
+    def test_get_dataset_details(self):
+        """Tests test_output_version_details functions as expected"""
+        # SETUP
+        dataset_metadata: DatasetMetadata = parse_dataset_metadata(
+            TEST_DATASET_METADATA
+        )
+
+        # CALL
+        result = dataset_metadata.get_dataset_details()
+
+        # ASSERT
+        self.assertEqual(
+            result,
+            f"Title: {dataset_metadata.title}\n"
+            f"ID: {dataset_metadata.dataset_id}\n"
+            f"Latest version: {dataset_metadata.version_id}\n"
+            f"Publisher: {dataset_metadata.publisher.name}\n"
+            f"Version IDs:\n"
+            f"{dataset_metadata.version_history.versions[0].version_id}\n"
+            f"{dataset_metadata.version_history.versions[1].version_id}\n",
         )
 
     @patch.object(DataFile, "download_contents")
