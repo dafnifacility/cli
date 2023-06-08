@@ -125,6 +125,7 @@ def model(ctx: Context, version_id: List[str], version_history: bool, json: bool
         try:
             model_dictionary = get_model(ctx.obj["session"], vid)
         except ResourceNotFoundError as err:
+            click.echo(err)
             raise SystemExit(1) from err
 
         if version_history:
@@ -244,6 +245,7 @@ def dataset(
     try:
         metadata = get_latest_dataset_metadata(ctx.obj["session"], version_id)
     except ResourceNotFoundError as err:
+        click.echo(err)
         raise SystemExit(1) from err
 
     if not version_history:
@@ -359,6 +361,7 @@ def workflow(ctx: Context, version_id: List[str], version_history: bool, json: b
         try:
             workflow_dictionary = get_workflow(ctx.obj["session"], vid)
         except ResourceNotFoundError as err:
+            click.echo(err)
             raise SystemExit(1) from err
 
         if version_history:

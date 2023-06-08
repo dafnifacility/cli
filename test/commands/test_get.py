@@ -3,6 +3,7 @@ from unittest.mock import ANY, MagicMock, patch
 
 from click.testing import CliRunner
 
+from dafni_cli.api.exceptions import ResourceNotFoundError
 from dafni_cli.commands import get
 
 
@@ -339,6 +340,37 @@ class TestGetModel(TestCase):
 
         self.assertEqual(result.exit_code, 0)
 
+    @patch("dafni_cli.commands.get.click")
+    def test_get_model_when_not_found(
+        self,
+        mock_click,
+        mock_print_json,
+        mock_parse_model,
+        mock_get_model,
+        mock_DAFNISession,
+    ):
+        """Tests that the 'get model' command works correctly when the
+        requested model isn't found"""
+
+        # SETUP
+        session = MagicMock()
+        mock_DAFNISession.return_value = session
+        runner = CliRunner()
+        model = MagicMock()
+        mock_get_model.side_effect = ResourceNotFoundError("Some error message")
+
+        # CALL
+        result = runner.invoke(get.get, ["model", "some_version_id"])
+
+        # ASSERT
+        mock_DAFNISession.assert_called_once()
+        mock_get_model.assert_called_with(session, "some_version_id")
+        mock_click.echo.assert_called_once_with(mock_get_model.side_effect)
+        model.output_info.assert_not_called()
+        mock_print_json.assert_not_called()
+
+        self.assertEqual(result.exit_code, 1)
+
     def test_get_model_json(
         self, mock_print_json, mock_parse_model, mock_get_model, mock_DAFNISession
     ):
@@ -607,6 +639,41 @@ class TestGetDataset(TestCase):
         mock_print_json.assert_not_called()
 
         self.assertEqual(result.exit_code, 0)
+
+    @patch("dafni_cli.commands.get.click")
+    def test_get_dataset_when_not_found(
+        self,
+        mock_click,
+        mock_print_json,
+        mock_parse_dataset_metadata,
+        mock_get_latest_dataset_metadata,
+        mock_DAFNISession,
+    ):
+        """Tests that the 'get dataset' command works correctly when the
+        requested dataset isn't found"""
+
+        # SETUP
+        session = MagicMock()
+        mock_DAFNISession.return_value = session
+        runner = CliRunner()
+        dataset = MagicMock()
+        mock_get_latest_dataset_metadata.side_effect = ResourceNotFoundError(
+            "Some error message"
+        )
+
+        # CALL
+        result = runner.invoke(get.get, ["dataset", "some_version_id"])
+
+        # ASSERT
+        mock_DAFNISession.assert_called_once()
+        mock_get_latest_dataset_metadata.assert_called_with(session, "some_version_id")
+        mock_click.echo.assert_called_once_with(
+            mock_get_latest_dataset_metadata.side_effect
+        )
+        dataset.output_metadata_details.assert_not_called()
+        mock_print_json.assert_not_called()
+
+        self.assertEqual(result.exit_code, 1)
 
     def test_get_dataset_json(
         self,
@@ -1026,6 +1093,37 @@ class TestGetWorkflow(TestCase):
         mock_print_json.assert_not_called()
 
         self.assertEqual(result.exit_code, 0)
+
+    @patch("dafni_cli.commands.get.click")
+    def test_get_workflow_when_not_found(
+        self,
+        mock_click,
+        mock_print_json,
+        mock_parse_workflow,
+        mock_get_workflow,
+        mock_DAFNISession,
+    ):
+        """Tests that the 'get workflow' command works correctly when the
+        requested workflow isn't found"""
+
+        # SETUP
+        session = MagicMock()
+        mock_DAFNISession.return_value = session
+        runner = CliRunner()
+        workflow = MagicMock()
+        mock_get_workflow.side_effect = ResourceNotFoundError("Some error message")
+
+        # CALL
+        result = runner.invoke(get.get, ["workflow", "some_version_id"])
+
+        # ASSERT
+        mock_DAFNISession.assert_called_once()
+        mock_get_workflow.assert_called_with(session, "some_version_id")
+        mock_click.echo.assert_called_once_with(mock_get_workflow.side_effect)
+        workflow.output_info.assert_not_called()
+        mock_print_json.assert_not_called()
+
+        self.assertEqual(result.exit_code, 1)
 
     def test_get_workflow_json(
         self, mock_print_json, mock_parse_workflow, mock_get_workflow, mock_DAFNISession
