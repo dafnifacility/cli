@@ -59,3 +59,17 @@ def delete_dataset(session: DAFNISession, dataset_id: str) -> Response:
     """
     url = f"{NID_API_URL}/nid/dataset/{dataset_id}"
     return session.delete_request(url)
+
+
+def delete_dataset_version(
+    session: DAFNISession, dataset_id: str, version_id: str
+) -> Response:
+    """Calls the NID to delete a dataset version
+
+    Args:
+        session (DAFNISession): User session
+        dataset_id (str): Dataset ID for selected dataset
+        version_id (str): Dataset version ID for selected dataset
+    """
+    url = f"{NID_API_URL}/nid/dataset/{dataset_id}/{version_id}"
+    return session.delete_request(url)

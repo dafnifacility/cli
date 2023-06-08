@@ -1,9 +1,13 @@
-from typing import List
+from typing import Callable, List, Tuple
 
 import click
 from click import Context
 
-from dafni_cli.api.datasets_api import delete_dataset, get_latest_dataset_metadata
+from dafni_cli.api.datasets_api import (
+    delete_dataset,
+    delete_dataset_version,
+    get_latest_dataset_metadata,
+)
 from dafni_cli.api.models_api import delete_model, get_model
 from dafni_cli.api.session import DAFNISession
 from dafni_cli.api.workflows_api import delete_workflow, get_workflow
@@ -84,9 +88,54 @@ def model(ctx: Context, version_id: List[str]):
 ###############################################################################
 # Datasets
 ###############################################################################
+def _collate_dataset_details(
+    session: DAFNISession,
+    version_id_list: List[str],
+    obtain_details: Callable[[DatasetMetadata], str],
+    permissions_message: str,
+) -> Tuple[List[str], List[str]]:
+    """
+    Checks for destroy privileges for the user, and produces a list of the
+    details of each dataset to be deleted
+
+    Args:
+        session (DAFNISession): User session
+        version_id_list (List[str]): List of the dataset version IDs of each
+                                     dataset to be deleted
+        obtain_details (Callable[[DatasetMetadata], str]): Function that
+                            returns a string containing relevant details when
+                            passed a metadata object
+        permissions_message (str): Message to display to the user if they
+                            don't have permissions to delete a particular
+                            dataset
+
+
+    Returns:
+        List[str]: List of the dataset details to be displayed during deletion
+                   confirmation
+        List[str]: Dataset IDs that should be deleted
+    """
+    dataset_details_list = []
+    dataset_ids = []
+    for vid in version_id_list:
+        # Find details of each dataset that will be deleted
+        dataset_meta: DatasetMetadata = parse_dataset_metadata(
+            get_latest_dataset_metadata(session, vid)
+        )
+        details = obtain_details(dataset_meta)
+        # Exit if user doesn't have necessary permissions
+        if not dataset_meta.auth.destroy:
+            click.echo(permissions_message)
+            click.echo(details)
+            raise SystemExit(1)
+        dataset_details_list.append(details)
+        dataset_ids.append(dataset_meta.dataset_id)
+    return dataset_details_list, dataset_ids
+
+
 def collate_dataset_details(
     session: DAFNISession, version_id_list: List[str]
-) -> List[str]:
+) -> Tuple[List[str], List[str]]:
     """
     Checks for destroy privileges for the user, and produces a list of the
     details of each dataset to be deleted
@@ -101,21 +150,12 @@ def collate_dataset_details(
                    confirmation
         List[str]: Dataset IDs that should be deleted
     """
-    dataset_details_list = []
-    dataset_ids = []
-    for did in version_id_list:
-        # Find details of each dataset that will be deleted
-        dataset_version: DatasetMetadata = parse_dataset_metadata(
-            get_latest_dataset_metadata(session, did)
-        )
-        # Exit if user doesn't have necessary permissions
-        if not dataset_version.auth.destroy:
-            click.echo("You do not have sufficient permissions to delete dataset:")
-            click.echo(dataset_version.get_dataset_details())
-            raise SystemExit(1)
-        dataset_details_list.append(dataset_version.get_dataset_details())
-        dataset_ids.append(dataset_version.dataset_id)
-    return dataset_details_list, dataset_ids
+    return _collate_dataset_details(
+        session=session,
+        version_id_list=version_id_list,
+        obtain_details=lambda dataset_meta: dataset_meta.get_dataset_details(),
+        permissions_message="You do not have sufficient permissions to delete dataset:",
+    )
 
 
 @delete.command(help="Delete one or more datasets")
@@ -142,6 +182,57 @@ def dataset(ctx: Context, version_id: List[str]):
         delete_dataset(ctx.obj["session"], dataset_id)
     # Confirm action
     click.echo("Datasets deleted")
+
+
+def collate_dataset_version_details(
+    session: DAFNISession, version_id_list: List[str]
+) -> Tuple[List[str], List[str]]:
+    """
+    Checks for destroy privileges for the user, and produces a list of the
+    details of each dataset to be deleted
+
+    Args:
+        session (DAFNISession): User session
+        version_id_list (List[str]): List of the dataset version IDs of each
+                                     dataset to be deleted
+
+    Returns:
+        List[str]: List of the dataset details to be displayed during deletion
+                   confirmation
+        List[str]: Dataset IDs that should be deleted
+    """
+    return _collate_dataset_details(
+        session=session,
+        version_id_list=version_id_list,
+        obtain_details=lambda dataset_meta: dataset_meta.get_dataset_version_details(),
+        permissions_message="You do not have sufficient permissions to delete dataset version:",
+    )
+
+
+@delete.command(help="Delete one or more dataset versions")
+@click.argument("version-id", nargs=-1, required=True, type=str)
+@click.pass_context
+def dataset_version(ctx: Context, version_id: List[str]):
+    """
+    Delete one or more dataset version(s) from DAFNI.
+
+    Args:
+        ctx (context): contains user session for authentication
+        version_id (str): Version ID(s) of the datasets to be deleted
+    """
+
+    dataset_details_list, dataset_ids = collate_dataset_version_details(
+        ctx.obj["session"], version_id
+    )
+    argument_confirmation(
+        [], "Confirm deletion of dataset versions?", dataset_details_list
+    )
+    for dataset_id, vid in zip(dataset_ids, version_id):
+        delete_dataset_version(
+            ctx.obj["session"], dataset_id=dataset_id, version_id=vid
+        )
+    # Confirm action
+    click.echo("Dataset versions deleted")
 
 
 ###############################################################################
