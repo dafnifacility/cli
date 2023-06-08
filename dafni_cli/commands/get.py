@@ -377,8 +377,3 @@ def workflow(ctx: Context, version_id: List[str], version_history: bool, json: b
             else:
                 workflow_inst = parse_workflow(workflow_dictionary)
                 workflow_inst.output_info()
-
-
-@get.command()
-def groups():
-    pass
