@@ -1,15 +1,21 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import datetime
 from io import BytesIO
 from typing import ClassVar, List, Optional, Tuple
 
 import click
+from dafni_cli.api.auth import Auth
 
 from dafni_cli.api.datasets_api import get_latest_dataset_metadata
 from dafni_cli.api.minio_api import minio_get_request
 from dafni_cli.api.parser import ParserBaseObject, ParserParam, parse_datetime
 from dafni_cli.api.session import DAFNISession
-from dafni_cli.consts import CONSOLE_WIDTH, DATA_FORMATS, TAB_SPACE
+from dafni_cli.consts import (
+    CONSOLE_WIDTH,
+    DATA_FORMATS,
+    OUTPUT_UNKNOWN_FORMAT,
+    TAB_SPACE,
+)
 from dafni_cli.utils import (
     format_datetime,
     format_table,
@@ -29,7 +35,8 @@ class DataFile(ParserBaseObject):
     Attributes:
         name (str): File name
         size (str): File size
-        format (str): File format
+        format (str): File format (Defaults to OUTPUT_UNKNOWN_FORMAT if not
+                      known)
         download_url (str): File download url
         contents (BytesIO): Downloaded file contents (only assigned after
                             download_contents called)
@@ -37,7 +44,7 @@ class DataFile(ParserBaseObject):
 
     name: str
     size: str
-    format: str
+    format: str = OUTPUT_UNKNOWN_FORMAT
     download_url: str = None
 
     # Separate - only used when actually downloading
@@ -47,7 +54,9 @@ class DataFile(ParserBaseObject):
         ParserParam("name", "spdx:fileName", str),
         ParserParam("size", "dcat:byteSize", process_file_size),
         ParserParam(
-            "format", "dcat:mediaType", lambda value: DATA_FORMATS.get(value, "Unknown")
+            "format",
+            "dcat:mediaType",
+            lambda value: DATA_FORMATS.get(value, OUTPUT_UNKNOWN_FORMAT),
         ),
         ParserParam("download_url", "dcat:downloadURL", str),
     ]
@@ -288,25 +297,25 @@ class DatasetMetadata(ParserBaseObject):
         created (datetime): Date the dataset was created
         creators (List[Creator]): List of named creators of the dataset
         contact (Contact): Contact relating to the dataset
-        identifier (str): List of identifiers relating to the dataset
         location (Location): Location the dataset relates to
         keywords (List[str]): Key words relating to the dataset e.g. Transportation
-        themes (List[str]): Themes relating to dataset
-        publisher (Publisher): Entity responsible for publishing the dataset
         issued (datetime): Date and time the dataset was issued
         language (str): The language used for the dataset
-        standard (Standard): Any related standards associated
         asset_id (str): Asset identifier for dataset
         dataset_id (str): Dataset identifier
         version_id (str): Version identifier of the latest version of this
                           dataset
         metadata_id (str): Metadata identifier of the latest metadata for this
                            dataset
+        identifiers (List[str]): List of identifiers relating to the dataset
+        themes (List[str]): Themes relating to dataset
+        standard (Optional[Standard]): Any related standards associated
+        publisher (Optional[Publisher]): Entity responsible for publishing the dataset
         files (List[DataFile]): Files associated with the dataset
-        rights (List[str] or None): The user rights linked to the Dataset
-        update_frequency (str or None): Update frequency if applicable
-        start_date (datetime or None): Dataset start date if applicable
-        end_date (datetime or None): Dataset end date if applicable
+        rights (Optional[str]): The user rights linked to the Dataset
+        update_frequency (Optional[str]): Update frequency if applicable
+        start_date (Optional[datetime]): Dataset start date if applicable
+        end_date (Optional[datetime]): Dataset end date if applicable
     """
 
     title: str
@@ -315,20 +324,22 @@ class DatasetMetadata(ParserBaseObject):
     created: datetime
     creators: List[Creator]
     contact: Contact
-    identifiers: List[str]
     location: Location
     keywords: List[str]
-    themes: List[str]
-    publisher: Publisher
     issued: datetime
     language: str
-    standard: Standard
     asset_id: str
     dataset_id: str
     version_id: str
     metadata_id: str
+    auth: Auth
     files: List[DataFile]
+    version_message: str
     version_history: DatasetVersionHistory
+    identifiers: List[str] = field(default_factory=list)
+    themes: List[str] = field(default_factory=list)
+    standard: Standard = None
+    publisher: Publisher = None
     rights: Optional[str] = None
     update_frequency: Optional[str] = None
     start_date: Optional[datetime] = None
@@ -341,20 +352,22 @@ class DatasetMetadata(ParserBaseObject):
         ParserParam("created", "dct:created", parse_datetime),
         ParserParam("creators", "dct:creator", Creator),
         ParserParam("contact", "dcat:contactPoint", Contact),
-        ParserParam("identifiers", "dct:identifier"),
         ParserParam("location", "dct:spatial", Location),
         ParserParam("keywords", "dcat:keyword"),
-        ParserParam("themes", "dcat:theme"),
-        ParserParam("publisher", "dct:publisher", Publisher),
         ParserParam("issued", "dct:issued", parse_datetime),
         ParserParam("language", "dct:language", str),
-        ParserParam("standard", "dct:conformsTo", Standard),
         ParserParam("asset_id", ["@id", "asset_id"], str),
         ParserParam("dataset_id", ["@id", "dataset_uuid"], str),
         ParserParam("version_id", ["@id", "version_uuid"], str),
         ParserParam("metadata_id", ["@id", "metadata_uuid"], str),
+        ParserParam("auth", "auth", Auth),
         ParserParam("files", "dcat:distribution", DataFile),
+        ParserParam("version_message", "dafni_version_note", str),
         ParserParam("version_history", "version_history", DatasetVersionHistory),
+        ParserParam("identifiers", "dct:identifier"),
+        ParserParam("themes", "dcat:theme"),
+        ParserParam("standard", "dct:conformsTo", Standard),
+        ParserParam("publisher", "dct:publisher", Publisher),
         ParserParam("rights", "dct:rights", str),
         ParserParam("update_frequency", "dct:accrualPeriodicity", str),
         ParserParam("end_date", ["dct:PeriodOfTime", "time:hasEnd"], parse_datetime),
@@ -437,6 +450,20 @@ class DatasetMetadata(ParserBaseObject):
         )
         click.echo("Description: ")
         prose_print(self.description, CONSOLE_WIDTH)
+
+    def get_dataset_details(self) -> str:
+        """Returns a string with details about the dataset (used prior to
+        deletion)"""
+        version_ids = "\n".join(
+            [version.version_id for version in self.version_history.versions]
+        )
+        return (
+            f"Title: {self.title}\n"
+            f"ID: {self.dataset_id}\n"
+            f"Latest version: {self.version_id}\n"
+            f"Publisher: {self.publisher.name}\n"
+            f"Version IDs:\n{version_ids}\n"
+        )
 
     def download_dataset_files(
         self, session: DAFNISession

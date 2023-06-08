@@ -3,7 +3,7 @@ from unittest.mock import MagicMock
 
 from dafni_cli.api import datasets_api
 from dafni_cli.api.exceptions import EndpointNotFoundError, ResourceNotFoundError
-from dafni_cli.consts import SEARCH_AND_DISCOVERY_API_URL
+from dafni_cli.consts import NID_API_URL, SEARCH_AND_DISCOVERY_API_URL
 
 
 class TestDatasetsAPI(TestCase):
@@ -67,3 +67,19 @@ class TestDatasetsAPI(TestCase):
             str(err.exception),
             f"Unable to find a dataset with version_id '{version_id}'",
         )
+
+    def test_delete_dataset(self):
+        """Tests that delete_dataset works as expected"""
+
+        # SETUP
+        session = MagicMock()
+        dataset_id = "dataset-id"
+
+        # CALL
+        result = datasets_api.delete_dataset(session, dataset_id=dataset_id)
+
+        # ASSERT
+        session.delete_request.assert_called_once_with(
+            f"{NID_API_URL}/nid/dataset/{dataset_id}",
+        )
+        self.assertEqual(result, session.delete_request.return_value)
