@@ -4,17 +4,17 @@ from unittest.mock import patch
 
 from dafni_cli.api.parser import ParserBaseObject
 from dafni_cli.consts import (
-    INPUT_DEFAULT_DATASETS_HEADER,
-    INPUT_DEFAULT_HEADER,
-    INPUT_DESCRIPTION_HEADER,
-    INPUT_DESCRIPTION_MAX_COLUMN_WIDTH,
-    INPUT_MAX_HEADER,
-    INPUT_MIN_HEADER,
-    INPUT_NAME_HEADER,
-    INPUT_PATH_IN_CONTAINER_HEADER,
-    INPUT_REQUIRED_HEADER,
-    INPUT_TITLE_HEADER,
-    INPUT_TYPE_HEADER,
+    TABLE_DEFAULT_DATASETS_HEADER,
+    TABLE_DEFAULT_HEADER,
+    TABLE_DESCRIPTION_HEADER,
+    TABLE_DESCRIPTION_MAX_COLUMN_WIDTH,
+    TABLE_MAX_HEADER,
+    TABLE_MIN_HEADER,
+    TABLE_NAME_HEADER,
+    TABLE_PATH_IN_CONTAINER_HEADER,
+    TABLE_REQUIRED_HEADER,
+    TABLE_TITLE_HEADER,
+    TABLE_TYPE_HEADER,
 )
 from dafni_cli.models.inputs import ModelDataslot, ModelInputs, ModelParameter
 
@@ -148,14 +148,14 @@ class TestInputs(TestCase):
         # ASSERT
         mock_format_table.assert_called_once_with(
             headers=[
-                INPUT_TITLE_HEADER,
-                INPUT_DESCRIPTION_HEADER,
-                INPUT_NAME_HEADER,
-                INPUT_TYPE_HEADER,
-                INPUT_MIN_HEADER,
-                INPUT_MAX_HEADER,
-                INPUT_DEFAULT_HEADER,
-                INPUT_REQUIRED_HEADER,
+                TABLE_TITLE_HEADER,
+                TABLE_DESCRIPTION_HEADER,
+                TABLE_NAME_HEADER,
+                TABLE_TYPE_HEADER,
+                TABLE_MIN_HEADER,
+                TABLE_MAX_HEADER,
+                TABLE_DEFAULT_HEADER,
+                TABLE_REQUIRED_HEADER,
             ],
             rows=[
                 [
@@ -181,7 +181,7 @@ class TestInputs(TestCase):
             ],
             max_column_widths=[
                 None,
-                INPUT_DESCRIPTION_MAX_COLUMN_WIDTH,
+                TABLE_DESCRIPTION_MAX_COLUMN_WIDTH,
                 None,
                 None,
                 None,
@@ -214,11 +214,11 @@ class TestInputs(TestCase):
         # ASSERT
         mock_format_table.assert_called_once_with(
             headers=[
-                INPUT_TITLE_HEADER,
-                INPUT_DESCRIPTION_HEADER,
-                INPUT_PATH_IN_CONTAINER_HEADER,
-                INPUT_DEFAULT_DATASETS_HEADER,
-                INPUT_REQUIRED_HEADER,
+                TABLE_TITLE_HEADER,
+                TABLE_DESCRIPTION_HEADER,
+                TABLE_PATH_IN_CONTAINER_HEADER,
+                TABLE_DEFAULT_DATASETS_HEADER,
+                TABLE_REQUIRED_HEADER,
             ],
             rows=[
                 [
@@ -238,7 +238,7 @@ class TestInputs(TestCase):
             ],
             max_column_widths=[
                 None,
-                INPUT_DESCRIPTION_MAX_COLUMN_WIDTH,
+                TABLE_DESCRIPTION_MAX_COLUMN_WIDTH,
                 None,
                 None,
                 None,
@@ -268,11 +268,11 @@ class TestInputs(TestCase):
         # ASSERT
         mock_format_table.assert_called_once_with(
             headers=[
-                INPUT_TITLE_HEADER,
-                INPUT_DESCRIPTION_HEADER,
-                INPUT_PATH_IN_CONTAINER_HEADER,
-                INPUT_DEFAULT_DATASETS_HEADER,
-                INPUT_REQUIRED_HEADER,
+                TABLE_TITLE_HEADER,
+                TABLE_DESCRIPTION_HEADER,
+                TABLE_PATH_IN_CONTAINER_HEADER,
+                TABLE_DEFAULT_DATASETS_HEADER,
+                TABLE_REQUIRED_HEADER,
             ],
             rows=[
                 [
@@ -285,7 +285,7 @@ class TestInputs(TestCase):
             ],
             max_column_widths=[
                 None,
-                INPUT_DESCRIPTION_MAX_COLUMN_WIDTH,
+                TABLE_DESCRIPTION_MAX_COLUMN_WIDTH,
                 None,
                 None,
                 None,
