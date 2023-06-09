@@ -123,8 +123,8 @@ def model_version_ingest(
     return session.post_request(url=url, json=data)
 
 
-def delete_model(session: DAFNISession, version_id: str) -> Response:
-    """Calls the "models_delete" endpoint
+def delete_model_version(session: DAFNISession, version_id: str) -> Response:
+    """Deletes a model version
 
     Args:
         session (DAFNISession): User session

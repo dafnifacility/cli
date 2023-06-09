@@ -462,7 +462,7 @@ class TestDelete(TestCase):
 
         # CALL
         result = runner.invoke(
-            delete.delete, ["model", "version-id"], input="y", obj=ctx
+            delete.delete, ["model-version", "version-id"], input="y", obj=ctx
         )
 
         # ASSERT
@@ -474,9 +474,12 @@ class TestDelete(TestCase):
     # ----------------- MODELS
 
     @patch("dafni_cli.commands.delete.collate_model_version_details")
-    @patch("dafni_cli.commands.delete.delete_model")
-    def test_delete_model(
-        self, mock_delete_model, mock_collate_model_version_details, mock_DAFNISession
+    @patch("dafni_cli.commands.delete.delete_model_version")
+    def test_delete_model_version(
+        self,
+        mock_delete_model_version,
+        mock_collate_model_version_details,
+        mock_DAFNISession,
     ):
         """Tests that the 'delete model' command works correctly with a single
         version id"""
@@ -490,13 +493,13 @@ class TestDelete(TestCase):
 
         # CALL
         result = runner.invoke(
-            delete.delete, ["model"] + list(version_ids), input="y", obj=ctx
+            delete.delete, ["model-version"] + list(version_ids), input="y", obj=ctx
         )
 
         # ASSERT
         mock_DAFNISession.assert_called_once()
         mock_collate_model_version_details.assert_called_once_with(session, version_ids)
-        mock_delete_model.assert_called_with(session, version_ids[0])
+        mock_delete_model_version.assert_called_with(session, version_ids[0])
 
         self.assertEqual(
             result.output,
@@ -505,9 +508,12 @@ class TestDelete(TestCase):
         self.assertEqual(result.exit_code, 0)
 
     @patch("dafni_cli.commands.delete.collate_model_version_details")
-    @patch("dafni_cli.commands.delete.delete_model")
+    @patch("dafni_cli.commands.delete.delete_model_version")
     def test_delete_model_multiple_versions(
-        self, mock_delete_model, mock_collate_model_version_details, mock_DAFNISession
+        self,
+        mock_delete_model_version,
+        mock_collate_model_version_details,
+        mock_DAFNISession,
     ):
         """Tests that the 'delete model' command works correctly with multiple
         version ids"""
@@ -524,14 +530,14 @@ class TestDelete(TestCase):
 
         # CALL
         result = runner.invoke(
-            delete.delete, ["model"] + list(version_ids), input="y", obj=ctx
+            delete.delete, ["model-version"] + list(version_ids), input="y", obj=ctx
         )
 
         # ASSERT
         mock_DAFNISession.assert_called_once()
         mock_collate_model_version_details.assert_called_once_with(session, version_ids)
         self.assertEqual(
-            mock_delete_model.call_args_list,
+            mock_delete_model_version.call_args_list,
             [call(session, version_ids[0]), call(session, version_ids[1])],
         )
 
@@ -542,9 +548,12 @@ class TestDelete(TestCase):
         self.assertEqual(result.exit_code, 0)
 
     @patch("dafni_cli.commands.delete.collate_model_version_details")
-    @patch("dafni_cli.commands.delete.delete_model")
+    @patch("dafni_cli.commands.delete.delete_model_version")
     def test_delete_model_cancels_when_requested(
-        self, mock_delete_model, mock_collate_model_version_details, mock_DAFNISession
+        self,
+        mock_delete_model_version,
+        mock_collate_model_version_details,
+        mock_DAFNISession,
     ):
         """Tests that the 'delete model' can be canceled after printing the
         model info"""
@@ -558,13 +567,13 @@ class TestDelete(TestCase):
 
         # CALL
         result = runner.invoke(
-            delete.delete, ["model"] + list(version_ids), input="n", obj=ctx
+            delete.delete, ["model-version"] + list(version_ids), input="n", obj=ctx
         )
 
         # ASSERT
         mock_DAFNISession.assert_called_once()
         mock_collate_model_version_details.assert_called_once_with(session, version_ids)
-        mock_delete_model.assert_not_called()
+        mock_delete_model_version.assert_not_called()
 
         self.assertEqual(
             result.output,

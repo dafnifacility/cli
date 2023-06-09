@@ -208,15 +208,15 @@ class TestModelsAPI(TestCase):
         )
         self.assertEqual(result, session.post_request.return_value)
 
-    def test_delete_model(self):
-        """Tests that delete_model works as expected"""
+    def test_delete_model_version(self):
+        """Tests that delete_model_version works as expected"""
 
         # SETUP
         session = MagicMock()
         version_id = "version-id"
 
         # CALL
-        result = models_api.delete_model(session, version_id=version_id)
+        result = models_api.delete_model_version(session, version_id=version_id)
 
         # ASSERT
         session.delete_request.assert_called_once_with(

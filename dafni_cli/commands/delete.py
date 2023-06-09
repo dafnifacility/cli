@@ -4,7 +4,7 @@ import click
 from click import Context
 
 from dafni_cli.api.datasets_api import delete_dataset, get_latest_dataset_metadata
-from dafni_cli.api.models_api import delete_model, get_model
+from dafni_cli.api.models_api import delete_model_version, get_model
 from dafni_cli.api.session import DAFNISession
 from dafni_cli.api.workflows_api import delete_workflow_version, get_workflow
 from dafni_cli.datasets.dataset_metadata import DatasetMetadata, parse_dataset_metadata
@@ -48,22 +48,22 @@ def collate_model_version_details(
     model_version_details_list = []
     for vid in version_id_list:
         # Find details of each model version that will be deleted
-        model_version: Model = parse_model(get_model(session, vid))
+        model_ver: Model = parse_model(get_model(session, vid))
         # Exit if user doesn't have necessary permissions
-        if not model_version.auth.destroy:
+        if not model_ver.auth.destroy:
             click.echo(
                 "You do not have sufficient permissions to delete model version:"
             )
-            click.echo(model_version.get_version_details())
+            click.echo(model_ver.get_version_details())
             raise SystemExit(1)
-        model_version_details_list.append(model_version.get_version_details())
+        model_version_details_list.append(model_ver.get_version_details())
     return model_version_details_list
 
 
 @delete.command(help="Delete one or more model version(s)")
 @click.argument("version-id", nargs=-1, required=True, type=str)
 @click.pass_context
-def model(ctx: Context, version_id: List[str]):
+def model_version(ctx: Context, version_id: List[str]):
     """
     Delete one or more version(s) of model(s) from DAFNI.
 
@@ -76,7 +76,7 @@ def model(ctx: Context, version_id: List[str]):
     )
     argument_confirmation([], "Confirm deletion of models?", model_version_details_list)
     for vid in version_id:
-        delete_model(ctx.obj["session"], vid)
+        delete_model_version(ctx.obj["session"], vid)
     # Confirm action
     click.echo("Model versions deleted")
 
