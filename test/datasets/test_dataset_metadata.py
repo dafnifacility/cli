@@ -691,7 +691,7 @@ class TestDatasetMetadataTestCase(TestCase):
         )
 
     def test_get_dataset_details(self):
-        """Tests test_output_version_details functions as expected"""
+        """Tests test_get_dataset_details functions as expected"""
         # SETUP
         dataset_metadata: DatasetMetadata = parse_dataset_metadata(
             TEST_DATASET_METADATA
@@ -705,11 +705,30 @@ class TestDatasetMetadataTestCase(TestCase):
             result,
             f"Title: {dataset_metadata.title}\n"
             f"ID: {dataset_metadata.dataset_id}\n"
-            f"Latest version: {dataset_metadata.version_id}\n"
+            f"Created: {format_datetime(dataset_metadata.created, include_time=True)}\n"
             f"Publisher: {dataset_metadata.publisher.name}\n"
             f"Version IDs:\n"
             f"{dataset_metadata.version_history.versions[0].version_id}\n"
             f"{dataset_metadata.version_history.versions[1].version_id}\n",
+        )
+
+    def test_get_dataset_version_details(self):
+        """Tests test_get_dataset_version_details functions as expected"""
+        # SETUP
+        dataset_metadata: DatasetMetadata = parse_dataset_metadata(
+            TEST_DATASET_METADATA
+        )
+
+        # CALL
+        result = dataset_metadata.get_dataset_version_details()
+
+        # ASSERT
+        self.assertEqual(
+            result,
+            f"Title: {dataset_metadata.title}\n"
+            f"Version ID: {dataset_metadata.version_id}\n"
+            f"Created: {format_datetime(dataset_metadata.created, include_time=True)}\n"
+            f"Publisher: {dataset_metadata.publisher.name}\n",
         )
 
     @patch.object(DataFile, "download_contents")

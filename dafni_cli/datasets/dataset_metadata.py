@@ -460,9 +460,19 @@ class DatasetMetadata(ParserBaseObject):
         return (
             f"Title: {self.title}\n"
             f"ID: {self.dataset_id}\n"
-            f"Latest version: {self.version_id}\n"
+            f"Created: {format_datetime(self.created, include_time=True)}\n"
             f"Publisher: {self.publisher.name}\n"
             f"Version IDs:\n{version_ids}\n"
+        )
+
+    def get_dataset_version_details(self) -> str:
+        """Returns a string with details about the dataset version (used prior
+        to deletion)"""
+        return (
+            f"Title: {self.title}\n"
+            f"Version ID: {self.version_id}\n"
+            f"Created: {format_datetime(self.created, include_time=True)}\n"
+            f"Publisher: {self.publisher.name}\n"
         )
 
     def download_dataset_files(
