@@ -355,8 +355,10 @@ class TestWorkflow(TestCase):
         # SETUP
         workflow = parse_workflow(TEST_WORKFLOW)
 
+        # CALL
         workflow.output_info()
 
+        # ASSERT
         mock_format_parameter_sets.assert_called_once()
         mock_format_instances.assert_called_once()
         mock_click.echo.assert_has_calls(
@@ -399,8 +401,10 @@ class TestWorkflow(TestCase):
         workflow.parameter_sets = None
         workflow.instances = None
 
+        # CALL
         workflow.output_info()
 
+        # ASSERT
         mock_format_parameter_sets.assert_not_called()
         mock_format_instances.assert_not_called()
         mock_click.echo.assert_has_calls(
