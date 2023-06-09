@@ -166,15 +166,15 @@ class TestWorkflowsAPI(TestCase):
         )
         self.assertEqual(result, session.post_request.return_value)
 
-    def test_delete_workflow(self):
-        """Tests that delete_workflow works as expected"""
+    def test_delete_workflow_version(self):
+        """Tests that delete_workflow_version works as expected"""
 
         # SETUP
         session = MagicMock()
         version_id = "version-id"
 
         # CALL
-        result = workflows_api.delete_workflow(session, version_id=version_id)
+        result = workflows_api.delete_workflow_version(session, version_id=version_id)
 
         # ASSERT
         session.delete_request.assert_called_once_with(

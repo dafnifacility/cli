@@ -685,10 +685,10 @@ class TestDelete(TestCase):
     # ----------------- WORKFLOWS
 
     @patch("dafni_cli.commands.delete.collate_workflow_version_details")
-    @patch("dafni_cli.commands.delete.delete_workflow")
-    def test_delete_workflow(
+    @patch("dafni_cli.commands.delete.delete_workflow_version")
+    def test_delete_workflow_version(
         self,
-        mock_delete_workflow,
+        mock_delete_workflow_version,
         mock_collate_workflow_version_details,
         mock_DAFNISession,
     ):
@@ -704,7 +704,7 @@ class TestDelete(TestCase):
 
         # CALL
         result = runner.invoke(
-            delete.delete, ["workflow"] + list(version_ids), input="y", obj=ctx
+            delete.delete, ["workflow-version"] + list(version_ids), input="y", obj=ctx
         )
 
         # ASSERT
@@ -712,7 +712,7 @@ class TestDelete(TestCase):
         mock_collate_workflow_version_details.assert_called_once_with(
             session, version_ids
         )
-        mock_delete_workflow.assert_called_with(session, version_ids[0])
+        mock_delete_workflow_version.assert_called_with(session, version_ids[0])
 
         self.assertEqual(
             result.output,
@@ -721,10 +721,10 @@ class TestDelete(TestCase):
         self.assertEqual(result.exit_code, 0)
 
     @patch("dafni_cli.commands.delete.collate_workflow_version_details")
-    @patch("dafni_cli.commands.delete.delete_workflow")
-    def test_delete_workflow_multiple_versions(
+    @patch("dafni_cli.commands.delete.delete_workflow_version")
+    def test_delete_workflow_version_multiple_versions(
         self,
-        mock_delete_workflow,
+        mock_delete_workflow_version,
         mock_collate_workflow_version_details,
         mock_DAFNISession,
     ):
@@ -743,7 +743,7 @@ class TestDelete(TestCase):
 
         # CALL
         result = runner.invoke(
-            delete.delete, ["workflow"] + list(version_ids), input="y", obj=ctx
+            delete.delete, ["workflow-version"] + list(version_ids), input="y", obj=ctx
         )
 
         # ASSERT
@@ -752,7 +752,7 @@ class TestDelete(TestCase):
             session, version_ids
         )
         self.assertEqual(
-            mock_delete_workflow.call_args_list,
+            mock_delete_workflow_version.call_args_list,
             [call(session, version_ids[0]), call(session, version_ids[1])],
         )
 
@@ -763,10 +763,10 @@ class TestDelete(TestCase):
         self.assertEqual(result.exit_code, 0)
 
     @patch("dafni_cli.commands.delete.collate_workflow_version_details")
-    @patch("dafni_cli.commands.delete.delete_workflow")
-    def test_delete_workflow_cancels_when_requested(
+    @patch("dafni_cli.commands.delete.delete_workflow_version")
+    def test_delete_workflow_version_cancels_when_requested(
         self,
-        mock_delete_workflow,
+        mock_delete_workflow_version,
         mock_collate_workflow_version_details,
         mock_DAFNISession,
     ):
@@ -782,7 +782,7 @@ class TestDelete(TestCase):
 
         # CALL
         result = runner.invoke(
-            delete.delete, ["workflow"] + list(version_ids), input="n", obj=ctx
+            delete.delete, ["workflow-version"] + list(version_ids), input="n", obj=ctx
         )
 
         # ASSERT
@@ -790,7 +790,7 @@ class TestDelete(TestCase):
         mock_collate_workflow_version_details.assert_called_once_with(
             session, version_ids
         )
-        mock_delete_workflow.assert_not_called()
+        mock_delete_workflow_version.assert_not_called()
 
         self.assertEqual(
             result.output,

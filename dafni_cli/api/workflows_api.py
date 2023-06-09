@@ -86,9 +86,9 @@ def upload_workflow(
         return session.post_request(url=url, json=workflow_description)
 
 
-def delete_workflow(session: DAFNISession, version_id: str) -> Response:
+def delete_workflow_version(session: DAFNISession, version_id: str) -> Response:
     """
-    Calls the workflows_delete endpoint
+    Deletes a workflow version
 
     Args:
         session (DAFNISession): User session
