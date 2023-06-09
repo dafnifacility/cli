@@ -6,13 +6,8 @@ import click
 from click import Context
 
 from dafni_cli.api.datasets_api import get_latest_dataset_metadata
-from dafni_cli.api.exceptions import ValidationError
-from dafni_cli.api.minio_api import upload_file_to_minio
 from dafni_cli.api.models_api import (
     get_all_models,
-    get_model_upload_urls,
-    model_version_ingest,
-    validate_model_definition,
 )
 from dafni_cli.api.session import DAFNISession
 from dafni_cli.api.workflows_api import upload_workflow
@@ -20,6 +15,7 @@ from dafni_cli.datasets.dataset_metadata import parse_dataset_metadata
 from dafni_cli.datasets.dataset_upload import (
     modify_dataset_metadata_for_upload,
     upload_dataset,
+    upload_dataset_metadata_version,
 )
 from dafni_cli.models.upload import upload_model
 from dafni_cli.utils import argument_confirmation
@@ -108,7 +104,7 @@ def model(
 ###############################################################################
 @upload.command(help="Upload a new dataset to DAFNI")
 @click.argument(
-    "definition",
+    "metadata_path",
     nargs=1,
     required=True,
     type=click.Path(exists=True, path_type=Path),
@@ -120,27 +116,27 @@ def model(
     type=click.Path(exists=True, path_type=Path),
 )
 @click.pass_context
-def dataset(ctx: Context, definition: Path, files: List[Path]):
+def dataset(ctx: Context, metadata_path: Path, files: List[Path]):
     """Uploads a new Dataset to DAFNI from metadata and dataset files.
 
     Args:
         ctx (Context): contains user session for authentication
-        definition (Path): Dataset metadata file
+        metadata_path (Path): Dataset metadata file path
         files (List[Path]): Dataset data files
     """
     # Confirm upload details
-    arguments = [("Dataset definition file path", definition)] + [
+    arguments = [("Dataset metadata file path", metadata_path)] + [
         ("Dataset file path", file) for file in files
     ]
     confirmation_message = "Confirm dataset upload?"
     argument_confirmation(arguments, confirmation_message)
 
     # Obtain the metadata
-    with open(definition, "r", encoding="utf-8") as definition_file:
-        metadata = json.load(definition_file)
+    with open(metadata_path, "r", encoding="utf-8") as metadata_file:
+        metadata = json.load(metadata_file)
 
-        # Upload the dataset
-        upload_dataset(ctx.obj["session"], metadata, files)
+    # Upload the dataset
+    upload_dataset(ctx.obj["session"], metadata, files)
 
 
 ###############################################################################
@@ -155,15 +151,15 @@ def dataset(ctx: Context, definition: Path, files: List[Path]):
     type=click.Path(exists=True, path_type=Path),
 )
 @click.option(
-    "--definition",
+    "--metadata",
     type=click.Path(exists=True, path_type=Path),
-    help="Path to a dataset metadata definition file to upload",
+    help="Path to a dataset metadata file to upload.",
 )
 @click.option(
     "--version-message",
     type=str,
     default=None,
-    help="Version message to replace in any existing or provided metadata",
+    help="Version message to replace in any existing or provided metadata.",
 )
 @click.option(
     "--save",
@@ -176,7 +172,7 @@ def dataset_version(
     ctx: Context,
     existing_version_id: str,
     files: List[Path],
-    definition: Optional[Path],
+    metadata: Optional[Path],
     version_message: Optional[str],
     save: Optional[Path],
 ):
@@ -187,7 +183,7 @@ def dataset_version(
         existing_version_id (str): Existing version id of the dataset to add a
                                    new version to
         files (List[Path]): Dataset data files
-        definition (Optional[Path]): Dataset metadata file
+        metadata (Optional[Path]): Dataset metadata file
         version_message (Optional[str]): Version message
         save (Optional[Path]): Path to save existing metadata in for editing
     """
@@ -199,12 +195,12 @@ def dataset_version(
     dataset_metadata_dict = get_latest_dataset_metadata(
         ctx.obj["session"], existing_version_id
     )
-    dataset_metadata = parse_dataset_metadata(dataset_metadata_dict)
+    dataset_metadata_obj = parse_dataset_metadata(dataset_metadata_dict)
 
     # Load/modify the existing metdata according to the user input
     dataset_metadata_dict = modify_dataset_metadata_for_upload(
         existing_metadata=dataset_metadata_dict,
-        definition_path=definition,
+        metadata_path=metadata,
         version_message=version_message,
     )
 
@@ -216,13 +212,13 @@ def dataset_version(
     else:
         # Confirm upload details
         arguments = [
-            ("Dataset Title", dataset_metadata.title),
-            ("Dataset ID", dataset_metadata.dataset_id),
-            ("Dataset Version ID", dataset_metadata.version_id),
+            ("Dataset Title", dataset_metadata_obj.title),
+            ("Dataset ID", dataset_metadata_obj.dataset_id),
+            ("Dataset Version ID", dataset_metadata_obj.version_id),
         ] + [("Dataset file path", file) for file in files]
 
-        if definition:
-            arguments.append(("Dataset definition file path", definition))
+        if metadata:
+            arguments.append(("Dataset metadata file path", metadata))
 
         confirmation_message = "Confirm dataset upload?"
         argument_confirmation(arguments, confirmation_message)
@@ -230,9 +226,94 @@ def dataset_version(
         # Upload all files
         upload_dataset(
             ctx.obj["session"],
-            dataset_id=dataset_metadata.dataset_id,
+            dataset_id=dataset_metadata_obj.dataset_id,
             metadata=dataset_metadata_dict,
             file_paths=files,
+        )
+
+
+###############################################################################
+# COMMAND: Upload a new version of a DATASET's metadata to DAFNI
+###############################################################################
+@upload.command(help="Upload a new version of a dataset's metadata to DAFNI")
+@click.argument("existing_version_id", required=True, type=str)
+@click.option(
+    "--metadata",
+    type=click.Path(exists=True, path_type=Path),
+    help="Path to a dataset metadata file to upload.",
+)
+@click.option(
+    "--version-message",
+    type=str,
+    default=None,
+    help="Version message to replace in any existing or provided metadata.",
+)
+@click.option(
+    "--save",
+    type=click.Path(exists=False, path_type=Path),
+    default=None,
+    help="When given will only save the existing metadata to the specified file allowing it to be modified.",
+)
+@click.pass_context
+def dataset_metadata(
+    ctx: Context,
+    existing_version_id: str,
+    metadata: Optional[Path],
+    version_message: Optional[str],
+    save: Optional[Path],
+):
+    """Uploads a new version of a Dataset's metadata to DAFNI
+
+    Args:
+        ctx (Context): contains user session for authentication
+        existing_version_id (str): Existing version id of the dataset to add a
+                                   new version to
+        metadata (Optional[Path]): Dataset metadata file
+        version_message (Optional[str]): Version message
+        save (Optional[Path]): Path to save existing metadata in for editing
+    """
+
+    # We need the version id to get the existing metadata, but the
+    # dataset id for the actual upload - instead of requiring both, we look up
+    # dataset with the version_id here and obtain both the id and existing
+    # metadata once
+    dataset_metadata_dict = get_latest_dataset_metadata(
+        ctx.obj["session"], existing_version_id
+    )
+    dataset_metadata_obj = parse_dataset_metadata(dataset_metadata_dict)
+
+    # Load/modify the existing metdata according to the user input
+    dataset_metadata_dict = modify_dataset_metadata_for_upload(
+        existing_metadata=dataset_metadata_dict,
+        metadata_path=metadata,
+        version_message=version_message,
+    )
+
+    if save:
+        with open(save, "w", encoding="utf-8") as file:
+            file.write(json.dumps(dataset_metadata_dict, indent=4, sort_keys=True))
+
+        click.echo(f"Saved existing dataset metadata to {save}")
+    else:
+        # Confirm upload details
+        arguments = [
+            ("Dataset Title", dataset_metadata_obj.title),
+            ("Dataset ID", dataset_metadata_obj.dataset_id),
+            ("Dataset Version ID", dataset_metadata_obj.version_id),
+        ]
+
+        if metadata:
+            arguments.append(("Dataset metadata file path", metadata))
+
+        confirmation_message = "Confirm metadata upload?"
+        argument_confirmation(arguments, confirmation_message)
+
+        # Upload
+        upload_dataset_metadata_version(
+            ctx.obj["session"],
+            dataset_id=dataset_metadata_obj.dataset_id,
+            version_id=existing_version_id,
+            metadata=dataset_metadata_dict,
         )
 
 

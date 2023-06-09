@@ -6,12 +6,12 @@ from typing import List, Optional
 import click
 from requests.exceptions import HTTPError
 
+import dafni_cli.api.datasets_api as datasets_api
 from dafni_cli.api.exceptions import DAFNIError, EndpointNotFoundError
 from dafni_cli.api.minio_api import (
     create_temp_bucket,
     delete_temp_bucket,
     get_data_upload_urls,
-    upload_dataset_metadata,
     upload_file_to_minio,
 )
 from dafni_cli.api.session import DAFNISession
@@ -44,7 +44,7 @@ def remove_dataset_metadata_invalid_for_upload(metadata: dict):
 
 def modify_dataset_metadata_for_upload(
     existing_metadata: dict,
-    definition_path: Optional[Path],
+    metadata_path: Optional[Path],
     version_message: Optional[str],
 ) -> dict:
     """Modifies existing dataset metadata or that loaded from a file according
@@ -52,7 +52,7 @@ def modify_dataset_metadata_for_upload(
 
     Args:
         existing_metadata (dict): Dictionary of existing metadata from the API
-        definition_path (Optional[Path]): Path to a Dataset metadata file.
+        metadata_path (Optional[Path]): Path to a Dataset metadata file.
                         When None will use the existing_metadata instead but
                         will delete any keys invalid for upload.
         version_message (Optional[str]): Version message - Will replace
@@ -61,11 +61,10 @@ def modify_dataset_metadata_for_upload(
         dict: The modified dataset metadata
     """
 
-    # Load the metadata from the definition file if present, or otherwise
-    # use the existing
-    if definition_path:
-        with open(definition_path, "r", encoding="utf-8") as definition_file:
-            metadata = json.load(definition_file)
+    # Load the metadata from a file if present, or otherwise use the existing
+    if metadata_path:
+        with open(metadata_path, "r", encoding="utf-8") as metadata_file:
+            metadata = json.load(metadata_file)
     else:
         metadata = deepcopy(existing_metadata)
 
@@ -98,14 +97,14 @@ def upload_files(session: DAFNISession, temp_bucket_id: str, file_paths: List[Pa
         upload_file_to_minio(session, value, file_names[key])
 
 
-def upload_metadata(
+def _commit_metadata(
     session: DAFNISession,
     metadata: dict,
     temp_bucket_id: str,
     dataset_id: Optional[str] = None,
 ) -> dict:
-    """Function to upload the Metadata to the Minio API, with the
-    given Minio Temporary Upload ID
+    """Function to upload the metadata to the NID API and
+    commit the dataset
 
     Deletes the temporary upload bucket if unsuccessful to avoid
     any unnecessary build up
@@ -121,7 +120,7 @@ def upload_metadata(
     """
     click.echo("Uploading metadata file")
     try:
-        response = upload_dataset_metadata(
+        response = datasets_api.upload_dataset_metadata(
             session, temp_bucket_id, metadata, dataset_id=dataset_id
         )
     except (EndpointNotFoundError, DAFNIError, HTTPError) as err:
@@ -156,13 +155,42 @@ def upload_dataset(
     try:
         # Upload all files
         upload_files(session, temp_bucket_id, file_paths)
-        details = upload_metadata(
+        details = _commit_metadata(
             session, metadata, temp_bucket_id, dataset_id=dataset_id
         )
     except BaseException:
         click.echo("Deleting temporary bucket")
         delete_temp_bucket(session, temp_bucket_id)
         raise
+
+    # Output Details
+    click.echo("\nUpload successful")
+    click.echo(f"Dataset ID: {details['datasetId']}")
+    click.echo(f"Version ID: {details['versionId']}")
+    click.echo(f"Metadata ID: {details['metadataId']}")
+
+
+def upload_dataset_metadata_version(
+    session: DAFNISession,
+    dataset_id: str,
+    version_id: str,
+    metadata: dict,
+) -> None:
+    """Function to upload a new metadata version to an existing dataset
+
+    Args:
+        session (DAFNISession): User session
+        dataset_id (str): ID of an existing dataset to add the new metadata
+                          version to
+        version_id (str): Version ID fo an existing dataset to add the new
+                          metadata version to
+        metadata (dict): Metadata to upload
+
+    """
+
+    details = datasets_api.upload_dataset_metadata_version(
+        session, dataset_id=dataset_id, version_id=version_id, metadata=metadata
+    )
 
     # Output Details
     click.echo("\nUpload successful")

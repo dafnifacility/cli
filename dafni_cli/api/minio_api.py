@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import List, Optional, Union
+from typing import List, Union
 
 import requests
 
@@ -84,42 +84,6 @@ def get_data_upload_urls(
     data = {"bucketId": temp_bucket_id, "datafiles": file_names}
 
     return session.patch_request(url=url, json=data, allow_redirect=True)
-
-
-def upload_dataset_metadata(
-    session: DAFNISession,
-    temp_bucket_id: str,
-    metadata: dict,
-    dataset_id: Optional[str] = None,
-) -> requests.Response:
-    """Uploads dataset metadata to Minio
-
-    This will commit the dataset and triggers the deletion of the temporary
-    bucket when successful.
-
-    Args:
-        session (DAFNISession): User session
-        temp_bucket_id (str): Minio Temporary Upload ID
-        metadata (dict): Dataset Metadata
-        dataset_id (Optional[str]): Dataset ID if uploading a new version of
-                                    an existing dataset (Default: None)
-
-    Raises:
-        EndpointNotFoundError: If the post request returns a 404 status
-                               code
-        DAFNIError: If an error occurs with an error message from DAFNI
-        HTTPError: If any other error occurs without an error message from
-                   DAFNI
-
-    Returns:
-        Response: Upload Response
-    """
-    if dataset_id:
-        url = f"{NID_API_URL}/nid/dataset/{dataset_id}"
-    else:
-        url = f"{NID_API_URL}/nid/dataset/"
-    data = {"bucketId": temp_bucket_id, "metadata": metadata}
-    return session.post_request(url=url, json=data)
 
 
 def minio_get_request(
