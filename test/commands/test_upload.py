@@ -841,7 +841,7 @@ class TestUploadDatasetMetadata(TestCase):
         mock_upload_dataset_metadata_version,
         mock_DAFNISession,
     ):
-        """Tests that the 'upload dataset-version' command can be canceled"""
+        """Tests that the 'upload dataset-metadata' command can be canceled"""
 
         # SETUP
         session = MagicMock()
