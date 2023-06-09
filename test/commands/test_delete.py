@@ -629,7 +629,7 @@ class TestDelete(TestCase):
 
         # CALL
         result = runner.invoke(
-            delete.delete, ["model", "version-id"], input="y", obj=ctx
+            delete.delete, ["model-version", "version-id"], input="y", obj=ctx
         )
 
         # ASSERT
@@ -641,11 +641,14 @@ class TestDelete(TestCase):
     # ----------------- MODEL
 
     @patch("dafni_cli.commands.delete.collate_model_version_details")
-    @patch("dafni_cli.commands.delete.delete_model")
-    def test_delete_model(
-        self, mock_delete_model, mock_collate_model_version_details, mock_DAFNISession
+    @patch("dafni_cli.commands.delete.delete_model_version")
+    def test_delete_model_version(
+        self,
+        mock_delete_model_version,
+        mock_collate_model_version_details,
+        mock_DAFNISession,
     ):
-        """Tests that the 'delete model' command works correctly with a single
+        """Tests that the 'delete model-version' command works correctly with a single
         version id"""
         # SETUP
         session = MagicMock()
@@ -657,26 +660,29 @@ class TestDelete(TestCase):
 
         # CALL
         result = runner.invoke(
-            delete.delete, ["model"] + list(version_ids), input="y", obj=ctx
+            delete.delete, ["model-version"] + list(version_ids), input="y", obj=ctx
         )
 
         # ASSERT
         mock_DAFNISession.assert_called_once()
         mock_collate_model_version_details.assert_called_once_with(session, version_ids)
-        mock_delete_model.assert_called_with(session, version_ids[0])
+        mock_delete_model_version.assert_called_with(session, version_ids[0])
 
         self.assertEqual(
             result.output,
-            "Model 1 details\nConfirm deletion of models? [y/N]: y\nModel versions deleted\n",
+            "Model 1 details\nConfirm deletion of model versions? [y/N]: y\nModel versions deleted\n",
         )
         self.assertEqual(result.exit_code, 0)
 
     @patch("dafni_cli.commands.delete.collate_model_version_details")
-    @patch("dafni_cli.commands.delete.delete_model")
+    @patch("dafni_cli.commands.delete.delete_model_version")
     def test_delete_model_multiple_versions(
-        self, mock_delete_model, mock_collate_model_version_details, mock_DAFNISession
+        self,
+        mock_delete_model_version,
+        mock_collate_model_version_details,
+        mock_DAFNISession,
     ):
-        """Tests that the 'delete model' command works correctly with multiple
+        """Tests that the 'delete model-version' command works correctly with multiple
         version ids"""
         # SETUP
         session = MagicMock()
@@ -691,29 +697,32 @@ class TestDelete(TestCase):
 
         # CALL
         result = runner.invoke(
-            delete.delete, ["model"] + list(version_ids), input="y", obj=ctx
+            delete.delete, ["model-version"] + list(version_ids), input="y", obj=ctx
         )
 
         # ASSERT
         mock_DAFNISession.assert_called_once()
         mock_collate_model_version_details.assert_called_once_with(session, version_ids)
         self.assertEqual(
-            mock_delete_model.call_args_list,
+            mock_delete_model_version.call_args_list,
             [call(session, version_ids[0]), call(session, version_ids[1])],
         )
 
         self.assertEqual(
             result.output,
-            "Model 1 details\nModel 2 details\nConfirm deletion of models? [y/N]: y\nModel versions deleted\n",
+            "Model 1 details\nModel 2 details\nConfirm deletion of model versions? [y/N]: y\nModel versions deleted\n",
         )
         self.assertEqual(result.exit_code, 0)
 
     @patch("dafni_cli.commands.delete.collate_model_version_details")
-    @patch("dafni_cli.commands.delete.delete_model")
+    @patch("dafni_cli.commands.delete.delete_model_version")
     def test_delete_model_cancels_when_requested(
-        self, mock_delete_model, mock_collate_model_version_details, mock_DAFNISession
+        self,
+        mock_delete_model_version,
+        mock_collate_model_version_details,
+        mock_DAFNISession,
     ):
-        """Tests that the 'delete model' can be canceled after printing the
+        """Tests that the 'delete model-version' can be canceled after printing the
         model info"""
         # SETUP
         session = MagicMock()
@@ -725,17 +734,17 @@ class TestDelete(TestCase):
 
         # CALL
         result = runner.invoke(
-            delete.delete, ["model"] + list(version_ids), input="n", obj=ctx
+            delete.delete, ["model-version"] + list(version_ids), input="n", obj=ctx
         )
 
         # ASSERT
         mock_DAFNISession.assert_called_once()
         mock_collate_model_version_details.assert_called_once_with(session, version_ids)
-        mock_delete_model.assert_not_called()
+        mock_delete_model_version.assert_not_called()
 
         self.assertEqual(
             result.output,
-            "Model 1 details\nConfirm deletion of models? [y/N]: n\nAborted!\n",
+            "Model 1 details\nConfirm deletion of model versions? [y/N]: n\nAborted!\n",
         )
         self.assertEqual(result.exit_code, 1)
 
@@ -988,14 +997,14 @@ class TestDelete(TestCase):
     # ----------------- WORKFLOW
 
     @patch("dafni_cli.commands.delete.collate_workflow_version_details")
-    @patch("dafni_cli.commands.delete.delete_workflow")
-    def test_delete_workflow(
+    @patch("dafni_cli.commands.delete.delete_workflow_version")
+    def test_delete_workflow_version(
         self,
-        mock_delete_workflow,
+        mock_delete_workflow_version,
         mock_collate_workflow_version_details,
         mock_DAFNISession,
     ):
-        """Tests that the 'delete workflow' command works correctly with a single
+        """Tests that the 'delete workflow-version' command works correctly with a single
         version id"""
         # SETUP
         session = MagicMock()
@@ -1007,7 +1016,7 @@ class TestDelete(TestCase):
 
         # CALL
         result = runner.invoke(
-            delete.delete, ["workflow"] + list(version_ids), input="y", obj=ctx
+            delete.delete, ["workflow-version"] + list(version_ids), input="y", obj=ctx
         )
 
         # ASSERT
@@ -1015,23 +1024,23 @@ class TestDelete(TestCase):
         mock_collate_workflow_version_details.assert_called_once_with(
             session, version_ids
         )
-        mock_delete_workflow.assert_called_with(session, version_ids[0])
+        mock_delete_workflow_version.assert_called_with(session, version_ids[0])
 
         self.assertEqual(
             result.output,
-            "Workflow 1 details\nConfirm deletion of workflows? [y/N]: y\nWorkflow versions deleted\n",
+            "Workflow 1 details\nConfirm deletion of workflow versions? [y/N]: y\nWorkflow versions deleted\n",
         )
         self.assertEqual(result.exit_code, 0)
 
     @patch("dafni_cli.commands.delete.collate_workflow_version_details")
-    @patch("dafni_cli.commands.delete.delete_workflow")
-    def test_delete_workflow_multiple_versions(
+    @patch("dafni_cli.commands.delete.delete_workflow_version")
+    def test_delete_workflow_version_multiple_versions(
         self,
-        mock_delete_workflow,
+        mock_delete_workflow_version,
         mock_collate_workflow_version_details,
         mock_DAFNISession,
     ):
-        """Tests that the 'delete workflow' command works correctly with multiple
+        """Tests that the 'delete workflow-version' command works correctly with multiple
         version ids"""
         # SETUP
         session = MagicMock()
@@ -1046,7 +1055,7 @@ class TestDelete(TestCase):
 
         # CALL
         result = runner.invoke(
-            delete.delete, ["workflow"] + list(version_ids), input="y", obj=ctx
+            delete.delete, ["workflow-version"] + list(version_ids), input="y", obj=ctx
         )
 
         # ASSERT
@@ -1055,25 +1064,25 @@ class TestDelete(TestCase):
             session, version_ids
         )
         self.assertEqual(
-            mock_delete_workflow.call_args_list,
+            mock_delete_workflow_version.call_args_list,
             [call(session, version_ids[0]), call(session, version_ids[1])],
         )
 
         self.assertEqual(
             result.output,
-            "Workflow 1 details\nWorkflow 2 details\nConfirm deletion of workflows? [y/N]: y\nWorkflow versions deleted\n",
+            "Workflow 1 details\nWorkflow 2 details\nConfirm deletion of workflow versions? [y/N]: y\nWorkflow versions deleted\n",
         )
         self.assertEqual(result.exit_code, 0)
 
     @patch("dafni_cli.commands.delete.collate_workflow_version_details")
-    @patch("dafni_cli.commands.delete.delete_workflow")
-    def test_delete_workflow_cancels_when_requested(
+    @patch("dafni_cli.commands.delete.delete_workflow_version")
+    def test_delete_workflow_version_cancels_when_requested(
         self,
-        mock_delete_workflow,
+        mock_delete_workflow_version,
         mock_collate_workflow_version_details,
         mock_DAFNISession,
     ):
-        """Tests that the 'delete workflow' can be canceled after printing the
+        """Tests that the 'delete workflow-version' can be canceled after printing the
         workflow info"""
         # SETUP
         session = MagicMock()
@@ -1085,7 +1094,7 @@ class TestDelete(TestCase):
 
         # CALL
         result = runner.invoke(
-            delete.delete, ["workflow"] + list(version_ids), input="n", obj=ctx
+            delete.delete, ["workflow-version"] + list(version_ids), input="n", obj=ctx
         )
 
         # ASSERT
@@ -1093,10 +1102,10 @@ class TestDelete(TestCase):
         mock_collate_workflow_version_details.assert_called_once_with(
             session, version_ids
         )
-        mock_delete_workflow.assert_not_called()
+        mock_delete_workflow_version.assert_not_called()
 
         self.assertEqual(
             result.output,
-            "Workflow 1 details\nConfirm deletion of workflows? [y/N]: n\nAborted!\n",
+            "Workflow 1 details\nConfirm deletion of workflow versions? [y/N]: n\nAborted!\n",
         )
         self.assertEqual(result.exit_code, 1)

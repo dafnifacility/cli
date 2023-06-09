@@ -8,9 +8,9 @@ from dafni_cli.api.datasets_api import (
     delete_dataset_version,
     get_latest_dataset_metadata,
 )
-from dafni_cli.api.models_api import delete_model, get_model
+from dafni_cli.api.models_api import delete_model_version, get_model
 from dafni_cli.api.session import DAFNISession
-from dafni_cli.api.workflows_api import delete_workflow, get_workflow
+from dafni_cli.api.workflows_api import delete_workflow_version, get_workflow
 from dafni_cli.datasets.dataset_metadata import DatasetMetadata, parse_dataset_metadata
 from dafni_cli.models.model import Model, parse_model
 from dafni_cli.utils import argument_confirmation
@@ -52,22 +52,22 @@ def collate_model_version_details(
     model_version_details_list = []
     for vid in version_ids:
         # Find details of each model version that will be deleted
-        model_version: Model = parse_model(get_model(session, vid))
+        model_ver: Model = parse_model(get_model(session, vid))
         # Exit if user doesn't have necessary permissions
-        if not model_version.auth.destroy:
+        if not model_ver.auth.destroy:
             click.echo(
                 "You do not have sufficient permissions to delete model version:"
             )
-            click.echo(model_version.get_version_details())
+            click.echo(model_ver.get_version_details())
             raise SystemExit(1)
-        model_version_details_list.append(model_version.get_version_details())
+        model_version_details_list.append(model_ver.get_version_details())
     return model_version_details_list
 
 
 @delete.command(help="Delete one or more model version(s)")
 @click.argument("version-ids", nargs=-1, required=True, type=str)
 @click.pass_context
-def model(ctx: Context, version_ids: List[str]):
+def model_version(ctx: Context, version_ids: List[str]):
     """
     Delete one or more version(s) of model(s) from DAFNI.
 
@@ -78,9 +78,11 @@ def model(ctx: Context, version_ids: List[str]):
     model_version_details_list = collate_model_version_details(
         ctx.obj["session"], version_ids
     )
-    argument_confirmation([], "Confirm deletion of models?", model_version_details_list)
+    argument_confirmation(
+        [], "Confirm deletion of model versions?", model_version_details_list
+    )
     for vid in version_ids:
-        delete_model(ctx.obj["session"], vid)
+        delete_model_version(ctx.obj["session"], vid)
     # Confirm action
     click.echo("Model versions deleted")
 
@@ -253,22 +255,22 @@ def collate_workflow_version_details(
     workflow_version_details_list = []
     for vid in version_ids:
         # Find details of each workflow version that will be deleted
-        workflow_version = parse_workflow(get_workflow(session, vid))
+        workflow_ver = parse_workflow(get_workflow(session, vid))
         # Exit if user doesn't have necessary permissions
-        if not workflow_version.auth.destroy:
+        if not workflow_ver.auth.destroy:
             click.echo(
                 "You do not have sufficient permissions to delete workflow version:"
             )
-            click.echo(workflow_version.get_version_details())
+            click.echo(workflow_ver.get_version_details())
             raise SystemExit(1)
-        workflow_version_details_list.append(workflow_version.get_version_details())
+        workflow_version_details_list.append(workflow_ver.get_version_details())
     return workflow_version_details_list
 
 
 @delete.command(help="Delete one or more workflow version(s)")
 @click.argument("version-ids", nargs=-1, required=True, type=str)
 @click.pass_context
-def workflow(ctx: Context, version_ids: Tuple[str]):
+def workflow_version(ctx: Context, version_ids: List[str]):
     """
     Delete one or more version(s) of workflow(s) from DAFNI.
 
@@ -280,9 +282,9 @@ def workflow(ctx: Context, version_ids: Tuple[str]):
         ctx.obj["session"], version_ids
     )
     argument_confirmation(
-        [], "Confirm deletion of workflows?", workflow_version_details_list
+        [], "Confirm deletion of workflow versions?", workflow_version_details_list
     )
     for vid in version_ids:
-        delete_workflow(ctx.obj["session"], vid)
+        delete_workflow_version(ctx.obj["session"], vid)
     # Confirm action
     click.echo("Workflow versions deleted")
