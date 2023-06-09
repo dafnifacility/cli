@@ -176,7 +176,7 @@ def upload_dataset_metadata_version(
     version_id: str,
     metadata: dict,
 ) -> None:
-    """Function to upload a Dataset
+    """Function to upload a new metadata version to an existing dataset
 
     Args:
         session (DAFNISession): User session
