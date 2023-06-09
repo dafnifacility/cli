@@ -43,7 +43,6 @@ class WorkflowInstanceWorkflowVersion(ParserBaseObject):
     ]
 
 
-# TODO: Check parsing mid workflow execution (expect finished time to be None?)
 @dataclass
 class WorkflowInstance(ParserBaseObject):
     """Dataclass representing a workflow instance (an execution of a DAFNI
@@ -53,30 +52,30 @@ class WorkflowInstance(ParserBaseObject):
         instance_id (str): ID of this instance
         submission_time (datetime): Date and time the instance was submitted
                                     for execution
-        finished_time (datetime): Date and time the instance finished
-                                  execution
         overall_status (str): Status of the overall workflow execution e.g.
                               'Succeeded'
         parameter_set (WorkflowInstanceParameterSet): Information on the
                             parameter set the instance used
         workflow_version (WorkflowInstanceWorkflowVersion): Information on the
                             workflow version the instance used
+        finished_time (Optional[datetime]): Date and time the instance
+                            finished execution if applicable
     """
 
     instance_id: str
     submission_time: datetime
-    finished_time: datetime
     overall_status: str
     parameter_set: WorkflowInstanceParameterSet
     workflow_version: WorkflowInstanceWorkflowVersion
+    finished_time: datetime = None
 
     _parser_params: ClassVar[List[ParserParam]] = [
         ParserParam("instance_id", "instance_id", str),
         ParserParam("submission_time", "submission_time", parse_datetime),
-        ParserParam("finished_time", "finished_time", parse_datetime),
         ParserParam("overall_status", "overall_status", str),
         ParserParam("parameter_set", "parameter_set", WorkflowInstanceParameterSet),
         ParserParam(
             "workflow_version", "workflow_version", WorkflowInstanceWorkflowVersion
         ),
+        ParserParam("finished_time", "finished_time", parse_datetime),
     ]

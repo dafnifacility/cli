@@ -1,5 +1,4 @@
 from datetime import datetime
-from typing import List
 from unittest import TestCase
 from unittest.mock import call, patch
 
@@ -7,7 +6,19 @@ from dateutil.tz import tzutc
 
 from dafni_cli.api.auth import Auth
 from dafni_cli.api.parser import ParserBaseObject
-from dafni_cli.consts import CONSOLE_WIDTH, TAB_SPACE
+from dafni_cli.consts import (
+    CONSOLE_WIDTH,
+    TAB_SPACE,
+    TABLE_FINISHED_HEADER,
+    TABLE_ID_HEADER,
+    TABLE_NAME_HEADER,
+    TABLE_PARAMETER_SET_HEADER,
+    TABLE_PUBLISHED_BY_HEADER,
+    TABLE_PUBLISHED_DATE_HEADER,
+    TABLE_STARTED_HEADER,
+    TABLE_STATUS_HEADER,
+    TABLE_WORKFLOW_VERSION_ID_HEADER,
+)
 from dafni_cli.utils import format_datetime
 from dafni_cli.workflows.instance import WorkflowInstance
 from dafni_cli.workflows.parameter_set import WorkflowParameterSet
@@ -18,167 +29,13 @@ from dafni_cli.workflows.workflow import (
     parse_workflows,
 )
 
-from test.fixtures.auth import TEST_AUTH_DATA_OBJECT, TEST_AUTH_DATA_OBJECTS
-from test.workflows.test_instance import TEST_WORKFLOW_INSTANCE
-from test.workflows.test_parameter_set import TEST_WORKFLOW_PARAMETER_SET
-
-TEST_WORKFLOW_METADATA: dict = {
-    "description": "Test workflow",
-    "display_name": "A Workflow",
-    "name": "test-workflow-name",
-    "publisher": "Joel Davies",
-    "summary": "Test workflow created to learn about DAFNI",
-}
-
-TEST_WORKFLOW_VERSION: dict = {
-    "id": "0a0a0a0a-0a00-0a00-a000-0a0a0000000b",
-    "version_tags": ["latest"],
-    "publication_date": "2023-04-04T08:34:36.531809Z",
-    "version_message": "Initial Workflow version",
-}
-
-TEST_WORKFLOW_DATA_WORKFLOWS_ENDPOINT: dict = {
-    "auth": TEST_AUTH_DATA_OBJECTS,
-    "id": "0a0a0a0a-0a00-0a00-a000-0a0a0000000a",
-    "kind": "W",
-    "display_name": "A Workflow",
-    "name": "test-workflow-name",
-    "summary": "Test workflow created to learn about DAFNI",
-    "creation_date": "2023-04-04T08:34:36.531809Z",
-    "publication_date": "2023-04-04T08:34:36.531809Z",
-    "owner": "0a0a0a0a-0a00-0a00-a000-0a0a0000000a",
-    "version_tags": [],
-    "version_message": "",
-    "parent": "0a0a0a0a-0a00-0a00-a000-0a0a0000000b",
-    "version_history": [TEST_WORKFLOW_VERSION],
-}
-
-TEST_WORKFLOWS: List[dict] = [TEST_WORKFLOW_DATA_WORKFLOWS_ENDPOINT]
-
-TEST_WORKFLOW: dict = {
-    "id": "0a0a0a0a-0a00-0a00-a000-0a0a0000000a",
-    "metadata": TEST_WORKFLOW_METADATA,
-    "version_history": [
-        {
-            "id": "0a0a0a0a-0a00-0a00-a000-0a0a0000000a",
-            "version_tags": ["latest"],
-            "publication_date": "2023-04-04T08:34:36.531809Z",
-            "version_message": "Initial Workflow version",
-        }
-    ],
-    "auth": TEST_AUTH_DATA_OBJECT,
-    "instances": [
-        TEST_WORKFLOW_INSTANCE,
-    ],
-    "parameter_sets": [TEST_WORKFLOW_PARAMETER_SET],
-    "api_version": "v1.0.2",
-    "kind": "W",
-    "creation_date": "2023-04-04T08:34:36.531809Z",
-    "publication_date": "2023-04-04T08:34:36.531809Z",
-    "owner": "0a0a0a0a-0a00-0a00-a000-0a0a0000000a",
-    "version_tags": ["latest"],
-    "version_message": "Initial Workflow version",
-    "spec": {
-        "steps": {
-            "0a0a0a0a-0a00-0a00-a000-0a0a0000000a": {
-                "kind": "visualisation",
-                "name": "pub-and-vis-1",
-                "files": [
-                    {
-                        "step": "0a0a0a0a-0a00-0a00-a000-0a0a0000000a",
-                        "paths": ["outputs/*"],
-                    }
-                ],
-                "metadata": {
-                    "in_step": {
-                        "@type": "dcat:Dataset",
-                        "geojson": {
-                            "type": "Feature",
-                            "geometry": {
-                                "type": "Polygon",
-                                "coordinates": [
-                                    [
-                                        [1.7689121033873, 58.6726008965827],
-                                        [-6.22821033596556, 58.6726008965827],
-                                        [-6.22821033596556, 49.9554136614383],
-                                        [1.7689121033873, 49.9554136614383],
-                                        [1.7689121033873, 58.6726008965827],
-                                    ]
-                                ],
-                            },
-                            "properties": {},
-                        },
-                        "@context": ["metadata-v1"],
-                        "dct:title": "Sunshine levels between 1960 and 2016 - by Joel",
-                        "dcat:theme": [],
-                        "dct:rights": None,
-                        "dct:created": "2023-04-04T08:34:36Z",
-                        "dct:creator": [
-                            {
-                                "@id": "https://dafni.ac.uk/",
-                                "@type": "foaf:Organization",
-                                "foaf:name": "test",
-                                "internalID": None,
-                            }
-                        ],
-                        "dct:license": {
-                            "@id": "https://creativecommons.org/licences/by/4.0/",
-                            "@type": "LicenseDocument",
-                            "rdfs:label": None,
-                        },
-                        "dct:spatial": {
-                            "@id": "2648147",
-                            "@type": "dct:Location",
-                            "rdfs:label": "Great Britain, United Kingdom",
-                        },
-                        "dct:subject": "Environment",
-                        "dcat:keyword": ["sunshine"],
-                        "dct:language": "en",
-                        "dct:publisher": {
-                            "@id": None,
-                            "@type": "foaf:Organization",
-                            "foaf:name": None,
-                            "internalID": None,
-                        },
-                        "dct:conformsTo": {
-                            "@id": None,
-                            "@type": "dct:Standard",
-                            "label": None,
-                        },
-                        "dct:identifier": [],
-                        "dct:description": "Monthly sunshine levels between 1960 and 2016 in the UK. Collected as part of UKCP9.",
-                        "dct:PeriodOfTime": {
-                            "type": "dct:PeriodOfTime",
-                            "time:hasEnd": "Invalid date",
-                            "time:hasBeginning": "1960-01-01",
-                        },
-                        "dcat:contactPoint": {
-                            "@type": "vcard:Organization",
-                            "vcard:fn": "Joel Davies",
-                            "vcard:hasEmail": "joel.davies@stfc.ac.uk",
-                        },
-                        "dafni_version_note": "Initial Dataset version",
-                        "dct:accrualPeriodicity": None,
-                    }
-                },
-                "position": {"x": 466, "y": 50},
-                "dependencies": ["0a0a0a0a-0a00-0a00-a000-0a0a0000000a"],
-                "visualisation_title": "uk-climate-vis",
-                "visualisation_builder": "0a0a0a0a-0a00-0a00-a000-0a0a0000000a",
-                "visualisation_description": "Test visualisation",
-            },
-            "0a0a0a0a-0a00-0a00-a000-0a0a0000000b": {
-                "kind": "model",
-                "name": "uk-climate",
-                "inputs": [],
-                "position": {"x": 212, "y": 58},
-                "dependencies": [],
-                "model_version": "0a0a0a0a-0a00-0a00-a000-0a0a0000000a",
-            },
-        }
-    },
-    "parent": "0a0a0a0a-0a00-0a00-a000-0a0a0000000a",
-}
+from test.fixtures.workflows import (
+    TEST_WORKFLOW,
+    TEST_WORKFLOW_DATA_WORKFLOWS_ENDPOINT,
+    TEST_WORKFLOW_METADATA,
+    TEST_WORKFLOW_VERSION,
+    TEST_WORKFLOWS,
+)
 
 
 class TestWorkflowVersion(TestCase):
@@ -409,26 +266,163 @@ class TestWorkflow(TestCase):
         )
         mock_prose_print.called_once_with("description", CONSOLE_WIDTH)
 
+    @patch("dafni_cli.workflows.workflow.format_table")
+    def test_format_parameter_sets(
+        self,
+        mock_format_table,
+    ):
+        """Tests format_parameter_sets works correctly"""
+        # SETUP
+        workflow: Workflow = parse_workflow(TEST_WORKFLOW)
+
+        # Two identical parameter sets
+        workflow.parameter_sets.append(workflow.parameter_sets[0])
+
+        # CALL
+        result = workflow.format_parameter_sets()
+
+        # ASSERT
+        mock_format_table.assert_called_once_with(
+            headers=[
+                TABLE_ID_HEADER,
+                TABLE_NAME_HEADER,
+                TABLE_PUBLISHED_BY_HEADER,
+                TABLE_PUBLISHED_DATE_HEADER,
+            ],
+            rows=[
+                [
+                    "0a0a0a0a-0a00-0a00-a000-0a0a0000000a",
+                    "First parameter set",
+                    "Joel Davies",
+                    "2023-04-04",
+                ],
+            ]
+            * 2,
+        )
+        self.assertEqual(result, mock_format_table.return_value)
+
+    @patch("dafni_cli.workflows.workflow.format_table")
+    def test_format_instances(
+        self,
+        mock_format_table,
+    ):
+        """Tests format_instances works correctly"""
+        # SETUP
+        workflow: Workflow = parse_workflow(TEST_WORKFLOW)
+
+        # Two identical instances
+        workflow.instances.append(workflow.instances[0])
+
+        # CALL
+        result = workflow.format_instances()
+
+        # ASSERT
+        mock_format_table.assert_called_once_with(
+            headers=[
+                TABLE_ID_HEADER,
+                TABLE_WORKFLOW_VERSION_ID_HEADER,
+                TABLE_PARAMETER_SET_HEADER,
+                TABLE_STARTED_HEADER,
+                TABLE_FINISHED_HEADER,
+                TABLE_STATUS_HEADER,
+            ],
+            rows=[
+                [
+                    "0a0a0a0a-0a00-0a00-a000-0a0a0000000c",
+                    "0a0a0a0a-0a00-0a00-a000-0a0a0000000b",
+                    "First parameter set",
+                    "2023-04-06T12:46:38",
+                    "2023-04-06T12:58:35",
+                    "Succeeded",
+                ],
+            ]
+            * 2,
+        )
+        self.assertEqual(result, mock_format_table.return_value)
+
     @patch("dafni_cli.workflows.workflow.prose_print")
     @patch("dafni_cli.workflows.workflow.click")
-    def test_output_info(self, mock_click, mock_prose_print):
+    @patch.object(Workflow, "format_parameter_sets")
+    @patch.object(Workflow, "format_instances")
+    def test_output_info(
+        self,
+        mock_format_instances,
+        mock_format_parameter_sets,
+        mock_click,
+        mock_prose_print,
+    ):
         """Tests output_info works correctly"""
         # SETUP
         workflow = parse_workflow(TEST_WORKFLOW)
 
+        # CALL
         workflow.output_info()
 
+        # ASSERT
+        mock_format_parameter_sets.assert_called_once()
+        mock_format_instances.assert_called_once()
         mock_click.echo.assert_has_calls(
             [
-                call("Name: A Workflow"),
+                call(f"Name: {workflow.metadata.display_name}"),
                 call(
                     f"Created: {format_datetime(workflow.creation_date, include_time=True)}"
                 ),
-                call("Summary: "),
-                call("Test workflow created to learn about DAFNI"),
+                call("Version message:"),
+                call(workflow.version_message),
+                call("Summary:"),
+                call(workflow.metadata.summary),
+                call("Description:"),
+                call(""),
+                call("Parameter sets:"),
+                call(mock_format_parameter_sets.return_value),
+                call(""),
+                call("Instances:"),
+                call(mock_format_instances.return_value),
             ]
         )
-        mock_prose_print.assert_called_once_with("Test workflow", CONSOLE_WIDTH)
+        mock_prose_print.assert_called_once_with(
+            workflow.metadata.description, CONSOLE_WIDTH
+        )
+
+    @patch("dafni_cli.workflows.workflow.prose_print")
+    @patch("dafni_cli.workflows.workflow.click")
+    @patch.object(Workflow, "format_parameter_sets")
+    @patch.object(Workflow, "format_instances")
+    def test_output_info_when_parameters_sets_and_instances_none(
+        self,
+        mock_format_instances,
+        mock_format_parameter_sets,
+        mock_click,
+        mock_prose_print,
+    ):
+        """Tests output_info works correctly"""
+        # SETUP
+        workflow = parse_workflow(TEST_WORKFLOW)
+        workflow.parameter_sets = None
+        workflow.instances = None
+
+        # CALL
+        workflow.output_info()
+
+        # ASSERT
+        mock_format_parameter_sets.assert_not_called()
+        mock_format_instances.assert_not_called()
+        mock_click.echo.assert_has_calls(
+            [
+                call(f"Name: {workflow.metadata.display_name}"),
+                call(
+                    f"Created: {format_datetime(workflow.creation_date, include_time=True)}"
+                ),
+                call("Version message:"),
+                call(workflow.version_message),
+                call("Summary:"),
+                call(workflow.metadata.summary),
+                call("Description:"),
+            ]
+        )
+        mock_prose_print.assert_called_once_with(
+            workflow.metadata.description, CONSOLE_WIDTH
+        )
 
     def test_get_version_details(self):
         """Tests get_version_details works correctly"""
