@@ -481,7 +481,7 @@ class TestDelete(TestCase):
         mock_collate_model_version_details,
         mock_DAFNISession,
     ):
-        """Tests that the 'delete model' command works correctly with a single
+        """Tests that the 'delete model-version' command works correctly with a single
         version id"""
         # SETUP
         session = MagicMock()
@@ -503,7 +503,7 @@ class TestDelete(TestCase):
 
         self.assertEqual(
             result.output,
-            "Model 1 details\nConfirm deletion of models? [y/N]: y\nModel versions deleted\n",
+            "Model 1 details\nConfirm deletion of model versions? [y/N]: y\nModel versions deleted\n",
         )
         self.assertEqual(result.exit_code, 0)
 
@@ -515,7 +515,7 @@ class TestDelete(TestCase):
         mock_collate_model_version_details,
         mock_DAFNISession,
     ):
-        """Tests that the 'delete model' command works correctly with multiple
+        """Tests that the 'delete model-version' command works correctly with multiple
         version ids"""
         # SETUP
         session = MagicMock()
@@ -543,7 +543,7 @@ class TestDelete(TestCase):
 
         self.assertEqual(
             result.output,
-            "Model 1 details\nModel 2 details\nConfirm deletion of models? [y/N]: y\nModel versions deleted\n",
+            "Model 1 details\nModel 2 details\nConfirm deletion of model versions? [y/N]: y\nModel versions deleted\n",
         )
         self.assertEqual(result.exit_code, 0)
 
@@ -555,7 +555,7 @@ class TestDelete(TestCase):
         mock_collate_model_version_details,
         mock_DAFNISession,
     ):
-        """Tests that the 'delete model' can be canceled after printing the
+        """Tests that the 'delete model-version' can be canceled after printing the
         model info"""
         # SETUP
         session = MagicMock()
@@ -577,7 +577,7 @@ class TestDelete(TestCase):
 
         self.assertEqual(
             result.output,
-            "Model 1 details\nConfirm deletion of models? [y/N]: n\nAborted!\n",
+            "Model 1 details\nConfirm deletion of model versions? [y/N]: n\nAborted!\n",
         )
         self.assertEqual(result.exit_code, 1)
 
@@ -701,7 +701,7 @@ class TestDelete(TestCase):
         mock_collate_workflow_version_details,
         mock_DAFNISession,
     ):
-        """Tests that the 'delete workflow' command works correctly with a single
+        """Tests that the 'delete workflow-version' command works correctly with a single
         version id"""
         # SETUP
         session = MagicMock()
@@ -725,7 +725,7 @@ class TestDelete(TestCase):
 
         self.assertEqual(
             result.output,
-            "Workflow 1 details\nConfirm deletion of workflows? [y/N]: y\nWorkflow versions deleted\n",
+            "Workflow 1 details\nConfirm deletion of workflow versions? [y/N]: y\nWorkflow versions deleted\n",
         )
         self.assertEqual(result.exit_code, 0)
 
@@ -737,7 +737,7 @@ class TestDelete(TestCase):
         mock_collate_workflow_version_details,
         mock_DAFNISession,
     ):
-        """Tests that the 'delete workflow' command works correctly with multiple
+        """Tests that the 'delete workflow-version' command works correctly with multiple
         version ids"""
         # SETUP
         session = MagicMock()
@@ -767,7 +767,7 @@ class TestDelete(TestCase):
 
         self.assertEqual(
             result.output,
-            "Workflow 1 details\nWorkflow 2 details\nConfirm deletion of workflows? [y/N]: y\nWorkflow versions deleted\n",
+            "Workflow 1 details\nWorkflow 2 details\nConfirm deletion of workflow versions? [y/N]: y\nWorkflow versions deleted\n",
         )
         self.assertEqual(result.exit_code, 0)
 
@@ -779,7 +779,7 @@ class TestDelete(TestCase):
         mock_collate_workflow_version_details,
         mock_DAFNISession,
     ):
-        """Tests that the 'delete workflow' can be canceled after printing the
+        """Tests that the 'delete workflow-version' can be canceled after printing the
         workflow info"""
         # SETUP
         session = MagicMock()
@@ -803,6 +803,6 @@ class TestDelete(TestCase):
 
         self.assertEqual(
             result.output,
-            "Workflow 1 details\nConfirm deletion of workflows? [y/N]: n\nAborted!\n",
+            "Workflow 1 details\nConfirm deletion of workflow versions? [y/N]: n\nAborted!\n",
         )
         self.assertEqual(result.exit_code, 1)
