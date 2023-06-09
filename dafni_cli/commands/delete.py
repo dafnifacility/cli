@@ -36,21 +36,21 @@ def delete(ctx: Context):
 # Models
 ###############################################################################
 def collate_model_version_details(
-    session: DAFNISession, version_id_list: List[str]
+    session: DAFNISession, version_ids: Tuple[str]
 ) -> List[str]:
-    """
-    Checks for destroy privileges for the user, and produces a list of the
-    version details of each model to be deleted
+    """For each given model version, checks for destroy privileges for the
+    user and produces a list of the version details of each model to be
+    deleted
 
     Args:
         session (DAFNISession): User session
-        version_id_list (List[str]): List of the version IDs of each model to be deleted
+        version_ids (Tuple[str]): Tuple of the version IDs of each model to be deleted
 
     Returns:
         List[str]: List of the model details to be displayed during deletion confirmation
     """
     model_version_details_list = []
-    for vid in version_id_list:
+    for vid in version_ids:
         # Find details of each model version that will be deleted
         model_version: Model = parse_model(get_model(session, vid))
         # Exit if user doesn't have necessary permissions
@@ -65,21 +65,21 @@ def collate_model_version_details(
 
 
 @delete.command(help="Delete one or more model version(s)")
-@click.argument("version-id", nargs=-1, required=True, type=str)
+@click.argument("version-ids", nargs=-1, required=True, type=str)
 @click.pass_context
-def model(ctx: Context, version_id: List[str]):
+def model(ctx: Context, version_ids: List[str]):
     """
     Delete one or more version(s) of model(s) from DAFNI.
 
     Args:
         ctx (context): contains user session for authentication
-        version_id (str): ID(s) of the model version(s) to be deleted
+        version_ids (Tuple[str]): ID(s) of the model version(s) to be deleted
     """
     model_version_details_list = collate_model_version_details(
-        ctx.obj["session"], version_id
+        ctx.obj["session"], version_ids
     )
     argument_confirmation([], "Confirm deletion of models?", model_version_details_list)
-    for vid in version_id:
+    for vid in version_ids:
         delete_model(ctx.obj["session"], vid)
     # Confirm action
     click.echo("Model versions deleted")
@@ -90,18 +90,17 @@ def model(ctx: Context, version_id: List[str]):
 ###############################################################################
 def _collate_dataset_details(
     session: DAFNISession,
-    version_id_list: List[str],
+    version_ids: Tuple[str],
     obtain_details: Callable[[DatasetMetadata], str],
     permissions_message: str,
 ) -> Tuple[List[str], List[str]]:
-    """
-    Checks for destroy privileges for the user, and produces a list of the
-    details of each dataset to be deleted
+    """For each given dataset version, checks for destroy privileges for the
+    user and produces a list of the details of each dataset to be deleted
 
     Args:
         session (DAFNISession): User session
-        version_id_list (List[str]): List of the dataset version IDs of each
-                                     dataset to be deleted
+        version_ids (Tuple[str]): Tuple of the dataset version IDs of each
+                                  dataset to be deleted
         obtain_details (Callable[[DatasetMetadata], str]): Function that
                             returns a string containing relevant details when
                             passed a metadata object
@@ -117,7 +116,7 @@ def _collate_dataset_details(
     """
     dataset_details_list = []
     dataset_ids = []
-    for vid in version_id_list:
+    for vid in version_ids:
         # Find details of each dataset that will be deleted
         dataset_meta: DatasetMetadata = parse_dataset_metadata(
             get_latest_dataset_metadata(session, vid)
@@ -134,16 +133,15 @@ def _collate_dataset_details(
 
 
 def collate_dataset_details(
-    session: DAFNISession, version_id_list: List[str]
+    session: DAFNISession, version_ids: List[str]
 ) -> Tuple[List[str], List[str]]:
-    """
-    Checks for destroy privileges for the user, and produces a list of the
-    details of each dataset to be deleted
+    """For each given dataset, checks for destroy privileges for the
+    user and produces a list of the details of each dataset to be deleted
 
     Args:
         session (DAFNISession): User session
-        version_id_list (List[str]): List of the dataset version IDs of each
-                                     dataset to be deleted
+        version_ids (Tuple[str]): Tuple of the dataset version IDs of each
+                                  dataset to be deleted
 
     Returns:
         List[str]: List of the dataset details to be displayed during deletion
@@ -152,30 +150,30 @@ def collate_dataset_details(
     """
     return _collate_dataset_details(
         session=session,
-        version_id_list=version_id_list,
+        version_ids=version_ids,
         obtain_details=lambda dataset_meta: dataset_meta.get_dataset_details(),
         permissions_message="You do not have sufficient permissions to delete dataset:",
     )
 
 
 @delete.command(help="Delete one or more datasets")
-@click.argument("version-id", nargs=-1, required=True, type=str)
+@click.argument("version-ids", nargs=-1, required=True, type=str)
 @click.pass_context
-def dataset(ctx: Context, version_id: List[str]):
+def dataset(ctx: Context, version_ids: Tuple[str]):
     """
     Delete one or more dataset(s) from DAFNI.
 
     Args:
         ctx (context): contains user session for authentication
-        version_id (str): Version ID(s) of the datasets to be deleted
+        version_ids (Tuple[str]): Version ID(s) of the datasets to be deleted
     """
 
     # We need the version id to get the metadata, but the dataset id for the
     # actual delete - instead of requiring both, we look up dataset with the
-    # version_id and obtain both the id and metadata once
+    # version id and obtain both the id and metadata once
 
     dataset_details_list, dataset_ids = collate_dataset_details(
-        ctx.obj["session"], version_id
+        ctx.obj["session"], version_ids
     )
     argument_confirmation([], "Confirm deletion of datasets?", dataset_details_list)
     for dataset_id in dataset_ids:
@@ -185,16 +183,16 @@ def dataset(ctx: Context, version_id: List[str]):
 
 
 def collate_dataset_version_details(
-    session: DAFNISession, version_id_list: List[str]
+    session: DAFNISession, version_ids: Tuple[str]
 ) -> Tuple[List[str], List[str]]:
-    """
-    Checks for destroy privileges for the user, and produces a list of the
-    details of each dataset to be deleted
+    """For each given dataset version, checks for destroy privileges for the
+    user and produces a list of the version details of each dataset version to
+    be deleted
 
     Args:
         session (DAFNISession): User session
-        version_id_list (List[str]): List of the dataset version IDs of each
-                                     dataset to be deleted
+        version_ids (Tuple[str]): Tuple of the dataset version IDs of each
+                                  dataset to be deleted
 
     Returns:
         List[str]: List of the dataset details to be displayed during deletion
@@ -203,31 +201,31 @@ def collate_dataset_version_details(
     """
     return _collate_dataset_details(
         session=session,
-        version_id_list=version_id_list,
+        version_ids=version_ids,
         obtain_details=lambda dataset_meta: dataset_meta.get_dataset_version_details(),
         permissions_message="You do not have sufficient permissions to delete dataset version:",
     )
 
 
 @delete.command(help="Delete one or more dataset versions")
-@click.argument("version-id", nargs=-1, required=True, type=str)
+@click.argument("version-ids", nargs=-1, required=True, type=str)
 @click.pass_context
-def dataset_version(ctx: Context, version_id: List[str]):
+def dataset_version(ctx: Context, version_ids: Tuple[str]):
     """
     Delete one or more dataset version(s) from DAFNI.
 
     Args:
         ctx (context): contains user session for authentication
-        version_id (str): Version ID(s) of the datasets to be deleted
+        version_ids (str): Version ID(s) of the datasets to be deleted
     """
 
     dataset_details_list, dataset_ids = collate_dataset_version_details(
-        ctx.obj["session"], version_id
+        ctx.obj["session"], version_ids
     )
     argument_confirmation(
         [], "Confirm deletion of dataset versions?", dataset_details_list
     )
-    for dataset_id, vid in zip(dataset_ids, version_id):
+    for dataset_id, vid in zip(dataset_ids, version_ids):
         delete_dataset_version(
             ctx.obj["session"], dataset_id=dataset_id, version_id=vid
         )
@@ -239,7 +237,7 @@ def dataset_version(ctx: Context, version_id: List[str]):
 # Workflows
 ###############################################################################
 def collate_workflow_version_details(
-    session: DAFNISession, version_id_list: List[str]
+    session: DAFNISession, version_ids: Tuple[str]
 ) -> List[str]:
     """
     Checks for destroy privileges for the user, and produces a list of the version details
@@ -247,13 +245,13 @@ def collate_workflow_version_details(
 
     Args:
         session (DAFNISession): User session
-        version_id_list (List[str]): List of the version IDs of each workflow to be deleted
+        version_ids (Tuple[str]): List of the version IDs of each workflow to be deleted
 
     Returns:
         List[str]: List of the workflow  details to be displayed during deletion confirmation
     """
     workflow_version_details_list = []
-    for vid in version_id_list:
+    for vid in version_ids:
         # Find details of each workflow version that will be deleted
         workflow_version = parse_workflow(get_workflow(session, vid))
         # Exit if user doesn't have necessary permissions
@@ -268,23 +266,23 @@ def collate_workflow_version_details(
 
 
 @delete.command(help="Delete one or more workflow version(s)")
-@click.argument("version-id", nargs=-1, required=True, type=str)
+@click.argument("version-ids", nargs=-1, required=True, type=str)
 @click.pass_context
-def workflow(ctx: Context, version_id: List[str]):
+def workflow(ctx: Context, version_ids: Tuple[str]):
     """
     Delete one or more version(s) of workflow(s) from DAFNI.
 
     Args:
         ctx (context): contains user session for authentication
-        version_id (str): ID(s) of the workflow version(s) to be deleted
+        version_ids (Tuple[str]): ID(s) of the workflow version(s) to be deleted
     """
     workflow_version_details_list = collate_workflow_version_details(
-        ctx.obj["session"], version_id
+        ctx.obj["session"], version_ids
     )
     argument_confirmation(
         [], "Confirm deletion of workflows?", workflow_version_details_list
     )
-    for vid in version_id:
+    for vid in version_ids:
         delete_workflow(ctx.obj["session"], vid)
     # Confirm action
     click.echo("Workflow versions deleted")
