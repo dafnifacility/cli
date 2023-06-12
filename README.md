@@ -1,4 +1,5 @@
 # The DAFNI CLI
+![Test status](https://github.com/dafnifacility/cli/actions/workflows/test.yml/badge.svg?branch=main) [![codecov](https://codecov.io/gh/dafnifacility/cli/branch/main/graph/badge.svg?token=3T8AQWHSWA)](https://codecov.io/gh/dafnifacility/cli)
 
 ## Feature Priority
 From the use cases described above, the following list of features is defined. These are placed in priority order, taking in to account the use cases above as well as the work required to develop each feature. 
