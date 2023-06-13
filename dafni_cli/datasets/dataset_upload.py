@@ -1,7 +1,8 @@
+from datetime import datetime
 import json
 from copy import deepcopy
 from pathlib import Path
-from typing import List, Optional
+from typing import List, Optional, Tuple
 
 import click
 from requests.exceptions import HTTPError
@@ -44,8 +45,31 @@ def remove_dataset_metadata_invalid_for_upload(metadata: dict):
 
 def modify_dataset_metadata_for_upload(
     existing_metadata: dict,
-    metadata_path: Optional[Path],
-    version_message: Optional[str],
+    metadata_path: Optional[Path] = None,
+    title: Optional[str] = None,
+    description: Optional[str] = None,
+    identifiers: Optional[Tuple[str]] = None,
+    subject: Optional[str] = None,
+    themes: Optional[Tuple[str]] = None,
+    language: Optional[str] = None,
+    keywords: Optional[Tuple[str]] = None,
+    standard_name: Optional[str] = None,
+    standard_url: Optional[str] = None,
+    start_date: Optional[datetime] = None,
+    end_date: Optional[datetime] = None,
+    organisation_name: Optional[str] = None,
+    organisation_id: Optional[str] = None,
+    person_names: Optional[Tuple[str]] = None,
+    person_ids: Optional[Tuple[str]] = None,
+    created_date: Optional[datetime] = None,
+    update_frequency: Optional[str] = None,
+    publisher_name: Optional[str] = None,
+    publisher_id: Optional[str] = None,
+    contact_point_name: Optional[str] = None,
+    contact_point_email: Optional[str] = None,
+    license: Optional[str] = None,
+    rights: Optional[str] = None,
+    version_message: Optional[str] = None,
 ) -> dict:
     """Modifies existing dataset metadata or that loaded from a file according
     to user specified parameters and in a format ready for upload
@@ -71,9 +95,66 @@ def modify_dataset_metadata_for_upload(
     remove_dataset_metadata_invalid_for_upload(metadata)
 
     # Make modifications to the metadata from the inputs
+    if title:
+        metadata["dct:title"] = title
+    if description:
+        metadata["dct:description"] = description
+    if identifiers:
+        metadata["dct:identifier"] = list(identifiers)
+    if subject:
+        metadata["dct:subject"] = subject
+    if themes:
+        metadata["dcat:theme"] = list(themes)
+    if language:
+        metadata["dct:language"] = language
+    if keywords:
+        metadata["dcat:keyword"] = list(keywords)
+    if standard_name:
+        metadata["dct:conformsTo"]["label"] = standard_name
+    if standard_url:
+        metadata["dct:conformsTo"]["@id"] = standard_url
+    if start_date:
+        metadata["dct:PeriodOfTime"]["time:hasBeginning"] = start_date.isoformat()
+    if end_date:
+        metadata["dct:PeriodOfTime"]["time:hasEnd"] = start_date.isoformat()
+    if organisation_name and organisation_id:
+        metadata["dct:creator"].append(
+            {
+                "@type": "foaf:Organization",
+                "foaf:name": organisation_name,
+                "@id": organisation_id,
+                "internalID": None,
+            }
+        )
+    if person_names and person_ids:
+        if len(person_names) != len(person_ids):
+            raise ValueError("Miss-match between number of person_names and person_ids")
+        for person_name, person_id in zip(person_names, person_ids):
+            metadata["dct:creator"].append(
+                {
+                    "@type": "foaf:Person",
+                    "foaf:name": person_name,
+                    "@id": person_id,
+                    "internalID": None,
+                }
+            )
+    if created_date:
+        metadata["dct:created"] = created_date.isoformat()
+    if update_frequency:
+        metadata["dct:accrualPeriodicity"] = update_frequency
+    if publisher_name:
+        metadata["dct:publisher"]["foaf:name"] = publisher_name
+    if publisher_id:
+        metadata["dct:publisher"]["@id"] = publisher_id
+    if contact_point_name:
+        metadata["dcat:contactPoint"]["vcard:fn"] = contact_point_name
+    if contact_point_email:
+        metadata["dcat:contactPoint"]["vcard:hasEmail"] = contact_point_email
+    if license:
+        metadata["dct:license"]["@id"] = license
+    if rights:
+        metadata["dct:rights"] = rights
     if version_message:
-        # TODO: Find a more robust solution for this - could reparse from the
-        # structures using existing definitions?
         metadata["dafni_version_note"] = version_message
 
     return metadata
