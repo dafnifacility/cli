@@ -5,7 +5,7 @@ from typing import ClassVar, List, Optional
 import click
 
 from dafni_cli.api.auth import Auth
-from dafni_cli.api.parser import ParserBaseObject, ParserParam, parse_datetime
+from dafni_cli.api.parser import ParserBaseObject, ParserDatetime, ParserParam
 from dafni_cli.consts import (
     CONSOLE_WIDTH,
     TAB_SPACE,
@@ -79,7 +79,7 @@ class WorkflowVersion(ParserBaseObject):
         ParserParam("version_id", "id", str),
         ParserParam("version_message", "version_message", str),
         ParserParam("version_tags", "version_tags"),
-        ParserParam("publication_date", "publication_date", parse_datetime),
+        ParserParam("publication_date", "publication_date", ParserDatetime),
     ]
 
 
@@ -151,8 +151,8 @@ class Workflow(ParserBaseObject):
         ParserParam("version_history", "version_history", WorkflowVersion),
         ParserParam("auth", "auth", Auth),
         ParserParam("kind", "kind", str),
-        ParserParam("creation_date", "creation_date", parse_datetime),
-        ParserParam("publication_date", "publication_date", parse_datetime),
+        ParserParam("creation_date", "creation_date", ParserDatetime),
+        ParserParam("publication_date", "publication_date", ParserDatetime),
         ParserParam("owner_id", "owner", str),
         ParserParam("version_tags", "version_tags"),
         ParserParam("version_message", "version_message", str),

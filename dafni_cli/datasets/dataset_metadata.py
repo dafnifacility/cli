@@ -8,7 +8,7 @@ from dafni_cli.api.auth import Auth
 
 from dafni_cli.api.datasets_api import get_latest_dataset_metadata
 from dafni_cli.api.minio_api import minio_get_request
-from dafni_cli.api.parser import ParserBaseObject, ParserParam, parse_datetime
+from dafni_cli.api.parser import ParserBaseObject, ParserParam, ParserDatetime
 from dafni_cli.api.session import DAFNISession
 from dafni_cli.consts import (
     CONSOLE_WIDTH,
@@ -208,7 +208,7 @@ class DatasetMetadataVersion(ParserBaseObject):
 
     _parser_params: ClassVar[List[ParserParam]] = [
         ParserParam("metadata_id", "metadata_uuid", str),
-        ParserParam("modified_date", "modified_date", parse_datetime),
+        ParserParam("modified_date", "modified_date", ParserDatetime),
         ParserParam("label", "dafni_version_note", str),
     ]
 
@@ -349,12 +349,12 @@ class DatasetMetadata(ParserBaseObject):
         ParserParam("title", "dct:title", str),
         ParserParam("description", "dct:description", str),
         ParserParam("subject", "dct:subject", str),
-        ParserParam("created", "dct:created", parse_datetime),
+        ParserParam("created", "dct:created", ParserDatetime),
         ParserParam("creators", "dct:creator", Creator),
         ParserParam("contact", "dcat:contactPoint", Contact),
         ParserParam("location", "dct:spatial", Location),
         ParserParam("keywords", "dcat:keyword"),
-        ParserParam("issued", "dct:issued", parse_datetime),
+        ParserParam("issued", "dct:issued", ParserDatetime),
         ParserParam("language", "dct:language", str),
         ParserParam("asset_id", ["@id", "asset_id"], str),
         ParserParam("dataset_id", ["@id", "dataset_uuid"], str),
@@ -370,9 +370,9 @@ class DatasetMetadata(ParserBaseObject):
         ParserParam("publisher", "dct:publisher", Publisher),
         ParserParam("rights", "dct:rights", str),
         ParserParam("update_frequency", "dct:accrualPeriodicity", str),
-        ParserParam("end_date", ["dct:PeriodOfTime", "time:hasEnd"], parse_datetime),
+        ParserParam("end_date", ["dct:PeriodOfTime", "time:hasEnd"], ParserDatetime),
         ParserParam(
-            "start_date", ["dct:PeriodOfTime", "time:hasBeginning"], parse_datetime
+            "start_date", ["dct:PeriodOfTime", "time:hasBeginning"], ParserDatetime
         ),
     ]
 

@@ -5,7 +5,7 @@ from typing import ClassVar, List, Optional
 import click
 
 from dafni_cli.api.auth import Auth
-from dafni_cli.api.parser import ParserBaseObject, ParserParam, parse_datetime
+from dafni_cli.api.parser import ParserBaseObject, ParserDatetime, ParserParam
 from dafni_cli.consts import CONSOLE_WIDTH, TAB_SPACE
 from dafni_cli.models.inputs import ModelInputs
 from dafni_cli.models.outputs import ModelOutputs
@@ -97,7 +97,7 @@ class ModelVersion(ParserBaseObject):
         ParserParam("version_id", "id", str),
         ParserParam("version_message", "version_message", str),
         ParserParam("version_tags", "version_tags"),
-        ParserParam("publication_date", "publication_date", parse_datetime),
+        ParserParam("publication_date", "publication_date", ParserDatetime),
     ]
 
 
@@ -175,13 +175,13 @@ class Model(ParserBaseObject):
         ParserParam("kind", "kind", str),
         ParserParam("owner_id", "owner", str),
         ParserParam("parent_id", "parent", str),
-        ParserParam("creation_date", "creation_date", parse_datetime),
-        ParserParam("publication_date", "publication_date", parse_datetime),
+        ParserParam("creation_date", "creation_date", ParserDatetime),
+        ParserParam("publication_date", "publication_date", ParserDatetime),
         ParserParam("version_message", "version_message", str),
         ParserParam("version_tags", "version_tags"),
         ParserParam("version_history", "version_history", ModelVersion),
         ParserParam("auth", "auth", Auth),
-        ParserParam("ingest_completed_date", "ingest_completed_date", parse_datetime),
+        ParserParam("ingest_completed_date", "ingest_completed_date", ParserDatetime),
         ParserParam("_metadata", "metadata", ModelMetadata),
         ParserParam("api_version", "api_version", str),
         ParserParam("type", "type", str),

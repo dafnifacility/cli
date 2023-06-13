@@ -4,7 +4,7 @@ from typing import ClassVar, List, Optional
 
 import click
 
-from dafni_cli.api.parser import ParserBaseObject, ParserParam, parse_datetime
+from dafni_cli.api.parser import ParserBaseObject, ParserParam, ParserDatetime
 from dafni_cli.consts import CONSOLE_WIDTH, TAB_SPACE
 from dafni_cli.utils import format_datetime, prose_print
 
@@ -51,14 +51,14 @@ class Dataset(ParserBaseObject):
         ParserParam("dataset_id", ["id", "dataset_uuid"], str),
         ParserParam("version_id", ["id", "version_uuid"], str),
         ParserParam("metadata_id", ["id", "metadata_uuid"], str),
-        ParserParam("modified_date", "modified_date", parse_datetime),
+        ParserParam("modified_date", "modified_date", ParserDatetime),
         ParserParam("source", "source", str),
         ParserParam("subject", "subject", str),
         ParserParam("title", "title", str),
         ParserParam("formats", "formats"),
         ParserParam("description", "description", str),
-        ParserParam("date_range_start", ["date_range", "begin"], parse_datetime),
-        ParserParam("date_range_end", ["date_range", "end"], parse_datetime),
+        ParserParam("date_range_start", ["date_range", "begin"], ParserDatetime),
+        ParserParam("date_range_end", ["date_range", "end"], ParserDatetime),
     ]
 
     def output_dataset_details(self):
