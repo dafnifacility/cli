@@ -197,7 +197,7 @@ def dataset_version(
     )
     dataset_metadata_obj = parse_dataset_metadata(dataset_metadata_dict)
 
-    # Load/modify the existing metdata according to the user input
+    # Load/modify the existing metadata according to the user input
     dataset_metadata_dict = modify_dataset_metadata_for_upload(
         existing_metadata=dataset_metadata_dict,
         metadata_path=metadata,
@@ -282,7 +282,7 @@ def dataset_metadata(
     )
     dataset_metadata_obj = parse_dataset_metadata(dataset_metadata_dict)
 
-    # Load/modify the existing metdata according to the user input
+    # Load/modify the existing metadata according to the user input
     dataset_metadata_dict = modify_dataset_metadata_for_upload(
         existing_metadata=dataset_metadata_dict,
         metadata_path=metadata,
