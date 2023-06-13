@@ -31,39 +31,6 @@ def prose_print(prose: str, width: int):
             click.echo(line)
 
 
-def optional_column(value: Optional[Any], column_width: int = 0, alignment: str = "<"):
-    """Formats a value that may be None to have a specific width in a column
-
-    When the value is None, will return a string with spaces of the desired
-    width
-
-    Args:
-         value (Optional[Any]): Data that is to be checked and formatted if
-                                not None
-         column_width (int): Number of spaces to be returned instead if the
-                             key is not present
-         alignment (str): Specified alignment of column
-    Returns:
-        entry (str): Either the value of the entry to be put into the table,
-                     column_width number of spaces
-
-    Raises:
-        ValueError - If the column_width is negative
-    """
-    if column_width < 0:
-        raise ValueError("Column width for optional column must be non-negative")
-
-    if value is not None:
-        entry_string = str(value)
-        if column_width > 0:
-            entry = f"{entry_string:{alignment}{column_width}}"
-        elif column_width == 0:
-            entry = entry_string
-    else:
-        entry = " " * column_width
-    return entry
-
-
 def process_file_size(file_size: str) -> str:
     """Utility function to take in a file size in bytes
     and format into a table ready format.
