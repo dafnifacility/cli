@@ -92,7 +92,7 @@ class TestModifyDatasetMetadataForUpload(TestCase):
 
         # CALL
         result = dataset_upload.modify_dataset_metadata_for_upload(
-            metadata, None, "new_version_message"
+            metadata, version_message="new_version_message"
         )
 
         # ASSERT

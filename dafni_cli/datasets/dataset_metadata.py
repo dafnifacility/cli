@@ -52,7 +52,7 @@ class DataFile(ParserBaseObject):
 
     _parser_params: ClassVar[List[ParserParam]] = [
         ParserParam("name", "spdx:fileName", str),
-        ParserParam("size", "dcat:byteSize", process_file_size),
+        ParserParam("size", "dcat:byteSize", int),
         ParserParam(
             "format",
             "dcat:mediaType",
@@ -419,7 +419,7 @@ class DatasetMetadata(ParserBaseObject):
             format_table(
                 headers=["Name", "Size", "Format"],
                 rows=[
-                    [datafile.name, datafile.size, datafile.format]
+                    [datafile.name, process_file_size(datafile.size), datafile.format]
                     for datafile in self.files
                 ],
             )

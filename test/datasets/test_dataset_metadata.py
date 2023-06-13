@@ -51,7 +51,7 @@ class TestDataFile(TestCase):
         self.assertEqual(datafile.name, TEST_DATASET_METADATA_DATAFILE["spdx:fileName"])
         self.assertEqual(
             datafile.size,
-            process_file_size(TEST_DATASET_METADATA_DATAFILE["dcat:byteSize"]),
+            TEST_DATASET_METADATA_DATAFILE["dcat:byteSize"],
         )
         self.assertEqual(
             datafile.format,
@@ -75,7 +75,7 @@ class TestDataFile(TestCase):
         )
         self.assertEqual(
             datafile.size,
-            process_file_size(TEST_DATASET_METADATA_DATAFILE_DEFAULT["dcat:byteSize"]),
+            TEST_DATASET_METADATA_DATAFILE_DEFAULT["dcat:byteSize"],
         )
         self.assertEqual(
             datafile.format,
@@ -624,7 +624,7 @@ class TestDatasetMetadataTestCase(TestCase):
         # ASSERT
         headers = ["Name", "Size", "Format"]
         rows = [
-            [datafile.name, datafile.size, datafile.format]
+            [datafile.name, process_file_size(datafile.size), datafile.format]
             for datafile in dataset_metadata.files
         ]
         mock_format_table.assert_called_once_with(headers=headers, rows=rows)
