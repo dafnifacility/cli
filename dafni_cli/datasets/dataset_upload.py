@@ -157,7 +157,7 @@ def modify_dataset_metadata_for_upload(
     if start_date:
         metadata["dct:PeriodOfTime"]["time:hasBeginning"] = start_date.isoformat()
     if end_date:
-        metadata["dct:PeriodOfTime"]["time:hasEnd"] = start_date.isoformat()
+        metadata["dct:PeriodOfTime"]["time:hasEnd"] = end_date.isoformat()
     if organisation:
         metadata["dct:creator"].append(
             {
