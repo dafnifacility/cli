@@ -2,7 +2,7 @@ import importlib.resources
 import json
 from datetime import datetime
 from pathlib import Path
-from typing import List, Optional, Tuple
+from typing import Optional, Tuple
 
 import click
 
@@ -102,7 +102,7 @@ def create():
 )
 @click.option(
     "--person",
-    type=str,
+    type=(str, str),
     multiple=True,
     help="Name and ID of a person who created the dataset. The ID can be an ORCID id or similar. (Can have multiple)",
 )
@@ -120,12 +120,12 @@ def create():
 )
 @click.option(
     "--publisher",
-    type=str,
+    type=(str, str),
     default=None,
     help="Publishing organisation name and ID. The ID can be an ORCID id or similar.",
 )
 @click.option(
-    "--contact-point",
+    "--contact",
     type=(str, str),
     required=True,
     help="Name and email address of the point of contact for queries about the dataset.",
@@ -153,7 +153,7 @@ def dataset_metadata(
     save_path: Path,
     title: str,
     description: str,
-    identifier: Optional[str],
+    identifier: Optional[Tuple[str]],
     subject: str,
     theme: Optional[Tuple[str]],
     language: str,
@@ -166,7 +166,7 @@ def dataset_metadata(
     created_date: Optional[datetime],
     update_frequency: Optional[str],
     publisher: Optional[Tuple[str, str]],
-    contact_point: Tuple[str, str],
+    contact: Tuple[str, str],
     license: str,
     rights: Optional[str],
     version_message: str,
@@ -196,7 +196,7 @@ def dataset_metadata(
         update_frequency (Optional[str]): Dataset update frequency, one of
                                 DATASET_METADATA_UPDATE_FREQUENCIES
         publisher (Optional[Tuple[str, str]]): Dataset publisher name and ID
-        contact_point (Optional[Tuple[str, str]]): Dataset contact point name
+        contact (Optional[Tuple[str, str]]): Dataset contact point name
                                 and email address
         license (str): URL to a license that applies to the dataset
         rights (Optional[str]): Description of any usage rights, restrictions
@@ -229,7 +229,7 @@ def dataset_metadata(
         created_date=created_date,
         update_frequency=update_frequency,
         publisher=publisher,
-        contact_point=contact_point,
+        contact=contact,
         license=license,
         rights=rights,
         version_message=version_message,

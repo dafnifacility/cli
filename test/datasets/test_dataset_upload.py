@@ -1,6 +1,6 @@
-from datetime import datetime
 import json
 from copy import deepcopy
+from datetime import datetime
 from pathlib import Path
 from unittest import TestCase
 from unittest.mock import MagicMock, call, mock_open, patch
@@ -109,7 +109,7 @@ class TestModifyDatasetMetadataForUpload(TestCase):
         created_date = datetime(2023, 5, 1)
         update_frequency = "Weekly"
         publisher = ("publisher_name", "publisher_id")
-        contact_point = ("contact_name", "contact_email_address")
+        contact = ("contact_name", "contact_email_address")
         license = "some/url"
         rights = "Rights"
         version_message = "new_version_message"
@@ -132,7 +132,7 @@ class TestModifyDatasetMetadataForUpload(TestCase):
             created_date=created_date,
             update_frequency=update_frequency,
             publisher=publisher,
-            contact_point=contact_point,
+            contact=contact,
             license=license,
             rights=rights,
             version_message=version_message,
@@ -181,10 +181,8 @@ class TestModifyDatasetMetadataForUpload(TestCase):
         self.assertEqual(result["dct:accrualPeriodicity"], update_frequency)
         self.assertEqual(result["dct:publisher"]["foaf:name"], publisher[0])
         self.assertEqual(result["dct:publisher"]["@id"], publisher[1])
-        self.assertEqual(result["dcat:contactPoint"]["vcard:fn"], contact_point[0])
-        self.assertEqual(
-            result["dcat:contactPoint"]["vcard:hasEmail"], contact_point[1]
-        )
+        self.assertEqual(result["dcat:contactPoint"]["vcard:fn"], contact[0])
+        self.assertEqual(result["dcat:contactPoint"]["vcard:hasEmail"], contact[1])
         self.assertEqual(result["dct:license"]["@id"], license)
         self.assertEqual(result["dct:rights"], rights)
 

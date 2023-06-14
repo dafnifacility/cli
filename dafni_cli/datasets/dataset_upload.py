@@ -66,7 +66,7 @@ def modify_dataset_metadata_for_upload(
     created_date: Optional[datetime] = None,
     update_frequency: Optional[str] = None,
     publisher: Optional[Tuple[str, str]] = None,
-    contact_point: Optional[Tuple[str]] = None,
+    contact: Optional[Tuple[str]] = None,
     license: Optional[str] = None,
     rights: Optional[str] = None,
     version_message: Optional[str] = None,
@@ -104,7 +104,7 @@ def modify_dataset_metadata_for_upload(
         update_frequency (Optional[str]): Dataset update frequency, one of
                                 DATASET_METADATA_UPDATE_FREQUENCIES
         publisher (Optional[Tuple[str, str]]): Dataset publisher name and ID
-        contact_point (Optional[Tuple[str, str]]): Dataset contact point name
+        contact (Optional[Tuple[str, str]]): Dataset contact point name
                                 and email address
         license (Optional[str]): URL to a license that applies to the dataset
         rights (Optional[str]): Description of any usage rights, restrictions
@@ -188,9 +188,9 @@ def modify_dataset_metadata_for_upload(
     if publisher:
         metadata["dct:publisher"]["foaf:name"] = publisher[0]
         metadata["dct:publisher"]["@id"] = publisher[1]
-    if contact_point:
-        metadata["dcat:contactPoint"]["vcard:fn"] = contact_point[0]
-        metadata["dcat:contactPoint"]["vcard:hasEmail"] = contact_point[1]
+    if contact:
+        metadata["dcat:contactPoint"]["vcard:fn"] = contact[0]
+        metadata["dcat:contactPoint"]["vcard:hasEmail"] = contact[1]
     if license:
         metadata["dct:license"]["@id"] = license
     if rights:
