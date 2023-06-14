@@ -1,6 +1,4 @@
-from abc import ABC, abstractmethod
 from dataclasses import dataclass
-from datetime import datetime
 from typing import ClassVar, List, Optional, Union
 
 from dateutil.parser import isoparse
@@ -32,10 +30,6 @@ class ParserParam:
                    will parse and return this object assuming the data at the
                    given key is a dictionary itself or in the case the data is
                    a list, then a list of dictionaries representing this type.
-
-                   If the type is a subclass of ParserDataType then it's
-                   parse_from_dict_value function will be called  to convert
-                   what appears in the dictionary.
             function: The function will be applied on the data e.g.
                       parse_datetime => parse_datetime(data)
             None: When None it is assumed no processing should be applied e.g.
@@ -45,32 +39,6 @@ class ParserParam:
     name: str
     keys: Union[str, List[str]]
     datatype: Optional[Union[type, callable]] = None
-
-
-class ParserDataType(ABC):
-    """Base class for parser data types used to parse a value from a
-    dictionary and back again"""
-
-    @staticmethod
-    @abstractmethod
-    def parse_from_dict_value(value):
-        """Should parse the value from the dictionary converting it into
-        an appropriate datatype
-
-        Args:
-            value: The value from the dictionary being parsed
-        """
-
-    @staticmethod
-    @abstractmethod
-    def convert_to_dict_value(value):
-        """Should convert a parsed value back into the appropriate datatype
-        for the dictionary
-
-        Args:
-            value: The value from the parsed object being converted to a
-                   dictionary
-        """
 
 
 class ParserBaseObject:
@@ -163,13 +131,6 @@ class ParserBaseObject:
                             parsed_param = ParserBaseObject.parse_from_dict(
                                 param.datatype, parsed_param
                             )
-                    elif isinstance(param.datatype, type) and issubclass(
-                        param.datatype, ParserDataType
-                    ):
-                        # Apply the parser function
-                        parsed_param = param.datatype.parse_from_dict_value(
-                            parsed_param
-                        )
                     else:
                         # Apply any constructor/function as required
                         parsed_param = param.datatype(parsed_param)
@@ -202,75 +163,10 @@ class ParserBaseObject:
             for dictionary in dictionaries
         ]
 
-    def convert_to_dict(self) -> dict:
-        dictionary = {}
-
-        # Each ParserParam equates to one attribute in the dataclass
-        for param in self._parser_params:
-            value = getattr(self, param.name)
-
-            if isinstance(param.datatype, type) and issubclass(
-                param.datatype, ParserBaseObject
-            ):
-                # When the value has a type that is also an instance of
-                # ParserBaseObject we also need to convert the contents of that
-
-                if isinstance(value, list):
-                    value = [current.convert_to_dict() for current in value]
-                else:
-                    value = value.convert_to_dict()
-            elif isinstance(param.datatype, type) and issubclass(
-                param.datatype, ParserDataType
-            ):
-                # Apply correct conversion function for the type
-                value = param.datatype.convert_to_dict_value(value)
-
-            # When keys is a list, we assume there is nesting of the
-            # dictionary and get the nested value
-            if isinstance(param.keys, list):
-                current_dict = {}
-                for key in param.keys[::-1]:
-                    current_dict[key] = value
-                    value = current_dict
-                    current_dict = {}
-            else:
-                # No nesting
-                value = {param.keys: value}
-            dictionary.update(value)
-
-        return dictionary
-
 
 # Below follows some utility functions for parsing types
 
 
-class ParserDatetime(ParserDataType):
-    """Class for handling datetime conversions to and from dictionaries"""
-
-    @staticmethod
-    def parse_from_dict_value(value) -> datetime:
-        """Parses a datetime value from a string and converts it to a datetime
-        object
-
-        Args:
-            value: The value from the dictionary being parsed
-
-        Returns:
-            datetime: The parsed datetime object
-        """
-        return isoparse(value)
-
-    @staticmethod
-    def convert_to_dict_value(value: Optional[datetime]) -> str:
-        """Converts a parsed datetime value back into the appropriate datatype
-        for the dictionary
-
-        Args:
-            value: The parsed datetime object
-
-        Returns:
-            str: The converted datetime as a string
-        """
-        if value:
-            return value.isoformat()
-        return None
+def parse_datetime(value: str):
+    """Converts a datetime string to a datetime object using isoparse"""
+    return isoparse(value)

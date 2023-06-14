@@ -254,7 +254,6 @@ def dataset(
         else:
             metadata_inst = parse_dataset_metadata(metadata)
             metadata_inst.output_metadata_details(long)
-            print(metadata_inst.convert_to_dict())
     else:
         metadata_inst = parse_dataset_metadata(metadata)
         metadata_inst.version_history.process_and_output_version_history(
