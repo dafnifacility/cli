@@ -3,15 +3,13 @@
         "metadata-v1"
     ],
     "@type": "dcat:Dataset",
-    "dct:title": "Uk Climate outputs - Joel Davies (CLI Upload)",
-    "dct:description": "Uk Climate model outputs",
+    "dct:title": null,
+    "dct:description": null,
     "dct:identifier": [],
-    "dct:subject": "Environment",
+    "dct:subject": null,
     "dcat:theme": [],
-    "dct:language": "en",
-    "dcat:keyword": [
-        "climate"
-    ],
+    "dct:language": null,
+    "dcat:keyword": [],
     "dct:conformsTo": {
         "@id": null,
         "@type": "dct:Standard",
@@ -29,15 +27,8 @@
         "time:hasEnd": null
     },
     "dct:accrualPeriodicity": null,
-    "dct:creator": [
-        {
-            "@type": "foaf:Organization",
-            "@id": "null",
-            "foaf:name": "DAFNI Workflows",
-            "internalID": null
-        }
-    ],
-    "dct:created": "2030-11-30T14:00:51.976403Z",
+    "dct:creator": [],
+    "dct:created": null,
     "dct:publisher": {
         "@id": null,
         "@type": "foaf:Organization",
@@ -46,8 +37,8 @@
     },
     "dcat:contactPoint": {
         "@type": "vcard:Organization",
-        "vcard:fn": "Joel Davies",
-        "vcard:hasEmail": "joel.davies@stfc.ac.uk"
+        "vcard:fn": null,
+        "vcard:hasEmail": null
     },
     "dct:license": {
         "@type": "LicenseDocument",

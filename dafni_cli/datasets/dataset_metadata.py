@@ -24,6 +24,88 @@ from dafni_cli.utils import (
     prose_print,
 )
 
+# Subjects valid for upload
+DATASET_METADATA_SUBJECTS = [
+    "Biota",
+    "Boundaries",
+    "Climate / Meteorology / Atmosphere",
+    "Economy",
+    "Elevation",
+    "Environment",
+    "Farming",
+    "Geoscientific Information",
+    "Health",
+    "Imagery / Base Maps / Earth Cover",
+    "Inland Waters",
+    "Intelligence / Military",
+    "Locations",
+    "Ocean",
+    "Planning / Cadastre",
+    "Society",
+    "Structure",
+    "Transportation",
+    "Utilities / Communication",
+]
+
+# Themes valid for upload
+DATASET_METADATA_THEMES = [
+    "Addresses",
+    "Administrative units",
+    "Agricultural and aquaculture facilities",
+    "Area management / restriction / regulation zones & reporting units",
+    "Atmospheric conditions",
+    "Bio-geographical regions",
+    "Buildings",
+    "Cadastral parcels",
+    "Coordinate reference systems",
+    "Elevation",
+    "Energy Resources",
+    "Environmental monitoring Facilities",
+    "Geographical grid systems",
+    "Geographical names",
+    "Geology",
+    "Habitats and biotopes",
+    "Human health and safety",
+    "Hydrology",
+    "Land cover",
+    "Land use",
+    "Meteorological geographical features",
+    "Mineral Resources",
+    "Natural risk zones",
+    "Oceanographic geographical features",
+    "Orthoimagery",
+    "Population distribution and demography",
+    "Production and industrial facilities",
+    "Protected sites",
+    "Sea regions",
+    "Soil",
+    "Species distribution",
+    "Statistical units",
+    "Transport networks",
+    "Utility and governmental services",
+]
+
+# Update frequencies valid for upload
+DATASET_METADATA_UPDATE_FREQUENCIES = [
+    "Triennial",
+    "Biennial",
+    "Annual",
+    "Semiannual",
+    "Three times a year",
+    "Quarterly",
+    "Bimonthly",
+    "Monthly",
+    "Semimonthly",
+    "Biweekly",
+    "Three times a month",
+    "Weekly",
+    "Semiweekly",
+    "Three times a week",
+    "Daily",
+    "Continuous",
+    "Irregular",
+]
+
 
 @dataclass
 class DataFile(ParserBaseObject):
