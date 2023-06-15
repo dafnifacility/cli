@@ -78,15 +78,15 @@ class TestCreateDatasetMetadata(TestCase):
                 title=title,
                 description=description,
                 subject=subject,
-                identifiers=(),
-                themes=(),
+                identifiers=None,
+                themes=None,
                 language=language,
                 keywords=keywords,
                 standard=None,
                 start_date=None,
                 end_date=None,
                 organisation=organisation,
-                people=(),
+                people=None,
                 created_date=ANY,
                 update_frequency=None,
                 publisher=None,
@@ -133,7 +133,7 @@ class TestCreateDatasetMetadata(TestCase):
         contact = ("contact_point_name", "contact_point_email_address")
         license = "some/license/url"
         rights = "Some rights"
-        version_message = "Some version messsage"
+        version_message = "Some version message"
 
         template_metadata = json.loads(
             importlib.resources.read_text(

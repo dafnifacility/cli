@@ -49,12 +49,18 @@ def dataset_metadata_common_options(all_optional: bool):
         version_message (str): Version message
     """
 
+    # By default click returns an empty tuple instead of None for options with
+    # multiple=True, override here for consistency
+    def default_none(ctx, _, value):
+        return None if len(value) == 0 else value
+
     # Arguments that will be used to indicate something as required
-    # Will use the default required = False and have a default of None
-    # in the case all_optional is True
+    # Will use the default required = False and have a default of None in the
+    # case all_optional is True
     required_args = {"required": True}
     if all_optional:
         required_args = {"default": None}
+    required_args_tuple = {**required_args, "callback": default_none}
 
     def decorator(function):
         function = click.option(
@@ -72,7 +78,7 @@ def dataset_metadata_common_options(all_optional: bool):
         function = click.option(
             "--identifier",
             type=str,
-            default=None,
+            callback=default_none,
             multiple=True,
             help="Permanent URL of external identifier for this dataset (e.g. DOI). (Can have multiple)",
         )(function)
@@ -85,7 +91,7 @@ def dataset_metadata_common_options(all_optional: bool):
         function = click.option(
             "--theme",
             type=click.Choice(DATASET_METADATA_THEMES),
-            default=None,
+            callback=default_none,
             multiple=True,
             help="Theme, one of those found at https://inspire.ec.europa.eu/Themes/Data-Specifications/2892. Can have multiple.",
         )(function)
@@ -98,7 +104,7 @@ def dataset_metadata_common_options(all_optional: bool):
         function = click.option(
             "--keyword",
             type=str,
-            **required_args,
+            **required_args_tuple,
             multiple=True,
             help="Keyword used in data searches (Can have multiple)",
         )(function)
@@ -129,12 +135,13 @@ def dataset_metadata_common_options(all_optional: bool):
         function = click.option(
             "--person",
             type=(str, str),
+            callback=default_none,
             multiple=True,
             help="Name and ID of a person who created the dataset. The ID can be an ORCID id or similar. (Can have multiple)",
         )(function)
         function = click.option(
             "--created-date",
-            default=datetime.now(),
+            default=None if all_optional else datetime.now(),
             help=f"Created date. Format: {DATE_INPUT_FORMAT_VERBOSE}",
             type=click.DateTime(formats=[DATE_INPUT_FORMAT]),
         )(function)
@@ -159,7 +166,9 @@ def dataset_metadata_common_options(all_optional: bool):
         function = click.option(
             "--license",
             type=str,
-            default="https://creativecommons.org/licences/by/4.0/",
+            default=None
+            if all_optional
+            else "https://creativecommons.org/licences/by/4.0/",
             help="Permanent URL of an applicable license.",
         )(function)
         function = click.option(
