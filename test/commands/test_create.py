@@ -3,7 +3,7 @@ import json
 from datetime import datetime
 from pathlib import Path
 from unittest import TestCase
-from unittest.mock import ANY, patch
+from unittest.mock import patch
 
 from click.testing import CliRunner
 
