@@ -50,9 +50,9 @@ class TestCreateDatasetMetadata(TestCase):
         }
 
         template_metadata = json.loads(
-            importlib.resources.read_text(
-                "dafni_cli.data", "dataset_metadata_template.json"
-            )
+            importlib.resources.files("dafni_cli.data")
+            .joinpath("dataset_metadata_template.json")
+            .read_text(encoding="utf-8")
         )
         mock_modify_dataset_metadata_for_upload.return_value = template_metadata
 
@@ -122,9 +122,9 @@ class TestCreateDatasetMetadata(TestCase):
         }
 
         template_metadata = json.loads(
-            importlib.resources.read_text(
-                "dafni_cli.data", "dataset_metadata_template.json"
-            )
+            importlib.resources.files("dafni_cli.data")
+            .joinpath("dataset_metadata_template.json")
+            .read_text(encoding="utf-8")
         )
         mock_modify_dataset_metadata_for_upload.return_value = template_metadata
 

@@ -59,9 +59,9 @@ def dataset_metadata(
 
     # Load template dataset metadata
     template_metadata = json.loads(
-        importlib.resources.read_text(
-            "dafni_cli.data", "dataset_metadata_template.json"
-        )
+        importlib.resources.files("dafni_cli.data")
+        .joinpath("dataset_metadata_template.json")
+        .read_text(encoding="utf-8")
     )
 
     # Load/modify the existing metadata according to the user input
