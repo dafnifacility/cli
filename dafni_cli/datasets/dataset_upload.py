@@ -17,6 +17,7 @@ from dafni_cli.api.minio_api import (
 )
 from dafni_cli.api.session import DAFNISession
 from dafni_cli.datasets.dataset_metadata import (
+    DATASET_METADATA_LANGUAGES,
     DATASET_METADATA_SUBJECTS,
     DATASET_METADATA_THEMES,
     DATASET_METADATA_UPDATE_FREQUENCIES,
@@ -89,7 +90,8 @@ def modify_dataset_metadata_for_upload(
                                  DATASET_METADATA_SUBJECTS)
         themes (Optional[Tuple[str]]): Dataset themes (One of
                                  DATASET_METADATA_THEMES)
-        language (Optional[str]): Dataset language e.g. en
+        language (Optional[str]): Dataset language, one of
+                                  DATASET_METADATA_LANGUAGES
         keywords (Optional[Tuple[str]]): Dataset keywords used for data
                                          searches
         standard (Optional[Tuple[str, str]]): Dataset standard consisting of
@@ -148,6 +150,10 @@ def modify_dataset_metadata_for_upload(
                 )
         metadata["dcat:theme"] = list(themes)
     if language:
+        if language not in DATASET_METADATA_LANGUAGES:
+            raise ValueError(
+                f"Language '{language}' is invalid, choose one from {''.join(DATASET_METADATA_LANGUAGES)}"
+            )
         metadata["dct:language"] = language
     if keywords:
         metadata["dcat:keyword"] = list(keywords)

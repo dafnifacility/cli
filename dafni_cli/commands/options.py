@@ -4,6 +4,7 @@ import click
 
 from dafni_cli.consts import DATE_INPUT_FORMAT, DATE_INPUT_FORMAT_VERBOSE
 from dafni_cli.datasets.dataset_metadata import (
+    DATASET_METADATA_LANGUAGES,
     DATASET_METADATA_SUBJECTS,
     DATASET_METADATA_THEMES,
     DATASET_METADATA_UPDATE_FREQUENCIES,
@@ -27,7 +28,7 @@ def dataset_metadata_common_options(all_optional: bool):
         subject (str): Dataset subject (One of DATASET_METADATA_SUBJECTS)
         theme (Optional[Tuple[str]]): Dataset themes (One of
                                       DATASET_METADATA_THEMES)
-        language (str): Dataset language e.g. en
+        language (str): Dataset language, one of DATASET_METADATA_LANGUAGES
         keywords (Tuple[str]): Dataset keywords used for data searches
         standard (Optional[Tuple[str, str]]): Dataset standard consisting of
                                 a name and URL
@@ -97,7 +98,7 @@ def dataset_metadata_common_options(all_optional: bool):
         )(function)
         function = click.option(
             "--language",
-            type=str,
+            type=click.Choice(DATASET_METADATA_LANGUAGES),
             **required_args,
             help="Language",
         )(function)

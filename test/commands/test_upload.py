@@ -7,7 +7,6 @@ from unittest.mock import MagicMock, patch
 from click.testing import CliRunner
 
 from dafni_cli.commands import upload
-from dafni_cli.consts import DATE_INPUT_FORMAT
 from dafni_cli.datasets.dataset_metadata import parse_dataset_metadata
 from test.commands.test_optional import add_dataset_metadata_common_options
 
@@ -738,7 +737,7 @@ class TestUploadDatasetVersion(TestCase):
         mock_modify_dataset_metadata_for_upload.assert_called_once_with(
             existing_metadata=TEST_DATASET_METADATA,
             metadata_path=Path(metadata_path),
-            **options
+            **options,
         )
         mock_upload_dataset.assert_called_once_with(
             session,

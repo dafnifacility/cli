@@ -13,6 +13,7 @@ from dafni_cli.datasets.dataset_metadata import (
     DATASET_METADATA_SUBJECTS,
     DATASET_METADATA_THEMES,
     DATASET_METADATA_UPDATE_FREQUENCIES,
+    DATASET_METADATA_LANGUAGES,
 )
 
 from test.fixtures.dataset_metadata import TEST_DATASET_METADATA
@@ -99,7 +100,7 @@ class TestModifyDatasetMetadataForUpload(TestCase):
         identifiers = ("some", "identifiers")
         subject = "Environment"
         themes = ("Addresses", "Geology")
-        language = "new_language"
+        language = "en"
         keywords = ("some", "keywords")
         standard = ("standard_name", "standard_url")
         start_date = datetime(2023, 1, 10)
@@ -226,6 +227,23 @@ class TestModifyDatasetMetadataForUpload(TestCase):
         self.assertEqual(
             str(err.exception),
             f"Theme 'Invalid theme' is invalid, choose one from {''.join(DATASET_METADATA_THEMES)}",
+        )
+
+    def test_with_invalid_language_raises_error(self, mock_open, mock_remove_invalid):
+        """Tests that calling the function when an invalid language raises
+        an appropriate ValueError"""
+
+        # SETUP
+        metadata = TEST_DATASET_METADATA
+
+        # CALL & ASSERT
+        with self.assertRaises(ValueError) as err:
+            dataset_upload.modify_dataset_metadata_for_upload(
+                metadata, language="Invalid language"
+            )
+        self.assertEqual(
+            str(err.exception),
+            f"Language 'Invalid language' is invalid, choose one from {''.join(DATASET_METADATA_LANGUAGES)}",
         )
 
     def test_with_invalid_update_frequency_raises_error(
