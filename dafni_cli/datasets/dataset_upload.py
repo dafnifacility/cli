@@ -49,6 +49,18 @@ def remove_dataset_metadata_invalid_for_upload(metadata: dict):
             del metadata[key]
 
 
+def _remove_existing_creators_from_metadata(creator_list: List, creator_type: str):
+    """Removes any existing creators with a given creator type from
+    a list from dataset metadata
+
+    Args:
+        creator_list: List of creators
+    """
+    for creator in creator_list.copy():
+        if creator["@type"] == creator_type:
+            creator_list.remove(creator)
+
+
 def modify_dataset_metadata_for_upload(
     existing_metadata: dict,
     metadata_path: Optional[Path] = None,
@@ -164,7 +176,12 @@ def modify_dataset_metadata_for_upload(
         metadata["dct:PeriodOfTime"]["time:hasBeginning"] = start_date.isoformat()
     if end_date:
         metadata["dct:PeriodOfTime"]["time:hasEnd"] = end_date.isoformat()
+
     if organisation:
+        # Remove any existing
+        _remove_existing_creators_from_metadata(
+            metadata["dct:creator"], "foaf:Organization"
+        )
         metadata["dct:creator"].append(
             {
                 "@type": "foaf:Organization",
@@ -174,6 +191,8 @@ def modify_dataset_metadata_for_upload(
             }
         )
     if people:
+        # Remove any existing
+        _remove_existing_creators_from_metadata(metadata["dct:creator"], "foaf:Person")
         for person in people:
             metadata["dct:creator"].append(
                 {

@@ -157,9 +157,8 @@ class TestModifyDatasetMetadataForUpload(TestCase):
         self.assertEqual(
             result["dct:PeriodOfTime"]["time:hasEnd"], end_date.isoformat()
         )
-        result_organisation = result["dct:creator"][-(len(people) + 1)]
         self.assertEqual(
-            result_organisation,
+            result["dct:creator"][0],
             {
                 "@type": "foaf:Organization",
                 "foaf:name": organisation[0],
@@ -168,9 +167,8 @@ class TestModifyDatasetMetadataForUpload(TestCase):
             },
         )
         for i, person in enumerate(people):
-            result_person = result["dct:creator"][-(len(people) - i)]
             self.assertEqual(
-                result_person,
+                result["dct:creator"][i + 1],
                 {
                     "@type": "foaf:Person",
                     "foaf:name": person[0],
