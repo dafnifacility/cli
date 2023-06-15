@@ -1,0 +1,180 @@
+from datetime import datetime
+
+import click
+
+from dafni_cli.consts import DATE_INPUT_FORMAT, DATE_INPUT_FORMAT_VERBOSE
+from dafni_cli.datasets.dataset_metadata import (
+    DATASET_METADATA_SUBJECTS,
+    DATASET_METADATA_THEMES,
+    DATASET_METADATA_UPDATE_FREQUENCIES,
+)
+
+
+def dataset_metadata_common_options(all_optional: bool):
+    """Decorator function containing various optional arguments for modifying
+    or creating dataset metadata
+
+    Args:
+        all_optional: Whether all arguments should be optional (used for
+                      updating metadata rather than creating it)
+
+    Here is a full list of the options that are added (all listed as not
+    Optional are required unless all_optional=True)
+
+        title (str): Dataset title
+        description (str): Dataset description
+        identifier (Optional[Tuple[str]]): Dataset identifiers
+        subject (str): Dataset subject (One of DATASET_METADATA_SUBJECTS)
+        theme (Optional[Tuple[str]]): Dataset themes (One of
+                                      DATASET_METADATA_THEMES)
+        language (str): Dataset language e.g. en
+        keywords (Tuple[str]): Dataset keywords used for data searches
+        standard (Optional[Tuple[str, str]]): Dataset standard consisting of
+                                a name and URL
+        start_date (Optional[datetime]): Dataset start date
+        end_date (Optional[datetime]): Dataset end date
+        organisation (Tuple[str, str]): Name and URL of the organisation that
+                                created the dataset
+        person (Optional[Tuple[Tuple[str, str]]]): Name and ID of a person
+                                involved in the creation of the dataset
+        created_date (Optional[datetime]): Dataset creation date
+        update_frequency (Optional[str]): Dataset update frequency, one of
+                                DATASET_METADATA_UPDATE_FREQUENCIES
+        publisher (Optional[Tuple[str, str]]): Dataset publisher name and ID
+        contact (Optional[Tuple[str, str]]): Dataset contact point name
+                                and email address
+        license (str): URL to a license that applies to the dataset
+        rights (Optional[str]): Description of any usage rights, restrictions
+                                or citations required by users of the dataset
+        version_message (str): Version message
+    """
+
+    # Arguments that will be used to indicate something as required
+    # Will use the default required = False and have a default of None
+    # in the case all_optional is True
+    required_args = {"required": True}
+    if all_optional:
+        required_args = {"default": None}
+
+    def decorator(function):
+        function = click.option(
+            "--title",
+            type=str,
+            **required_args,
+            help="Title of the dataset",
+        )(function)
+        function = click.option(
+            "--description",
+            type=str,
+            **required_args,
+            help="Description of the dataset",
+        )(function)
+        function = click.option(
+            "--identifier",
+            type=str,
+            default=None,
+            multiple=True,
+            help="Permanent URL of external identifier for this dataset (e.g. DOI). (Can have multiple)",
+        )(function)
+        function = click.option(
+            "--subject",
+            type=click.Choice(DATASET_METADATA_SUBJECTS),
+            **required_args,
+            help="Subject, one of those found at https://inspire.ec.europa.eu/metadata-codelist/TopicCategory",
+        )(function)
+        function = click.option(
+            "--theme",
+            type=click.Choice(DATASET_METADATA_THEMES),
+            default=None,
+            multiple=True,
+            help="Theme, one of those found at https://inspire.ec.europa.eu/Themes/Data-Specifications/2892. Can have multiple.",
+        )(function)
+        function = click.option(
+            "--language",
+            type=str,
+            **required_args,
+            help="Language",
+        )(function)
+        function = click.option(
+            "--keyword",
+            type=str,
+            **required_args,
+            multiple=True,
+            help="Keyword used in data searches (Can have multiple)",
+        )(function)
+        function = click.option(
+            "--standard",
+            type=(str, str),
+            default=None,
+            help="Name and URL of a standard to which this dataset conforms (e.g. www.iso.org/standard/39229.html).",
+        )(function)
+        function = click.option(
+            "--start-date",
+            default=None,
+            help=f"Start date. Format: {DATE_INPUT_FORMAT_VERBOSE}",
+            type=click.DateTime(formats=[DATE_INPUT_FORMAT]),
+        )(function)
+        function = click.option(
+            "--end-date",
+            default=None,
+            help=f"End date. Format: {DATE_INPUT_FORMAT_VERBOSE}",
+            type=click.DateTime(formats=[DATE_INPUT_FORMAT]),
+        )(function)
+        function = click.option(
+            "--organisation",
+            type=(str, str),
+            **required_args,
+            help="Name and ID of the organisation that created the dataset. he ID can be an ORCID id or similar.",
+        )(function)
+        function = click.option(
+            "--person",
+            type=(str, str),
+            multiple=True,
+            help="Name and ID of a person who created the dataset. The ID can be an ORCID id or similar. (Can have multiple)",
+        )(function)
+        function = click.option(
+            "--created-date",
+            default=datetime.now(),
+            help=f"Created date. Format: {DATE_INPUT_FORMAT_VERBOSE}",
+            type=click.DateTime(formats=[DATE_INPUT_FORMAT]),
+        )(function)
+        function = click.option(
+            "--update-frequency",
+            type=click.Choice(DATASET_METADATA_UPDATE_FREQUENCIES),
+            default=None,
+            help="Update frequency.",
+        )(function)
+        function = click.option(
+            "--publisher",
+            type=(str, str),
+            default=None,
+            help="Publishing organisation name and ID. The ID can be an ORCID id or similar.",
+        )(function)
+        function = click.option(
+            "--contact",
+            type=(str, str),
+            **required_args,
+            help="Name and email address of the point of contact for queries about the dataset.",
+        )(function)
+        function = click.option(
+            "--license",
+            type=str,
+            default="https://creativecommons.org/licences/by/4.0/",
+            help="Permanent URL of an applicable license.",
+        )(function)
+        function = click.option(
+            "--rights",
+            type=str,
+            default=None,
+            help="Details of any usage rights, restrictions or citations required by users of the dataset.",
+        )(function)
+        function = click.option(
+            "--version-message",
+            type=str,
+            **required_args,
+            help="Version message to replace in any existing or provided metadata.",
+        )(function)
+
+        return function
+
+    return decorator

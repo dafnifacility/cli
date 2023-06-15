@@ -32,7 +32,7 @@ class TestCreateDatasetMetadata(TestCase):
         keywords = ("test", "another_test")
         organisation = ("organisation_name", "organisation_url")
         contact = ("contact_point_name", "contact_point_email_address")
-        version_message = "Some version messsage"
+        version_message = "Some version message"
 
         template_metadata = json.loads(
             importlib.resources.read_text(
