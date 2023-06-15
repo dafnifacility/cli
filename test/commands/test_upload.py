@@ -9,6 +9,7 @@ from click.testing import CliRunner
 from dafni_cli.commands import upload
 from dafni_cli.consts import DATE_INPUT_FORMAT
 from dafni_cli.datasets.dataset_metadata import parse_dataset_metadata
+from test.commands.test_optional import add_dataset_metadata_common_options
 
 from test.fixtures.dataset_metadata import TEST_DATASET_METADATA
 
@@ -679,90 +680,42 @@ class TestUploadDatasetVersion(TestCase):
         mock_get_latest_dataset_metadata.return_value = TEST_DATASET_METADATA
         metadata = parse_dataset_metadata(TEST_DATASET_METADATA)
 
-        title = "Dataset title"
-        description = "Dataset description"
-        identifiers = ("test", "identifiers")
-        subject = "Farming"
-        themes = ("Buildings", "Hydrology")
-        language = "en"
-        keywords = ("test", "another_test")
-        standard = ("standard_name", "standard_url")
-        start_date = datetime(2022, 6, 28)
-        end_date = datetime(2022, 8, 10)
-        organisation = ("organisation_name", "organisation_url")
-        people = (("person-1-name", "person-1-id"), ("person-2-name", "person-2-id"))
-        created_date = datetime(2023, 6, 14)
-        update_frequency = "Annual"
-        publisher = ("publisher_name", "publisher_id")
-        contact = ("contact_point_name", "contact_point_email_address")
-        license = "some/license/url"
-        rights = "Some rights"
-        version_message = "Some version message"
+        options = {
+            "title": "Dataset title",
+            "description": "Dataset description",
+            "identifiers": ("test", "identifiers"),
+            "subject": "Farming",
+            "themes": ("Buildings", "Hydrology"),
+            "language": "en",
+            "keywords": ("test", "another_test"),
+            "standard": ("standard_name", "standard_url"),
+            "start_date": datetime(2022, 6, 28),
+            "end_date": datetime(2022, 8, 10),
+            "organisation": ("organisation_name", "organisation_url"),
+            "people": (
+                ("person-1-name", "person-1-id"),
+                ("person-2-name", "person-2-id"),
+            ),
+            "created_date": datetime(2023, 6, 14),
+            "update_frequency": "Annual",
+            "publisher": ("publisher_name", "publisher_id"),
+            "contact": ("contact_point_name", "contact_point_email_address"),
+            "license": "some/license/url",
+            "rights": "Some rights",
+            "version_message": "Some version message",
+        }
 
-        args = [
-            "dataset-version",
-            dataset_version_id,
-            file_path,
-            "--metadata",
-            metadata_path,
-            "--title",
-            title,
-            "--description",
-            description,
-        ]
-        for identifier in identifiers:
-            args.extend(["--identifier", identifier])
-        args.extend(
-            [
-                "--subject",
-                subject,
-            ]
-        )
-        for theme in themes:
-            args.extend(["--theme", theme])
-        args.extend(
-            [
-                "--language",
-                language,
-            ]
-        )
-        for keyword in keywords:
-            args.extend(["--keyword", keyword])
-        args.extend(
-            [
-                "--standard",
-                standard[0],
-                standard[1],
-                "--start-date",
-                start_date.strftime(DATE_INPUT_FORMAT),
-                "--end-date",
-                end_date.strftime(DATE_INPUT_FORMAT),
-                "--organisation",
-                organisation[0],
-                organisation[1],
-            ]
-        )
-        for person in people:
-            args.extend(["--person", person[0], person[1]])
-        args.extend(
-            [
-                "--created-date",
-                created_date.strftime(DATE_INPUT_FORMAT),
-                "--update-frequency",
-                update_frequency,
-                "--publisher",
-                publisher[0],
-                publisher[1],
-                "--contact",
-                contact[0],
-                contact[1],
-                "--license",
-                license,
-                "--rights",
-                rights,
-                "--version-message",
-                version_message,
-            ]
+        args = add_dataset_metadata_common_options(
+            args=[
+                "dataset-version",
+                dataset_version_id,
+                file_path,
+                "--metadata",
+                metadata_path,
+            ],
+            all_optional=True,
+            dictionary=options,
+            **options,
         )
 
         # CALL
@@ -785,25 +738,7 @@ class TestUploadDatasetVersion(TestCase):
         mock_modify_dataset_metadata_for_upload.assert_called_once_with(
             existing_metadata=TEST_DATASET_METADATA,
             metadata_path=Path(metadata_path),
-            title=title,
-            description=description,
-            subject=subject,
-            identifiers=identifiers,
-            themes=themes,
-            language=language,
-            keywords=keywords,
-            standard=standard,
-            start_date=start_date,
-            end_date=end_date,
-            organisation=organisation,
-            people=people,
-            created_date=created_date,
-            update_frequency=update_frequency,
-            publisher=publisher,
-            contact=contact,
-            license=license,
-            rights=rights,
-            version_message=version_message,
+            **options
         )
         mock_upload_dataset.assert_called_once_with(
             session,
@@ -994,89 +929,41 @@ class TestUploadDatasetMetadata(TestCase):
         mock_get_latest_dataset_metadata.return_value = TEST_DATASET_METADATA
         metadata = parse_dataset_metadata(TEST_DATASET_METADATA)
 
-        title = "Dataset title"
-        description = "Dataset description"
-        identifiers = ("test", "identifiers")
-        subject = "Farming"
-        themes = ("Buildings", "Hydrology")
-        language = "en"
-        keywords = ("test", "another_test")
-        standard = ("standard_name", "standard_url")
-        start_date = datetime(2022, 6, 28)
-        end_date = datetime(2022, 8, 10)
-        organisation = ("organisation_name", "organisation_url")
-        people = (("person-1-name", "person-1-id"), ("person-2-name", "person-2-id"))
-        created_date = datetime(2023, 6, 14)
-        update_frequency = "Annual"
-        publisher = ("publisher_name", "publisher_id")
-        contact = ("contact_point_name", "contact_point_email_address")
-        license = "some/license/url"
-        rights = "Some rights"
-        version_message = "Some version message"
+        options = {
+            "title": "Dataset title",
+            "description": "Dataset description",
+            "identifiers": ("test", "identifiers"),
+            "subject": "Farming",
+            "themes": ("Buildings", "Hydrology"),
+            "language": "en",
+            "keywords": ("test", "another_test"),
+            "standard": ("standard_name", "standard_url"),
+            "start_date": datetime(2022, 6, 28),
+            "end_date": datetime(2022, 8, 10),
+            "organisation": ("organisation_name", "organisation_url"),
+            "people": (
+                ("person-1-name", "person-1-id"),
+                ("person-2-name", "person-2-id"),
+            ),
+            "created_date": datetime(2023, 6, 14),
+            "update_frequency": "Annual",
+            "publisher": ("publisher_name", "publisher_id"),
+            "contact": ("contact_point_name", "contact_point_email_address"),
+            "license": "some/license/url",
+            "rights": "Some rights",
+            "version_message": "Some version message",
+        }
 
-        args = [
-            "dataset-metadata",
-            dataset_version_id,
-            "--metadata",
-            metadata_path,
-            "--title",
-            title,
-            "--description",
-            description,
-        ]
-        for identifier in identifiers:
-            args.extend(["--identifier", identifier])
-        args.extend(
-            [
-                "--subject",
-                subject,
-            ]
-        )
-        for theme in themes:
-            args.extend(["--theme", theme])
-        args.extend(
-            [
-                "--language",
-                language,
-            ]
-        )
-        for keyword in keywords:
-            args.extend(["--keyword", keyword])
-        args.extend(
-            [
-                "--standard",
-                standard[0],
-                standard[1],
-                "--start-date",
-                start_date.strftime(DATE_INPUT_FORMAT),
-                "--end-date",
-                end_date.strftime(DATE_INPUT_FORMAT),
-                "--organisation",
-                organisation[0],
-                organisation[1],
-            ]
-        )
-        for person in people:
-            args.extend(["--person", person[0], person[1]])
-        args.extend(
-            [
-                "--created-date",
-                created_date.strftime(DATE_INPUT_FORMAT),
-                "--update-frequency",
-                update_frequency,
-                "--publisher",
-                publisher[0],
-                publisher[1],
-                "--contact",
-                contact[0],
-                contact[1],
-                "--license",
-                license,
-                "--rights",
-                rights,
-                "--version-message",
-                version_message,
-            ]
+        args = add_dataset_metadata_common_options(
+            args=[
+                "dataset-metadata",
+                dataset_version_id,
+                "--metadata",
+                metadata_path,
+            ],
+            all_optional=True,
+            dictionary=options,
+            **options,
         )
 
         # CALL
@@ -1097,25 +984,7 @@ class TestUploadDatasetMetadata(TestCase):
         mock_modify_dataset_metadata_for_upload.assert_called_once_with(
             existing_metadata=TEST_DATASET_METADATA,
             metadata_path=Path(metadata_path),
-            title=title,
-            description=description,
-            subject=subject,
-            identifiers=identifiers,
-            themes=themes,
-            language=language,
-            keywords=keywords,
-            standard=standard,
-            start_date=start_date,
-            end_date=end_date,
-            organisation=organisation,
-            people=people,
-            created_date=created_date,
-            update_frequency=update_frequency,
-            publisher=publisher,
-            contact=contact,
-            license=license,
-            rights=rights,
-            version_message=version_message,
+            **options,
         )
         mock_upload_dataset_metadata_version.assert_called_once_with(
             session,
