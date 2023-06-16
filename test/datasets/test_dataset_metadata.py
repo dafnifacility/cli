@@ -400,6 +400,9 @@ class TestDatasetMetadataTestCase(TestCase):
         self.assertEqual(metadata.keywords, TEST_DATASET_METADATA["dcat:keyword"])
 
         self.assertEqual(
+            metadata.modified, datetime(2021, 3, 16, 9, 27, 21, tzinfo=tzutc())
+        )
+        self.assertEqual(
             metadata.issued, datetime(2021, 3, 16, 9, 27, 21, tzinfo=tzutc())
         )
         self.assertEqual(metadata.language, TEST_DATASET_METADATA["dct:language"])

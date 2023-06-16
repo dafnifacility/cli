@@ -259,8 +259,8 @@ class DatasetVersionHistory(ParserBaseObject):
         self, session: DAFNISession, json_flag: bool = False
     ):
         """Iterates through all version history ID's, retrieves the associated
-        dataset metadata, and outputs the version details or Dataset metadata
-        json for each version to the command line.
+        dataset metadata, and outputs either the version details in a table or
+        Dataset metadata json for each version to the command line.
 
         Args:
             json_flag (bool): Whether to print the Dataset metadata json for
@@ -268,7 +268,7 @@ class DatasetVersionHistory(ParserBaseObject):
                               Default: False
         """
         json_list = []
-        for version in self.versions:
+        for i, version in enumerate(self.versions):
             metadata = get_latest_dataset_metadata(session, version.version_id)
             if json_flag:
                 json_list.append(metadata)
@@ -326,6 +326,7 @@ class DatasetMetadata(ParserBaseObject):
     contact: Contact
     location: Location
     keywords: List[str]
+    modified: datetime
     issued: datetime
     language: str
     asset_id: str
@@ -354,6 +355,7 @@ class DatasetMetadata(ParserBaseObject):
         ParserParam("contact", "dcat:contactPoint", Contact),
         ParserParam("location", "dct:spatial", Location),
         ParserParam("keywords", "dcat:keyword"),
+        ParserParam("modified", "dct:modified", parse_datetime),
         ParserParam("issued", "dct:issued", parse_datetime),
         ParserParam("language", "dct:language", str),
         ParserParam("asset_id", ["@id", "asset_id"], str),
