@@ -54,12 +54,7 @@ TEST_MODEL_SPEC: dict = {
     "outputs": TEST_MODEL_OUTPUTS,
 }
 
-TEST_MODEL_SPEC_DEFAULT: dict = {
-    "image": "some/image/url",
-    "inputs": None,
-    "command": ["python", "some_script.py"],
-    "outputs": None,
-}
+TEST_MODEL_SPEC_DEFAULT: dict = {}
 
 TEST_MODEL: dict = {
     "id": "0a0a0a0a-0a00-0a00-a000-0a0a0000000a",

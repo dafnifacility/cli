@@ -45,8 +45,7 @@ class TestModelSpec(TestCase):
             ModelSpec, TEST_MODEL_SPEC_DEFAULT
         )
 
-        self.assertEqual(model_spec.image_url, TEST_MODEL_SPEC["image"])
-
+        self.assertEqual(model_spec.image_url, None)
         self.assertEqual(model_spec.inputs, None)
         self.assertEqual(model_spec.outputs, None)
 

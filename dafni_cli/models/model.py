@@ -62,11 +62,12 @@ class ModelSpec(ParserBaseObject):
        the image url and inputs)
 
     Attributes:
-        image_url (str): URL of the image of the model
-        inputs (ModelInputs): Structure containing the input of the model
+        image_url (Optional[str]): URL of the image of the model (None if ingest failed)
+        inputs (Optional[ModelInputs]): Structure containing the inputs of the model
+        outputs (Optional[ModelOutputs]): Structure containing the outputs of the model
     """
 
-    image_url: str
+    image_url: Optional[str] = None
     inputs: Optional[ModelInputs] = None
     outputs: Optional[ModelOutputs] = None
 
