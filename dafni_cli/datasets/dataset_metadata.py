@@ -6,7 +6,6 @@ from typing import ClassVar, List, Optional, Tuple
 import click
 from dafni_cli.api.auth import Auth
 
-from dafni_cli.api.datasets_api import get_latest_dataset_metadata
 from dafni_cli.api.minio_api import minio_get_request
 from dafni_cli.api.parser import ParserBaseObject, ParserParam, parse_datetime
 from dafni_cli.api.session import DAFNISession
@@ -14,12 +13,13 @@ from dafni_cli.consts import (
     CONSOLE_WIDTH,
     DATA_FORMATS,
     OUTPUT_UNKNOWN_FORMAT,
-    TAB_SPACE,
+    TABLE_MODIFIED_HEADER,
+    TABLE_VERSION_ID_HEADER,
+    TABLE_VERSION_MESSAGE_HEADER,
 )
 from dafni_cli.utils import (
     format_datetime,
     format_table,
-    print_json,
     process_file_size,
     prose_print,
 )
@@ -255,30 +255,31 @@ class DatasetVersionHistory(ParserBaseObject):
         ParserParam("versions", "versions", DatasetVersion),
     ]
 
-    def process_and_output_version_history(
-        self, session: DAFNISession, json_flag: bool = False
-    ):
-        """Iterates through all version history ID's, retrieves the associated
-        dataset metadata, and outputs either the version details in a table or
-        Dataset metadata json for each version to the command line.
-
-        Args:
-            json_flag (bool): Whether to print the Dataset metadata json for
-                              each version, or the version details.
-                              Default: False
+    def output_version_history(self):
+        """Iterates through all versions and outputs their details in a table
+        printed to the command line
         """
-        json_list = []
-        for i, version in enumerate(self.versions):
-            metadata = get_latest_dataset_metadata(session, version.version_id)
-            if json_flag:
-                json_list.append(metadata)
-            else:
-                dataset_meta: DatasetMetadata = ParserBaseObject.parse_from_dict(
-                    DatasetMetadata, metadata
-                )
-                dataset_meta.output_version_details()
-        if json_flag:
-            print_json(json_list)
+        table_rows = []
+        for version in self.versions:
+            # Latest metadata is always the first
+            latest_metadata = version.metadata_versions[0]
+            table_rows.append(
+                [
+                    version.version_id,
+                    format_datetime(latest_metadata.modified_date, include_time=True),
+                    latest_metadata.label,
+                ]
+            )
+        click.echo(
+            format_table(
+                headers=[
+                    TABLE_VERSION_ID_HEADER,
+                    TABLE_MODIFIED_HEADER,
+                    TABLE_VERSION_MESSAGE_HEADER,
+                ],
+                rows=table_rows,
+            )
+        )
 
 
 @dataclass
@@ -439,19 +440,6 @@ class DatasetMetadata(ParserBaseObject):
         click.echo(f"Language: {self.language}")
         click.echo(f"Standard: {self.standard}")
         click.echo(f"Update Frequency: {self.update_frequency}")
-
-    def output_version_details(self):
-        """Prints relevant dataset attributes to command line"""
-        click.echo(f"\nTitle: {self.title}")
-        click.echo(f"ID: {self.dataset_id}")
-        click.echo(f"Version ID: {self.version_id}")
-        click.echo(f"Publisher: {self.publisher.name}")
-        click.echo(
-            f"From: {format_datetime(self.start_date, include_time=True)}{TAB_SPACE}"
-            f"To: {format_datetime(self.end_date, include_time=True)}"
-        )
-        click.echo("Description: ")
-        prose_print(self.description, CONSOLE_WIDTH)
 
     def get_dataset_details(self) -> str:
         """Returns a string with details about the dataset (used prior to

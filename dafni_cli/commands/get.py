@@ -255,10 +255,11 @@ def dataset(
             metadata_inst = parse_dataset_metadata(metadata)
             metadata_inst.output_metadata_details(long)
     else:
-        metadata_inst = parse_dataset_metadata(metadata)
-        metadata_inst.version_history.process_and_output_version_history(
-            ctx.obj["session"], json
-        )
+        if json:
+            print_json(metadata["version_history"])
+        else:
+            metadata_inst = parse_dataset_metadata(metadata)
+            metadata_inst.version_history.output_version_history()
 
 
 ###############################################################################

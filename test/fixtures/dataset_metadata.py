@@ -70,14 +70,14 @@ TEST_DATASET_METADATA_VERSION_HISTORY: dict = {
             "version_uuid": "0a0a0a0a-0a00-0a00-a000-0a0a0000000b",
             "metadata_versions": [
                 {
-                    "metadata_uuid": "0a0a0a0a-0a00-0a00-a000-0a0a0000000c",
-                    "dafni_version_note": "Initial Dataset version",
-                    "modified_date": "2021-03-16T09:27:21+00:00",
-                },
-                {
                     "metadata_uuid": "0a0a0a0a-0a00-0a00-a000-0a0a0000000d",
                     "dafni_version_note": "Second Dataset version",
                     "modified_date": "2021-03-17T09:27:21+00:00",
+                },
+                {
+                    "metadata_uuid": "0a0a0a0a-0a00-0a00-a000-0a0a0000000c",
+                    "dafni_version_note": "Initial Dataset version",
+                    "modified_date": "2021-03-16T09:27:21+00:00",
                 },
             ],
         },
