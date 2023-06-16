@@ -16,26 +16,26 @@ Models:
 * View specific model latest metadata (model definition file..?) - DONE
 * View version history for specific model (format as models available list) - DONE
 * View specific historical model version metadata (format as specific model latest metadata) - DONE
-* Upload a new model - DONE (But need to get parent ID from JSON output or UI)
+* Upload a new model - DONE
 
 Python packaging of CLI
 
 Datasets:
 * List all datasets available to user - DONE
 * Filter list of datasets available to user. - DONE
-* View specific dataset latest metadata - DONE (But have to specify ID of the latest version)
+* View specific dataset latest metadata - DONE
 * View version history for specific dataset (format as datasets available list) - DONE
 * View specific historical dataset version metadata (format as specific datasets latest metadata) - DONE
-* Download dataset data and metadata - BROKEN (fixed in https://github.com/NewcastleRSE/dafni-cli, is dataset zip only - metadata accessed separately)
-* Upload a new dataset - DONE (But not clear how to define the json definition file)
+* Download dataset data and metadata - DONE
+* Upload a new dataset - DONE
 * Update dataset metadata - DONE
 * Update dataset data files to create new version - DONE
 
 Deleting models and datasets
-* Delete a model - DONE
-* Delete a dataset
-* Delete a dataset version
-* Delete a workflow - DONE
+* Delete a model version - DONE
+* Delete a dataset - DONE
+* Delete a dataset version - DONE
+* Delete a workflow version - DONE
 
 Workflows:
 * List all workflows available to user - DONE
