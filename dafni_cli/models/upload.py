@@ -20,6 +20,17 @@ def upload_model(
     version_message: str,
     parent_id: Optional[str] = None,
 ):
+    """Uploads a model to DAFNI
+
+    Args:
+        session (DAFNISession): User session
+        definition_path (Path): Path to the model definition file
+        image_path (Path): Path to the image file
+        version_message (str): Version message to tag the upload with
+        parent_id (Optional[str]): ID of a parent model. If given will upload
+                                   a new version of the model, otherwise will
+                                   upload a new model.
+    """
     click.echo("Validating model definition")
     try:
         validate_model_definition(session, definition_path)
@@ -38,6 +49,8 @@ def upload_model(
     upload_file_to_minio(session, image_url, image_path)
 
     click.echo("Ingesting model")
-    model_version_ingest(session, upload_id, version_message, parent_id)
+    details = model_version_ingest(session, upload_id, version_message, parent_id)
 
-    click.echo("Model upload complete")
+    # Output details
+    click.echo("\nUpload successful")
+    click.echo(f"Version ID: {details['version_id']}")
