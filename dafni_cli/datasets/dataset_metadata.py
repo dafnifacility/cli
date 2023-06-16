@@ -199,17 +199,17 @@ class DatasetMetadataVersion(ParserBaseObject):
         metadata_id (str): ID of this version of the metadata
         modified_date (datetime): Time and date of last modification of this
                                   version
-        label (Optional[str]): Label of the metadata version
+        version_message (Optional[str]): Version message for the metadata
     """
 
     metadata_id: str
     modified_date: datetime
-    label: Optional[str] = None
+    version_message: Optional[str] = None
 
     _parser_params: ClassVar[List[ParserParam]] = [
         ParserParam("metadata_id", "metadata_uuid", str),
         ParserParam("modified_date", "modified_date", parse_datetime),
-        ParserParam("label", "dafni_version_note", str),
+        ParserParam("version_message", "dafni_version_note", str),
     ]
 
 
@@ -267,7 +267,7 @@ class DatasetVersionHistory(ParserBaseObject):
                 [
                     version.version_id,
                     format_datetime(latest_metadata.modified_date, include_time=True),
-                    latest_metadata.label,
+                    latest_metadata.version_message,
                 ]
             )
         click.echo(

@@ -261,7 +261,7 @@ class TestDatasetVersionHistory(TestCase):
             datetime(2021, 3, 17, 9, 27, 21, tzinfo=tzutc()),
         )
         self.assertEqual(
-            version_history.versions[0].metadata_versions[0].label,
+            version_history.versions[0].metadata_versions[0].version_message,
             TEST_DATASET_METADATA_VERSION_HISTORY["versions"][0]["metadata_versions"][
                 0
             ]["dafni_version_note"],
@@ -279,7 +279,7 @@ class TestDatasetVersionHistory(TestCase):
             datetime(2021, 3, 16, 9, 27, 21, tzinfo=tzutc()),
         )
         self.assertEqual(
-            version_history.versions[0].metadata_versions[1].label,
+            version_history.versions[0].metadata_versions[1].version_message,
             TEST_DATASET_METADATA_VERSION_HISTORY["versions"][0]["metadata_versions"][
                 1
             ]["dafni_version_note"],
@@ -304,7 +304,7 @@ class TestDatasetVersionHistory(TestCase):
             datetime(2021, 3, 16, 9, 27, 21, tzinfo=tzutc()),
         )
         self.assertEqual(
-            version_history.versions[1].metadata_versions[0].label,
+            version_history.versions[1].metadata_versions[0].version_message,
             TEST_DATASET_METADATA_VERSION_HISTORY["versions"][1]["metadata_versions"][
                 0
             ]["dafni_version_note"],
