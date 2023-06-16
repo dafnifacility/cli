@@ -259,6 +259,7 @@ def dataset(
             print_json(metadata["version_history"])
         else:
             metadata_inst = parse_dataset_metadata(metadata)
+            click.echo(f"{metadata_inst.title}\n")
             metadata_inst.version_history.output_version_history()
 
 
