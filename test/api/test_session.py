@@ -4,13 +4,13 @@ from unittest import TestCase
 from unittest.mock import MagicMock, call, mock_open, patch
 
 from requests import HTTPError
+import requests
 
 from dafni_cli.api.exceptions import DAFNIError, EndpointNotFoundError
 from dafni_cli.api.session import DAFNISession, LoginError, SessionData
 from dafni_cli.consts import (
     LOGIN_API_ENDPOINT,
     LOGOUT_API_ENDPOINT,
-    MINIO_API_URL,
     REQUESTS_TIMEOUT,
     SESSION_COOKIE,
     URLS_REQUIRING_COOKIE_AUTHENTICATION,
@@ -109,7 +109,7 @@ class TestDAFNISession(TestCase):
         )
 
     def create_mock_success_response(self):
-        """Returns a mock response indicating an access token as become invalid"""
+        """Returns a mock successful response"""
         return create_mock_response(200)
 
     def create_mock_error_response(self):
@@ -149,6 +149,18 @@ class TestDAFNISession(TestCase):
                 "metadata": ["Error: Sample error 1", "Error: Sample error 2"],
             },
         )
+
+    def test_has_session_file(self, mock_requests):
+        """Tests has_session_file works correctly"""
+
+        session = self.create_mock_session(True)
+
+        with patch.object(Path, "is_file") as mock_is_file:
+            mock_is_file.return_value = False
+            self.assertEqual(session.has_session_file(), False)
+
+            mock_is_file.return_value = True
+            self.assertEqual(session.has_session_file(), True)
 
     def test_load(
         self,
@@ -376,6 +388,17 @@ class TestDAFNISession(TestCase):
             "Found errors in metadata:\n" f"{expected_errors[0]}\n{expected_errors[1]}",
         )
 
+    def test_get_error_message_handles_decode_error(self, mock_requests):
+        """Tests get_error_message when JSON decoding fails"""
+        session = self.create_mock_session(True)
+
+        mock_response = self.create_mock_error_response()
+        # Unpatch this to avoid TypeError in except block
+        mock_requests.JSONDecodeError = requests.JSONDecodeError
+        mock_response.json.side_effect = requests.JSONDecodeError("", "", 0)
+        error_message = session.get_error_message(mock_response)
+        self.assertEqual(error_message, None)
+
     def test_check_response_raises_endpoint_not_found(self, mock_requests):
         """Tests _check_response raises an EndpointNotFoundError when necessary"""
         session = self.create_mock_session(True)
@@ -472,7 +495,7 @@ class TestDAFNISession(TestCase):
         session = self.create_mock_session(True)
         session._check_response = MagicMock()
 
-        session.get_request(url="some_test_url", content_type="content_type")
+        result = session.get_request(url="some_test_url", content_type="content_type")
 
         mock_requests.request.assert_called_once_with(
             "get",
@@ -489,6 +512,34 @@ class TestDAFNISession(TestCase):
         session._check_response.assert_called_once_with(
             "some_test_url", mock_requests.request.return_value
         )
+        self.assertEqual(result, mock_requests.request.return_value.json.return_value)
+
+    def test_get_request_when_content_true(self, mock_requests):
+        """Tests sending a get request via the DAFNISession when content=True"""
+
+        session = self.create_mock_session(True)
+        session._check_response = MagicMock()
+
+        result = session.get_request(
+            url="some_test_url", content_type="content_type", content=True
+        )
+
+        mock_requests.request.assert_called_once_with(
+            "get",
+            url="some_test_url",
+            headers={
+                "Authorization": f"Bearer {TEST_ACCESS_TOKEN}",
+                "Content-Type": "content_type",
+            },
+            data=None,
+            json=None,
+            allow_redirects=False,
+            timeout=REQUESTS_TIMEOUT,
+        )
+        session._check_response.assert_called_once_with(
+            "some_test_url", mock_requests.request.return_value
+        )
+        self.assertEqual(result, mock_requests.request.return_value.content)
 
     def test_post_request(self, mock_requests):
         """Tests sending a post request via the DAFNISession"""
@@ -496,7 +547,7 @@ class TestDAFNISession(TestCase):
         session = self.create_mock_session(True)
         session._check_response = MagicMock()
 
-        session.post_request(url="some_test_url", content_type="content_type")
+        result = session.post_request(url="some_test_url", content_type="content_type")
 
         mock_requests.request.assert_called_once_with(
             "post",
@@ -513,6 +564,34 @@ class TestDAFNISession(TestCase):
         session._check_response.assert_called_once_with(
             "some_test_url", mock_requests.request.return_value
         )
+        self.assertEqual(result, mock_requests.request.return_value.json.return_value)
+
+    def test_post_request_when_content_true(self, mock_requests):
+        """Tests sending a post request via the DAFNISession when content=True"""
+
+        session = self.create_mock_session(True)
+        session._check_response = MagicMock()
+
+        result = session.post_request(
+            url="some_test_url", content_type="content_type", content=True
+        )
+
+        mock_requests.request.assert_called_once_with(
+            "post",
+            url="some_test_url",
+            headers={
+                "Authorization": f"Bearer {TEST_ACCESS_TOKEN}",
+                "Content-Type": "content_type",
+            },
+            data=None,
+            json=None,
+            allow_redirects=False,
+            timeout=REQUESTS_TIMEOUT,
+        )
+        session._check_response.assert_called_once_with(
+            "some_test_url", mock_requests.request.return_value
+        )
+        self.assertEqual(result, mock_requests.request.return_value.content)
 
     def test_put_request(self, mock_requests):
         """Tests sending a put request via the DAFNISession"""
@@ -520,7 +599,7 @@ class TestDAFNISession(TestCase):
         session = self.create_mock_session(True)
         session._check_response = MagicMock()
 
-        session.put_request(url="some_test_url", content_type="content_type")
+        result = session.put_request(url="some_test_url", content_type="content_type")
 
         mock_requests.request.assert_called_once_with(
             "put",
@@ -537,6 +616,34 @@ class TestDAFNISession(TestCase):
         session._check_response.assert_called_once_with(
             "some_test_url", mock_requests.request.return_value
         )
+        self.assertEqual(result, mock_requests.request.return_value)
+
+    def test_put_request_when_content_true(self, mock_requests):
+        """Tests sending a put request via the DAFNISession when content=True"""
+
+        session = self.create_mock_session(True)
+        session._check_response = MagicMock()
+
+        result = session.put_request(
+            url="some_test_url", content_type="content_type", content=True
+        )
+
+        mock_requests.request.assert_called_once_with(
+            "put",
+            url="some_test_url",
+            headers={
+                "Authorization": f"Bearer {TEST_ACCESS_TOKEN}",
+                "Content-Type": "content_type",
+            },
+            data=None,
+            json=None,
+            allow_redirects=False,
+            timeout=REQUESTS_TIMEOUT,
+        )
+        session._check_response.assert_called_once_with(
+            "some_test_url", mock_requests.request.return_value
+        )
+        self.assertEqual(result, mock_requests.request.return_value.content)
 
     def test_patch_request(self, mock_requests):
         """Tests sending a patch request via the DAFNISession"""
@@ -544,7 +651,7 @@ class TestDAFNISession(TestCase):
         session = self.create_mock_session(True)
         session._check_response = MagicMock()
 
-        session.patch_request(url="some_test_url", content_type="content_type")
+        result = session.patch_request(url="some_test_url", content_type="content_type")
 
         mock_requests.request.assert_called_once_with(
             "patch",
@@ -561,6 +668,34 @@ class TestDAFNISession(TestCase):
         session._check_response.assert_called_once_with(
             "some_test_url", mock_requests.request.return_value
         )
+        self.assertEqual(result, mock_requests.request.return_value.json.return_value)
+
+    def test_patch_request_when_content_true(self, mock_requests):
+        """Tests sending a patch request via the DAFNISession when content=True"""
+
+        session = self.create_mock_session(True)
+        session._check_response = MagicMock()
+
+        result = session.patch_request(
+            url="some_test_url", content_type="content_type", content=True
+        )
+
+        mock_requests.request.assert_called_once_with(
+            "patch",
+            url="some_test_url",
+            headers={
+                "Authorization": f"Bearer {TEST_ACCESS_TOKEN}",
+                "Content-Type": "content_type",
+            },
+            data=None,
+            json=None,
+            allow_redirects=False,
+            timeout=REQUESTS_TIMEOUT,
+        )
+        session._check_response.assert_called_once_with(
+            "some_test_url", mock_requests.request.return_value
+        )
+        self.assertEqual(result, mock_requests.request.return_value.content)
 
     def test_delete_request(self, mock_requests):
         """Tests sending a delete request via the DAFNISession"""
@@ -568,7 +703,7 @@ class TestDAFNISession(TestCase):
         session = self.create_mock_session(True)
         session._check_response = MagicMock()
 
-        session.delete_request(url="some_test_url")
+        result = session.delete_request(url="some_test_url")
 
         mock_requests.request.assert_called_once_with(
             "delete",
@@ -584,6 +719,31 @@ class TestDAFNISession(TestCase):
         session._check_response.assert_called_once_with(
             "some_test_url", mock_requests.request.return_value
         )
+        self.assertEqual(result, mock_requests.request.return_value)
+
+    def test_delete_request_when_content_true(self, mock_requests):
+        """Tests sending a delete request via the DAFNISession when content=True"""
+
+        session = self.create_mock_session(True)
+        session._check_response = MagicMock()
+
+        result = session.delete_request(url="some_test_url", content=True)
+
+        mock_requests.request.assert_called_once_with(
+            "delete",
+            url="some_test_url",
+            headers={
+                "Authorization": f"Bearer {TEST_ACCESS_TOKEN}",
+            },
+            data=None,
+            json=None,
+            allow_redirects=False,
+            timeout=REQUESTS_TIMEOUT,
+        )
+        session._check_response.assert_called_once_with(
+            "some_test_url", mock_requests.request.return_value
+        )
+        self.assertEqual(result, mock_requests.request.return_value.content)
 
     def test_refresh(self, mock_requests):
         """Tests token refreshing on an authentication failure"""
@@ -675,8 +835,33 @@ class TestDAFNISession(TestCase):
         # second time here)
         self.assertEqual(mock_requests.request.call_count, 2)
 
-    def test_refresh_error(self, mock_requests):
-        """Tests appropriate error is thrown if refreshing a token fails"""
+    def test_refresh_login_error(self, mock_requests):
+        """Tests a LoginError is raised when refreshing a token fails to
+        return the expected response"""
+
+        session = self.create_mock_session(True)
+
+        # Here will test only on the get request as the logic is handled by
+        # the base function called by all requests anyway
+
+        # To trigger a refresh need a response with a 403 status code, then
+        # should be successful when retried - here we keep it failing
+        mock_requests.request.return_value = self.create_mock_token_expiry_response()
+
+        # No new token
+        mock_requests.post.return_value = self.create_mock_invalid_login_response()()
+
+        with self.assertRaises(LoginError) as error:
+            # Avoid creating any local files
+            with patch(
+                "builtins.open", new_callable=mock_open, read_data=TEST_SESSION_FILE
+            ):
+                session.get_request(url="some_test_url")
+
+        self.assertEqual(str(error.exception), "Unable to refresh login.")
+
+    def test_refresh_runtime_error(self, mock_requests):
+        """Tests a RuntimeError is raised when refreshing a token fails"""
 
         session = self.create_mock_session(True)
 
