@@ -252,6 +252,14 @@ COMMANDS = {
             # "dafni delete workflow 5ec7ebcc-7fcc-451d-8bd3-74e25ab9ccc9",
         ],
     },
+    "create": {
+        "dataset-metadata": [
+            "dafni create dataset-metadata --help",
+            # This serves as an example, but is commented out as it is not
+            # dependent on the current API and is tested via unit tests instead
+            # dafni create dataset-metadata test_file.json --title "Some title" --description "Some description" --subject Environment --language en --keyword test --organisation "Some organisation" "organisation_id" --contact "Joel Davies" "joel.davies@stfc.ac.uk" --version-message "Initial version""]},
+        ]
+    },
     "download": {
         "help": ["dafni download --help"],
         "dataset": [DownloadDatasetCommand()],

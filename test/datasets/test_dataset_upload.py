@@ -1,5 +1,6 @@
 import json
 from copy import deepcopy
+from datetime import datetime
 from pathlib import Path
 from unittest import TestCase
 from unittest.mock import MagicMock, call, mock_open, patch
@@ -8,6 +9,12 @@ from requests import HTTPError
 
 from dafni_cli.api.exceptions import DAFNIError
 from dafni_cli.datasets import dataset_upload
+from dafni_cli.datasets.dataset_metadata import (
+    DATASET_METADATA_SUBJECTS,
+    DATASET_METADATA_THEMES,
+    DATASET_METADATA_UPDATE_FREQUENCIES,
+    DATASET_METADATA_LANGUAGES,
+)
 
 from test.fixtures.dataset_metadata import TEST_DATASET_METADATA
 
@@ -82,27 +89,179 @@ class TestModifyDatasetMetadataForUpload(TestCase):
         mock_remove_invalid.assert_called_once_with(MOCK_DEFINITION_DATA)
         self.assertEqual(result, MOCK_DEFINITION_DATA)
 
-    def test_with_version_message(self, mock_open, mock_remove_invalid):
-        """Tests that calling the function with a version_message replaces any
-        existing message"""
+    def test_with_all_optional_values(self, mock_open, mock_remove_invalid):
+        """Tests that calling the function all parameters given replaces
+        them in the returned metadata"""
 
         # SETUP
         metadata = TEST_DATASET_METADATA
+        title = "New title"
+        description = "New description"
+        identifiers = ("some", "identifiers")
+        subject = "Environment"
+        themes = ("Addresses", "Geology")
+        language = "en"
+        keywords = ("some", "keywords")
+        standard = ("standard_name", "standard_url")
+        start_date = datetime(2023, 1, 10)
+        end_date = datetime(2023, 4, 10)
+        organisation = ("organisation_name", "organisation_id")
+        people = (("person_1", "person_1_id"), ("person_2", "person_2_id"))
+        created_date = datetime(2023, 5, 1)
+        update_frequency = "Weekly"
+        publisher = ("publisher_name", "publisher_id")
+        contact = ("contact_name", "contact_email_address")
+        license = "some/url"
+        rights = "Rights"
         version_message = "new_version_message"
 
         # CALL
         result = dataset_upload.modify_dataset_metadata_for_upload(
-            metadata, None, "new_version_message"
+            metadata,
+            title=title,
+            description=description,
+            identifiers=identifiers,
+            subject=subject,
+            themes=themes,
+            language=language,
+            keywords=keywords,
+            standard=standard,
+            start_date=start_date,
+            end_date=end_date,
+            organisation=organisation,
+            people=people,
+            created_date=created_date,
+            update_frequency=update_frequency,
+            publisher=publisher,
+            contact=contact,
+            license=license,
+            rights=rights,
+            version_message=version_message,
         )
 
         # ASSERT
         mock_open.assert_not_called()
+
+        self.assertEqual(result["dct:title"], title)
+        self.assertEqual(result["dct:description"], description)
+        self.assertEqual(result["dct:identifier"], list(identifiers))
+        self.assertEqual(result["dct:subject"], subject)
+        self.assertEqual(result["dcat:theme"], list(themes))
+        self.assertEqual(result["dct:language"], language)
+        self.assertEqual(result["dcat:keyword"], list(keywords))
+        self.assertEqual(result["dct:conformsTo"]["label"], standard[0])
+        self.assertEqual(result["dct:conformsTo"]["@id"], standard[1])
+        self.assertEqual(
+            result["dct:PeriodOfTime"]["time:hasBeginning"], start_date.isoformat()
+        )
+        self.assertEqual(
+            result["dct:PeriodOfTime"]["time:hasEnd"], end_date.isoformat()
+        )
+        self.assertEqual(
+            result["dct:creator"][0],
+            {
+                "@type": "foaf:Organization",
+                "foaf:name": organisation[0],
+                "@id": organisation[1],
+                "internalID": None,
+            },
+        )
+        for i, person in enumerate(people):
+            self.assertEqual(
+                result["dct:creator"][i + 1],
+                {
+                    "@type": "foaf:Person",
+                    "foaf:name": person[0],
+                    "@id": person[1],
+                    "internalID": None,
+                },
+            )
+        self.assertEqual(result["dct:created"], created_date.isoformat())
+        self.assertEqual(result["dct:accrualPeriodicity"], update_frequency)
+        self.assertEqual(result["dct:publisher"]["foaf:name"], publisher[0])
+        self.assertEqual(result["dct:publisher"]["@id"], publisher[1])
+        self.assertEqual(result["dcat:contactPoint"]["vcard:fn"], contact[0])
+        self.assertEqual(result["dcat:contactPoint"]["vcard:hasEmail"], contact[1])
+        self.assertEqual(result["dct:license"]["@id"], license)
+        self.assertEqual(result["dct:rights"], rights)
+
         # Since unittest is storing the reference it is further modified by
         # the version message so use result here instead of
-        # metadata/TEST_DATASET_METADATA
+        # metadata/TEST_DATASET_METADATA - also want to ensure the original
+        # hasn't been accidentally modified so double check here
         mock_remove_invalid.assert_called_once_with(result)
         self.assertNotEqual(metadata["dafni_version_note"], version_message)
         self.assertEqual(result["dafni_version_note"], version_message)
+
+    def test_with_invalid_subject_raises_error(self, mock_open, mock_remove_invalid):
+        """Tests that calling the function when an invalid subject raises
+        an appropriate ValueError"""
+
+        # SETUP
+        metadata = TEST_DATASET_METADATA
+
+        # CALL & ASSERT
+        with self.assertRaises(ValueError) as err:
+            dataset_upload.modify_dataset_metadata_for_upload(
+                metadata, subject="Invalid subject"
+            )
+        self.assertEqual(
+            str(err.exception),
+            f"Subject 'Invalid subject' is invalid, choose one from {''.join(DATASET_METADATA_SUBJECTS)}",
+        )
+
+    def test_with_invalid_theme_raises_error(self, mock_open, mock_remove_invalid):
+        """Tests that calling the function when an invalid theme raises
+        an appropriate ValueError"""
+
+        # SETUP
+        metadata = TEST_DATASET_METADATA
+
+        # CALL & ASSERT
+        with self.assertRaises(ValueError) as err:
+            dataset_upload.modify_dataset_metadata_for_upload(
+                metadata, themes=("Elevation", "Invalid theme")
+            )
+        self.assertEqual(
+            str(err.exception),
+            f"Theme 'Invalid theme' is invalid, choose one from {''.join(DATASET_METADATA_THEMES)}",
+        )
+
+    def test_with_invalid_language_raises_error(self, mock_open, mock_remove_invalid):
+        """Tests that calling the function when an invalid language raises
+        an appropriate ValueError"""
+
+        # SETUP
+        metadata = TEST_DATASET_METADATA
+
+        # CALL & ASSERT
+        with self.assertRaises(ValueError) as err:
+            dataset_upload.modify_dataset_metadata_for_upload(
+                metadata, language="Invalid language"
+            )
+        self.assertEqual(
+            str(err.exception),
+            f"Language 'Invalid language' is invalid, choose one from {''.join(DATASET_METADATA_LANGUAGES)}",
+        )
+
+    def test_with_invalid_update_frequency_raises_error(
+        self, mock_open, mock_remove_invalid
+    ):
+        """Tests that calling the function when an invalid theme raises
+        an appropriate ValueError"""
+
+        # SETUP
+        metadata = TEST_DATASET_METADATA
+
+        # CALL & ASSERT
+        with self.assertRaises(ValueError) as err:
+            dataset_upload.modify_dataset_metadata_for_upload(
+                metadata, update_frequency="Invalid frequency"
+            )
+        self.assertEqual(
+            str(err.exception),
+            f"Update frequency 'Invalid frequency' is invalid, choose one from {''.join(DATASET_METADATA_UPDATE_FREQUENCIES)}",
+        )
 
 
 @patch("dafni_cli.datasets.dataset_upload.click")

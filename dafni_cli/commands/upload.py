@@ -1,16 +1,16 @@
 import json
+from datetime import datetime
 from pathlib import Path
-from typing import List, Optional
+from typing import List, Optional, Tuple
 
 import click
 from click import Context
 
 from dafni_cli.api.datasets_api import get_latest_dataset_metadata
-from dafni_cli.api.models_api import (
-    get_all_models,
-)
+from dafni_cli.api.models_api import get_all_models
 from dafni_cli.api.session import DAFNISession
 from dafni_cli.api.workflows_api import upload_workflow
+from dafni_cli.commands.options import dataset_metadata_common_options
 from dafni_cli.datasets.dataset_metadata import parse_dataset_metadata
 from dafni_cli.datasets.dataset_upload import (
     modify_dataset_metadata_for_upload,
@@ -156,25 +156,38 @@ def dataset(ctx: Context, metadata_path: Path, files: List[Path]):
     help="Path to a dataset metadata file to upload.",
 )
 @click.option(
-    "--version-message",
-    type=str,
-    default=None,
-    help="Version message to replace in any existing or provided metadata.",
-)
-@click.option(
     "--save",
     type=click.Path(exists=False, path_type=Path),
     default=None,
     help="When given will only save the existing metadata to the specified file allowing it to be modified.",
 )
+@dataset_metadata_common_options(all_optional=True)
 @click.pass_context
 def dataset_version(
     ctx: Context,
     existing_version_id: str,
     files: List[Path],
     metadata: Optional[Path],
-    version_message: Optional[str],
     save: Optional[Path],
+    title: Optional[str],
+    description: Optional[str],
+    identifier: Optional[Tuple[str]],
+    subject: Optional[str],
+    theme: Optional[Tuple[str]],
+    language: Optional[str],
+    keyword: Optional[Tuple[str]],
+    standard: Optional[Tuple[str, str]],
+    start_date: Optional[datetime],
+    end_date: Optional[datetime],
+    organisation: Optional[Tuple[str, str]],
+    person: Optional[Tuple[Tuple[str, str]]],
+    created_date: Optional[datetime],
+    update_frequency: Optional[str],
+    publisher: Optional[Tuple[str, str]],
+    contact: Optional[Tuple[str, str]],
+    license: Optional[str],
+    rights: Optional[str],
+    version_message: Optional[str],
 ):
     """Uploads a new version of a Dataset to DAFNI from dataset files
 
@@ -184,8 +197,9 @@ def dataset_version(
                                    new version to
         files (List[Path]): Dataset data files
         metadata (Optional[Path]): Dataset metadata file
-        version_message (Optional[str]): Version message
         save (Optional[Path]): Path to save existing metadata in for editing
+
+        For the rest see dataset_metadata_common_options in options.py
     """
 
     # We need the version id to get the existing metadata, but the
@@ -197,10 +211,28 @@ def dataset_version(
     )
     dataset_metadata_obj = parse_dataset_metadata(dataset_metadata_dict)
 
-    # Load/modify the existing metdata according to the user input
+    # Load/modify the existing metadata according to the user input
     dataset_metadata_dict = modify_dataset_metadata_for_upload(
         existing_metadata=dataset_metadata_dict,
         metadata_path=metadata,
+        title=title,
+        description=description,
+        subject=subject,
+        identifiers=identifier,
+        themes=theme,
+        language=language,
+        keywords=keyword,
+        standard=standard,
+        start_date=start_date,
+        end_date=end_date,
+        organisation=organisation,
+        people=person,
+        created_date=created_date,
+        update_frequency=update_frequency,
+        publisher=publisher,
+        contact=contact,
+        license=license,
+        rights=rights,
         version_message=version_message,
     )
 
@@ -254,13 +286,32 @@ def dataset_version(
     default=None,
     help="When given will only save the existing metadata to the specified file allowing it to be modified.",
 )
+@dataset_metadata_common_options(all_optional=True)
 @click.pass_context
 def dataset_metadata(
     ctx: Context,
     existing_version_id: str,
     metadata: Optional[Path],
-    version_message: Optional[str],
     save: Optional[Path],
+    title: Optional[str],
+    description: Optional[str],
+    identifier: Optional[Tuple[str]],
+    subject: Optional[str],
+    theme: Optional[Tuple[str]],
+    language: Optional[str],
+    keyword: Optional[Tuple[str]],
+    standard: Optional[Tuple[str, str]],
+    start_date: Optional[datetime],
+    end_date: Optional[datetime],
+    organisation: Optional[Tuple[str, str]],
+    person: Optional[Tuple[Tuple[str, str]]],
+    created_date: Optional[datetime],
+    update_frequency: Optional[str],
+    publisher: Optional[Tuple[str, str]],
+    contact: Optional[Tuple[str, str]],
+    license: Optional[str],
+    rights: Optional[str],
+    version_message: Optional[str],
 ):
     """Uploads a new version of a Dataset's metadata to DAFNI
 
@@ -269,8 +320,9 @@ def dataset_metadata(
         existing_version_id (str): Existing version id of the dataset to add a
                                    new version to
         metadata (Optional[Path]): Dataset metadata file
-        version_message (Optional[str]): Version message
         save (Optional[Path]): Path to save existing metadata in for editing
+
+        For the rest see dataset_metadata_common_options in options.py
     """
 
     # We need the version id to get the existing metadata, but the
@@ -282,10 +334,28 @@ def dataset_metadata(
     )
     dataset_metadata_obj = parse_dataset_metadata(dataset_metadata_dict)
 
-    # Load/modify the existing metdata according to the user input
+    # Load/modify the existing metadata according to the user input
     dataset_metadata_dict = modify_dataset_metadata_for_upload(
         existing_metadata=dataset_metadata_dict,
         metadata_path=metadata,
+        title=title,
+        description=description,
+        subject=subject,
+        identifiers=identifier,
+        themes=theme,
+        language=language,
+        keywords=keyword,
+        standard=standard,
+        start_date=start_date,
+        end_date=end_date,
+        organisation=organisation,
+        people=person,
+        created_date=created_date,
+        update_frequency=update_frequency,
+        publisher=publisher,
+        contact=contact,
+        license=license,
+        rights=rights,
         version_message=version_message,
     )
 

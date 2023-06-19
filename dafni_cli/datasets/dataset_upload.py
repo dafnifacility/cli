@@ -1,7 +1,8 @@
 import json
 from copy import deepcopy
+from datetime import datetime
 from pathlib import Path
-from typing import List, Optional
+from typing import List, Optional, Tuple
 
 import click
 from requests.exceptions import HTTPError
@@ -15,6 +16,12 @@ from dafni_cli.api.minio_api import (
     upload_file_to_minio,
 )
 from dafni_cli.api.session import DAFNISession
+from dafni_cli.datasets.dataset_metadata import (
+    DATASET_METADATA_LANGUAGES,
+    DATASET_METADATA_SUBJECTS,
+    DATASET_METADATA_THEMES,
+    DATASET_METADATA_UPDATE_FREQUENCIES,
+)
 
 # Keys inside dataset metadata returned from the API that are invalid for
 # uploading
@@ -42,10 +49,40 @@ def remove_dataset_metadata_invalid_for_upload(metadata: dict):
             del metadata[key]
 
 
+def _remove_existing_creators_from_metadata(creator_list: List, creator_type: str):
+    """Removes any existing creators with a given creator type from
+    a list from dataset metadata
+
+    Args:
+        creator_list: List of creators
+    """
+    for creator in creator_list.copy():
+        if creator["@type"] == creator_type:
+            creator_list.remove(creator)
+
+
 def modify_dataset_metadata_for_upload(
     existing_metadata: dict,
-    metadata_path: Optional[Path],
-    version_message: Optional[str],
+    metadata_path: Optional[Path] = None,
+    title: Optional[str] = None,
+    description: Optional[str] = None,
+    identifiers: Optional[Tuple[str]] = None,
+    subject: Optional[str] = None,
+    themes: Optional[Tuple[str]] = None,
+    language: Optional[str] = None,
+    keywords: Optional[Tuple[str]] = None,
+    standard: Optional[Tuple[str, str]] = None,
+    start_date: Optional[datetime] = None,
+    end_date: Optional[datetime] = None,
+    organisation: Optional[Tuple[str, str]] = None,
+    people: Optional[Tuple[Tuple[str, str]]] = None,
+    created_date: Optional[datetime] = None,
+    update_frequency: Optional[str] = None,
+    publisher: Optional[Tuple[str, str]] = None,
+    contact: Optional[Tuple[str]] = None,
+    license: Optional[str] = None,
+    rights: Optional[str] = None,
+    version_message: Optional[str] = None,
 ) -> dict:
     """Modifies existing dataset metadata or that loaded from a file according
     to user specified parameters and in a format ready for upload
@@ -53,12 +90,45 @@ def modify_dataset_metadata_for_upload(
     Args:
         existing_metadata (dict): Dictionary of existing metadata from the API
         metadata_path (Optional[Path]): Path to a Dataset metadata file.
-                        When None will use the existing_metadata instead but
-                        will delete any keys invalid for upload.
-        version_message (Optional[str]): Version message - Will replace
-                        whatever already exists in the loaded metadata
+                        When None will use the existing_metadata instead
+
+        The following parameters are metadata properties that when specified
+        will replace what already exists in the given/loaded metadata.
+
+        title (Optional[str]): Dataset title
+        description (Optional[str]): Dataset description
+        identifiers (Optional[Tuple[str]]): Dataset identifiers
+        subject (Optional[str]): Dataset subject (One of
+                                 DATASET_METADATA_SUBJECTS)
+        themes (Optional[Tuple[str]]): Dataset themes (One of
+                                 DATASET_METADATA_THEMES)
+        language (Optional[str]): Dataset language, one of
+                                  DATASET_METADATA_LANGUAGES
+        keywords (Optional[Tuple[str]]): Dataset keywords used for data
+                                         searches
+        standard (Optional[Tuple[str, str]]): Dataset standard consisting of
+                                a name and URL
+        start_date (Optional[datetime]): Dataset start date
+        end_date (Optional[datetime]): Dataset end date
+        organisation (Optional[Tuple[str, str]]): Name and URL of the
+                                organisation that created the dataset
+        person (Optional[Tuple[Tuple[str, str]]]): Name and ID of a person
+                                involved in the creation of the dataset
+        created_date (Optional[datetime]): Dataset creation date
+        update_frequency (Optional[str]): Dataset update frequency, one of
+                                DATASET_METADATA_UPDATE_FREQUENCIES
+        publisher (Optional[Tuple[str, str]]): Dataset publisher name and ID
+        contact (Optional[Tuple[str, str]]): Dataset contact point name
+                                and email address
+        license (Optional[str]): URL to a license that applies to the dataset
+        rights (Optional[str]): Description of any usage rights, restrictions
+                                or citations required by users of the dataset
+        version_message (Optional[str]): Version message
     Returns:
         dict: The modified dataset metadata
+
+    Raises:
+        ValueError: If a value is found to be invalid
     """
 
     # Load the metadata from a file if present, or otherwise use the existing
@@ -71,9 +141,86 @@ def modify_dataset_metadata_for_upload(
     remove_dataset_metadata_invalid_for_upload(metadata)
 
     # Make modifications to the metadata from the inputs
-    if version_message:
-        # TODO: Find a more robust solution for this - could reparse from the
-        # structures using existing definitions?
+    if title is not None:
+        metadata["dct:title"] = title
+    if description is not None:
+        metadata["dct:description"] = description
+    if identifiers is not None:
+        metadata["dct:identifier"] = list(identifiers)
+    if subject is not None:
+        if subject not in DATASET_METADATA_SUBJECTS:
+            raise ValueError(
+                f"Subject '{subject}' is invalid, choose one from {''.join(DATASET_METADATA_SUBJECTS)}"
+            )
+
+        metadata["dct:subject"] = subject
+    if themes is not None:
+        for theme in themes:
+            if theme not in DATASET_METADATA_THEMES:
+                raise ValueError(
+                    f"Theme '{theme}' is invalid, choose one from {''.join(DATASET_METADATA_THEMES)}"
+                )
+        metadata["dcat:theme"] = list(themes)
+    if language is not None:
+        if language not in DATASET_METADATA_LANGUAGES:
+            raise ValueError(
+                f"Language '{language}' is invalid, choose one from {''.join(DATASET_METADATA_LANGUAGES)}"
+            )
+        metadata["dct:language"] = language
+    if keywords is not None:
+        metadata["dcat:keyword"] = list(keywords)
+    if standard is not None:
+        metadata["dct:conformsTo"]["label"] = standard[0]
+        metadata["dct:conformsTo"]["@id"] = standard[1]
+    if start_date is not None:
+        metadata["dct:PeriodOfTime"]["time:hasBeginning"] = start_date.isoformat()
+    if end_date is not None:
+        metadata["dct:PeriodOfTime"]["time:hasEnd"] = end_date.isoformat()
+
+    if organisation is not None:
+        # Remove any existing
+        _remove_existing_creators_from_metadata(
+            metadata["dct:creator"], "foaf:Organization"
+        )
+        metadata["dct:creator"].append(
+            {
+                "@type": "foaf:Organization",
+                "foaf:name": organisation[0],
+                "@id": organisation[1],
+                "internalID": None,
+            }
+        )
+    if people is not None:
+        # Remove any existing
+        _remove_existing_creators_from_metadata(metadata["dct:creator"], "foaf:Person")
+        for person in people:
+            metadata["dct:creator"].append(
+                {
+                    "@type": "foaf:Person",
+                    "foaf:name": person[0],
+                    "@id": person[1],
+                    "internalID": None,
+                }
+            )
+    if created_date is not None:
+        metadata["dct:created"] = created_date.isoformat()
+    if update_frequency is not None:
+        if update_frequency not in DATASET_METADATA_UPDATE_FREQUENCIES:
+            raise ValueError(
+                f"Update frequency '{update_frequency}' is invalid, choose one from {''.join(DATASET_METADATA_UPDATE_FREQUENCIES)}"
+            )
+        metadata["dct:accrualPeriodicity"] = update_frequency
+    if publisher is not None:
+        metadata["dct:publisher"]["foaf:name"] = publisher[0]
+        metadata["dct:publisher"]["@id"] = publisher[1]
+    if contact is not None:
+        metadata["dcat:contactPoint"]["vcard:fn"] = contact[0]
+        metadata["dcat:contactPoint"]["vcard:hasEmail"] = contact[1]
+    if license is not None:
+        metadata["dct:license"]["@id"] = license
+    if rights is not None:
+        metadata["dct:rights"] = rights
+    if version_message is not None:
         metadata["dafni_version_note"] = version_message
 
     return metadata

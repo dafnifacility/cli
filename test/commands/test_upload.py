@@ -1,4 +1,5 @@
 import json
+from datetime import datetime
 from pathlib import Path
 from unittest import TestCase
 from unittest.mock import MagicMock, patch
@@ -8,6 +9,7 @@ from click.testing import CliRunner
 from dafni_cli.commands import upload
 from dafni_cli.datasets.dataset_metadata import parse_dataset_metadata
 
+from test.commands.test_optional import add_dataset_metadata_common_options
 from test.fixtures.dataset_metadata import TEST_DATASET_METADATA
 
 
@@ -394,6 +396,24 @@ class TestUploadDatasetVersion(TestCase):
         mock_modify_dataset_metadata_for_upload.assert_called_once_with(
             existing_metadata=TEST_DATASET_METADATA,
             metadata_path=None,
+            title=None,
+            description=None,
+            subject=None,
+            identifiers=None,
+            themes=None,
+            language=None,
+            keywords=None,
+            standard=None,
+            start_date=None,
+            end_date=None,
+            organisation=None,
+            people=None,
+            created_date=None,
+            update_frequency=None,
+            publisher=None,
+            contact=None,
+            license=None,
+            rights=None,
             version_message=None,
         )
         mock_upload_dataset.assert_called_once_with(
@@ -452,6 +472,24 @@ class TestUploadDatasetVersion(TestCase):
         mock_modify_dataset_metadata_for_upload.assert_called_once_with(
             existing_metadata=TEST_DATASET_METADATA,
             metadata_path=None,
+            title=None,
+            description=None,
+            subject=None,
+            identifiers=None,
+            themes=None,
+            language=None,
+            keywords=None,
+            standard=None,
+            start_date=None,
+            end_date=None,
+            organisation=None,
+            people=None,
+            created_date=None,
+            update_frequency=None,
+            publisher=None,
+            contact=None,
+            license=None,
+            rights=None,
             version_message=None,
         )
         mock_upload_dataset.assert_called_once_with(
@@ -518,6 +556,24 @@ class TestUploadDatasetVersion(TestCase):
         mock_modify_dataset_metadata_for_upload.assert_called_once_with(
             existing_metadata=TEST_DATASET_METADATA,
             metadata_path=None,
+            title=None,
+            description=None,
+            subject=None,
+            identifiers=None,
+            themes=None,
+            language=None,
+            keywords=None,
+            standard=None,
+            start_date=None,
+            end_date=None,
+            organisation=None,
+            people=None,
+            created_date=None,
+            update_frequency=None,
+            publisher=None,
+            contact=None,
+            license=None,
+            rights=None,
             version_message=None,
         )
         self.assertEqual(
@@ -570,6 +626,24 @@ class TestUploadDatasetVersion(TestCase):
         mock_modify_dataset_metadata_for_upload.assert_called_once_with(
             existing_metadata=TEST_DATASET_METADATA,
             metadata_path=None,
+            title=None,
+            description=None,
+            subject=None,
+            identifiers=None,
+            themes=None,
+            language=None,
+            keywords=None,
+            standard=None,
+            start_date=None,
+            end_date=None,
+            organisation=None,
+            people=None,
+            created_date=None,
+            update_frequency=None,
+            publisher=None,
+            contact=None,
+            license=None,
+            rights=None,
             version_message=None,
         )
         mock_upload_dataset.assert_not_called()
@@ -585,7 +659,7 @@ class TestUploadDatasetVersion(TestCase):
         )
         self.assertEqual(result.exit_code, 1)
 
-    def test_upload_dataset_version_with_metadata_and_version_message(
+    def test_upload_dataset_version_with_metadata_and_all_optional_modifications(
         self,
         mock_modify_dataset_metadata_for_upload,
         mock_get_latest_dataset_metadata,
@@ -602,9 +676,46 @@ class TestUploadDatasetVersion(TestCase):
         dataset_version_id = "some-existing-version-id"
         file_path = "test_dataset.txt"
         metadata_path = "definition.json"
-        version_message = "version_message"
         mock_get_latest_dataset_metadata.return_value = TEST_DATASET_METADATA
         metadata = parse_dataset_metadata(TEST_DATASET_METADATA)
+
+        options = {
+            "title": "Dataset title",
+            "description": "Dataset description",
+            "identifiers": ("test", "identifiers"),
+            "subject": "Farming",
+            "themes": ("Buildings", "Hydrology"),
+            "language": "en",
+            "keywords": ("test", "another_test"),
+            "standard": ("standard_name", "https://www.standard-url.com/"),
+            "start_date": datetime(2022, 6, 28),
+            "end_date": datetime(2022, 8, 10),
+            "organisation": ("organisation_name", "https://www.organisaton-url.com/"),
+            "people": (
+                ("person-1-name", "http://www.person-1.com/"),
+                ("person-2-name", "http://www.person-2.com/"),
+            ),
+            "created_date": datetime(2023, 6, 14),
+            "update_frequency": "Annual",
+            "publisher": ("publisher_name", "https://www.publisher-url.com/"),
+            "contact": ("contact_point_name", "test@example.com"),
+            "license": "http://www.license-url.com/",
+            "rights": "Some rights",
+            "version_message": "Some version message",
+        }
+
+        args = add_dataset_metadata_common_options(
+            args=[
+                "dataset-version",
+                dataset_version_id,
+                file_path,
+                "--metadata",
+                metadata_path,
+            ],
+            all_optional=True,
+            dictionary=options,
+            **options,
+        )
 
         # CALL
         with runner.isolated_filesystem():
@@ -614,15 +725,7 @@ class TestUploadDatasetVersion(TestCase):
                 file.write("test metadata file")
             result = runner.invoke(
                 upload.upload,
-                [
-                    "dataset-version",
-                    dataset_version_id,
-                    file_path,
-                    "--metadata",
-                    metadata_path,
-                    "--version-message",
-                    version_message,
-                ],
+                args,
                 input="y",
             )
 
@@ -634,7 +737,7 @@ class TestUploadDatasetVersion(TestCase):
         mock_modify_dataset_metadata_for_upload.assert_called_once_with(
             existing_metadata=TEST_DATASET_METADATA,
             metadata_path=Path(metadata_path),
-            version_message=version_message,
+            **options,
         )
         mock_upload_dataset.assert_called_once_with(
             session,
@@ -698,6 +801,24 @@ class TestUploadDatasetMetadata(TestCase):
         mock_modify_dataset_metadata_for_upload.assert_called_once_with(
             existing_metadata=TEST_DATASET_METADATA,
             metadata_path=None,
+            title=None,
+            description=None,
+            subject=None,
+            identifiers=None,
+            themes=None,
+            language=None,
+            keywords=None,
+            standard=None,
+            start_date=None,
+            end_date=None,
+            organisation=None,
+            people=None,
+            created_date=None,
+            update_frequency=None,
+            publisher=None,
+            contact=None,
+            license=None,
+            rights=None,
             version_message=None,
         )
         mock_upload_dataset_metadata_version.assert_called_once_with(
@@ -758,6 +879,24 @@ class TestUploadDatasetMetadata(TestCase):
         mock_modify_dataset_metadata_for_upload.assert_called_once_with(
             existing_metadata=TEST_DATASET_METADATA,
             metadata_path=None,
+            title=None,
+            description=None,
+            subject=None,
+            identifiers=None,
+            themes=None,
+            language=None,
+            keywords=None,
+            standard=None,
+            start_date=None,
+            end_date=None,
+            organisation=None,
+            people=None,
+            created_date=None,
+            update_frequency=None,
+            publisher=None,
+            contact=None,
+            license=None,
+            rights=None,
             version_message=None,
         )
         self.assertEqual(
@@ -770,7 +909,7 @@ class TestUploadDatasetMetadata(TestCase):
         )
         self.assertEqual(result.exit_code, 0)
 
-    def test_upload_dataset_metadata_with_metadata_and_version_message(
+    def test_upload_dataset_metadata_with_metadata_and_all_optional_modifications(
         self,
         mock_modify_dataset_metadata_for_upload,
         mock_get_latest_dataset_metadata,
@@ -786,9 +925,45 @@ class TestUploadDatasetMetadata(TestCase):
         runner = CliRunner()
         dataset_version_id = "some-existing-version-id"
         metadata_path = "metadata.json"
-        version_message = "version_message"
         mock_get_latest_dataset_metadata.return_value = TEST_DATASET_METADATA
         metadata = parse_dataset_metadata(TEST_DATASET_METADATA)
+
+        options = {
+            "title": "Dataset title",
+            "description": "Dataset description",
+            "identifiers": ("test", "identifiers"),
+            "subject": "Farming",
+            "themes": ("Buildings", "Hydrology"),
+            "language": "en",
+            "keywords": ("test", "another_test"),
+            "standard": ("standard_name", "https://www.standard-url.com/"),
+            "start_date": datetime(2022, 6, 28),
+            "end_date": datetime(2022, 8, 10),
+            "organisation": ("organisation_name", "https://www.organisaton-url.com/"),
+            "people": (
+                ("person-1-name", "http://www.person-1.com/"),
+                ("person-2-name", "http://www.person-2.com/"),
+            ),
+            "created_date": datetime(2023, 6, 14),
+            "update_frequency": "Annual",
+            "publisher": ("publisher_name", "https://www.publisher-url.com/"),
+            "contact": ("contact_point_name", "test@example.com"),
+            "license": "http://www.license-url.com/",
+            "rights": "Some rights",
+            "version_message": "Some version message",
+        }
+
+        args = add_dataset_metadata_common_options(
+            args=[
+                "dataset-metadata",
+                dataset_version_id,
+                "--metadata",
+                metadata_path,
+            ],
+            all_optional=True,
+            dictionary=options,
+            **options,
+        )
 
         # CALL
         with runner.isolated_filesystem():
@@ -796,14 +971,7 @@ class TestUploadDatasetMetadata(TestCase):
                 file.write("test metadata file")
             result = runner.invoke(
                 upload.upload,
-                [
-                    "dataset-metadata",
-                    dataset_version_id,
-                    "--metadata",
-                    metadata_path,
-                    "--version-message",
-                    version_message,
-                ],
+                args,
                 input="y",
             )
 
@@ -815,7 +983,7 @@ class TestUploadDatasetMetadata(TestCase):
         mock_modify_dataset_metadata_for_upload.assert_called_once_with(
             existing_metadata=TEST_DATASET_METADATA,
             metadata_path=Path(metadata_path),
-            version_message=version_message,
+            **options,
         )
         mock_upload_dataset_metadata_version.assert_called_once_with(
             session,
@@ -870,6 +1038,24 @@ class TestUploadDatasetMetadata(TestCase):
         mock_modify_dataset_metadata_for_upload.assert_called_once_with(
             existing_metadata=TEST_DATASET_METADATA,
             metadata_path=None,
+            title=None,
+            description=None,
+            subject=None,
+            identifiers=None,
+            themes=None,
+            language=None,
+            keywords=None,
+            standard=None,
+            start_date=None,
+            end_date=None,
+            organisation=None,
+            people=None,
+            created_date=None,
+            update_frequency=None,
+            publisher=None,
+            contact=None,
+            license=None,
+            rights=None,
             version_message=None,
         )
         mock_upload_dataset_metadata_version.assert_not_called()

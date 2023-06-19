@@ -34,7 +34,6 @@ class ParserParam:
                       parse_datetime => parse_datetime(data)
             None: When None it is assumed no processing should be applied e.g.
                   for the parameter is known to be a list of strings.
-
     """
 
     name: str
