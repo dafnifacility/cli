@@ -732,7 +732,7 @@ class TestGetDataset(TestCase):
         # ASSERT
         mock_DAFNISession.assert_called_once()
         mock_get_latest_dataset_metadata.assert_called_with(session, "some_version_id")
-        dataset.version_history.output_version_history.assert_called_once_with()
+        dataset.version_history.output_version_history.assert_called_once()
         mock_print_json.assert_not_called()
 
         self.assertEqual(result.exit_code, 0)
