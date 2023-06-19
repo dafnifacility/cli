@@ -472,6 +472,12 @@ class TestIsValidURL(TestCase):
         self.assertFalse(utils.is_valid_url("some text"))
         self.assertFalse(utils.is_valid_url(""))
 
+    @patch("dafni_cli.utils.urlparse")
+    def test_valid_url_returns_false_on_value_error(self, mock_urlparse):
+        """Tests that False is returned when a ValueError occurs"""
+        mock_urlparse.side_effect = ValueError
+        self.assertFalse(utils.is_valid_url("https://www.somewebsite.com/"))
+
 
 class TestIsValidEmailAddress(TestCase):
     """Test class to test the is_valid_email_address function"""
