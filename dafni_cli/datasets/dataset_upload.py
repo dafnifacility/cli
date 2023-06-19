@@ -141,43 +141,43 @@ def modify_dataset_metadata_for_upload(
     remove_dataset_metadata_invalid_for_upload(metadata)
 
     # Make modifications to the metadata from the inputs
-    if title:
+    if title is not None:
         metadata["dct:title"] = title
-    if description:
+    if description is not None:
         metadata["dct:description"] = description
-    if identifiers:
+    if identifiers is not None:
         metadata["dct:identifier"] = list(identifiers)
-    if subject:
+    if subject is not None:
         if subject not in DATASET_METADATA_SUBJECTS:
             raise ValueError(
                 f"Subject '{subject}' is invalid, choose one from {''.join(DATASET_METADATA_SUBJECTS)}"
             )
 
         metadata["dct:subject"] = subject
-    if themes:
+    if themes is not None:
         for theme in themes:
             if theme not in DATASET_METADATA_THEMES:
                 raise ValueError(
                     f"Theme '{theme}' is invalid, choose one from {''.join(DATASET_METADATA_THEMES)}"
                 )
         metadata["dcat:theme"] = list(themes)
-    if language:
+    if language is not None:
         if language not in DATASET_METADATA_LANGUAGES:
             raise ValueError(
                 f"Language '{language}' is invalid, choose one from {''.join(DATASET_METADATA_LANGUAGES)}"
             )
         metadata["dct:language"] = language
-    if keywords:
+    if keywords is not None:
         metadata["dcat:keyword"] = list(keywords)
-    if standard:
+    if standard is not None:
         metadata["dct:conformsTo"]["label"] = standard[0]
         metadata["dct:conformsTo"]["@id"] = standard[1]
-    if start_date:
+    if start_date is not None:
         metadata["dct:PeriodOfTime"]["time:hasBeginning"] = start_date.isoformat()
-    if end_date:
+    if end_date is not None:
         metadata["dct:PeriodOfTime"]["time:hasEnd"] = end_date.isoformat()
 
-    if organisation:
+    if organisation is not None:
         # Remove any existing
         _remove_existing_creators_from_metadata(
             metadata["dct:creator"], "foaf:Organization"
@@ -190,7 +190,7 @@ def modify_dataset_metadata_for_upload(
                 "internalID": None,
             }
         )
-    if people:
+    if people is not None:
         # Remove any existing
         _remove_existing_creators_from_metadata(metadata["dct:creator"], "foaf:Person")
         for person in people:
@@ -202,25 +202,25 @@ def modify_dataset_metadata_for_upload(
                     "internalID": None,
                 }
             )
-    if created_date:
+    if created_date is not None:
         metadata["dct:created"] = created_date.isoformat()
-    if update_frequency:
+    if update_frequency is not None:
         if update_frequency not in DATASET_METADATA_UPDATE_FREQUENCIES:
             raise ValueError(
                 f"Update frequency '{update_frequency}' is invalid, choose one from {''.join(DATASET_METADATA_UPDATE_FREQUENCIES)}"
             )
         metadata["dct:accrualPeriodicity"] = update_frequency
-    if publisher:
+    if publisher is not None:
         metadata["dct:publisher"]["foaf:name"] = publisher[0]
         metadata["dct:publisher"]["@id"] = publisher[1]
-    if contact:
+    if contact is not None:
         metadata["dcat:contactPoint"]["vcard:fn"] = contact[0]
         metadata["dcat:contactPoint"]["vcard:hasEmail"] = contact[1]
-    if license:
+    if license is not None:
         metadata["dct:license"]["@id"] = license
-    if rights:
+    if rights is not None:
         metadata["dct:rights"] = rights
-    if version_message:
+    if version_message is not None:
         metadata["dafni_version_note"] = version_message
 
     return metadata

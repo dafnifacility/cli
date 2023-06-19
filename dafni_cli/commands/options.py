@@ -9,6 +9,46 @@ from dafni_cli.datasets.dataset_metadata import (
     DATASET_METADATA_THEMES,
     DATASET_METADATA_UPDATE_FREQUENCIES,
 )
+from dafni_cli.utils import is_valid_email_address, is_valid_url
+
+
+class URLParamType(click.ParamType):
+    """URL parameter type for Click that checks if a string is a valid URL"""
+
+    name = "url"
+
+    def __init__(self, optional: bool = False):
+        """
+        Args:
+            optional (bool): Whether an empty string should be accepted as
+                             valid or not
+        """
+        self.optional = optional
+
+    def convert(self, value, param, ctx):
+        # Allow an empty string if optional is True, otherwise require the
+        # URL to be valid
+        if value == "":
+            if self.optional:
+                return value
+            else:
+                self.fail("Value cannot be an empty string")
+        if is_valid_url(value):
+            return value
+        self.fail(f"'{value}' is not a valid URL")
+
+
+class EmailAddressParamType(click.ParamType):
+    """Email address parameter type for Click that checks if a string is a
+    valid email address"""
+
+    name = "email_address"
+
+    def convert(self, value, param, ctx):
+        # Allow an empty string if optional is True, otherwise require the URL to be valid
+        if is_valid_email_address(value):
+            return value
+        self.fail(f"'{value}' is not a valid email address")
 
 
 def dataset_metadata_common_options(all_optional: bool):
@@ -111,9 +151,10 @@ def dataset_metadata_common_options(all_optional: bool):
         )(function)
         function = click.option(
             "--standard",
-            type=(str, str),
+            type=(str, URLParamType(optional=True)),
             default=None,
-            help="Name and URL of a standard to which this dataset conforms (e.g. www.iso.org/standard/39229.html).",
+            help="Name and URL of a standard to which this dataset conforms (e.g. www.iso.org/standard/39229.html). Either value may be empty using "
+            ".",
         )(function)
         function = click.option(
             "--start-date",
@@ -129,21 +170,21 @@ def dataset_metadata_common_options(all_optional: bool):
         )(function)
         function = click.option(
             "--organisation",
-            type=(str, str),
+            type=(str, URLParamType()),
             **required_args,
-            help="Name and ID of the organisation that created the dataset. he ID can be an ORCID id or similar.",
+            help="Name and ID of the organisation that created the dataset. The ID must be a valid URL and can be a ror.org id, Companies House id or similar.",
         )(function)
         function = click.option(
             "--person",
-            type=(str, str),
+            type=(str, URLParamType(optional=True)),
             callback=default_none,
             multiple=True,
-            help="Name and ID of a person who created the dataset. The ID can be an ORCID id or similar. (Can have multiple)",
+            help='Name and ID of a person who created the dataset. Either value may be empty using "". When given the ID must be a valid URL, and can be an ORCID id or similar. (Can have multiple)',
         )(function)
         function = click.option(
             "--created-date",
             default=None if all_optional else datetime.now(),
-            help=f"Created date. Format: {DATE_INPUT_FORMAT_VERBOSE}",
+            help=f"Created date. Format: {DATE_INPUT_FORMAT_VERBOSE}. Default: Today.",
             type=click.DateTime(formats=[DATE_INPUT_FORMAT]),
         )(function)
         function = click.option(
@@ -154,23 +195,23 @@ def dataset_metadata_common_options(all_optional: bool):
         )(function)
         function = click.option(
             "--publisher",
-            type=(str, str),
+            type=(str, URLParamType(optional=True)),
             default=None,
-            help="Publishing organisation name and ID. The ID can be an ORCID id or similar.",
+            help='Publishing organisation name and ID. Either value may be empty using "". When given the ID must be a valid URL, and can be an ORCID id or similar.',
         )(function)
         function = click.option(
             "--contact",
-            type=(str, str),
+            type=(str, EmailAddressParamType()),
             **required_args,
             help="Name and email address of the point of contact for queries about the dataset.",
         )(function)
         function = click.option(
             "--license",
-            type=str,
+            type=URLParamType(),
             default=None
             if all_optional
             else "https://creativecommons.org/licences/by/4.0/",
-            help="Permanent URL of an applicable license.",
+            help="Permanent URL of an applicable license. Default: https://creativecommons.org/licences/by/4.0/.",
         )(function)
         function = click.option(
             "--rights",

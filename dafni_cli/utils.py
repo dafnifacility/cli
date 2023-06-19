@@ -1,21 +1,19 @@
 import copy
 import json
+import re
 import textwrap
 from dataclasses import fields
 from datetime import datetime
 from io import BytesIO
 from pathlib import Path
 from typing import Any, List, Optional, Tuple, Type, Union
+from urllib.parse import urlparse
 from zipfile import ZipFile
 
 import click
 from tabulate import tabulate
 
-from dafni_cli.consts import (
-    DATE_OUTPUT_FORMAT,
-    DATE_TIME_OUTPUT_FORMAT,
-    TABULATE_ARGS,
-)
+from dafni_cli.consts import DATE_OUTPUT_FORMAT, DATE_TIME_OUTPUT_FORMAT, TABULATE_ARGS
 
 
 def prose_print(prose: str, width: int):
@@ -172,3 +170,33 @@ def format_datetime(value: Optional[datetime], include_time: bool) -> str:
         else:
             return value.strftime(DATE_OUTPUT_FORMAT)
     return "N/A"
+
+
+def is_valid_url(value: str) -> bool:
+    """Returns whether a string constitutes a valid URL
+
+    Args:
+        value (str): The string to check
+
+    Returns:
+        bool: Whether the string is a valid URL
+    """
+    try:
+        parsed_url = urlparse(value)
+        return all([parsed_url.scheme, parsed_url.netloc])
+    except ValueError:
+        return False
+
+
+def is_valid_email_address(value: str) -> bool:
+    """Returns whether a string constitutes a valid email address
+
+    Args:
+        value (str): The string to check
+
+    Returns:
+        bool: Whether the string is a valid email address
+    """
+
+    # Checks there is exactly one @ sign, and at least one . after it
+    return re.match(r"[^@]+@[^@]+\.[^@]+", value)

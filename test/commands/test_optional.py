@@ -47,21 +47,21 @@ def add_dataset_metadata_common_options(
         See dataset_metadata_common_options for all of the actual options
     """
 
-    if title:
+    if title is not None:
         args.extend(["--title", title])
-    if description:
+    if description is not None:
         args.extend(["--description", description])
-    if identifiers:
+    if identifiers is not None:
         for identifier in identifiers:
             args.extend(["--identifier", identifier])
-    if subject:
+    if subject is not None:
         args.extend(
             [
                 "--subject",
                 subject,
             ]
         )
-    if themes:
+    if themes is not None:
         for theme in themes:
             args.extend(["--theme", theme])
         args.extend(
@@ -70,12 +70,12 @@ def add_dataset_metadata_common_options(
                 language,
             ]
         )
-    if language:
+    if language is not None:
         args.extend(["--language", language])
-    if keywords:
+    if keywords is not None:
         for keyword in keywords:
             args.extend(["--keyword", keyword])
-    if standard:
+    if standard is not None:
         args.extend(
             [
                 "--standard",
@@ -83,11 +83,11 @@ def add_dataset_metadata_common_options(
                 standard[1],
             ]
         )
-    if start_date:
+    if start_date is not None:
         args.extend(["--start-date", start_date.strftime(DATE_INPUT_FORMAT)])
-    if end_date:
+    if end_date is not None:
         args.extend(["--end-date", end_date.strftime(DATE_INPUT_FORMAT)])
-    if organisation:
+    if organisation is not None:
         args.extend(
             [
                 "--organisation",
@@ -95,11 +95,11 @@ def add_dataset_metadata_common_options(
                 organisation[1],
             ]
         )
-    if people:
+    if people is not None:
         for person in people:
             args.extend(["--person", person[0], person[1]])
     # Special case - cant easily mock datetime.now so use ANY here instead
-    if created_date:
+    if created_date is not None:
         args.extend(
             [
                 "--created-date",
@@ -109,14 +109,14 @@ def add_dataset_metadata_common_options(
     else:
         dictionary["created_date"] = ANY
 
-    if update_frequency:
+    if update_frequency is not None:
         args.extend(
             [
                 "--update-frequency",
                 update_frequency,
             ]
         )
-    if publisher:
+    if publisher is not None:
         args.extend(
             [
                 "--publisher",
@@ -124,7 +124,7 @@ def add_dataset_metadata_common_options(
                 publisher[1],
             ]
         )
-    if contact:
+    if contact is not None:
         args.extend(
             [
                 "--contact",
@@ -132,7 +132,7 @@ def add_dataset_metadata_common_options(
                 contact[1],
             ]
         )
-    if license:
+    if license is not None:
         args.extend(
             [
                 "--license",
@@ -142,14 +142,14 @@ def add_dataset_metadata_common_options(
     elif not all_optional:
         dictionary["license"] = "https://creativecommons.org/licences/by/4.0/"
 
-    if rights:
+    if rights is not None:
         args.extend(
             [
                 "--rights",
                 rights,
             ]
         )
-    if version_message:
+    if version_message is not None:
         args.extend(["--version-message", version_message])
 
     return args
