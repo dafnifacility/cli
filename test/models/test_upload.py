@@ -1,6 +1,6 @@
 from pathlib import Path
 from unittest import TestCase
-from unittest.mock import ANY, MagicMock, call, patch
+from unittest.mock import MagicMock, call, patch
 
 from dafni_cli.api.exceptions import ValidationError
 from dafni_cli.models import upload
@@ -24,13 +24,19 @@ class TestModelUpload(TestCase):
         mock_validate_model_definition,
         mock_click,
     ):
-        """Tests that upload_dataset works as expected"""
+        """Tests that upload_model works as expected"""
         # SETUP
         session = MagicMock()
         definition_path = Path("path/to/definition")
         image_path = Path("path/to/image")
         version_message = "version_message"
         parent_id = MagicMock()
+        details = {
+            # NIMS always returns True here
+            "success": True,
+            "version_id": "0a0a0a0a-0a00-0a00-a000-0a0a0000000a",
+        }
+        mock_model_version_ingest.return_value = details
         mock_get_model_upload_urls.return_value = (
             TEST_MODELS_UPLOAD_RESPONSE["id"],
             TEST_MODELS_UPLOAD_RESPONSE["urls"],
@@ -68,7 +74,8 @@ class TestModelUpload(TestCase):
                 call("Getting urls"),
                 call("Uploading model definition and image"),
                 call("Ingesting model"),
-                call("Model upload complete"),
+                call("\nUpload successful"),
+                call(f"Version ID: {details['version_id']}"),
             ]
         )
 
