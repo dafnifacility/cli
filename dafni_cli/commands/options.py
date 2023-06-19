@@ -153,8 +153,7 @@ def dataset_metadata_common_options(all_optional: bool):
             "--standard",
             type=(str, URLParamType(optional=True)),
             default=None,
-            help="Name and URL of a standard to which this dataset conforms (e.g. www.iso.org/standard/39229.html). Either value may be empty using "
-            ".",
+            help='Name and URL of a standard to which this dataset conforms (e.g. www.iso.org/standard/39229.html). Either value may be empty using "".',
         )(function)
         function = click.option(
             "--start-date",

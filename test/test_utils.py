@@ -467,7 +467,7 @@ class TestIsValidURL(TestCase):
         """Tests that a valid URL returns True"""
         self.assertTrue(utils.is_valid_url("https://www.somewebsite.com/"))
 
-    def test_valid_url_returns_false(self):
+    def test_invalid_url_returns_false(self):
         """Tests that an invalid URL returns False"""
         self.assertFalse(utils.is_valid_url("some text"))
         self.assertFalse(utils.is_valid_url(""))
@@ -482,11 +482,11 @@ class TestIsValidURL(TestCase):
 class TestIsValidEmailAddress(TestCase):
     """Test class to test the is_valid_email_address function"""
 
-    def test_valid_url_returns_true(self):
+    def test_valid_email_returns_true(self):
         """Tests that a valid email address returns True"""
         self.assertTrue(utils.is_valid_email_address("test@example.com"))
 
-    def test_valid_url_returns_false(self):
+    def test_invalid_email_returns_false(self):
         """Tests that an invalid email address returns False"""
         self.assertFalse(utils.is_valid_email_address(""))
         self.assertFalse(utils.is_valid_email_address("some text"))
