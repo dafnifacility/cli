@@ -6,6 +6,8 @@ from click.testing import CliRunner
 from dafni_cli.api.exceptions import ResourceNotFoundError
 from dafni_cli.commands import get
 
+from test.fixtures.dataset_metadata import TEST_DATASET_METADATA
+
 
 @patch("dafni_cli.commands.get.DAFNISession")
 class TestGet(TestCase):
@@ -710,8 +712,8 @@ class TestGetDataset(TestCase):
         mock_get_latest_dataset_metadata,
         mock_DAFNISession,
     ):
-        """Tests that the 'get dataset' command works correctly (with
-        --version-history)"""
+        """Tests that the 'get dataset' command works correctly with
+        --version-history"""
 
         # SETUP
         session = MagicMock()
@@ -719,7 +721,7 @@ class TestGetDataset(TestCase):
         runner = CliRunner()
         dataset = MagicMock()
         dataset.version_history = MagicMock()
-        mock_get_latest_dataset_metadata.return_value = dataset
+        mock_get_latest_dataset_metadata.return_value = TEST_DATASET_METADATA
         mock_parse_dataset_metadata.return_value = dataset
 
         # CALL
@@ -730,9 +732,7 @@ class TestGetDataset(TestCase):
         # ASSERT
         mock_DAFNISession.assert_called_once()
         mock_get_latest_dataset_metadata.assert_called_with(session, "some_version_id")
-        dataset.version_history.process_and_output_version_history.assert_called_once_with(
-            session, False
-        )
+        dataset.version_history.output_version_history.assert_called_once()
         mock_print_json.assert_not_called()
 
         self.assertEqual(result.exit_code, 0)
@@ -744,8 +744,8 @@ class TestGetDataset(TestCase):
         mock_get_latest_dataset_metadata,
         mock_DAFNISession,
     ):
-        """Tests that the 'get dataset' command works correctly (with --json
-        and --version-history)"""
+        """Tests that the 'get dataset' command works correctly with --json
+        and --version-history"""
 
         # SETUP
         session = MagicMock()
@@ -753,7 +753,7 @@ class TestGetDataset(TestCase):
         runner = CliRunner()
         dataset = MagicMock()
         dataset.version_history = MagicMock()
-        mock_get_latest_dataset_metadata.return_value = dataset
+        mock_get_latest_dataset_metadata.return_value = TEST_DATASET_METADATA
         mock_parse_dataset_metadata.return_value = dataset
 
         # CALL
@@ -765,10 +765,10 @@ class TestGetDataset(TestCase):
         # ASSERT
         mock_DAFNISession.assert_called_once()
         mock_get_latest_dataset_metadata.assert_called_with(session, "some_version_id")
-        dataset.version_history.process_and_output_version_history.assert_called_once_with(
-            session, True
+        dataset.version_history.output_version_history.assert_not_called()
+        mock_print_json.assert_called_once_with(
+            TEST_DATASET_METADATA["version_history"]
         )
-        mock_print_json.assert_not_called()
 
         self.assertEqual(result.exit_code, 0)
 

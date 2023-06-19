@@ -3,10 +3,16 @@ from unittest import TestCase
 from unittest.mock import MagicMock, call, patch
 
 from dateutil.tz import tzutc
-from dafni_cli.api.auth import Auth
 
+from dafni_cli.api.auth import Auth
 from dafni_cli.api.parser import ParserBaseObject
-from dafni_cli.consts import CONSOLE_WIDTH, DATA_FORMATS, TAB_SPACE
+from dafni_cli.consts import (
+    CONSOLE_WIDTH,
+    DATA_FORMATS,
+    TABLE_MODIFIED_HEADER,
+    TABLE_VERSION_ID_HEADER,
+    TABLE_VERSION_MESSAGE_HEADER,
+)
 from dafni_cli.datasets.dataset_metadata import (
     Contact,
     Creator,
@@ -252,10 +258,10 @@ class TestDatasetVersionHistory(TestCase):
         )
         self.assertEqual(
             version_history.versions[0].metadata_versions[0].modified_date,
-            datetime(2021, 3, 16, 9, 27, 21, tzinfo=tzutc()),
+            datetime(2021, 3, 17, 9, 27, 21, tzinfo=tzutc()),
         )
         self.assertEqual(
-            version_history.versions[0].metadata_versions[0].label,
+            version_history.versions[0].metadata_versions[0].version_message,
             TEST_DATASET_METADATA_VERSION_HISTORY["versions"][0]["metadata_versions"][
                 0
             ]["dafni_version_note"],
@@ -270,10 +276,10 @@ class TestDatasetVersionHistory(TestCase):
         )
         self.assertEqual(
             version_history.versions[0].metadata_versions[1].modified_date,
-            datetime(2021, 3, 17, 9, 27, 21, tzinfo=tzutc()),
+            datetime(2021, 3, 16, 9, 27, 21, tzinfo=tzutc()),
         )
         self.assertEqual(
-            version_history.versions[0].metadata_versions[1].label,
+            version_history.versions[0].metadata_versions[1].version_message,
             TEST_DATASET_METADATA_VERSION_HISTORY["versions"][0]["metadata_versions"][
                 1
             ]["dafni_version_note"],
@@ -298,81 +304,54 @@ class TestDatasetVersionHistory(TestCase):
             datetime(2021, 3, 16, 9, 27, 21, tzinfo=tzutc()),
         )
         self.assertEqual(
-            version_history.versions[1].metadata_versions[0].label,
+            version_history.versions[1].metadata_versions[0].version_message,
             TEST_DATASET_METADATA_VERSION_HISTORY["versions"][1]["metadata_versions"][
                 0
             ]["dafni_version_note"],
         )
 
-    @patch("dafni_cli.datasets.dataset_metadata.print_json")
-    @patch.object(DatasetMetadata, "output_version_details")
-    @patch("dafni_cli.datasets.dataset_metadata.get_latest_dataset_metadata")
-    def test_process_and_output_version_history_with_false_json_flag(
+    @patch("dafni_cli.datasets.dataset_metadata.format_table")
+    @patch("dafni_cli.datasets.dataset_metadata.click")
+    def test_output_version_history(
         self,
-        mock_get_latest_dataset_metadata,
-        mock_output_version_details,
-        mock_print_json,
+        mock_click,
+        mock_format_table,
     ):
-        """Tests process_and_output_version_history with a 'json_flag' value
-        of False"""
+        """Tests output_version_history works correctly"""
 
         # SETUP
-        mock_get_latest_dataset_metadata.return_value = TEST_DATASET_METADATA
-        session = MagicMock()
-
         version_history: DatasetVersionHistory = ParserBaseObject.parse_from_dict(
             DatasetVersionHistory, TEST_DATASET_METADATA_VERSION_HISTORY
         )
 
         # CALL
-        version_history.process_and_output_version_history(session)
+        version_history.output_version_history()
 
         # ASSERT
-        mock_get_latest_dataset_metadata.assert_has_calls(
-            [call(session, version.version_id) for version in version_history.versions]
+        mock_format_table.assert_called_once_with(
+            headers=[
+                TABLE_VERSION_ID_HEADER,
+                TABLE_MODIFIED_HEADER,
+                TABLE_VERSION_MESSAGE_HEADER,
+            ],
+            rows=[
+                [
+                    "0a0a0a0a-0a00-0a00-a000-0a0a0000000b",
+                    format_datetime(
+                        datetime(2021, 3, 17, 9, 27, 21), include_time=True
+                    ),
+                    "Second Dataset version",
+                ],
+                [
+                    "0a0a0a0a-0a00-0a00-a000-0a0a0000000c",
+                    format_datetime(
+                        datetime(2021, 3, 16, 9, 27, 21), include_time=True
+                    ),
+                    "Initial Dataset version",
+                ],
+            ],
         )
-        self.assertEqual(
-            mock_output_version_details.call_count, len(version_history.versions)
-        )
-        mock_print_json.assert_not_called()
-
-    @patch("dafni_cli.datasets.dataset_metadata.print_json")
-    @patch.object(DatasetMetadata, "output_version_details")
-    @patch("dafni_cli.datasets.dataset_metadata.get_latest_dataset_metadata")
-    def test_process_and_output_version_history_with_true_json_flag(
-        self,
-        mock_get_latest_dataset_metadata,
-        mock_output_version_details,
-        mock_print_json,
-    ):
-        """Tests process_and_output_version_history with a 'json_flag' value
-        of True"""
-
-        # SETUP
-        mock_get_latest_dataset_metadata.return_value = TEST_DATASET_METADATA
-
-        session = MagicMock()
-
-        version_history: DatasetVersionHistory = ParserBaseObject.parse_from_dict(
-            DatasetVersionHistory, TEST_DATASET_METADATA_VERSION_HISTORY
-        )
-
-        # CALL
-        version_history.process_and_output_version_history(session, json_flag=True)
-
-        # ASSERT
-        mock_get_latest_dataset_metadata.assert_has_calls(
-            [call(session, version.version_id) for version in version_history.versions]
-        )
-        self.assertEqual(mock_output_version_details.call_count, 0)
-
-        # Above we have mocked mock_get_latest_dataset_metadata's return
-        # value to be TEST_DATASET_METADATA, as we have 2 versions in the
-        # metadata we expect the same metadata to have been printed twice,
-        # once per version
-        mock_print_json.assert_called_with(
-            [TEST_DATASET_METADATA, TEST_DATASET_METADATA]
-        )
+        mock_click.echo.assert_called_once_with(mock_format_table.return_value)
 
 
 class TestDatasetMetadataTestCase(TestCase):
@@ -399,6 +378,9 @@ class TestDatasetMetadataTestCase(TestCase):
 
         self.assertEqual(metadata.keywords, TEST_DATASET_METADATA["dcat:keyword"])
 
+        self.assertEqual(
+            metadata.modified, datetime(2021, 3, 16, 9, 27, 21, tzinfo=tzutc())
+        )
         self.assertEqual(
             metadata.issued, datetime(2021, 3, 16, 9, 27, 21, tzinfo=tzutc())
         )
@@ -658,37 +640,6 @@ class TestDatasetMetadataTestCase(TestCase):
         )
 
         mock_prose_print.assert_called_once_with(dataset_metadata.rights, CONSOLE_WIDTH)
-
-    @patch("dafni_cli.datasets.dataset_metadata.prose_print")
-    @patch("dafni_cli.datasets.dataset_metadata.click")
-    def test_output_version_details(self, mock_click, mock_prose_print):
-        """Tests test_output_version_details functions as expected"""
-        # SETUP
-        dataset_metadata: DatasetMetadata = parse_dataset_metadata(
-            TEST_DATASET_METADATA
-        )
-
-        # CALL
-        dataset_metadata.output_version_details()
-
-        # ASSERT
-        mock_click.echo.assert_has_calls(
-            [
-                call(f"\nTitle: {dataset_metadata.title}"),
-                call(f"ID: {dataset_metadata.dataset_id}"),
-                call(f"Version ID: {dataset_metadata.version_id}"),
-                call(f"Publisher: {dataset_metadata.publisher}"),
-                call(
-                    f"From: {format_datetime(dataset_metadata.start_date, include_time=True)}{TAB_SPACE}"
-                    f"To: {format_datetime(dataset_metadata.end_date, include_time=True)}"
-                ),
-                call("Description: "),
-            ]
-        )
-
-        mock_prose_print.assert_called_once_with(
-            dataset_metadata.description, CONSOLE_WIDTH
-        )
 
     def test_get_dataset_details(self):
         """Tests test_get_dataset_details functions as expected"""
