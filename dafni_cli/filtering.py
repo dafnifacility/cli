@@ -9,7 +9,7 @@ def filter_multiple(
     filters: List[Callable[[Any], bool]], instances: List[Any], dictionaries: List[dict]
 ) -> List[Any]:
     """Filters a list of objects given a list of functions that must all return
-    true
+    True
 
     Args:
         filters (List[Callable[[Any], bool]]): List of filters that each
@@ -48,7 +48,7 @@ def creation_date_filter(
                         filter. (Only the date part will be used)
     Returns:
         Callable[[Union[Model, Workflow]], bool]: Filter function to use with
-                                                filter_multiple
+                                                  filter_multiple
     """
 
     def filter_creation_date(value: Union[Model, Workflow]) -> bool:

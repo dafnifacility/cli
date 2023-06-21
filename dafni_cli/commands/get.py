@@ -331,6 +331,7 @@ def workflows(
     workflow_dict_list = get_all_workflows(ctx.obj["session"])
     workflow_list = parse_workflows(workflow_dict_list)
 
+    # Apply filtering
     filters = []
     if search:
         filters.append(workflow_text_filter(search))
@@ -342,6 +343,8 @@ def workflows(
     filtered_workflows, filtered_workflow_dicts = filter_multiple(
         filters, workflow_list, workflow_dict_list
     )
+
+    # Output
     if json:
         print_json(filtered_workflow_dicts)
     else:
