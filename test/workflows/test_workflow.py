@@ -183,42 +183,6 @@ class TestWorkflow(TestCase):
             workflow.metadata.description, TEST_WORKFLOW_METADATA["description"]
         )
 
-    def _test_filter_by_date(
-        self, workflow: Workflow, key: str, date_str: str, expected_output: bool
-    ):
-        """Utility function to check a particular set of parameters to
-        filter_by_date does what is expected"""
-        self.assertEqual(workflow.filter_by_date(key, date_str), expected_output)
-
-    def test_filter_by_date(self):
-        """Tests filter_by_date works correctly"""
-        # SETUP
-        workflow = parse_workflow(TEST_WORKFLOW)
-
-        # Creation date and publication date's are:
-        # 2023-04-04T08:34:36.531809Z
-        # 2023-04-04T08:34:36.531809Z
-
-        # CALL
-
-        # Before
-        self._test_filter_by_date(workflow, "creation", datetime(2018, 5, 16), True)
-        self._test_filter_by_date(workflow, "publication", datetime(2018, 5, 16), True)
-        # Equal
-        self._test_filter_by_date(workflow, "creation", datetime(2023, 4, 4), True)
-        self._test_filter_by_date(workflow, "publication", datetime(2023, 4, 4), True)
-        # After
-        self._test_filter_by_date(workflow, "creation", datetime(2023, 4, 25), False)
-        self._test_filter_by_date(workflow, "publication", datetime(2023, 4, 25), False)
-
-    def test_filter_by_date_error(self):
-        """Tests filter_by_date raises an error if the key is wrong"""
-        # SETUP
-        workflow = parse_workflow(TEST_WORKFLOW)
-
-        with self.assertRaises(KeyError):
-            workflow.filter_by_date("key", datetime(2020, 12, 11))
-
     @patch("dafni_cli.workflows.workflow.click")
     def test_output_details(self, mock_click):
         """Tests output_details works correctly"""
