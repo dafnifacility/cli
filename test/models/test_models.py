@@ -203,13 +203,6 @@ class TestModel(TestCase):
         self.assertEqual(model.metadata.publisher, TEST_MODEL_METADATA["publisher"])
         self.assertEqual(model.metadata.source_code, TEST_MODEL_METADATA["source_code"])
 
-    def _test_filter_by_date(
-        self, model: Model, key: str, date_str: str, expected_output: bool
-    ):
-        """Utility function to check a particular set of parameters to
-        filter_by_date does what is expected"""
-        self.assertEqual(model.filter_by_date(key, date_str), expected_output)
-
     @patch("dafni_cli.models.model.click")
     def test_output_details(self, mock_click):
         """Tests output_details works correctly"""
