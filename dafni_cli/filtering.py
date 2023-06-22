@@ -16,10 +16,16 @@ def filter_multiple(
                  receive a value from the list and should return true
                  if that value should be in the filtered list or false
                  otherwise.
-        values (List[Any]): List of values to filter
+        instances (List[Any]): List of parsed DAFNI object instances e.g.
+                               Workflow's These will be passed to the filters.
+        dictionaries (List[dict]): List of dictionaries that were parsed into
+                                   the instances. Ensures filtering can be
+                                   applied for commands using --json.
 
     Returns:
-        List[Any]: The filtered list of values
+        List[Any]: Filtered list of DAFNI object instances
+        List[dict]: Filtered list of dictionaries corresponding to the
+                    filtered DAFNI object instances
     """
 
     # Skip filtering if unnecessary
