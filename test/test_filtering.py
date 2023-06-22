@@ -1,8 +1,7 @@
 from dataclasses import dataclass
 from datetime import datetime
 from unittest import TestCase
-
-from mock import MagicMock
+from unittest.mock import MagicMock
 
 from dafni_cli import filtering
 

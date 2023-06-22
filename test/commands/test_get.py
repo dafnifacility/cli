@@ -892,6 +892,46 @@ class TestGetWorkflows(TestCase):
 
         self.assertEqual(result.exit_code, 0)
 
+    def test_get_workflows_with_text_filter(
+        self,
+    ):
+        """Tests that the 'get workflows' command works correctly with a
+        search text filter"""
+
+        # SETUP
+        session = MagicMock()
+        self.mock_DAFNISession.return_value = session
+        runner = CliRunner()
+        workflow_dicts = [MagicMock(), MagicMock()]
+        workflows = [MagicMock(), MagicMock()]
+        search_text = "Test"
+
+        self.mock_get_all_workflows.return_value = workflow_dicts
+        self.mock_parse_workflows.return_value = workflows
+
+        # Make the first model filter but the second not
+        self.mock_filter_multiple.return_value = [workflows[0]], [workflow_dicts[0]]
+
+        # CALL
+        options = ["workflows", "--search", search_text]
+        result = runner.invoke(get.get, options)
+
+        # ASSERT
+        self.mock_DAFNISession.assert_called_once()
+        self.mock_get_all_workflows.assert_called_with(session)
+        self.mock_workflow_text_filter.assert_called_once_with(search_text)
+        self.mock_creation_date_filter.assert_not_called()
+        self.mock_publication_date_filter.assert_not_called()
+        self.mock_filter_multiple.assert_called_with(
+            [self.mock_workflow_text_filter.return_value], workflows, workflow_dicts
+        )
+
+        workflows[0].output_details.assert_called_with(False)
+        workflows[1].output_details.assert_not_called()
+        self.mock_print_json.assert_not_called()
+
+        self.assertEqual(result.exit_code, 0)
+
     def _test_get_workflows_with_date_filter(
         self,
         date_filter_options,
@@ -1051,6 +1091,62 @@ class TestGetWorkflows(TestCase):
         self._test_get_workflows_with_date_filter_json(
             ("--publication-date", "publication"), self.mock_publication_date_filter
         )
+
+    def test_get_workflows_with_all_filters(
+        self,
+    ):
+        """Tests that the 'get workflows' command works correctly with a
+        one of each filter"""
+
+        # SETUP
+        session = MagicMock()
+        self.mock_DAFNISession.return_value = session
+        runner = CliRunner()
+        workflow_dicts = [MagicMock(), MagicMock()]
+        workflows = [MagicMock(), MagicMock()]
+        search_text = "Test"
+        creation_date = datetime(2022, 6, 28)
+        publication_date = datetime(2022, 12, 11)
+
+        self.mock_get_all_workflows.return_value = workflow_dicts
+        self.mock_parse_workflows.return_value = workflows
+
+        # Make the first model filter but the second not
+        self.mock_filter_multiple.return_value = [workflows[0]], [workflow_dicts[0]]
+
+        # CALL
+        options = [
+            "workflows",
+            "--search",
+            search_text,
+            "--creation-date",
+            creation_date,
+            "--publication-date",
+            publication_date,
+        ]
+        result = runner.invoke(get.get, options)
+
+        # ASSERT
+        self.mock_DAFNISession.assert_called_once()
+        self.mock_get_all_workflows.assert_called_with(session)
+        self.mock_workflow_text_filter.assert_called_once_with(search_text)
+        self.mock_creation_date_filter.assert_called_once_with(creation_date)
+        self.mock_publication_date_filter.assert_called_once_with(publication_date)
+        self.mock_filter_multiple.assert_called_with(
+            [
+                self.mock_workflow_text_filter.return_value,
+                self.mock_creation_date_filter.return_value,
+                self.mock_publication_date_filter.return_value,
+            ],
+            workflows,
+            workflow_dicts,
+        )
+
+        workflows[0].output_details.assert_called_with(False)
+        workflows[1].output_details.assert_not_called()
+        self.mock_print_json.assert_not_called()
+
+        self.assertEqual(result.exit_code, 0)
 
 
 @patch("dafni_cli.commands.get.DAFNISession")
