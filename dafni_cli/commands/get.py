@@ -12,6 +12,12 @@ from dafni_cli.consts import DATE_INPUT_FORMAT, DATE_INPUT_FORMAT_VERBOSE
 from dafni_cli.datasets import dataset_filtering
 from dafni_cli.datasets.dataset import parse_datasets
 from dafni_cli.datasets.dataset_metadata import parse_dataset_metadata
+from dafni_cli.filtering import (
+    creation_date_filter,
+    filter_multiple,
+    publication_date_filter,
+    workflow_text_filter,
+)
 from dafni_cli.models.model import parse_model, parse_models
 from dafni_cli.utils import print_json
 from dafni_cli.workflows.workflow import parse_workflow, parse_workflows
@@ -275,6 +281,12 @@ def dataset(
     type=bool,
 )
 @click.option(
+    "--search",
+    default=None,
+    help="Search text to filter by. Workflows with this text in either their display name or summary will be displayed.",
+    type=str,
+)
+@click.option(
     "--creation-date",
     default=None,
     help=f"Filter for workflows created since given date. Format: {DATE_INPUT_FORMAT_VERBOSE}",
@@ -295,7 +307,12 @@ def dataset(
 )
 @click.pass_context
 def workflows(
-    ctx: Context, long: bool, creation_date: str, publication_date: str, json: bool
+    ctx: Context,
+    long: bool,
+    search: Optional[str],
+    creation_date: Optional[str],
+    publication_date: Optional[str],
+    json: bool,
 ):
     """
     Display attributes of all workflows. Options allow more details to be listed,
@@ -304,29 +321,35 @@ def workflows(
     Args:
         ctx (context): contains user session for authentication
         long (bool): whether to print the description of each model as well
-        creation_date (str): for filtering by creation date. Format:
-                             DATE_INPUT_FORMAT_VERBOSE
-        publication_date (str): for filtering by publication date. Format:
-                                DATE_INPUT_FORMAT_VERBOSE
+        search (Optional[str]): Search text to filter workflows by
+        creation_date (Optional[str]): for filtering by creation date. Format:
+                                       DATE_INPUT_FORMAT_VERBOSE
+        publication_date (Optional[str]): for filtering by publication date. Format:
+                                          DATE_INPUT_FORMAT_VERBOSE
         json (bool): whether to print the raw json returned by the DAFNI API
     """
     workflow_dict_list = get_all_workflows(ctx.obj["session"])
     workflow_list = parse_workflows(workflow_dict_list)
 
-    filtered_workflow_dict_list = []
-    for workflow_inst, workflow_dict in zip(workflow_list, workflow_dict_list):
-        date_filter = True
-        if creation_date:
-            date_filter = workflow_inst.filter_by_date("creation", creation_date)
-        if publication_date:
-            date_filter = workflow_inst.filter_by_date("publication", publication_date)
-        if date_filter:
-            if json:
-                filtered_workflow_dict_list.append(workflow_dict)
-            else:
-                workflow_inst.output_details(long)
+    # Apply filtering
+    filters = []
+    if search:
+        filters.append(workflow_text_filter(search))
+    if creation_date:
+        filters.append(creation_date_filter(creation_date))
+    if publication_date:
+        filters.append(publication_date_filter(publication_date))
+
+    filtered_workflows, filtered_workflow_dicts = filter_multiple(
+        filters, workflow_list, workflow_dict_list
+    )
+
+    # Output
     if json:
-        print_json(filtered_workflow_dict_list)
+        print_json(filtered_workflow_dicts)
+    else:
+        for workflow_inst in filtered_workflows:
+            workflow_inst.output_details(long)
 
 
 @get.command(

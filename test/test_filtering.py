@@ -1,0 +1,200 @@
+from dataclasses import dataclass
+from datetime import datetime
+from unittest import TestCase
+from unittest.mock import MagicMock
+
+from dafni_cli import filtering
+
+
+@dataclass
+class TestWorkflowMetadata:
+    """Dataclass storing only the metadata needed for testing workflow
+    filtering"""
+
+    display_name: str
+    summary: str
+
+
+@dataclass
+class TestDataclass:
+    """Simple dataclass for representing some test instances to pass
+    to the function"""
+
+    name: str
+    description: str
+    creation_date: datetime
+    publication_date: datetime
+    metadata: TestWorkflowMetadata
+
+
+class TestFiltering(TestCase):
+    """Tests that the functions within filtering.py work correctly"""
+
+    # Some test data
+    TEST_INSTANCES = [
+        TestDataclass(
+            "Value1",
+            "Description of object 1",
+            datetime(2022, 1, 12),
+            datetime(2022, 2, 12),
+            TestWorkflowMetadata("Display name 1", "Simple summary 1"),
+        ),
+        TestDataclass(
+            "Value2",
+            "Something completely different",
+            datetime(2022, 8, 1),
+            datetime(2022, 9, 1),
+            TestWorkflowMetadata("Display name 2 test", "Simple summary 2"),
+        ),
+        TestDataclass(
+            "Value3",
+            "Description of object 3",
+            datetime(2023, 6, 21),
+            datetime(2023, 7, 21),
+            TestWorkflowMetadata("Display name 3", "Simple summary 3 test"),
+        ),
+    ]
+
+    TEST_DICTIONARIES = [MagicMock(), MagicMock(), MagicMock()]
+
+    def test_filter_multiple_with_no_filters(self):
+        """Tests filter_multiple does nothing when not given any filters"""
+        # CALL
+        filtered_instances, filtered_dictionaries = filtering.filter_multiple(
+            [], self.TEST_INSTANCES, self.TEST_DICTIONARIES
+        )
+
+        # ASSERT
+        self.assertEqual(filtered_instances, self.TEST_INSTANCES)
+        self.assertEqual(filtered_dictionaries, self.TEST_DICTIONARIES)
+
+    def test_filter_multiple_with_single_filter(self):
+        """Tests filter_multiple works correctly when given a single filter"""
+
+        # SETUP
+        # Simple filter to select only the second value
+        def simple_filter(instance: TestDataclass):
+            return instance.name == "Value2"
+
+        # CALL
+        filtered_instances, filtered_dictionaries = filtering.filter_multiple(
+            [simple_filter], self.TEST_INSTANCES, self.TEST_DICTIONARIES
+        )
+
+        # ASSERT
+        self.assertEqual(filtered_instances, [self.TEST_INSTANCES[1]])
+        self.assertEqual(filtered_dictionaries, [self.TEST_DICTIONARIES[1]])
+
+    def test_with_filter_multiple_with_multiple_filters(self):
+        """Tests filter_multiple works correctly when given multiple filters"""
+
+        # SETUP
+        def filter1(instance: TestDataclass):
+            return "Description" in instance.description
+
+        def filter2(instance: TestDataclass):
+            return "object" in instance.description
+
+        # CALL
+        filtered_instances, filtered_dictionaries = filtering.filter_multiple(
+            [filter1, filter2], self.TEST_INSTANCES, self.TEST_DICTIONARIES
+        )
+
+        # ASSERT
+        self.assertEqual(
+            filtered_instances, [self.TEST_INSTANCES[0], self.TEST_INSTANCES[2]]
+        )
+        self.assertEqual(
+            filtered_dictionaries,
+            [self.TEST_DICTIONARIES[0], self.TEST_DICTIONARIES[2]],
+        )
+
+    def test_creation_date_filter(self):
+        """Tests creation_date_filter works correctly"""
+        # CALL
+        filtered_instances, filtered_dictionaries = filtering.filter_multiple(
+            [filtering.creation_date_filter(datetime(2022, 8, 1))],
+            self.TEST_INSTANCES,
+            self.TEST_DICTIONARIES,
+        )
+
+        # ASSERT
+        self.assertEqual(
+            filtered_instances, [self.TEST_INSTANCES[1], self.TEST_INSTANCES[2]]
+        )
+        self.assertEqual(
+            filtered_dictionaries,
+            [self.TEST_DICTIONARIES[1], self.TEST_DICTIONARIES[2]],
+        )
+
+    def test_publication_date_filter(self):
+        """Tests publication_date_filter works correctly"""
+        # CALL
+        filtered_instances, filtered_dictionaries = filtering.filter_multiple(
+            [filtering.publication_date_filter(datetime(2022, 9, 1))],
+            self.TEST_INSTANCES,
+            self.TEST_DICTIONARIES,
+        )
+
+        # ASSERT
+        self.assertEqual(
+            filtered_instances, [self.TEST_INSTANCES[1], self.TEST_INSTANCES[2]]
+        )
+        self.assertEqual(
+            filtered_dictionaries,
+            [self.TEST_DICTIONARIES[1], self.TEST_DICTIONARIES[2]],
+        )
+
+    def test_workflow_text_filter(self):
+        """Tests workflow_text_filter works correctly"""
+
+        # First a really broad filter
+
+        # CALL
+        filtered_instances, filtered_dictionaries = filtering.filter_multiple(
+            [filtering.workflow_text_filter("Display")],
+            self.TEST_INSTANCES,
+            self.TEST_DICTIONARIES,
+        )
+
+        # ASSERT
+        self.assertEqual(filtered_instances, self.TEST_INSTANCES)
+        self.assertEqual(
+            filtered_dictionaries,
+            self.TEST_DICTIONARIES,
+        )
+
+        # Now for a specific one (also checking case insensitive)
+
+        # CALL
+        filtered_instances, filtered_dictionaries = filtering.filter_multiple(
+            [filtering.workflow_text_filter("suMmARy 2")],
+            self.TEST_INSTANCES,
+            self.TEST_DICTIONARIES,
+        )
+
+        # ASSERT
+        self.assertEqual(filtered_instances, [self.TEST_INSTANCES[1]])
+        self.assertEqual(
+            filtered_dictionaries,
+            [self.TEST_DICTIONARIES[1]],
+        )
+
+        # Now ensure both the display name and summary are filtered at the
+        # same time
+
+        # CALL
+        filtered_instances, filtered_dictionaries = filtering.filter_multiple(
+            [filtering.workflow_text_filter("test")],
+            self.TEST_INSTANCES,
+            self.TEST_DICTIONARIES,
+        )
+
+        # ASSERT
+        self.assertEqual(
+            filtered_instances, [self.TEST_INSTANCES[1], self.TEST_INSTANCES[2]]
+        )
+        self.assertEqual(
+            filtered_dictionaries,
+            [self.TEST_DICTIONARIES[1], self.TEST_DICTIONARIES[2]],
+        )
