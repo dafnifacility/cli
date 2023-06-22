@@ -84,25 +84,25 @@ def publication_date_filter(
     return filter_publication_date
 
 
-def workflow_text_filter(
+def text_filter(
     text: str,
-) -> Callable[[Workflow], bool]:
-    """Returns a filter for filtering workflows by some search text
+) -> Callable[[Union[Model, Workflow]], bool]:
+    """Returns a filter for filtering models/workflows by some search text
 
-    All workflows whose display name or summary contains the search text will
-    be returned by the filter. Case is ignored (as in frontend).
+    All models/workflows whose display name or summary contains the search
+    text will be returned by the filter. Case is ignored (as in frontend).
 
     Args:
         text (str): Search text to filter by. All workflows with the search
                     text in either the display name or summary will be
                     returned by the filter.
     Returns:
-        Callable[[Workflow], bool]: Filter function to use with
-                                    filter_multiple
+        Callable[[Union[Model, Workflow]], bool]: Filter function to use with
+                                                  filter_multiple
     """
     text = text.lower()
 
-    def filter_text(value: Workflow) -> bool:
+    def filter_text(value: Union[Model, Workflow]) -> bool:
         return (
             text in value.metadata.display_name.lower()
             or text in value.metadata.summary.lower()

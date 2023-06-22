@@ -222,27 +222,6 @@ class Model(ParserBaseObject):
         )
         return self._metadata
 
-    # TODO: Replace with .filter???
-    def filter_by_date(self, key: str, date: datetime) -> bool:
-        """Returns whether a particular date is less than or equal to the
-           creation/publication date of this model.
-
-        Args:
-            key (str): Key for which date to check must be either 'creation'
-                       or 'publication'
-            date (datetime): Datetime object (only the date will be used)
-
-        Returns:
-            bool: Whether the given date is less than or equal to the
-                  chosen date
-        """
-        date_val = date.date()
-        if key.lower() == "creation":
-            return self.creation_date.date() >= date_val
-        if key.lower() == "publication":
-            return self.publication_date.date() >= date_val
-        raise KeyError("Key should be 'creation' or 'publication'")
-
     def output_details(self, long: bool = False):
         """Prints relevant model attributes to command line
 

@@ -16,7 +16,7 @@ from dafni_cli.filtering import (
     creation_date_filter,
     filter_multiple,
     publication_date_filter,
-    workflow_text_filter,
+    text_filter,
 )
 from dafni_cli.models.model import parse_model, parse_models
 from dafni_cli.utils import print_json
@@ -48,6 +48,12 @@ def get(ctx: Context):
     type=bool,
 )
 @click.option(
+    "--search",
+    default=None,
+    help="Search text to filter by. Workflows with this text in either their display name or summary will be displayed.",
+    type=str,
+)
+@click.option(
     "--creation-date",
     default=None,
     help=f"Filter for models created since given date. Format: {DATE_INPUT_FORMAT_VERBOSE}",
@@ -68,7 +74,12 @@ def get(ctx: Context):
 )
 @click.pass_context
 def models(
-    ctx: Context, long: bool, creation_date: str, publication_date: str, json: bool
+    ctx: Context,
+    long: bool,
+    search: Optional[str],
+    creation_date: str,
+    publication_date: str,
+    json: bool,
 ):
     """Displays list of model details with other options allowing
         more details to be listed, filters, and for the json to be displayed.
@@ -76,6 +87,7 @@ def models(
     Args:
         ctx (context): contains user session for authentication
         long (bool): whether to print the description of each model as well
+        search (Optional[str]): Search text to filter models by
         creation_date (str): for filtering by creation date. Format:
                              DATE_INPUT_FORMAT_VERBOSE
         publication_date (str): for filtering by publication date. Format:
@@ -85,20 +97,25 @@ def models(
     model_dict_list = get_all_models(ctx.obj["session"])
     model_list = parse_models(model_dict_list)
 
-    filtered_model_dict_list = []
-    for model_inst, model_dict in zip(model_list, model_dict_list):
-        date_filter = True
-        if creation_date:
-            date_filter = model_inst.filter_by_date("creation", creation_date)
-        if publication_date:
-            date_filter = model_inst.filter_by_date("publication", publication_date)
-        if date_filter:
-            if json:
-                filtered_model_dict_list.append(model_dict)
-            else:
-                model_inst.output_details(long)
+    # Apply filtering
+    filters = []
+    if search:
+        filters.append(text_filter(search))
+    if creation_date:
+        filters.append(creation_date_filter(creation_date))
+    if publication_date:
+        filters.append(publication_date_filter(publication_date))
+
+    filtered_models, filtered_model_dicts = filter_multiple(
+        filters, model_list, model_dict_list
+    )
+
+    # Output
     if json:
-        print_json(filtered_model_dict_list)
+        print_json(filtered_model_dicts)
+    else:
+        for model_inst in filtered_models:
+            model_inst.output_details(long)
 
 
 @get.command(help="Display metadata or version history of a particular model or models")
@@ -334,7 +351,7 @@ def workflows(
     # Apply filtering
     filters = []
     if search:
-        filters.append(workflow_text_filter(search))
+        filters.append(text_filter(search))
     if creation_date:
         filters.append(creation_date_filter(creation_date))
     if publication_date:

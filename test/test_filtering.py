@@ -145,14 +145,14 @@ class TestFiltering(TestCase):
             [self.TEST_DICTIONARIES[1], self.TEST_DICTIONARIES[2]],
         )
 
-    def test_workflow_text_filter(self):
-        """Tests workflow_text_filter works correctly"""
+    def test_text_filter(self):
+        """Tests text_filter works correctly"""
 
         # First a really broad filter
 
         # CALL
         filtered_instances, filtered_dictionaries = filtering.filter_multiple(
-            [filtering.workflow_text_filter("Display")],
+            [filtering.text_filter("Display")],
             self.TEST_INSTANCES,
             self.TEST_DICTIONARIES,
         )
@@ -168,7 +168,7 @@ class TestFiltering(TestCase):
 
         # CALL
         filtered_instances, filtered_dictionaries = filtering.filter_multiple(
-            [filtering.workflow_text_filter("suMmARy 2")],
+            [filtering.text_filter("suMmARy 2")],
             self.TEST_INSTANCES,
             self.TEST_DICTIONARIES,
         )
@@ -185,7 +185,7 @@ class TestFiltering(TestCase):
 
         # CALL
         filtered_instances, filtered_dictionaries = filtering.filter_multiple(
-            [filtering.workflow_text_filter("test")],
+            [filtering.text_filter("test")],
             self.TEST_INSTANCES,
             self.TEST_DICTIONARIES,
         )
