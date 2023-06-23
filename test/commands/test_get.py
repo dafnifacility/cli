@@ -1,6 +1,6 @@
 from datetime import datetime
 from unittest import TestCase
-from unittest.mock import ANY, MagicMock, patch
+from unittest.mock import MagicMock, patch
 
 from click.testing import CliRunner
 
@@ -33,98 +33,164 @@ class TestGet(TestCase):
         self.assertEqual(result.exit_code, 0)
 
 
-@patch("dafni_cli.commands.get.DAFNISession")
-@patch("dafni_cli.commands.get.get_all_models")
-@patch("dafni_cli.commands.get.parse_models")
-@patch("dafni_cli.commands.get.print_json")
 class TestGetModels(TestCase):
     """Test class to test the get models command"""
 
-    def test_get_models(
-        self, mock_print_json, mock_parse_models, mock_get_all_models, mock_DAFNISession
-    ):
+    def setUp(
+        self,
+    ) -> None:
+        super().setUp()
+
+        self.mock_DAFNISession = patch("dafni_cli.commands.get.DAFNISession").start()
+        self.mock_get_all_models = patch(
+            "dafni_cli.commands.get.get_all_models"
+        ).start()
+        self.mock_parse_models = patch("dafni_cli.commands.get.parse_models").start()
+        self.mock_print_json = patch("dafni_cli.commands.get.print_json").start()
+        self.mock_text_filter = patch("dafni_cli.commands.get.text_filter").start()
+        self.mock_creation_date_filter = patch(
+            "dafni_cli.commands.get.creation_date_filter"
+        ).start()
+        self.mock_publication_date_filter = patch(
+            "dafni_cli.commands.get.publication_date_filter"
+        ).start()
+        self.mock_filter_multiple = patch(
+            "dafni_cli.commands.get.filter_multiple"
+        ).start()
+
+        self.addCleanup(patch.stopall)
+
+    def test_get_models(self):
         """Tests that the 'get models' command works correctly (with no
         optional arguments)"""
 
         # SETUP
         session = MagicMock()
-        mock_DAFNISession.return_value = session
+        self.mock_DAFNISession.return_value = session
         runner = CliRunner()
+        model_dicts = [MagicMock(), MagicMock()]
         models = [MagicMock(), MagicMock()]
-        mock_get_all_models.return_value = models
-        mock_parse_models.return_value = models
+        self.mock_get_all_models.return_value = model_dicts
+        self.mock_parse_models.return_value = models
+
+        # No filtering
+        self.mock_filter_multiple.return_value = models, model_dicts
 
         # CALL
         result = runner.invoke(get.get, ["models"])
 
         # ASSERT
-        mock_DAFNISession.assert_called_once()
-        mock_get_all_models.assert_called_with(session)
+        self.mock_DAFNISession.assert_called_once()
+        self.mock_get_all_models.assert_called_with(session)
+        self.mock_filter_multiple.assert_called_with([], models, model_dicts)
         for model in models:
             model.output_details.assert_called_with(False)
-        mock_print_json.assert_not_called()
+        self.mock_print_json.assert_not_called()
 
         self.assertEqual(result.exit_code, 0)
 
-    def test_get_models_with_long_true(
-        self, mock_print_json, mock_parse_models, mock_get_all_models, mock_DAFNISession
-    ):
+    def test_get_models_with_long_true(self):
         """Tests that the 'get models' command works correctly (with long
         True)"""
 
         # SETUP
         session = MagicMock()
-        mock_DAFNISession.return_value = session
+        self.mock_DAFNISession.return_value = session
         runner = CliRunner()
+        model_dicts = [MagicMock(), MagicMock()]
         models = [MagicMock(), MagicMock()]
-        mock_get_all_models.return_value = models
-        mock_parse_models.return_value = models
+        self.mock_get_all_models.return_value = model_dicts
+        self.mock_parse_models.return_value = models
+
+        # No filtering
+        self.mock_filter_multiple.return_value = models, model_dicts
 
         # CALL
         result = runner.invoke(get.get, ["models", "--long"])
 
         # ASSERT
-        mock_DAFNISession.assert_called_once()
-        mock_get_all_models.assert_called_with(session)
+        self.mock_DAFNISession.assert_called_once()
+        self.mock_get_all_models.assert_called_with(session)
+        self.mock_filter_multiple.assert_called_with([], models, model_dicts)
         for model in models:
             model.output_details.assert_called_with(True)
-        mock_print_json.assert_not_called()
+        self.mock_print_json.assert_not_called()
 
         self.assertEqual(result.exit_code, 0)
 
-    def test_get_models_with_json_true(
-        self, mock_print_json, mock_parse_models, mock_get_all_models, mock_DAFNISession
-    ):
+    def test_get_models_with_json_true(self):
         """Tests that the 'get models' command works correctly (with json
         True)"""
 
         # SETUP
         session = MagicMock()
-        mock_DAFNISession.return_value = session
+        self.mock_DAFNISession.return_value = session
         runner = CliRunner()
+        model_dicts = [MagicMock(), MagicMock()]
         models = [MagicMock(), MagicMock()]
-        mock_get_all_models.return_value = models
-        mock_parse_models.return_value = models
+        self.mock_get_all_models.return_value = model_dicts
+        self.mock_parse_models.return_value = models
+
+        # No filtering
+        self.mock_filter_multiple.return_value = models, model_dicts
 
         # CALL
         result = runner.invoke(get.get, ["models", "--json"])
 
         # ASSERT
-        mock_DAFNISession.assert_called_once()
-        mock_get_all_models.assert_called_with(session)
+        self.mock_DAFNISession.assert_called_once()
+        self.mock_get_all_models.assert_called_with(session)
+        self.mock_filter_multiple.assert_called_with([], models, model_dicts)
         for model in models:
             model.output_details.assert_not_called()
-        mock_print_json.assert_called_with(models)
+        self.mock_print_json.assert_called_with(model_dicts)
+
+        self.assertEqual(result.exit_code, 0)
+
+    def test_get_models_with_text_filter(
+        self,
+    ):
+        """Tests that the 'get models' command works correctly with a
+        search text filter"""
+
+        # SETUP
+        session = MagicMock()
+        self.mock_DAFNISession.return_value = session
+        runner = CliRunner()
+        model_dicts = [MagicMock(), MagicMock()]
+        models = [MagicMock(), MagicMock()]
+        search_text = "Test"
+
+        self.mock_get_all_models.return_value = model_dicts
+        self.mock_parse_models.return_value = models
+
+        # Make the first model filter but the second not
+        self.mock_filter_multiple.return_value = [models[0]], [model_dicts[0]]
+
+        # CALL
+        options = ["models", "--search", search_text]
+        result = runner.invoke(get.get, options)
+
+        # ASSERT
+        self.mock_DAFNISession.assert_called_once()
+        self.mock_get_all_models.assert_called_with(session)
+        self.mock_text_filter.assert_called_once_with(search_text)
+        self.mock_creation_date_filter.assert_not_called()
+        self.mock_publication_date_filter.assert_not_called()
+        self.mock_filter_multiple.assert_called_with(
+            [self.mock_text_filter.return_value], models, model_dicts
+        )
+
+        models[0].output_details.assert_called_with(False)
+        models[1].output_details.assert_not_called()
+        self.mock_print_json.assert_not_called()
 
         self.assertEqual(result.exit_code, 0)
 
     def _test_get_models_with_date_filter(
         self,
-        mock_print_json,
-        mock_parse_models,
-        mock_get_all_models,
-        mock_DAFNISession,
         date_filter_options,
+        mock_date_filter,
         long,
     ):
         """Helper method for testing that the 'get models' command works
@@ -132,183 +198,149 @@ class TestGetModels(TestCase):
 
         # SETUP
         session = MagicMock()
-        mock_DAFNISession.return_value = session
+        self.mock_DAFNISession.return_value = session
         runner = CliRunner()
+        model_dicts = [MagicMock(), MagicMock()]
         models = [MagicMock(), MagicMock()]
+        date = datetime(2023, 1, 1)
+
+        self.mock_get_all_models.return_value = model_dicts
+        self.mock_parse_models.return_value = models
 
         # Make the first model filter but the second not
-        models[0].filter_by_date = MagicMock(return_value=True)
-        models[1].filter_by_date = MagicMock(return_value=False)
-
-        mock_get_all_models.return_value = models
-        mock_parse_models.return_value = models
+        self.mock_filter_multiple.return_value = [models[0]], [model_dicts[0]]
 
         # CALL
-        options = ["models", date_filter_options[0], "2023-01-01"]
+        options = ["models", date_filter_options[0], date.strftime(DATE_INPUT_FORMAT)]
         if long:
             options.append("--long")
         result = runner.invoke(get.get, options)
 
         # ASSERT
-        mock_DAFNISession.assert_called_once()
-        mock_get_all_models.assert_called_with(session)
-        models[0].filter_by_date.assert_called_with(date_filter_options[1], ANY)
+        self.mock_DAFNISession.assert_called_once()
+        self.mock_get_all_models.assert_called_with(session)
+        mock_date_filter.assert_called_once_with(date)
+        self.mock_filter_multiple.assert_called_with(
+            [mock_date_filter.return_value], models, model_dicts
+        )
         models[0].output_details.assert_called_with(long)
         models[1].output_details.assert_not_called()
 
-        mock_print_json.assert_not_called()
+        self.mock_print_json.assert_not_called()
 
         self.assertEqual(result.exit_code, 0)
 
     def test_get_models_with_creation_date_filter(
         self,
-        mock_print_json,
-        mock_parse_models,
-        mock_get_all_models,
-        mock_DAFNISession,
     ):
         """Tests that the 'get models' command works correctly (while
         filtering by creation date)"""
 
         self._test_get_models_with_date_filter(
-            mock_print_json,
-            mock_parse_models,
-            mock_get_all_models,
-            mock_DAFNISession,
             ("--creation-date", "creation"),
+            self.mock_creation_date_filter,
             False,
         )
 
     def test_get_models_with_publication_date_filter(
         self,
-        mock_print_json,
-        mock_parse_models,
-        mock_get_all_models,
-        mock_DAFNISession,
     ):
         """Tests that the 'get models' command works correctly (while
         filtering by publication date)"""
 
         self._test_get_models_with_date_filter(
-            mock_print_json,
-            mock_parse_models,
-            mock_get_all_models,
-            mock_DAFNISession,
             ("--publication-date", "publication"),
+            self.mock_publication_date_filter,
             False,
         )
 
     def test_get_models_with_creation_date_filter_and_long_true(
         self,
-        mock_print_json,
-        mock_parse_models,
-        mock_get_all_models,
-        mock_DAFNISession,
     ):
         """Tests that the 'get models' command works correctly (while
         filtering by creation date and long=True)"""
 
         self._test_get_models_with_date_filter(
-            mock_print_json,
-            mock_parse_models,
-            mock_get_all_models,
-            mock_DAFNISession,
             ("--creation-date", "creation"),
+            self.mock_creation_date_filter,
             True,
         )
 
     def test_get_models_with_publication_date_filter_and_long_true(
         self,
-        mock_print_json,
-        mock_parse_models,
-        mock_get_all_models,
-        mock_DAFNISession,
     ):
         """Tests that the 'get models' command works correctly (while
         filtering by publication date and long=True)"""
 
         self._test_get_models_with_date_filter(
-            mock_print_json,
-            mock_parse_models,
-            mock_get_all_models,
-            mock_DAFNISession,
             ("--publication-date", "publication"),
+            self.mock_publication_date_filter,
             True,
         )
 
     def _test_get_models_with_date_filter_json(
         self,
-        mock_print_json,
-        mock_parse_models,
-        mock_get_all_models,
-        mock_DAFNISession,
         date_filter_options,
+        mock_date_filter,
     ):
         """Helper method for testing that the 'get models' command works
         correctly with the given date filters"""
 
         # SETUP
         session = MagicMock()
-        mock_DAFNISession.return_value = session
+        self.mock_DAFNISession.return_value = session
         runner = CliRunner()
+        model_dicts = [MagicMock(), MagicMock()]
         models = [MagicMock(), MagicMock()]
+        date = datetime(2023, 1, 1)
+
+        self.mock_get_all_models.return_value = model_dicts
+        self.mock_parse_models.return_value = models
 
         # Make the first model filter but the second not
-        models[0].filter_by_date = MagicMock(return_value=True)
-        models[1].filter_by_date = MagicMock(return_value=False)
-
-        mock_get_all_models.return_value = models
-        mock_parse_models.return_value = models
+        self.mock_filter_multiple.return_value = [models[0]], [model_dicts[0]]
 
         # CALL
-        options = ["models", date_filter_options[0], "2023-01-01", "--json"]
+        options = [
+            "models",
+            date_filter_options[0],
+            date.strftime(DATE_INPUT_FORMAT),
+            "--json",
+        ]
         result = runner.invoke(get.get, options)
 
         # ASSERT
-        mock_DAFNISession.assert_called_once()
-        mock_get_all_models.assert_called_with(session)
-        models[0].filter_by_date.assert_called_with(date_filter_options[1], ANY)
+        self.mock_DAFNISession.assert_called_once()
+        self.mock_get_all_models.assert_called_with(session)
+        mock_date_filter.assert_called_once_with(date)
+        self.mock_filter_multiple.assert_called_with(
+            [mock_date_filter.return_value], models, model_dicts
+        )
         models[0].output_details.assert_not_called()
         models[1].output_details.assert_not_called()
 
-        mock_print_json.assert_called_with([models[0]])
+        self.mock_print_json.assert_called_with([model_dicts[0]])
 
         self.assertEqual(result.exit_code, 0)
 
     def test_get_models_with_creation_date_filter_json(
         self,
-        mock_print_json,
-        mock_parse_models,
-        mock_get_all_models,
-        mock_DAFNISession,
     ):
         """Tests that the 'get models' command works correctly (while
         filtering by creation date and printing json)"""
 
         self._test_get_models_with_date_filter_json(
-            mock_print_json,
-            mock_parse_models,
-            mock_get_all_models,
-            mock_DAFNISession,
-            ("--creation-date", "creation"),
+            ("--creation-date", "creation"), self.mock_creation_date_filter
         )
 
     def test_get_models_with_publication_date_filter_json(
         self,
-        mock_print_json,
-        mock_parse_models,
-        mock_get_all_models,
-        mock_DAFNISession,
     ):
         """Tests that the 'get models' command works correctly (while
         filtering by publication date and printing json)"""
 
         self._test_get_models_with_date_filter_json(
-            mock_print_json,
-            mock_parse_models,
-            mock_get_all_models,
-            mock_DAFNISession,
-            ("--publication-date", "publication"),
+            ("--publication-date", "publication"), self.mock_publication_date_filter
         )
 
 
@@ -791,9 +823,7 @@ class TestGetWorkflows(TestCase):
             "dafni_cli.commands.get.parse_workflows"
         ).start()
         self.mock_print_json = patch("dafni_cli.commands.get.print_json").start()
-        self.mock_workflow_text_filter = patch(
-            "dafni_cli.commands.get.workflow_text_filter"
-        ).start()
+        self.mock_text_filter = patch("dafni_cli.commands.get.text_filter").start()
         self.mock_creation_date_filter = patch(
             "dafni_cli.commands.get.creation_date_filter"
         ).start()
@@ -816,7 +846,7 @@ class TestGetWorkflows(TestCase):
         runner = CliRunner()
         workflow_dicts = [MagicMock(), MagicMock()]
         workflows = [MagicMock(), MagicMock()]
-        self.mock_get_all_workflows.return_value = workflows
+        self.mock_get_all_workflows.return_value = workflow_dicts
         self.mock_parse_workflows.return_value = workflows
 
         # No filtering
@@ -828,6 +858,7 @@ class TestGetWorkflows(TestCase):
         # ASSERT
         self.mock_DAFNISession.assert_called_once()
         self.mock_get_all_workflows.assert_called_with(session)
+        self.mock_filter_multiple.assert_called_with([], workflows, workflow_dicts)
         for workflow in workflows:
             workflow.output_details.assert_called_with(False)
         self.mock_print_json.assert_not_called()
@@ -856,6 +887,7 @@ class TestGetWorkflows(TestCase):
         # ASSERT
         self.mock_DAFNISession.assert_called_once()
         self.mock_get_all_workflows.assert_called_with(session)
+        self.mock_filter_multiple.assert_called_with([], workflows, workflow_dicts)
         for workflow in workflows:
             workflow.output_details.assert_called_with(True)
         self.mock_print_json.assert_not_called()
@@ -886,6 +918,7 @@ class TestGetWorkflows(TestCase):
         # ASSERT
         self.mock_DAFNISession.assert_called_once()
         self.mock_get_all_workflows.assert_called_with(session)
+        self.mock_filter_multiple.assert_called_with([], workflows, workflow_dicts)
         for workflow in workflows:
             workflow.output_details.assert_not_called()
         self.mock_print_json.assert_called_with(workflow_dicts)
@@ -919,11 +952,11 @@ class TestGetWorkflows(TestCase):
         # ASSERT
         self.mock_DAFNISession.assert_called_once()
         self.mock_get_all_workflows.assert_called_with(session)
-        self.mock_workflow_text_filter.assert_called_once_with(search_text)
+        self.mock_text_filter.assert_called_once_with(search_text)
         self.mock_creation_date_filter.assert_not_called()
         self.mock_publication_date_filter.assert_not_called()
         self.mock_filter_multiple.assert_called_with(
-            [self.mock_workflow_text_filter.return_value], workflows, workflow_dicts
+            [self.mock_text_filter.return_value], workflows, workflow_dicts
         )
 
         workflows[0].output_details.assert_called_with(False)
@@ -952,7 +985,7 @@ class TestGetWorkflows(TestCase):
         self.mock_get_all_workflows.return_value = workflow_dicts
         self.mock_parse_workflows.return_value = workflows
 
-        # Make the first model filter but the second not
+        # Make the first workflow filter but the second not
         self.mock_filter_multiple.return_value = [workflows[0]], [workflow_dicts[0]]
 
         # CALL
@@ -1046,7 +1079,7 @@ class TestGetWorkflows(TestCase):
         self.mock_get_all_workflows.return_value = workflow_dicts
         self.mock_parse_workflows.return_value = workflows
 
-        # Make the first model filter but the second not
+        # Make the first workflow filter but the second not
         self.mock_filter_multiple.return_value = [workflows[0]], [workflow_dicts[0]]
 
         # CALL
@@ -1129,12 +1162,12 @@ class TestGetWorkflows(TestCase):
         # ASSERT
         self.mock_DAFNISession.assert_called_once()
         self.mock_get_all_workflows.assert_called_with(session)
-        self.mock_workflow_text_filter.assert_called_once_with(search_text)
+        self.mock_text_filter.assert_called_once_with(search_text)
         self.mock_creation_date_filter.assert_called_once_with(creation_date)
         self.mock_publication_date_filter.assert_called_once_with(publication_date)
         self.mock_filter_multiple.assert_called_with(
             [
-                self.mock_workflow_text_filter.return_value,
+                self.mock_text_filter.return_value,
                 self.mock_creation_date_filter.return_value,
                 self.mock_publication_date_filter.return_value,
             ],
