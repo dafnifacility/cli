@@ -60,30 +60,28 @@ def get_workflow(session: DAFNISession, version_id: str) -> dict:
 def upload_workflow(
     session: DAFNISession,
     file_path: Path,
-    version_message: Optional[str] = None,
+    version_message: str,
     parent_id: Optional[str] = None,
-) -> Tuple[str, dict]:
+) -> dict:
     """Uploads a DAFNI workflow specified in a JSON file
 
     Args:
         session (DAFNISession): User session
         file_path: Path to the workflow definition file (JSON)
-        version_message: String describing the new version, which will overwrite any version message in the JSON description
+        version_message: String describing the new version
         parent_id: The ID of the parent workflow, for updating an existing workflow
 
     Returns:
-        str: The ID for the upload
-        dict: The urls for the definition and image with keys "definition" and "image", respectively.
+        dict: Contains information about the uploaded workflow
     """
     if parent_id:
         url = f"{NIMS_API_URL}/workflows/{parent_id}/upload/"
     else:
         url = f"{NIMS_API_URL}/workflows/upload/"
-    with open(file_path, "r", encoding="utf-8") as f:
-        workflow_description = json.load(f)
-        if version_message:
-            workflow_description["version_message"] = version_message
-        return session.post_request(url=url, json=workflow_description)
+    with open(file_path, "r", encoding="utf-8") as file:
+        workflow_definition = json.load(file)
+        data = {"version_message": version_message, "definition": workflow_definition}
+        return session.post_request(url=url, json=data)
 
 
 def delete_workflow_version(session: DAFNISession, version_id: str) -> Response:

@@ -67,53 +67,18 @@ class TestWorkflowsAPI(TestCase):
         new_callable=mock_open,
         read_data="""
         {
-            \"version_message\": \"initial version message\",
-            \"other_data\": \"other_data\"
+            \"test_data\": \"test_data\"
         }""",
     )
     def test_upload_workflow(
         self,
         open_mock,
     ):
-        """Tests that upload_workflow works as expected without a parent or
-        overridden version_message"""
+        """Tests that upload_workflow works as expected without a parent"""
         # SETUP
         session = MagicMock()
         file_path = Path("path/to/file")
-
-        # CALL
-        result = workflows_api.upload_workflow(session, file_path=file_path)
-
-        # ASSERT
-        open_mock.assert_called_once_with(file_path, "r", encoding="utf-8")
-        session.post_request.assert_called_once_with(
-            url=f"{NIMS_API_URL}/workflows/upload/",
-            json={
-                "version_message": "initial version message",
-                "other_data": "other_data",
-            },
-        )
-        self.assertEqual(result, session.post_request.return_value)
-
-    @patch(
-        "builtins.open",
-        new_callable=mock_open,
-        read_data="""
-        {
-            \"version_message\": \"initial version message\",
-            \"other_data\": \"other_data\"
-        }""",
-    )
-    def test_upload_workflow_with_overridden_version_message(
-        self,
-        open_mock,
-    ):
-        """Tests that upload_workflow works as expected with an overridden
-        version_message and no parent"""
-        # SETUP
-        session = MagicMock()
         version_message = "Version message"
-        file_path = Path("path/to/file")
 
         # CALL
         result = workflows_api.upload_workflow(
@@ -126,7 +91,9 @@ class TestWorkflowsAPI(TestCase):
             url=f"{NIMS_API_URL}/workflows/upload/",
             json={
                 "version_message": version_message,
-                "other_data": "other_data",
+                "definition": {
+                    "test_data": "test_data",
+                },
             },
         )
         self.assertEqual(result, session.post_request.return_value)
@@ -136,8 +103,7 @@ class TestWorkflowsAPI(TestCase):
         new_callable=mock_open,
         read_data="""
         {
-            \"version_message\": \"initial version message\",
-            \"other_data\": \"other_data\"
+            \"test_data\": \"test_data\"
         }""",
     )
     def test_upload_workflow_with_parent(
@@ -148,11 +114,15 @@ class TestWorkflowsAPI(TestCase):
         # SETUP
         session = MagicMock()
         file_path = Path("path/to/file")
+        version_message = "Version message"
         parent_id = "parent-id"
 
         # CALL
         result = workflows_api.upload_workflow(
-            session, file_path=file_path, parent_id=parent_id
+            session,
+            file_path=file_path,
+            version_message=version_message,
+            parent_id=parent_id,
         )
 
         # ASSERT
@@ -160,8 +130,10 @@ class TestWorkflowsAPI(TestCase):
         session.post_request.assert_called_once_with(
             url=f"{NIMS_API_URL}/workflows/{parent_id}/upload/",
             json={
-                "version_message": "initial version message",
-                "other_data": "other_data",
+                "version_message": version_message,
+                "definition": {
+                    "test_data": "test_data",
+                },
             },
         )
         self.assertEqual(result, session.post_request.return_value)

@@ -1088,49 +1088,9 @@ class TestUploadWorkflow(TestCase):
         session = MagicMock()
         mock_DAFNISession.return_value = session
         runner = CliRunner()
-
-        # CALL
-        with runner.isolated_filesystem():
-            with open("test_definition.json", "w", encoding="utf-8") as file:
-                file.write("test definition file")
-            result = runner.invoke(
-                upload.upload,
-                [
-                    "workflow",
-                    "test_definition.json",
-                ],
-                input="y",
-            )
-
-        # ASSERT
-        mock_DAFNISession.assert_called_once()
-        mock_upload_workflow.assert_called_once_with(
-            session, Path("test_definition.json"), None, None
-        )
-
-        self.assertEqual(
-            result.output,
-            "Workflow definition file path: test_definition.json\n"
-            "Version message: None\n"
-            "No parent workflow: new workflow to be created\n"
-            "Confirm workflow upload? [y/N]: y\n"
-            "Uploading workflow\n"
-            "Workflow upload complete\n",
-        )
-        self.assertEqual(result.exit_code, 0)
-
-    def test_upload_workflow_with_parent_and_version_message(
-        self,
-        mock_upload_workflow,
-        mock_DAFNISession,
-    ):
-        """Tests that the 'upload workflow' command works correctly when
-        a parent and version message is given"""
-
-        # SETUP
-        session = MagicMock()
-        mock_DAFNISession.return_value = session
-        runner = CliRunner()
+        version_message = "Initial version"
+        version_id = "version-id"
+        mock_upload_workflow.return_value = {"id": version_id}
 
         # CALL
         with runner.isolated_filesystem():
@@ -1142,7 +1102,56 @@ class TestUploadWorkflow(TestCase):
                     "workflow",
                     "test_definition.json",
                     "--version-message",
-                    "version_message",
+                    version_message,
+                ],
+                input="y",
+            )
+
+        # ASSERT
+        mock_DAFNISession.assert_called_once()
+        mock_upload_workflow.assert_called_once_with(
+            session, Path("test_definition.json"), version_message, None
+        )
+
+        self.assertEqual(
+            result.output,
+            "Workflow definition file path: test_definition.json\n"
+            f"Version message: {version_message}\n"
+            "No parent workflow: new workflow to be created\n"
+            "Confirm workflow upload? [y/N]: y\n"
+            "Uploading workflow\n"
+            "\nUpload successful\n"
+            f"Version ID: {version_id}\n",
+        )
+        self.assertEqual(result.exit_code, 0)
+
+    def test_upload_workflow_with_parent(
+        self,
+        mock_upload_workflow,
+        mock_DAFNISession,
+    ):
+        """Tests that the 'upload workflow' command works correctly when
+        a parent is given"""
+
+        # SETUP
+        session = MagicMock()
+        mock_DAFNISession.return_value = session
+        runner = CliRunner()
+        version_message = "Initial version"
+        version_id = "version-id"
+        mock_upload_workflow.return_value = {"id": version_id}
+
+        # CALL
+        with runner.isolated_filesystem():
+            with open("test_definition.json", "w", encoding="utf-8") as file:
+                file.write("test definition file")
+            result = runner.invoke(
+                upload.upload,
+                [
+                    "workflow",
+                    "test_definition.json",
+                    "--version-message",
+                    version_message,
                     "--parent-id",
                     "parent-id",
                 ],
@@ -1152,17 +1161,18 @@ class TestUploadWorkflow(TestCase):
         # ASSERT
         mock_DAFNISession.assert_called_once()
         mock_upload_workflow.assert_called_once_with(
-            session, Path("test_definition.json"), "version_message", "parent-id"
+            session, Path("test_definition.json"), version_message, "parent-id"
         )
 
         self.assertEqual(
             result.output,
             "Workflow definition file path: test_definition.json\n"
-            "Version message: version_message\n"
+            f"Version message: {version_message}\n"
             "Parent workflow ID: parent-id\n"
             "Confirm workflow upload? [y/N]: y\n"
             "Uploading workflow\n"
-            "Workflow upload complete\n",
+            "\nUpload successful\n"
+            f"Version ID: {version_id}\n",
         )
         self.assertEqual(result.exit_code, 0)
 
@@ -1177,6 +1187,9 @@ class TestUploadWorkflow(TestCase):
         session = MagicMock()
         mock_DAFNISession.return_value = session
         runner = CliRunner()
+        version_message = "Initial version"
+        version_id = "version-id"
+        mock_upload_workflow.return_value = {"id": version_id}
 
         # CALL
         with runner.isolated_filesystem():
@@ -1187,6 +1200,8 @@ class TestUploadWorkflow(TestCase):
                 [
                     "workflow",
                     "test_definition.json",
+                    "--version-message",
+                    version_message,
                 ],
                 input="n",
             )
@@ -1198,7 +1213,7 @@ class TestUploadWorkflow(TestCase):
         self.assertEqual(
             result.output,
             "Workflow definition file path: test_definition.json\n"
-            "Version message: None\n"
+            f"Version message: {version_message}\n"
             "No parent workflow: new workflow to be created\n"
             "Confirm workflow upload? [y/N]: n\n"
             "Aborted!\n",

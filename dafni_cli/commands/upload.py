@@ -51,7 +51,7 @@ def upload(ctx: Context):
     "-m",
     nargs=1,
     required=True,
-    help="Version message that is to be uploaded with the version. Required.",
+    help="Version message that is to be uploaded with the model.",
     type=str,
 )
 @click.option(
@@ -398,10 +398,10 @@ def dataset_metadata(
     "--version-message",
     "-m",
     nargs=1,
-    required=False,
+    required=True,
     type=str,
     default=None,
-    help="Message describing this version, will override any version message that is defined in the workflow description",
+    help="Version message that is to be uploaded with the workflow.",
 )
 @click.option(
     "--parent-id",
@@ -442,6 +442,9 @@ def workflow(
     # TODO: Validate workflow definition using workflows/validate?
 
     click.echo("Uploading workflow")
-    upload_workflow(ctx.obj["session"], definition, version_message, parent_id)
+    details = upload_workflow(
+        ctx.obj["session"], definition, version_message, parent_id
+    )
 
-    click.echo("Workflow upload complete")
+    click.echo("\nUpload successful")
+    click.echo(f"Version ID: {details['id']}")
