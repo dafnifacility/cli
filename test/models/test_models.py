@@ -203,42 +203,6 @@ class TestModel(TestCase):
         self.assertEqual(model.metadata.publisher, TEST_MODEL_METADATA["publisher"])
         self.assertEqual(model.metadata.source_code, TEST_MODEL_METADATA["source_code"])
 
-    def _test_filter_by_date(
-        self, model: Model, key: str, date_str: str, expected_output: bool
-    ):
-        """Utility function to check a particular set of parameters to
-        filter_by_date does what is expected"""
-        self.assertEqual(model.filter_by_date(key, date_str), expected_output)
-
-    def test_filter_by_date(self):
-        """Tests filter_by_date works correctly"""
-        # SETUP
-        model = parse_model(TEST_MODEL)
-
-        # Creation date and publication date's are:
-        # 2019-07-17 13:33:13.751682+00:00
-        # 2020-04-02 09:12:25.989915+00:00
-
-        # CALL
-
-        # Before
-        self._test_filter_by_date(model, "creation", datetime(2018, 5, 16), True)
-        self._test_filter_by_date(model, "publication", datetime(2018, 5, 16), True)
-        # Equal
-        self._test_filter_by_date(model, "creation", datetime(2019, 7, 17), True)
-        self._test_filter_by_date(model, "publication", datetime(2020, 4, 2), True)
-        # After
-        self._test_filter_by_date(model, "creation", datetime(2019, 8, 11), False)
-        self._test_filter_by_date(model, "publication", datetime(2022, 5, 16), False)
-
-    def test_filter_by_date_error(self):
-        """Tests filter_by_date raises an error if the key is wrong"""
-        # SETUP
-        model = parse_model(TEST_MODEL)
-
-        with self.assertRaises(KeyError):
-            model.filter_by_date("key", datetime(2020, 12, 11))
-
     @patch("dafni_cli.models.model.click")
     def test_output_details(self, mock_click):
         """Tests output_details works correctly"""
