@@ -44,7 +44,7 @@ Workflows:
 * List all workflow instances available to user
 * Filter list of available workflow instances
 * View specific workflow instance metadata
-* Create workflow (using workflow definition file) - BROKEN
+* Create workflow (using workflow definition file) - DONE
 * Edit workflow env params and create new workflow
 * Edit workflow data slots and create new workflow
 
