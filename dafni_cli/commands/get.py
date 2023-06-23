@@ -50,7 +50,7 @@ def get(ctx: Context):
 @click.option(
     "--search",
     default=None,
-    help="Search text to filter by. Workflows with this text in either their display name or summary will be displayed.",
+    help="Search text to filter by. Models with this text in either their display name or summary will be displayed.",
     type=str,
 )
 @click.option(
