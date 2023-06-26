@@ -28,6 +28,7 @@ from dafni_cli.utils import format_datetime, format_data_format, format_file_siz
 from test.fixtures.dataset_metadata import (
     TEST_DATASET_METADATA,
     TEST_DATASET_METADATA_CONTACT,
+    TEST_DATASET_METADATA_CONTACT_DEFAULT,
     TEST_DATASET_METADATA_CREATOR,
     TEST_DATASET_METADATA_CREATOR_DEFAULT,
     TEST_DATASET_METADATA_DATAFILE,
@@ -146,6 +147,16 @@ class TestContact(TestCase):
         self.assertEqual(contact.type, TEST_DATASET_METADATA_CONTACT["@type"])
         self.assertEqual(contact.name, TEST_DATASET_METADATA_CONTACT["vcard:fn"])
         self.assertEqual(contact.email, TEST_DATASET_METADATA_CONTACT["vcard:hasEmail"])
+
+    def test_parse_defailt(self):
+        """Tests parsing of contact with optional values ignored"""
+
+        contact: Contact = ParserBaseObject.parse_from_dict(
+            Contact, TEST_DATASET_METADATA_CONTACT_DEFAULT
+        )
+        self.assertEqual(contact.type, TEST_DATASET_METADATA_CONTACT["@type"])
+        self.assertEqual(contact.name, None)
+        self.assertEqual(contact.email, None)
 
 
 class TestLocation(TestCase):
@@ -433,6 +444,7 @@ class TestDatasetMetadataTestCase(TestCase):
         # above anyway)
         metadata = parse_dataset_metadata(TEST_DATASET_METADATA_DEFAULT)
 
+        self.assertEqual(metadata.version_message, None)
         self.assertEqual(metadata.identifiers, [])
         self.assertEqual(metadata.themes, [])
         self.assertEqual(metadata.standard, None)

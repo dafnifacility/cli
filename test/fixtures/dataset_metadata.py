@@ -32,6 +32,12 @@ TEST_DATASET_METADATA_CONTACT: dict = {
     "vcard:hasEmail": "example@domain.com",
 }
 
+TEST_DATASET_METADATA_CONTACT_DEFAULT: dict = {
+    "@type": "vcard:Organization",
+    "vcard:fn": None,
+    "vcard:hasEmail": None,
+}
+
 TEST_DATASET_METADATA_LOCATION: dict = {
     "@id": "2648147",
     "@type": "dct:Location",
@@ -171,7 +177,6 @@ TEST_DATASET_METADATA_DEFAULT: dict = {
         "@id": "https://creativecommons.org/licences/by/4.0/",
         "rdfs:label": None,
     },
-    "dafni_version_note": "Initial Dataset version",
     "@id": {
         "asset_id": "0a0a0a0a-0a00-0a00-a000-0a0a0000000a:0a0a0a0a-0a00-0a00-a000-0a0a0000000b:0a0a0a0a-0a00-0a00-a000-0a0a0000000c",
         "dataset_uuid": "0a0a0a0a-0a00-0a00-a000-0a0a0000000a",

@@ -369,13 +369,13 @@ class Contact(ParserBaseObject):
 
     Attributes:
         type (str): Contact type
-        name (str): Contact name
-        email (str): Contact email
+        name (Optional[str]): Contact name
+        email (optional[str]): Contact email
     """
 
     type: str
-    name: str
-    email: str
+    name: Optional[str] = None
+    email: Optional[str] = None
 
     _parser_params: ClassVar[List[ParserParam]] = [
         ParserParam("type", "@type", str),
@@ -390,7 +390,7 @@ class Contact(ParserBaseObject):
 
 @dataclass
 class Location(ParserBaseObject):
-    """Dataclass representing the contact listed in a dataset's metadata
+    """Dataclass representing the location listed in a dataset's metadata
 
     Attributes:
         type (str): Location type
@@ -605,8 +605,8 @@ class DatasetMetadata(ParserBaseObject):
     metadata_id: str
     auth: Auth
     files: List[DataFile]
-    version_message: str
     version_history: DatasetVersionHistory
+    version_message: Optional[str] = None
     identifiers: List[str] = field(default_factory=list)
     themes: List[str] = field(default_factory=list)
     standard: Standard = None
@@ -634,8 +634,8 @@ class DatasetMetadata(ParserBaseObject):
         ParserParam("metadata_id", ["@id", "metadata_uuid"], str),
         ParserParam("auth", "auth", Auth),
         ParserParam("files", "dcat:distribution", DataFile),
-        ParserParam("version_message", "dafni_version_note", str),
         ParserParam("version_history", "version_history", DatasetVersionHistory),
+        ParserParam("version_message", "dafni_version_note", str),
         ParserParam("identifiers", "dct:identifier"),
         ParserParam("themes", "dcat:theme"),
         ParserParam("standard", "dct:conformsTo", Standard),
