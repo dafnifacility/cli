@@ -14,7 +14,7 @@ class Dataset(ParserBaseObject):
     """Dataclass representing a DAFNI dataset (As returned from the catalogue)
 
     Methods:
-        output_dataset_details(): Prints key information of the dataset to console.
+        output_brief_details(): Prints key information of the dataset to console.
 
     Attributes:
         asset_id (str): Asset identifier for dataset

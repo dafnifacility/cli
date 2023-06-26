@@ -8,7 +8,6 @@ from dafni_cli.api.auth import Auth
 from dafni_cli.api.parser import ParserBaseObject
 from dafni_cli.consts import (
     CONSOLE_WIDTH,
-    DATA_FORMATS,
     TABLE_MODIFIED_HEADER,
     TABLE_VERSION_ID_HEADER,
     TABLE_VERSION_MESSAGE_HEADER,
@@ -24,7 +23,7 @@ from dafni_cli.datasets.dataset_metadata import (
     Standard,
     parse_dataset_metadata,
 )
-from dafni_cli.utils import format_datetime, format_file_size
+from dafni_cli.utils import format_datetime, format_data_format, format_file_size
 
 from test.fixtures.dataset_metadata import (
     TEST_DATASET_METADATA,
@@ -60,10 +59,7 @@ class TestDataFile(TestCase):
             TEST_DATASET_METADATA_DATAFILE["dcat:byteSize"],
         )
         self.assertEqual(
-            datafile.format,
-            DATA_FORMATS.get(
-                TEST_DATASET_METADATA_DATAFILE["dcat:mediaType"], "Unknown"
-            ),
+            datafile.format, TEST_DATASET_METADATA_DATAFILE["dcat:mediaType"]
         )
         self.assertEqual(
             datafile.download_url, TEST_DATASET_METADATA_DATAFILE["dcat:downloadURL"]
@@ -85,7 +81,7 @@ class TestDataFile(TestCase):
         )
         self.assertEqual(
             datafile.format,
-            "Unknown",
+            None,
         )
         self.assertEqual(datafile.download_url, None)
 
@@ -606,7 +602,11 @@ class TestDatasetMetadataTestCase(TestCase):
         # ASSERT
         headers = ["Name", "Size", "Format"]
         rows = [
-            [datafile.name, format_file_size(datafile.size), datafile.format]
+            [
+                datafile.name,
+                format_file_size(datafile.size),
+                format_data_format(datafile.format),
+            ]
             for datafile in dataset_metadata.files
         ]
         mock_format_table.assert_called_once_with(headers=headers, rows=rows)

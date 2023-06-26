@@ -9,7 +9,13 @@ from unittest.mock import call, patch
 from zipfile import ZipFile
 
 from dafni_cli import utils
-from dafni_cli.consts import DATE_OUTPUT_FORMAT, DATE_TIME_OUTPUT_FORMAT, TABULATE_ARGS
+from dafni_cli.consts import (
+    DATA_FORMATS,
+    DATE_OUTPUT_FORMAT,
+    DATE_TIME_OUTPUT_FORMAT,
+    OUTPUT_UNKNOWN_FORMAT,
+    TABULATE_ARGS,
+)
 
 
 @patch("dafni_cli.utils.click")
@@ -491,3 +497,24 @@ class TestIsValidEmailAddress(TestCase):
         self.assertFalse(utils.is_valid_email_address(""))
         self.assertFalse(utils.is_valid_email_address("some text"))
         self.assertFalse(utils.is_valid_email_address("test@example"))
+
+
+class TestFormatDataFormat(TestCase):
+    """Test class to test the format_data_format function"""
+
+    def test_formats_correctly(self):
+        """Tests that passing a valid format returns the correct value"""
+
+        for key in DATA_FORMATS.keys():
+            result = utils.format_data_format(key)
+            self.assertEqual(result, DATA_FORMATS[key])
+
+    def test_formats_invalid_values_correctly(self):
+        """Tests that passing an invalid format returns the correct value"""
+        self.assertEqual(
+            utils.format_data_format("invalid/format"), OUTPUT_UNKNOWN_FORMAT
+        )
+
+    def test_formats_none_correctly(self):
+        """Tests that passing None returns the correct value"""
+        self.assertEqual(utils.format_data_format(None), OUTPUT_UNKNOWN_FORMAT)

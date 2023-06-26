@@ -6,7 +6,7 @@ from dateutil.tz import tzutc
 
 from dafni_cli.consts import CONSOLE_WIDTH, TAB_SPACE
 from dafni_cli.datasets.dataset import parse_datasets
-from dafni_cli.utils import format_datetime
+from dafni_cli.utils import format_data_format, format_datetime
 
 from test.fixtures.datasets import TEST_DATASETS_DATA
 
@@ -66,36 +66,50 @@ class TestDataset(TestCase):
 
     @patch("dafni_cli.datasets.dataset.prose_print")
     @patch("dafni_cli.datasets.dataset.click")
-    def test_output_dataset_details_when_no_optional_values(
-        self, mock_click, mock_prose
-    ):
-        """Tests output_dataset_details works correctly when the optional
+    def test_output_brief_details_when_no_optional_values(self, mock_click, mock_prose):
+        """Tests output_brief_details works correctly when the optional
         values are missing"""
 
         datasets = parse_datasets(TEST_DATASETS_DATA)
         dataset1 = datasets[0]
 
-        dataset1.output_dataset_details()
+        dataset1.output_brief_details()
 
-        mock_click.echo.assert_has_calls(
+        self.assertEqual(
+            mock_click.echo.mock_calls,
             [
-                call("Title: " + dataset1.title),
-                call("ID: " + dataset1.dataset_id),
-                call("Latest Version: " + dataset1.version_id),
-                call("Publisher: " + dataset1.source),
-                call(f"From: N/A{TAB_SPACE}To: N/A"),
-                call("Description: "),
+                call("-" * CONSOLE_WIDTH),
+                call(dataset1.title),
                 call(""),
-            ]
+                call(
+                    f"ID: {dataset1.dataset_id}{TAB_SPACE}Latest version ID: {dataset1.version_id}"
+                ),
+                call(
+                    f"Publisher: {dataset1.source}{TAB_SPACE}"
+                    f"From: {format_datetime(dataset1.date_range_start, include_time=False)}{TAB_SPACE}"
+                    f"To: {format_datetime(dataset1.date_range_end, include_time=False)}"
+                ),
+                call(""),
+                call(""),
+                call(
+                    ", ".join(
+                        [
+                            format_data_format(data_format)
+                            for data_format in dataset1.formats
+                        ]
+                    )
+                ),
+                call(""),
+            ],
         )
         mock_prose.assert_called_once_with("", CONSOLE_WIDTH)
 
     @patch("dafni_cli.datasets.dataset.prose_print")
     @patch("dafni_cli.datasets.dataset.click")
-    def test_output_dataset_details_when_optional_values_available(
+    def test_output_brief_details_when_optional_values_available(
         self, mock_click, mock_prose
     ):
-        """Tests output_dataset_details works correctly when the optional
+        """Tests output_brief_details works correctly when the optional
         values are available"""
         datasets = parse_datasets(TEST_DATASETS_DATA)
         dataset2 = datasets[1]
@@ -104,18 +118,34 @@ class TestDataset(TestCase):
         start = format_datetime(dataset2.date_range_start, include_time=False)
         end = format_datetime(dataset2.date_range_end, include_time=False)
 
-        dataset2.output_dataset_details()
+        dataset2.output_brief_details()
 
         # ASSERT
-        mock_click.echo.assert_has_calls(
+        self.assertEqual(
+            mock_click.echo.mock_calls,
             [
-                call("Title: " + dataset2.title),
-                call("ID: " + dataset2.dataset_id),
-                call("Latest Version: " + dataset2.version_id),
-                call("Publisher: " + dataset2.source),
-                call(f"From: {start}{TAB_SPACE}To: {end}"),
-                call("Description: "),
+                call("-" * CONSOLE_WIDTH),
+                call(dataset2.title),
                 call(""),
-            ]
+                call(
+                    f"ID: {dataset2.dataset_id}{TAB_SPACE}Latest version ID: {dataset2.version_id}"
+                ),
+                call(
+                    f"Publisher: {dataset2.source}{TAB_SPACE}"
+                    f"From: {start}{TAB_SPACE}"
+                    f"To: {end}"
+                ),
+                call(""),
+                call(""),
+                call(
+                    ", ".join(
+                        [
+                            format_data_format(data_format)
+                            for data_format in dataset2.formats
+                        ]
+                    )
+                ),
+                call(""),
+            ],
         )
         mock_prose.assert_called_once_with(dataset2.description, CONSOLE_WIDTH)
