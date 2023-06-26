@@ -458,10 +458,10 @@ class TestDatasetMetadataTestCase(TestCase):
     @patch.object(DatasetMetadata, "output_datafiles_table")
     @patch("dafni_cli.datasets.dataset_metadata.prose_print")
     @patch("dafni_cli.datasets.dataset_metadata.click")
-    def test_output_metadata_details(
+    def test_output_details(
         self, mock_click, mock_prose, mock_table, mock_extra_details
     ):
-        """Tests output_metadata_details functions as expected"""
+        """Tests output_details functions as expected"""
 
         # SETUP
         dataset_metadata: DatasetMetadata = parse_dataset_metadata(
@@ -469,7 +469,7 @@ class TestDatasetMetadataTestCase(TestCase):
         )
 
         # CALL
-        dataset_metadata.output_metadata_details()
+        dataset_metadata.output_details()
 
         # ASSERT
         mock_click.echo.assert_has_calls(
@@ -505,14 +505,14 @@ class TestDatasetMetadataTestCase(TestCase):
     @patch.object(DatasetMetadata, "output_datafiles_table")
     @patch("dafni_cli.datasets.dataset_metadata.prose_print")
     @patch("dafni_cli.datasets.dataset_metadata.click")
-    def test_output_metadata_details_when_start_and_end_date_are_None(
+    def test_output_details_when_start_and_end_date_are_None(
         self,
         mock_click,
         mock_prose,
         mock_table,
         mock_extra_details,
     ):
-        """Tests output_metadata_details functions as expected"""
+        """Tests output_details functions as expected"""
 
         # SETUP
         dataset_metadata: DatasetMetadata = parse_dataset_metadata(
@@ -522,7 +522,7 @@ class TestDatasetMetadataTestCase(TestCase):
         dataset_metadata.end_date = None
 
         # CALL
-        dataset_metadata.output_metadata_details()
+        dataset_metadata.output_details()
 
         # ASSERT
         mock_click.echo.assert_has_calls(
@@ -554,14 +554,14 @@ class TestDatasetMetadataTestCase(TestCase):
     @patch.object(DatasetMetadata, "output_datafiles_table")
     @patch("dafni_cli.datasets.dataset_metadata.prose_print")
     @patch("dafni_cli.datasets.dataset_metadata.click")
-    def test_output_metadata_details_when_long_set_to_true(
+    def test_output_details_when_long_set_to_true(
         self,
         mock_click,
         mock_prose,
         mock_table,
         mock_extra_details,
     ):
-        """Tests output_metadata_details functions as expected when 'long'
+        """Tests output_details functions as expected when 'long'
         is True"""
         # SETUP
         dataset_metadata: DatasetMetadata = parse_dataset_metadata(
@@ -571,7 +571,7 @@ class TestDatasetMetadataTestCase(TestCase):
         dataset_metadata.end_date = None
 
         # CALL
-        dataset_metadata.output_metadata_details(long=True)
+        dataset_metadata.output_details(long=True)
 
         # ASSERT
         mock_click.echo.assert_has_calls(

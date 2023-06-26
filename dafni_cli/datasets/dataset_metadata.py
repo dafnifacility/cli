@@ -556,7 +556,7 @@ class DatasetMetadata(ParserBaseObject):
     """Dataclass representing a DAFNI dataset's metadata
 
     Methods:
-        output_metadata_details(): Prints key information of the dataset metadata to console.
+        output_details(): Prints key information of the dataset metadata to console.
         output_datafiles_table(): Prints a table to the console of all File related information
         output_metadata_extra_details(): Prints extra details relating to the Dataset Metadata
 
@@ -648,7 +648,7 @@ class DatasetMetadata(ParserBaseObject):
         ),
     ]
 
-    def output_metadata_details(self, long: bool = False):
+    def output_details(self, long: bool = False):
         """Function to output details relating to the Dataset.
         The default behaviour is to print all standard metadata and
         a table relating to the associated files.

@@ -276,7 +276,7 @@ def dataset(
             print_json(metadata)
         else:
             metadata_inst = parse_dataset_metadata(metadata)
-            metadata_inst.output_metadata_details(long)
+            metadata_inst.output_details(long)
     else:
         if json:
             print_json(metadata["version_history"])

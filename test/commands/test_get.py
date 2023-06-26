@@ -671,7 +671,7 @@ class TestGetDataset(TestCase):
         # ASSERT
         mock_DAFNISession.assert_called_once()
         mock_get_latest_dataset_metadata.assert_called_with(session, "some_version_id")
-        dataset.output_metadata_details.assert_called_once()
+        dataset.output_details.assert_called_once()
         mock_print_json.assert_not_called()
 
         self.assertEqual(result.exit_code, 0)
@@ -706,7 +706,7 @@ class TestGetDataset(TestCase):
         mock_click.echo.assert_called_once_with(
             mock_get_latest_dataset_metadata.side_effect
         )
-        dataset.output_metadata_details.assert_not_called()
+        dataset.output_details.assert_not_called()
         mock_print_json.assert_not_called()
 
         self.assertEqual(result.exit_code, 1)
@@ -734,7 +734,7 @@ class TestGetDataset(TestCase):
         # ASSERT
         mock_DAFNISession.assert_called_once()
         mock_get_latest_dataset_metadata.assert_called_with(session, "some_version_id")
-        dataset.output_metadata_details.assert_not_called()
+        dataset.output_details.assert_not_called()
         mock_print_json.assert_called_once_with(dataset)
 
         self.assertEqual(result.exit_code, 0)
