@@ -89,8 +89,8 @@ class TestProsePrint(TestCase):
         )
 
 
-class TestProcessFileSize(TestCase):
-    """Test class to test the process_file_size functionality"""
+class TestFormatFileSize(TestCase):
+    """Test class to test the format_file_size functionality"""
 
     def test_empty_string_returned_if_non_integer_or_float_value_given(self):
         """Tests that an empty string is returned if the given file size is
@@ -101,7 +101,7 @@ class TestProcessFileSize(TestCase):
 
         # CALL & ASSERT
         for file_size in values:
-            self.assertEqual(utils.process_file_size(file_size), "")
+            self.assertEqual(utils.format_file_size(file_size), "")
 
     def test_file_size_processed_correctly(self):
         """Tests that the correct string is returned for various valid file
@@ -131,7 +131,7 @@ class TestProcessFileSize(TestCase):
 
         # CALL & ASSERT
         for file_size, result in values_and_results:
-            self.assertEqual(utils.process_file_size(file_size), result)
+            self.assertEqual(utils.format_file_size(file_size), result)
 
 
 @patch("dafni_cli.utils.click")

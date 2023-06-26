@@ -13,7 +13,13 @@ from zipfile import ZipFile
 import click
 from tabulate import tabulate
 
-from dafni_cli.consts import DATE_OUTPUT_FORMAT, DATE_TIME_OUTPUT_FORMAT, TABULATE_ARGS
+from dafni_cli.consts import (
+    DATA_FORMATS,
+    DATE_OUTPUT_FORMAT,
+    DATE_TIME_OUTPUT_FORMAT,
+    OUTPUT_UNKNOWN_FORMAT,
+    TABULATE_ARGS,
+)
 
 
 def prose_print(prose: str, width: int):
@@ -29,7 +35,7 @@ def prose_print(prose: str, width: int):
             click.echo(line)
 
 
-def process_file_size(file_size: str) -> str:
+def format_file_size(file_size: str) -> str:
     """Utility function to take in a file size in bytes
     and format into a table ready format.
     This converts the size into appropriate units, with
@@ -200,3 +206,10 @@ def is_valid_email_address(value: str) -> bool:
 
     # Checks there is exactly one @ sign, and at least one . after it
     return re.match(r"[^@]+@[^@]+\.[^@]+", value)
+
+
+def format_data_format(value: Optional[str]):
+    """Converts a data format to a printable string"""
+    if value is None:
+        return OUTPUT_UNKNOWN_FORMAT
+    return DATA_FORMATS.get(value, OUTPUT_UNKNOWN_FORMAT)

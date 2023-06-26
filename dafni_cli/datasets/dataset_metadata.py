@@ -4,23 +4,22 @@ from io import BytesIO
 from typing import ClassVar, List, Optional, Tuple
 
 import click
-from dafni_cli.api.auth import Auth
 
+from dafni_cli.api.auth import Auth
 from dafni_cli.api.minio_api import minio_get_request
 from dafni_cli.api.parser import ParserBaseObject, ParserParam, parse_datetime
 from dafni_cli.api.session import DAFNISession
 from dafni_cli.consts import (
     CONSOLE_WIDTH,
-    DATA_FORMATS,
-    OUTPUT_UNKNOWN_FORMAT,
     TABLE_MODIFIED_HEADER,
     TABLE_VERSION_ID_HEADER,
     TABLE_VERSION_MESSAGE_HEADER,
 )
 from dafni_cli.utils import (
+    format_data_format,
     format_datetime,
+    format_file_size,
     format_table,
-    process_file_size,
     prose_print,
 )
 
@@ -314,7 +313,7 @@ class DataFile(ParserBaseObject):
 
     name: str
     size: str
-    format: str = OUTPUT_UNKNOWN_FORMAT
+    format: str = None
     download_url: str = None
 
     # Separate - only used when actually downloading
@@ -326,7 +325,7 @@ class DataFile(ParserBaseObject):
         ParserParam(
             "format",
             "dcat:mediaType",
-            lambda value: DATA_FORMATS.get(value, OUTPUT_UNKNOWN_FORMAT),
+            str,
         ),
         ParserParam("download_url", "dcat:downloadURL", str),
     ]
@@ -692,7 +691,11 @@ class DatasetMetadata(ParserBaseObject):
             format_table(
                 headers=["Name", "Size", "Format"],
                 rows=[
-                    [datafile.name, process_file_size(datafile.size), datafile.format]
+                    [
+                        datafile.name,
+                        format_file_size(datafile.size),
+                        format_data_format(datafile.format),
+                    ]
                     for datafile in self.files
                 ],
             )

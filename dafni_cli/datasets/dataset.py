@@ -6,7 +6,7 @@ import click
 
 from dafni_cli.api.parser import ParserBaseObject, ParserParam, parse_datetime
 from dafni_cli.consts import CONSOLE_WIDTH, TAB_SPACE
-from dafni_cli.utils import format_datetime, prose_print
+from dafni_cli.utils import format_datetime, format_data_format, prose_print
 
 
 @dataclass
@@ -61,18 +61,25 @@ class Dataset(ParserBaseObject):
         ParserParam("date_range_end", ["date_range", "end"], parse_datetime),
     ]
 
-    def output_dataset_details(self):
-        """Prints relevant dataset attributes to command line"""
-        click.echo("Title: " + self.title)
-        click.echo("ID: " + self.dataset_id)
-        click.echo("Latest Version: " + self.version_id)
-        click.echo("Publisher: " + self.source)
+    def output_brief_details(self):
+        """Prints this datasets brief details e.g. for the get datasets command"""
+        click.echo("-" * CONSOLE_WIDTH)
+        click.echo(self.title)
+        click.echo("")
         click.echo(
+            f"ID: {self.dataset_id}{TAB_SPACE}Latest version ID: {self.version_id}"
+        )
+        click.echo(
+            f"Publisher: {self.source}{TAB_SPACE}"
             f"From: {format_datetime(self.date_range_start, include_time=False)}{TAB_SPACE}"
             f"To: {format_datetime(self.date_range_end, include_time=False)}"
         )
-        click.echo("Description: ")
+        click.echo("")
         prose_print(self.description or "", CONSOLE_WIDTH)
+        click.echo("")
+        click.echo(
+            ", ".join([format_data_format(data_format) for data_format in self.formats])
+        )
         click.echo("")
 
 

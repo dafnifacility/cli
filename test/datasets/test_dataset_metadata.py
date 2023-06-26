@@ -24,7 +24,7 @@ from dafni_cli.datasets.dataset_metadata import (
     Standard,
     parse_dataset_metadata,
 )
-from dafni_cli.utils import format_datetime, process_file_size
+from dafni_cli.utils import format_datetime, format_file_size
 
 from test.fixtures.dataset_metadata import (
     TEST_DATASET_METADATA,
@@ -606,7 +606,7 @@ class TestDatasetMetadataTestCase(TestCase):
         # ASSERT
         headers = ["Name", "Size", "Format"]
         rows = [
-            [datafile.name, process_file_size(datafile.size), datafile.format]
+            [datafile.name, format_file_size(datafile.size), datafile.format]
             for datafile in dataset_metadata.files
         ]
         mock_format_table.assert_called_once_with(headers=headers, rows=rows)

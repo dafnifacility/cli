@@ -222,7 +222,7 @@ def datasets(
     else:
         dataset_list = parse_datasets(dataset_dict_list)
         for dataset_inst in dataset_list:
-            dataset_inst.output_dataset_details()
+            dataset_inst.output_brief_details()
 
 
 @get.command(help="Prints metadata or version history of a dataset version")
