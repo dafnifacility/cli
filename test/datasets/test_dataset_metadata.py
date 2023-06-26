@@ -8,6 +8,7 @@ from dafni_cli.api.auth import Auth
 from dafni_cli.api.parser import ParserBaseObject
 from dafni_cli.consts import (
     CONSOLE_WIDTH,
+    TAB_SPACE,
     TABLE_MODIFIED_HEADER,
     TABLE_VERSION_ID_HEADER,
     TABLE_VERSION_MESSAGE_HEADER,
@@ -23,7 +24,7 @@ from dafni_cli.datasets.dataset_metadata import (
     Standard,
     parse_dataset_metadata,
 )
-from dafni_cli.utils import format_datetime, format_data_format, format_file_size
+from dafni_cli.utils import format_data_format, format_datetime, format_file_size
 
 from test.fixtures.dataset_metadata import (
     TEST_DATASET_METADATA,
@@ -158,6 +159,29 @@ class TestContact(TestCase):
         self.assertEqual(contact.name, None)
         self.assertEqual(contact.email, None)
 
+    def test_string_conversion(self):
+        """Tests converting a contact to a string works correctly"""
+        contact: Contact = ParserBaseObject.parse_from_dict(
+            Contact, TEST_DATASET_METADATA_CONTACT_DEFAULT
+        )
+
+        # No contact info
+        self.assertEqual(str(contact), "N/A")
+
+        # Just a name
+        contact.name = "Some name"
+        self.assertEqual(str(contact), "Some name")
+
+        # Just an email
+        contact.name = None
+        contact.email = "Some email"
+        self.assertEqual(str(contact), "Some email")
+
+        # Both a name and an email
+        contact.name = "Some name"
+        contact.email = "Some email"
+        self.assertEqual(str(contact), "Some name, Some email")
+
 
 class TestLocation(TestCase):
     """Tests the Location dataclass"""
@@ -208,6 +232,19 @@ class TestPublisher(TestCase):
         self.assertEqual(publisher.id, None)
         self.assertEqual(publisher.name, None)
 
+    def test_string_conversion(self):
+        """Tests converting a publisher to a string works correctly"""
+        publisher: Publisher = ParserBaseObject.parse_from_dict(
+            Publisher, TEST_DATASET_METADATA_PUBLISHER_DEFAULT
+        )
+
+        # No publisher info
+        self.assertEqual(str(publisher), "N/A")
+
+        # With a name
+        publisher.name = "Some name"
+        self.assertEqual(str(publisher), "Some name")
+
 
 class TestStandard(TestCase):
     """Tests the Standard dataclass"""
@@ -231,6 +268,19 @@ class TestStandard(TestCase):
         self.assertEqual(standard.type, None)
         self.assertEqual(standard.id, None)
         self.assertEqual(standard.label, None)
+
+    def test_string_conversion(self):
+        """Tests converting a Standard to a string works correctly"""
+        standard: Standard = ParserBaseObject.parse_from_dict(
+            Standard, TEST_DATASET_METADATA_STANDARD_DEFAULT
+        )
+
+        # No standard info
+        self.assertEqual(str(standard), "N/A")
+
+        # With a label
+        standard.label = "Some label"
+        self.assertEqual(str(standard), "Some label")
 
 
 class TestDatasetVersionHistory(TestCase):
@@ -454,12 +504,16 @@ class TestDatasetMetadataTestCase(TestCase):
         self.assertEqual(metadata.start_date, None)
         self.assertEqual(metadata.end_date, None)
 
-    @patch.object(DatasetMetadata, "output_metadata_extra_details")
+    @patch.object(DatasetMetadata, "output_additional_metadata")
     @patch.object(DatasetMetadata, "output_datafiles_table")
     @patch("dafni_cli.datasets.dataset_metadata.prose_print")
     @patch("dafni_cli.datasets.dataset_metadata.click")
     def test_output_details(
-        self, mock_click, mock_prose, mock_table, mock_extra_details
+        self,
+        mock_click,
+        mock_prose,
+        mock_output_datafiles_table,
+        mock_output_additional_metadata,
     ):
         """Tests output_details functions as expected"""
 
@@ -472,15 +526,23 @@ class TestDatasetMetadataTestCase(TestCase):
         dataset_metadata.output_details()
 
         # ASSERT
-        mock_click.echo.assert_has_calls(
+        self.assertEqual(
+            mock_click.echo.mock_calls,
             [
+                call(f"\n{dataset_metadata.title}"),
                 call(
-                    f"\nCreated: {format_datetime(dataset_metadata.created, include_time=True)}"
+                    f"Subject: {dataset_metadata.subject}{TAB_SPACE}Version ID: {dataset_metadata.version_id}"
+                ),
+                call(""),
+                call(
+                    f"Created: {format_datetime(dataset_metadata.created, include_time=True)}"
                 ),
                 call(f"Creator: {dataset_metadata.creators[0].name}"),
                 call(f"Contact: {dataset_metadata.contact}"),
+                call(""),
                 call("Description:"),
-                call("Identifiers:"),
+                call(""),
+                call("Identifier(s):"),
                 call(f"Location: {dataset_metadata.location.label}"),
                 call(
                     f"Start date: {format_datetime(dataset_metadata.start_date, include_time=False)}"
@@ -488,8 +550,10 @@ class TestDatasetMetadataTestCase(TestCase):
                 call(
                     f"End date: {format_datetime(dataset_metadata.end_date, include_time=False)}"
                 ),
-                call(f"Key words:\n {dataset_metadata.keywords}"),
-            ]
+                call(""),
+                call("Keywords:"),
+                call(", ".join(dataset_metadata.keywords)),
+            ],
         )
         mock_prose.assert_has_calls(
             [
@@ -498,21 +562,22 @@ class TestDatasetMetadataTestCase(TestCase):
             ]
         )
 
-        mock_table.assert_has_calls([call()])
-        mock_extra_details.assert_not_called()
+        mock_output_datafiles_table.assert_has_calls([call()])
+        mock_output_additional_metadata.assert_not_called()
 
-    @patch.object(DatasetMetadata, "output_metadata_extra_details")
+    @patch.object(DatasetMetadata, "output_additional_metadata")
     @patch.object(DatasetMetadata, "output_datafiles_table")
     @patch("dafni_cli.datasets.dataset_metadata.prose_print")
     @patch("dafni_cli.datasets.dataset_metadata.click")
-    def test_output_details_when_start_and_end_date_are_None(
+    def test_output_details_when_optional_values_are_None(
         self,
         mock_click,
         mock_prose,
-        mock_table,
-        mock_extra_details,
+        mock_output_datafiles_table,
+        mock_output_additional_metadata,
     ):
-        """Tests output_details functions as expected"""
+        """Tests output_details functions as expected when various optional
+        values are None"""
 
         # SETUP
         dataset_metadata: DatasetMetadata = parse_dataset_metadata(
@@ -520,37 +585,48 @@ class TestDatasetMetadataTestCase(TestCase):
         )
         dataset_metadata.start_date = None
         dataset_metadata.end_date = None
+        dataset_metadata.identifiers = None
 
         # CALL
         dataset_metadata.output_details()
 
         # ASSERT
-        mock_click.echo.assert_has_calls(
+        self.assertEqual(
+            mock_click.echo.mock_calls,
             [
+                call(f"\n{dataset_metadata.title}"),
                 call(
-                    f"\nCreated: {format_datetime(dataset_metadata.created, include_time=True)}"
+                    f"Subject: {dataset_metadata.subject}{TAB_SPACE}Version ID: {dataset_metadata.version_id}"
+                ),
+                call(""),
+                call(
+                    f"Created: {format_datetime(dataset_metadata.created, include_time=True)}"
                 ),
                 call(f"Creator: {dataset_metadata.creators[0].name}"),
                 call(f"Contact: {dataset_metadata.contact}"),
+                call(""),
                 call("Description:"),
-                call("Identifiers:"),
+                call(""),
+                call("Identifier(s):"),
                 call(f"Location: {dataset_metadata.location.label}"),
                 call("Start date: N/A"),
                 call("End date: N/A"),
-                call(f"Key words:\n {dataset_metadata.keywords}"),
-            ]
+                call(""),
+                call("Keywords:"),
+                call(", ".join(dataset_metadata.keywords)),
+            ],
         )
         mock_prose.assert_has_calls(
             [
                 call(dataset_metadata.description, CONSOLE_WIDTH),
-                call(" ".join(dataset_metadata.identifiers), CONSOLE_WIDTH),
+                call("N/A", CONSOLE_WIDTH),
             ]
         )
 
-        mock_table.assert_has_calls([call()])
-        mock_extra_details.assert_not_called()
+        mock_output_datafiles_table.assert_has_calls([call()])
+        mock_output_additional_metadata.assert_not_called()
 
-    @patch.object(DatasetMetadata, "output_metadata_extra_details")
+    @patch.object(DatasetMetadata, "output_additional_metadata")
     @patch.object(DatasetMetadata, "output_datafiles_table")
     @patch("dafni_cli.datasets.dataset_metadata.prose_print")
     @patch("dafni_cli.datasets.dataset_metadata.click")
@@ -558,8 +634,8 @@ class TestDatasetMetadataTestCase(TestCase):
         self,
         mock_click,
         mock_prose,
-        mock_table,
-        mock_extra_details,
+        mock_output_datafiles_table,
+        mock_output_additional_metadata,
     ):
         """Tests output_details functions as expected when 'long'
         is True"""
@@ -569,35 +645,47 @@ class TestDatasetMetadataTestCase(TestCase):
         )
         dataset_metadata.start_date = None
         dataset_metadata.end_date = None
+        dataset_metadata.identifiers = None
 
         # CALL
         dataset_metadata.output_details(long=True)
 
         # ASSERT
-        mock_click.echo.assert_has_calls(
+        self.assertEqual(
+            mock_click.echo.mock_calls,
             [
+                call(f"\n{dataset_metadata.title}"),
                 call(
-                    f"\nCreated: {format_datetime(dataset_metadata.created, include_time=True)}"
+                    f"Subject: {dataset_metadata.subject}{TAB_SPACE}Version ID: {dataset_metadata.version_id}"
+                ),
+                call(""),
+                call(
+                    f"Created: {format_datetime(dataset_metadata.created, include_time=True)}"
                 ),
                 call(f"Creator: {dataset_metadata.creators[0].name}"),
                 call(f"Contact: {dataset_metadata.contact}"),
+                call(""),
                 call("Description:"),
-                call("Identifiers:"),
+                call(""),
+                call("Identifier(s):"),
                 call(f"Location: {dataset_metadata.location.label}"),
                 call("Start date: N/A"),
                 call("End date: N/A"),
-                call(f"Key words:\n {dataset_metadata.keywords}"),
-            ]
+                call(""),
+                call(""),
+                call("Keywords:"),
+                call(", ".join(dataset_metadata.keywords)),
+            ],
         )
         mock_prose.assert_has_calls(
             [
                 call(dataset_metadata.description, CONSOLE_WIDTH),
-                call(" ".join(dataset_metadata.identifiers), CONSOLE_WIDTH),
+                call("N/A", CONSOLE_WIDTH),
             ]
         )
 
-        mock_table.assert_has_calls([call()])
-        mock_extra_details.assert_called_once()
+        mock_output_datafiles_table.assert_has_calls([call()])
+        mock_output_additional_metadata.assert_called_once()
 
     @patch("dafni_cli.datasets.dataset_metadata.format_table")
     @patch("dafni_cli.datasets.dataset_metadata.click")
@@ -626,32 +714,78 @@ class TestDatasetMetadataTestCase(TestCase):
             [call("\nData files:"), call(mock_format_table.return_value)]
         )
 
-    @patch("dafni_cli.datasets.dataset_metadata.prose_print")
+    @patch("dafni_cli.datasets.dataset_metadata.tabulate")
     @patch("dafni_cli.datasets.dataset_metadata.click")
-    def test_output_metadata_extra_details(self, mock_click, mock_prose_print):
-        """Tests test_output_metadata_extra_details functions as expected"""
+    def test_output_additional_metadata(self, mock_click, mock_tabulate):
+        """Tests test_output_additional_metadata functions as expected"""
         # SETUP
         dataset_metadata: DatasetMetadata = parse_dataset_metadata(
             TEST_DATASET_METADATA
         )
 
         # CALL
-        dataset_metadata.output_metadata_extra_details()
+        dataset_metadata.output_additional_metadata()
 
         # ASSERT
         mock_click.echo.assert_has_calls(
-            [
-                call(f"Themes:\n{dataset_metadata.themes}"),
-                call(f"Publisher: {dataset_metadata.publisher}"),
-                call(f"Issued: {dataset_metadata.issued}"),
-                call("Rights:"),
-                call(f"Language: {dataset_metadata.language}"),
-                call(f"Standard: {dataset_metadata.standard}"),
-                call(f"Update Frequency: {dataset_metadata.update_frequency}"),
-            ]
+            [call("Additional metadata:"), call(mock_tabulate.return_value)]
         )
 
-        mock_prose_print.assert_called_once_with(dataset_metadata.rights, CONSOLE_WIDTH)
+        mock_tabulate.assert_called_once_with(
+            [
+                ["Theme(s):", ", ".join(dataset_metadata.themes)],
+                ["Publisher:", dataset_metadata.publisher.name],
+                [
+                    "Last updated:",
+                    format_datetime(dataset_metadata.modified, include_time=False),
+                ],
+                ["Rights:", dataset_metadata.rights],
+                ["Language:", dataset_metadata.language],
+                ["Standard:", str(dataset_metadata.standard)],
+                ["Update frequency:", dataset_metadata.update_frequency],
+            ],
+            tablefmt="plain",
+        )
+
+    @patch("dafni_cli.datasets.dataset_metadata.tabulate")
+    @patch("dafni_cli.datasets.dataset_metadata.click")
+    def test_output_additional_metadata_when_optional_values_are_None(
+        self, mock_click, mock_tabulate
+    ):
+        """Tests test_output_additional_metadata functions as expected when
+        all optional values are None"""
+        # SETUP
+        dataset_metadata: DatasetMetadata = parse_dataset_metadata(
+            TEST_DATASET_METADATA
+        )
+        dataset_metadata.publisher.name = None
+        dataset_metadata.rights = None
+        dataset_metadata.standard = None
+        dataset_metadata.update_frequency = None
+
+        # CALL
+        dataset_metadata.output_additional_metadata()
+
+        # ASSERT
+        mock_click.echo.assert_has_calls(
+            [call("Additional metadata:"), call(mock_tabulate.return_value)]
+        )
+
+        mock_tabulate.assert_called_once_with(
+            [
+                ["Theme(s):", ", ".join(dataset_metadata.themes)],
+                ["Publisher:", "N/A"],
+                [
+                    "Last updated:",
+                    format_datetime(dataset_metadata.modified, include_time=False),
+                ],
+                ["Rights:", "N/A"],
+                ["Language:", dataset_metadata.language],
+                ["Standard:", "N/A"],
+                ["Update frequency:", "N/A"],
+            ],
+            tablefmt="plain",
+        )
 
     def test_get_dataset_details(self):
         """Tests test_get_dataset_details functions as expected"""

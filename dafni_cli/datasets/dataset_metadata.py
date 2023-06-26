@@ -4,6 +4,7 @@ from io import BytesIO
 from typing import ClassVar, List, Optional, Tuple
 
 import click
+from tabulate import tabulate
 
 from dafni_cli.api.auth import Auth
 from dafni_cli.api.minio_api import minio_get_request
@@ -11,6 +12,7 @@ from dafni_cli.api.parser import ParserBaseObject, ParserParam, parse_datetime
 from dafni_cli.api.session import DAFNISession
 from dafni_cli.consts import (
     CONSOLE_WIDTH,
+    TAB_SPACE,
     TABLE_MODIFIED_HEADER,
     TABLE_VERSION_ID_HEADER,
     TABLE_VERSION_MESSAGE_HEADER,
@@ -385,7 +387,15 @@ class Contact(ParserBaseObject):
 
     def __str__(self) -> str:
         """Nicer string representation for printing"""
-        return f"{self.name}, {self.email}"
+        if self.name is None and self.email is None:
+            return "N/A"
+
+        if self.name and self.email:
+            return f"{self.name}, {self.email}"
+        elif self.name:
+            return self.name
+        elif self.email:
+            return self.email
 
 
 @dataclass
@@ -431,6 +441,8 @@ class Publisher(ParserBaseObject):
 
     def __str__(self) -> str:
         """Nicer string representation for printing"""
+        if self.name is None:
+            return "N/A"
         return f"{self.name}"
 
 
@@ -456,7 +468,10 @@ class Standard(ParserBaseObject):
 
     def __str__(self) -> str:
         """Nicer string representation for printing"""
-        return f"{self.label}"
+        if self.label is None:
+            return "N/A"
+        else:
+            return f"{self.label}"
 
 
 @dataclass
@@ -558,7 +573,7 @@ class DatasetMetadata(ParserBaseObject):
     Methods:
         output_details(): Prints key information of the dataset metadata to console.
         output_datafiles_table(): Prints a table to the console of all File related information
-        output_metadata_extra_details(): Prints extra details relating to the Dataset Metadata
+        output_additional_metadata(): Prints additional dataset metadata
 
     Attributes:
         title (str): Title of the dataset
@@ -649,36 +664,45 @@ class DatasetMetadata(ParserBaseObject):
     ]
 
     def output_details(self, long: bool = False):
-        """Function to output details relating to the Dataset.
-        The default behaviour is to print all standard metadata and
-        a table relating to the associated files.
-        If the long option is given, the additional metadata fields are
-        also printed to the console
+        """Outputs details relating to the Dataset
+
+        By default will output standard metadata and a table relating to the
+        associated files. If the long option is given, the additional metadata
+        fields are also output.
 
         Args:
             long (bool, optional): Flag to print additional metadata. Defaults to False.
         """
-        click.echo(f"\nCreated: {format_datetime(self.created, include_time=True)}")
+        click.echo(f"\n{self.title}")
+        click.echo(f"Subject: {self.subject}{TAB_SPACE}Version ID: {self.version_id}")
+        click.echo("")
+        click.echo(f"Created: {format_datetime(self.created, include_time=True)}")
         click.echo(f"Creator: {self.creators[0].name}")
         click.echo(f"Contact: {self.contact}")
+        click.echo("")
         click.echo("Description:")
         prose_print(self.description, CONSOLE_WIDTH)
-        click.echo("Identifiers:")
+        click.echo("")
+        click.echo("Identifier(s):")
         prose_print(
-            " ".join(self.identifiers) if self.identifiers else "None", CONSOLE_WIDTH
+            " ".join(self.identifiers) if self.identifiers else "N/A", CONSOLE_WIDTH
         )
         click.echo(f"Location: {self.location.label}")
         click.echo(
             f"Start date: {format_datetime(self.start_date, include_time=False)}"
         )
         click.echo(f"End date: {format_datetime(self.end_date, include_time=False)}")
-        click.echo(f"Key words:\n {self.keywords}")
 
         # DataFiles table
         self.output_datafiles_table()
 
         if long:
-            self.output_metadata_extra_details()
+            click.echo("")
+            self.output_additional_metadata()
+
+        click.echo("")
+        click.echo("Keywords:")
+        click.echo(", ".join(self.keywords))
 
     def output_datafiles_table(self):
         """Function to print the datafiles table to the console
@@ -701,18 +725,38 @@ class DatasetMetadata(ParserBaseObject):
             )
         )
 
-    def output_metadata_extra_details(self):
+    def output_additional_metadata(self):
         """Function to print additional metadata to the
         console relating to the dataset
         """
-        click.echo(f"Themes:\n{self.themes}")
-        click.echo(f"Publisher: {self.publisher}")
-        click.echo(f"Issued: {self.issued}")
-        click.echo("Rights:")
-        prose_print(self.rights or "None", CONSOLE_WIDTH)
-        click.echo(f"Language: {self.language}")
-        click.echo(f"Standard: {self.standard}")
-        click.echo(f"Update Frequency: {self.update_frequency}")
+        click.echo("Additional metadata:")
+
+        click.echo(
+            tabulate(
+                [
+                    ["Theme(s):", ", ".join(self.themes)],
+                    ["Publisher:", str(self.publisher)],
+                    [
+                        "Last updated:",
+                        format_datetime(self.modified, include_time=False),
+                    ],
+                    ["Rights:", self.rights or "N/A"],
+                    ["Language:", self.language],
+                    ["Standard:", str(self.standard) if self.standard else "N/A"],
+                    ["Update frequency:", self.update_frequency or "N/A"],
+                ],
+                tablefmt="plain",
+            )
+        )
+
+        # click.echo(f"Theme(s):\n{self.themes}")
+        # click.echo(f"Publisher: {self.publisher}")
+        # click.echo(f"Issued: {self.issued}")
+        # click.echo("Rights:")
+        # prose_print(self.rights or "None", CONSOLE_WIDTH)
+        # click.echo(f"Language: {self.language}")
+        # click.echo(f"Standard: {self.standard}")
+        # click.echo(f"Update Frequency: {self.update_frequency}")
 
     def get_dataset_details(self) -> str:
         """Returns a string with details about the dataset (used prior to
