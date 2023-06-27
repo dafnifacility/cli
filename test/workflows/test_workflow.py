@@ -276,6 +276,7 @@ class TestWorkflow(TestCase):
         )
         self.assertEqual(result, mock_format_table.return_value)
 
+    @patch("dafni_cli.workflows.workflow.tabulate")
     @patch("dafni_cli.workflows.workflow.prose_print")
     @patch("dafni_cli.workflows.workflow.click")
     @patch.object(Workflow, "format_parameter_sets")
@@ -286,6 +287,7 @@ class TestWorkflow(TestCase):
         mock_format_parameter_sets,
         mock_click,
         mock_prose_print,
+        mock_tabulate,
     ):
         """Tests output_details works correctly"""
         # SETUP
@@ -297,16 +299,23 @@ class TestWorkflow(TestCase):
         # ASSERT
         mock_format_parameter_sets.assert_called_once()
         mock_format_instances.assert_called_once()
-        mock_click.echo.assert_has_calls(
+        self.assertEqual(
+            mock_click.echo.mock_calls,
             [
-                call(f"Name: {workflow.metadata.display_name}"),
                 call(
-                    f"Created: {format_datetime(workflow.creation_date, include_time=True)}"
+                    f"{workflow.metadata.display_name}  |  Tags: {', '.join(workflow.version_tags)}"
                 ),
+                call(""),
+                call(f"Published by: {workflow.metadata.publisher_id}"),
+                call(""),
+                call(mock_tabulate.return_value),
+                call(""),
                 call("Version message:"),
                 call(workflow.version_message),
+                call(""),
                 call("Summary:"),
                 call(workflow.metadata.summary),
+                call(""),
                 call("Description:"),
                 call(""),
                 call("Parameter sets:"),
@@ -314,12 +323,21 @@ class TestWorkflow(TestCase):
                 call(""),
                 call("Instances:"),
                 call(mock_format_instances.return_value),
-            ]
+            ],
+        )
+        mock_tabulate.assert_called_once_with(
+            [
+                ["Date:", format_datetime(workflow.creation_date, include_time=True)],
+                ["ID:", workflow.workflow_id],
+                ["Parent ID:", workflow.parent_id],
+            ],
+            tablefmt="plain",
         )
         mock_prose_print.assert_called_once_with(
             workflow.metadata.description, CONSOLE_WIDTH
         )
 
+    @patch("dafni_cli.workflows.workflow.tabulate")
     @patch("dafni_cli.workflows.workflow.prose_print")
     @patch("dafni_cli.workflows.workflow.click")
     @patch.object(Workflow, "format_parameter_sets")
@@ -330,6 +348,7 @@ class TestWorkflow(TestCase):
         mock_format_parameter_sets,
         mock_click,
         mock_prose_print,
+        mock_tabulate,
     ):
         """Tests output_details works correctly"""
         # SETUP
@@ -345,16 +364,30 @@ class TestWorkflow(TestCase):
         mock_format_instances.assert_not_called()
         mock_click.echo.assert_has_calls(
             [
-                call(f"Name: {workflow.metadata.display_name}"),
                 call(
-                    f"Created: {format_datetime(workflow.creation_date, include_time=True)}"
+                    f"{workflow.metadata.display_name}  |  Tags: {', '.join(workflow.version_tags)}"
                 ),
+                call(""),
+                call(f"Published by: {workflow.metadata.publisher_id}"),
+                call(""),
+                call(mock_tabulate.return_value),
+                call(""),
                 call("Version message:"),
                 call(workflow.version_message),
+                call(""),
                 call("Summary:"),
                 call(workflow.metadata.summary),
+                call(""),
                 call("Description:"),
             ]
+        )
+        mock_tabulate.assert_called_once_with(
+            [
+                ["Date:", format_datetime(workflow.creation_date, include_time=True)],
+                ["ID:", workflow.workflow_id],
+                ["Parent ID:", workflow.parent_id],
+            ],
+            tablefmt="plain",
         )
         mock_prose_print.assert_called_once_with(
             workflow.metadata.description, CONSOLE_WIDTH
