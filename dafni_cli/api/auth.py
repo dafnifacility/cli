@@ -52,3 +52,13 @@ class Auth(ParserBaseObject):
         ParserParam("role_id", "role_id", str),
         ParserParam("name", "name", str),
     ]
+
+    def get_permission_string(self) -> str:
+        """Return a string representing the permissions this auth object
+        allows (Taken from front-end)"""
+
+        if self.read and self.view:
+            return "Full access"
+        elif not self.read and self.view:
+            return "View only"
+        return "Not visible"

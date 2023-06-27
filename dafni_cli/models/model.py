@@ -222,29 +222,21 @@ class Model(ParserBaseObject):
         )
         return self._metadata
 
-    def output_details(self, long: bool = False):
-        """Prints relevant model attributes to command line
+    def get_brief_details(self) -> List:
+        """Returns an array containing brief details about this dataset for
+        the get models command
 
-        Args:
-            long (bool): Whether to print with the (potentially long)
-                         description (ignored if description is None)
+        Returns
+            List: Containing display_name, id, status, access, publication
+                  date and summary
         """
-
-        click.echo(
-            "Name: "
-            + self.metadata.display_name
-            + TAB_SPACE
-            + "ID: "
-            + self.model_id
-            + TAB_SPACE
-            + "Created: "
-            + format_datetime(self.creation_date, include_time=True)
-        )
-        click.echo("Summary: " + self.metadata.summary)
-        if long and self.metadata.description is not None:
-            click.echo("Description: ")
-            prose_print(self.metadata.description, CONSOLE_WIDTH)
-        click.echo("")
+        return [
+            self.metadata.display_name,
+            self.metadata.status,
+            self.auth.get_permission_string(),
+            format_datetime(self.publication_date, include_time=False),
+            self.metadata.summary,
+        ]
 
     def output_info(self):
         """Prints information about the model to command line"""

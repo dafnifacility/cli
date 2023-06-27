@@ -8,7 +8,16 @@ from dafni_cli.api.exceptions import ResourceNotFoundError
 from dafni_cli.api.models_api import get_all_models, get_model
 from dafni_cli.api.session import DAFNISession
 from dafni_cli.api.workflows_api import get_all_workflows, get_workflow
-from dafni_cli.consts import DATE_INPUT_FORMAT, DATE_INPUT_FORMAT_VERBOSE
+from dafni_cli.consts import (
+    DATE_INPUT_FORMAT,
+    DATE_INPUT_FORMAT_VERBOSE,
+    TABLE_ACCESS_HEADER,
+    TABLE_NAME_HEADER,
+    TABLE_PUBLICATION_DATE_HEADER,
+    TABLE_STATUS_HEADER,
+    TABLE_SUMMARY_HEADER,
+    TABLE_SUMMARY_MAX_COLUMN_WIDTH,
+)
 from dafni_cli.datasets import dataset_filtering
 from dafni_cli.datasets.dataset import parse_datasets
 from dafni_cli.datasets.dataset_metadata import parse_dataset_metadata
@@ -19,7 +28,7 @@ from dafni_cli.filtering import (
     text_filter,
 )
 from dafni_cli.models.model import parse_model, parse_models
-from dafni_cli.utils import print_json
+from dafni_cli.utils import format_table, print_json
 from dafni_cli.workflows.workflow import parse_workflow, parse_workflows
 
 
@@ -40,13 +49,6 @@ def get(ctx: Context):
 # Models commands
 ###############################################################################
 @get.command(help="List and filter models")
-@click.option(
-    "--long/--short",
-    "-l/-s",
-    default=False,
-    help="Also displays the description of each model. Default: -s",
-    type=bool,
-)
 @click.option(
     "--search",
     default=None,
@@ -75,7 +77,6 @@ def get(ctx: Context):
 @click.pass_context
 def models(
     ctx: Context,
-    long: bool,
     search: Optional[str],
     creation_date: str,
     publication_date: str,
@@ -86,7 +87,6 @@ def models(
 
     Args:
         ctx (context): contains user session for authentication
-        long (bool): whether to print the description of each model as well
         search (Optional[str]): Search text to filter models by
         creation_date (str): for filtering by creation date. Format:
                              DATE_INPUT_FORMAT_VERBOSE
@@ -114,8 +114,23 @@ def models(
     if json:
         print_json(filtered_model_dicts)
     else:
+        # Print brief details in a table
+        rows = []
         for model_inst in filtered_models:
-            model_inst.output_details(long)
+            rows.append(model_inst.get_brief_details())
+        click.echo(
+            format_table(
+                [
+                    TABLE_NAME_HEADER,
+                    TABLE_STATUS_HEADER,
+                    TABLE_ACCESS_HEADER,
+                    TABLE_PUBLICATION_DATE_HEADER,
+                    TABLE_SUMMARY_HEADER,
+                ],
+                rows,
+                [None, None, None, None, TABLE_SUMMARY_MAX_COLUMN_WIDTH],
+            )
+        )
 
 
 @get.command(help="Display metadata or version history of a particular model or models")

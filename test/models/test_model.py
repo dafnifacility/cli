@@ -203,52 +203,25 @@ class TestModel(TestCase):
         self.assertEqual(model.metadata.publisher, TEST_MODEL_METADATA["publisher"])
         self.assertEqual(model.metadata.source_code, TEST_MODEL_METADATA["source_code"])
 
-    @patch("dafni_cli.models.model.click")
-    def test_output_details(self, mock_click):
-        """Tests output_details works correctly"""
+    def test_get_brief_details(self):
+        """Tests get_brief_details works correctly"""
         # SETUP
         model = parse_model(TEST_MODEL)
 
         # CALL
-        model.output_details()
+        result = model.get_brief_details()
 
         # ASSERT
-        mock_click.echo.assert_has_calls(
+        self.assertEqual(
+            result,
             [
-                call(
-                    f"Name: Some display name{TAB_SPACE}"
-                    f"ID: 0a0a0a0a-0a00-0a00-a000-0a0a0000000a{TAB_SPACE}"
-                    f"Created: {format_datetime(model.creation_date, include_time=True)}"
-                ),
-                call("Summary: For testing"),
-                call(""),
-            ]
+                model.metadata.display_name,
+                model.metadata.status,
+                model.auth.get_permission_string(),
+                format_datetime(model.publication_date, include_time=False),
+                model.metadata.summary,
+            ],
         )
-
-    @patch("dafni_cli.models.model.prose_print")
-    @patch("dafni_cli.models.model.click")
-    def test_output_details_with_long(self, mock_click, mock_prose_print):
-        """Tests output_details works correctly when 'long' is set to True"""
-        # SETUP
-        model = parse_model(TEST_MODEL)
-
-        # CALL
-        model.output_details(long=True)
-
-        # ASSERT
-        mock_click.echo.assert_has_calls(
-            [
-                call(
-                    f"Name: Some display name{TAB_SPACE}"
-                    f"ID: 0a0a0a0a-0a00-0a00-a000-0a0a0000000a{TAB_SPACE}"
-                    f"Created: {format_datetime(model.creation_date, include_time=True)}"
-                ),
-                call("Summary: For testing"),
-                call("Description: "),
-                call(""),
-            ]
-        )
-        mock_prose_print.called_once_with("description", CONSOLE_WIDTH)
 
     @patch("dafni_cli.models.model.prose_print")
     @patch("dafni_cli.models.model.click")
