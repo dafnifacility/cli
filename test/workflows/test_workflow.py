@@ -408,10 +408,10 @@ class TestWorkflow(TestCase):
         # ASSERT
         self.assertEqual(
             result,
-            f"ID: 0a0a0a0a-0a00-0a00-a000-0a0a0000000a{TAB_SPACE}"
-            f"Name: A Workflow{TAB_SPACE}"
-            f"Publication date: {format_datetime(workflow.publication_date, include_time=True)}{TAB_SPACE}"
-            "Version message: Initial Workflow version",
+            f"ID: 0a0a0a0a-0a00-0a00-a000-0a0a0000000a\n"
+            f"Name: A Workflow\n"
+            f"Publication date: {format_datetime(workflow.publication_date, include_time=True)}\n"
+            "Version message: Initial Workflow version\n",
         )
 
     @patch("dafni_cli.workflows.workflow.format_table")

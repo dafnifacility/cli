@@ -58,10 +58,10 @@ def dataset(
         # Write files to disk
         write_files_to_zip(path, file_names, file_contents)
         # Output file details
-        click.echo("\nThe dataset files have been downloaded to:")
+        click.echo("The dataset files have been downloaded to:")
         click.echo(path)
         metadata.output_datafiles_table()
     else:
         click.echo(
-            "\nThere are no files currently associated with the Dataset to download"
+            "There are no files currently associated with the Dataset to download"
         )
