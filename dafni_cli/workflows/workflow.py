@@ -195,23 +195,20 @@ class Workflow(ParserBaseObject):
         )
         return self._metadata
 
-    def output_details(self, long: bool = False):
-        """Prints relevant workflow attributes to command line
+    def get_brief_details(self) -> List:
+        """Returns an array containing brief details about this workflow for
+        the get workflows command
 
-        Args:
-            long (bool): Whether to print with the (potentially long)
-                         description (ignored if description is None)
+        Returns
+            List: Containing display_name, workflow_id, publication date and
+                  summary
         """
-        click.echo(
-            f"Name: {self.metadata.display_name}{TAB_SPACE}"
-            f"ID: {self.workflow_id}{TAB_SPACE}"
-            f"Created: {format_datetime(self.creation_date, include_time=True)}"
-        )
-        click.echo(f"Summary: {self.metadata.summary}")
-        if long and self.metadata.description is not None:
-            click.echo("Description: ")
-            prose_print(self.metadata.description, CONSOLE_WIDTH)
-        click.echo("")
+        return [
+            self.metadata.display_name,
+            self.workflow_id,
+            format_datetime(self.publication_date, include_time=False),
+            self.metadata.summary,
+        ]
 
     def format_parameter_sets(self) -> str:
         """Formats parameter_sets into a string which prints as a table

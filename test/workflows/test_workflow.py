@@ -183,52 +183,24 @@ class TestWorkflow(TestCase):
             workflow.metadata.description, TEST_WORKFLOW_METADATA["description"]
         )
 
-    @patch("dafni_cli.workflows.workflow.click")
-    def test_output_details(self, mock_click):
-        """Tests output_details works correctly"""
+    def test_get_brief_details(self):
+        """Tests get_brief_details works correctly"""
         # SETUP
-        workflow = parse_workflow(TEST_WORKFLOW)
+        workflow: Workflow = parse_workflow(TEST_WORKFLOW)
 
         # CALL
-        workflow.output_details()
+        result = workflow.get_brief_details()
 
         # ASSERT
-        mock_click.echo.assert_has_calls(
+        self.assertEqual(
+            result,
             [
-                call(
-                    f"Name: A Workflow{TAB_SPACE}"
-                    f"ID: 0a0a0a0a-0a00-0a00-a000-0a0a0000000a{TAB_SPACE}"
-                    f"Created: {format_datetime(workflow.creation_date, include_time=True)}"
-                ),
-                call("Summary: Test workflow created to learn about DAFNI"),
-                call(""),
-            ]
+                workflow.metadata.display_name,
+                workflow.workflow_id,
+                format_datetime(workflow.publication_date, include_time=False),
+                workflow.metadata.summary,
+            ],
         )
-
-    @patch("dafni_cli.workflows.workflow.prose_print")
-    @patch("dafni_cli.workflows.workflow.click")
-    def test_output_details_with_long(self, mock_click, mock_prose_print):
-        """Tests output_details works correctly when 'long' is set to True"""
-        # SETUP
-        workflow = parse_workflow(TEST_WORKFLOW)
-
-        # CALL
-        workflow.output_details(long=True)
-
-        # ASSERT
-        mock_click.echo.assert_has_calls(
-            [
-                call(
-                    f"Name: A Workflow{TAB_SPACE}"
-                    f"ID: 0a0a0a0a-0a00-0a00-a000-0a0a0000000a{TAB_SPACE}"
-                    f"Created: {format_datetime(workflow.creation_date, include_time=True)}"
-                ),
-                call("Summary: Test workflow created to learn about DAFNI"),
-                call("Description: "),
-                call(""),
-            ]
-        )
-        mock_prose_print.called_once_with("description", CONSOLE_WIDTH)
 
     @patch("dafni_cli.workflows.workflow.format_table")
     def test_format_parameter_sets(
