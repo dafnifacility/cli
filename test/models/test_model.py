@@ -58,7 +58,7 @@ class TestModel(TestCase):
     ) -> None:
         super().setUp()
 
-        # These are used for test_output_info_*
+        # These are used for test_output_details_*
         self.mock_inputs_format_parameters = patch.object(
             ModelInputs, "format_parameters"
         ).start()
@@ -79,7 +79,7 @@ class TestModel(TestCase):
 
         model1 = models[0]
         model1_dict = TEST_MODELS[0]
-        self.assertEqual(model1.version_id, model1_dict["id"])
+        self.assertEqual(model1.model_id, model1_dict["id"])
         self.assertEqual(model1.kind, model1_dict["kind"])
         self.assertEqual(model1.owner_id, model1_dict["owner"])
         self.assertEqual(model1.parent_id, model1_dict["parent"])
@@ -145,7 +145,7 @@ class TestModel(TestCase):
         endpoint"""
         model = parse_model(TEST_MODEL)
 
-        self.assertEqual(model.version_id, TEST_MODEL["id"])
+        self.assertEqual(model.model_id, TEST_MODEL["id"])
         self.assertEqual(model.kind, TEST_MODEL["kind"])
         self.assertEqual(model.owner_id, TEST_MODEL["owner"])
         self.assertEqual(model.parent_id, TEST_MODEL["parent"])
@@ -216,6 +216,7 @@ class TestModel(TestCase):
             result,
             [
                 model.metadata.display_name,
+                model.model_id,
                 model.metadata.status,
                 model.auth.get_permission_string(),
                 format_datetime(model.publication_date, include_time=False),
@@ -225,17 +226,17 @@ class TestModel(TestCase):
 
     @patch("dafni_cli.models.model.prose_print")
     @patch("dafni_cli.models.model.click")
-    def test_output_info(
+    def test_output_details(
         self,
         mock_click,
         mock_prose_print,
     ):
-        """Tests output_info works correctly"""
+        """Tests output_details works correctly"""
         # SETUP
         model = parse_model(TEST_MODEL)
 
         # CALL
-        model.output_info()
+        model.output_details()
 
         # ASSERT
         self.mock_inputs_format_parameters.assert_called_once()
@@ -266,16 +267,16 @@ class TestModel(TestCase):
 
     @patch("dafni_cli.models.model.prose_print")
     @patch("dafni_cli.models.model.click")
-    def test_output_info_correct_when_inputs_present_but_not_outputs(
+    def test_output_details_correct_when_inputs_present_but_not_outputs(
         self, mock_click, mock_prose_print
     ):
-        """Tests output_info works correctly"""
+        """Tests output_details works correctly"""
         # SETUP
         model = parse_model(TEST_MODEL)
         model.spec.outputs = None
 
         # CALL
-        model.output_info()
+        model.output_details()
 
         # ASSERT
         self.mock_inputs_format_parameters.assert_called_once()
@@ -303,16 +304,16 @@ class TestModel(TestCase):
 
     @patch("dafni_cli.models.model.prose_print")
     @patch("dafni_cli.models.model.click")
-    def test_output_info_correct_when_outputs_present_but_not_inputs(
+    def test_output_details_correct_when_outputs_present_but_not_inputs(
         self, mock_click, mock_prose_print
     ):
-        """Tests output_info works correctly"""
+        """Tests output_details works correctly"""
         # SETUP
         model = parse_model(TEST_MODEL)
         model.spec.inputs = None
 
         # CALL
-        model.output_info()
+        model.output_details()
 
         # ASSERT
         self.mock_inputs_format_parameters.assert_not_called()
@@ -337,17 +338,17 @@ class TestModel(TestCase):
 
     @patch("dafni_cli.models.model.prose_print")
     @patch("dafni_cli.models.model.click")
-    def test_output_info_correct_when_neither_inputs_nor_outputs_are_present(
+    def test_output_details_correct_when_neither_inputs_nor_outputs_are_present(
         self, mock_click, mock_prose_print
     ):
-        """Tests output_info works correctly"""
+        """Tests output_details works correctly"""
         # SETUP
         model = parse_model(TEST_MODEL)
         model.spec.inputs = None
         model.spec.outputs = None
 
         # CALL
-        model.output_info()
+        model.output_details()
 
         # ASSERT
         self.mock_inputs_format_parameters.assert_not_called()

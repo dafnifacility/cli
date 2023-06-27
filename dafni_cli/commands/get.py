@@ -188,7 +188,7 @@ def model(ctx: Context, version_id: List[str], version_history: bool, json: bool
                 print_json(model_dictionary)
             else:
                 model_inst = parse_model(model_dictionary)
-                model_inst.output_info()
+                model_inst.output_details()
 
 
 ###############################################################################

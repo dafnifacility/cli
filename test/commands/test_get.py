@@ -397,7 +397,7 @@ class TestGetModel(TestCase):
         # ASSERT
         mock_DAFNISession.assert_called_once()
         mock_get_model.assert_called_with(session, "some_version_id")
-        model.output_info.assert_called_once()
+        model.output_details.assert_called_once()
         mock_print_json.assert_not_called()
 
         self.assertEqual(result.exit_code, 0)
@@ -428,7 +428,7 @@ class TestGetModel(TestCase):
         mock_DAFNISession.assert_called_once()
         mock_get_model.assert_called_with(session, "some_version_id")
         mock_click.echo.assert_called_once_with(mock_get_model.side_effect)
-        model.output_info.assert_not_called()
+        model.output_details.assert_not_called()
         mock_print_json.assert_not_called()
 
         self.assertEqual(result.exit_code, 1)
@@ -452,7 +452,7 @@ class TestGetModel(TestCase):
         # ASSERT
         mock_DAFNISession.assert_called_once()
         mock_get_model.assert_called_with(session, "some_version_id")
-        model.output_info.assert_not_called()
+        model.output_details.assert_not_called()
         mock_print_json.assert_called_once_with(model)
 
         self.assertEqual(result.exit_code, 0)

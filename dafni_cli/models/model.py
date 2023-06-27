@@ -114,7 +114,7 @@ class Model(ParserBaseObject):
     additional parameters are all stored with underscores e.g. _display_name.
 
     Attributes:
-        version_id (str): Model version ID
+        model_id (str): Model version ID
         kind (str): Type of DAFNI object (should be "M" for model)
         owner_id (str): ID of the model owner
         parent (str): Parent model ID
@@ -143,7 +143,7 @@ class Model(ParserBaseObject):
                                     url and its inputs
     """
 
-    version_id: str
+    model_id: str
     kind: str
     owner_id: str
     parent_id: str
@@ -172,7 +172,7 @@ class Model(ParserBaseObject):
     _status: Optional[str] = None
 
     _parser_params: ClassVar[List[ParserParam]] = [
-        ParserParam("version_id", "id", str),
+        ParserParam("model_id", "id", str),
         ParserParam("kind", "kind", str),
         ParserParam("owner_id", "owner", str),
         ParserParam("parent_id", "parent", str),
@@ -227,20 +227,21 @@ class Model(ParserBaseObject):
         the get models command
 
         Returns
-            List: Containing display_name, version_id, status, access,
+            List: Containing display_name, model_id, status, access,
                   publication date and summary
         """
         return [
             self.metadata.display_name,
-            self.version_id,
+            self.model_id,
             self.metadata.status,
             self.auth.get_permission_string(),
             format_datetime(self.publication_date, include_time=False),
             self.metadata.summary,
         ]
 
-    def output_info(self):
-        """Prints information about the model to command line"""
+    def output_details(self):
+        """Prints information about the model to command line (used for get
+        model)"""
 
         click.echo("Name: " + self.metadata.display_name)
         click.echo("Created: " + format_datetime(self.creation_date, include_time=True))
