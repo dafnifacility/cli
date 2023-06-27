@@ -22,7 +22,7 @@ def download(ctx: Context):
     ctx.obj["session"] = DAFNISession()
 
 
-@download.command(help="Download all dataset files for given version")
+@download.command(help="Download all dataset files for a given version")
 @click.option(
     "--directory",
     type=click.Path(exists=True, dir_okay=True, path_type=Path),

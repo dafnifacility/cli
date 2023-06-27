@@ -275,12 +275,6 @@ def dataset_version(
     help="Path to a dataset metadata file to upload.",
 )
 @click.option(
-    "--version-message",
-    type=str,
-    default=None,
-    help="Version message to replace in any existing or provided metadata.",
-)
-@click.option(
     "--save",
     type=click.Path(exists=False, path_type=Path),
     default=None,
