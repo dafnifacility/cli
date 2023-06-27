@@ -14,10 +14,14 @@ from dafni_cli.consts import (
     TABLE_ID_HEADER,
     TABLE_NAME_HEADER,
     TABLE_PARAMETER_SET_HEADER,
+    TABLE_PUBLICATION_DATE_HEADER,
     TABLE_PUBLISHED_BY_HEADER,
     TABLE_PUBLISHED_DATE_HEADER,
     TABLE_STARTED_HEADER,
     TABLE_STATUS_HEADER,
+    TABLE_VERSION_ID_HEADER,
+    TABLE_VERSION_MESSAGE_HEADER,
+    TABLE_VERSION_TAGS_HEADER,
     TABLE_WORKFLOW_VERSION_ID_HEADER,
 )
 from dafni_cli.utils import format_datetime, format_table, prose_print
@@ -313,16 +317,29 @@ class Workflow(ParserBaseObject):
         )
 
     def output_version_history(self):
-        """Prints the version history for the workflow to the command line"""
+        """Iterates through all versions and outputs their details in a table
+        printed to the command line"""
+        table_rows = []
         for version in self.version_history:
-            click.echo(
-                f"Name: {self.metadata.display_name}{TAB_SPACE}"
-                f"ID: {version.version_id}{TAB_SPACE}"
-                f"Publication date: {format_datetime(version.publication_date, include_time=True)}"
+            table_rows.append(
+                [
+                    version.version_id,
+                    format_datetime(version.publication_date, include_time=True),
+                    ", ".join(version.version_tags),
+                    version.version_message,
+                ]
             )
-            click.echo(f"Version message: {version.version_message}")
-            click.echo(f"Version tags: {', '.join(version.version_tags)}")
-            click.echo("")
+        click.echo(
+            format_table(
+                headers=[
+                    TABLE_VERSION_ID_HEADER,
+                    TABLE_PUBLICATION_DATE_HEADER,
+                    TABLE_VERSION_TAGS_HEADER,
+                    TABLE_VERSION_MESSAGE_HEADER,
+                ],
+                rows=table_rows,
+            )
+        )
 
 
 # The following methods mostly exists to get round current python limitations

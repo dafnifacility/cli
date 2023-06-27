@@ -13,10 +13,14 @@ from dafni_cli.consts import (
     TABLE_ID_HEADER,
     TABLE_NAME_HEADER,
     TABLE_PARAMETER_SET_HEADER,
+    TABLE_PUBLICATION_DATE_HEADER,
     TABLE_PUBLISHED_BY_HEADER,
     TABLE_PUBLISHED_DATE_HEADER,
     TABLE_STARTED_HEADER,
     TABLE_STATUS_HEADER,
+    TABLE_VERSION_ID_HEADER,
+    TABLE_VERSION_MESSAGE_HEADER,
+    TABLE_VERSION_TAGS_HEADER,
     TABLE_WORKFLOW_VERSION_ID_HEADER,
 )
 from dafni_cli.utils import format_datetime
@@ -410,8 +414,9 @@ class TestWorkflow(TestCase):
             "Version message: Initial Workflow version",
         )
 
+    @patch("dafni_cli.workflows.workflow.format_table")
     @patch("dafni_cli.workflows.workflow.click")
-    def test_output_version_history(self, mock_click):
+    def test_output_version_history(self, mock_click, mock_format_table):
         """Tests output_version_history works correctly"""
         # SETUP
         workflow = parse_workflow(TEST_WORKFLOW)
@@ -420,15 +425,20 @@ class TestWorkflow(TestCase):
         workflow.output_version_history()
 
         # ASSERT
-        mock_click.echo.assert_has_calls(
-            [
-                call(
-                    f"Name: A Workflow{TAB_SPACE}"
-                    f"ID: 0a0a0a0a-0a00-0a00-a000-0a0a0000000a{TAB_SPACE}"
-                    f"Publication date: {format_datetime(workflow.publication_date, include_time=True)}"
-                ),
-                call("Version message: Initial Workflow version"),
-                call("Version tags: latest"),
-                call(""),
-            ]
+        mock_format_table.assert_called_once_with(
+            headers=[
+                TABLE_VERSION_ID_HEADER,
+                TABLE_PUBLICATION_DATE_HEADER,
+                TABLE_VERSION_TAGS_HEADER,
+                TABLE_VERSION_MESSAGE_HEADER,
+            ],
+            rows=[
+                [
+                    "0a0a0a0a-0a00-0a00-a000-0a0a0000000a",
+                    format_datetime(datetime(2023, 4, 4, 8, 34, 36), include_time=True),
+                    "latest",
+                    "Initial Workflow version",
+                ]
+            ],
         )
+        mock_click.echo.assert_called_once_with(mock_format_table.return_value)
