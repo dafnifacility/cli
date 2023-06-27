@@ -345,6 +345,9 @@ class TestGetModels(TestCase):
         models[0].get_brief_details.assert_not_called()
         models[1].get_brief_details.assert_not_called()
 
+        self.mock_format_table.assert_not_called()
+        self.mock_click.echo.assert_not_called()
+
         self.mock_print_json.assert_called_with([model_dicts[0]])
 
         self.assertEqual(result.exit_code, 0)

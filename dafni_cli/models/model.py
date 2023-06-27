@@ -231,7 +231,7 @@ class Model(ParserBaseObject):
         return self._metadata
 
     def get_brief_details(self) -> List:
-        """Returns an array containing brief details about this dataset for
+        """Returns an array containing brief details about this model for
         the get models command
 
         Returns
