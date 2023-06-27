@@ -150,6 +150,6 @@ class TestWorkflowsAPI(TestCase):
 
         # ASSERT
         session.delete_request.assert_called_once_with(
-            f"{NIMS_API_URL}/workflows/{version_id}",
+            f"{NIMS_API_URL}/workflows/{version_id}/",
         )
         self.assertEqual(result, session.delete_request.return_value)
