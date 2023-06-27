@@ -6,7 +6,14 @@ from dateutil.tz import tzutc
 
 from dafni_cli.api.auth import Auth
 from dafni_cli.api.parser import ParserBaseObject
-from dafni_cli.consts import CONSOLE_WIDTH, TAB_SPACE
+from dafni_cli.consts import (
+    CONSOLE_WIDTH,
+    TAB_SPACE,
+    TABLE_PUBLICATION_DATE_HEADER,
+    TABLE_VERSION_ID_HEADER,
+    TABLE_VERSION_MESSAGE_HEADER,
+    TABLE_VERSION_TAGS_HEADER,
+)
 from dafni_cli.models.inputs import ModelInputs
 from dafni_cli.models.model import ModelSpec, parse_model, parse_models
 from dafni_cli.models.outputs import ModelOutputs
@@ -465,8 +472,9 @@ class TestModel(TestCase):
             "Version message: ",
         )
 
+    @patch("dafni_cli.models.model.format_table")
     @patch("dafni_cli.models.model.click")
-    def test_output_version_history(self, mock_click):
+    def test_output_version_history(self, mock_click, mock_format_table):
         """Tests output_version_history works correctly"""
         # SETUP
         model = parse_model(TEST_MODEL)
@@ -475,15 +483,20 @@ class TestModel(TestCase):
         model.output_version_history()
 
         # ASSERT
-        mock_click.echo.assert_has_calls(
-            [
-                call(
-                    f"Name: Some display name{TAB_SPACE}"
-                    f"ID: 0a0a0a0a-0a00-0a00-a000-0a0a0000000d{TAB_SPACE}"
-                    f"Publication date: {format_datetime(model.publication_date, include_time=True)}"
-                ),
-                call("Version message: First version"),
-                call("Version tags: latest"),
-                call(""),
-            ]
+        mock_format_table.assert_called_once_with(
+            headers=[
+                TABLE_VERSION_ID_HEADER,
+                TABLE_PUBLICATION_DATE_HEADER,
+                TABLE_VERSION_TAGS_HEADER,
+                TABLE_VERSION_MESSAGE_HEADER,
+            ],
+            rows=[
+                [
+                    "0a0a0a0a-0a00-0a00-a000-0a0a0000000d",
+                    format_datetime(datetime(2020, 4, 2, 9, 12, 25), include_time=True),
+                    "latest",
+                    "First version",
+                ]
+            ],
         )
+        mock_click.echo.assert_called_once_with(mock_format_table.return_value)

@@ -7,10 +7,17 @@ from tabulate import tabulate
 
 from dafni_cli.api.auth import Auth
 from dafni_cli.api.parser import ParserBaseObject, ParserParam, parse_datetime
-from dafni_cli.consts import CONSOLE_WIDTH, TAB_SPACE
+from dafni_cli.consts import (
+    CONSOLE_WIDTH,
+    TAB_SPACE,
+    TABLE_PUBLICATION_DATE_HEADER,
+    TABLE_VERSION_ID_HEADER,
+    TABLE_VERSION_MESSAGE_HEADER,
+    TABLE_VERSION_TAGS_HEADER,
+)
 from dafni_cli.models.inputs import ModelInputs
 from dafni_cli.models.outputs import ModelOutputs
-from dafni_cli.utils import format_datetime, prose_print
+from dafni_cli.utils import format_datetime, format_table, prose_print
 
 
 @dataclass
@@ -296,16 +303,29 @@ class Model(ParserBaseObject):
         )
 
     def output_version_history(self):
-        """Prints the version history for the model to the command line"""
+        """Iterates through all versions and outputs their details in a table
+        printed to the command line"""
+        table_rows = []
         for version in self.version_history:
-            click.echo(
-                f"Name: {self.metadata.display_name}{TAB_SPACE}"
-                f"ID: {version.version_id}{TAB_SPACE}"
-                f"Publication date: {format_datetime(version.publication_date, include_time=True)}"
+            table_rows.append(
+                [
+                    version.version_id,
+                    format_datetime(version.publication_date, include_time=True),
+                    ", ".join(version.version_tags),
+                    version.version_message,
+                ]
             )
-            click.echo(f"Version message: {version.version_message}")
-            click.echo(f"Version tags: {', '.join(version.version_tags)}")
-            click.echo("")
+        click.echo(
+            format_table(
+                headers=[
+                    TABLE_VERSION_ID_HEADER,
+                    TABLE_PUBLICATION_DATE_HEADER,
+                    TABLE_VERSION_TAGS_HEADER,
+                    TABLE_VERSION_MESSAGE_HEADER,
+                ],
+                rows=table_rows,
+            )
+        )
 
 
 # The following methods mostly exists to get round current python limitations
