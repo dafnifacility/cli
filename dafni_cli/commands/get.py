@@ -12,11 +12,13 @@ from dafni_cli.consts import (
     DATE_INPUT_FORMAT,
     DATE_INPUT_FORMAT_VERBOSE,
     TABLE_ACCESS_HEADER,
+    TABLE_DISPLAY_NAME_MAX_COLUMN_WIDTH,
     TABLE_NAME_HEADER,
     TABLE_PUBLICATION_DATE_HEADER,
     TABLE_STATUS_HEADER,
     TABLE_SUMMARY_HEADER,
     TABLE_SUMMARY_MAX_COLUMN_WIDTH,
+    TABLE_VERSION_ID_HEADER,
 )
 from dafni_cli.datasets import dataset_filtering
 from dafni_cli.datasets.dataset import parse_datasets
@@ -122,13 +124,21 @@ def models(
             format_table(
                 [
                     TABLE_NAME_HEADER,
+                    TABLE_VERSION_ID_HEADER,
                     TABLE_STATUS_HEADER,
                     TABLE_ACCESS_HEADER,
                     TABLE_PUBLICATION_DATE_HEADER,
                     TABLE_SUMMARY_HEADER,
                 ],
                 rows,
-                [None, None, None, None, TABLE_SUMMARY_MAX_COLUMN_WIDTH],
+                [
+                    TABLE_DISPLAY_NAME_MAX_COLUMN_WIDTH,
+                    None,
+                    None,
+                    None,
+                    None,
+                    TABLE_SUMMARY_MAX_COLUMN_WIDTH,
+                ],
             )
         )
 

@@ -79,7 +79,7 @@ class TestModel(TestCase):
 
         model1 = models[0]
         model1_dict = TEST_MODELS[0]
-        self.assertEqual(model1.model_id, model1_dict["id"])
+        self.assertEqual(model1.version_id, model1_dict["id"])
         self.assertEqual(model1.kind, model1_dict["kind"])
         self.assertEqual(model1.owner_id, model1_dict["owner"])
         self.assertEqual(model1.parent_id, model1_dict["parent"])
@@ -145,7 +145,7 @@ class TestModel(TestCase):
         endpoint"""
         model = parse_model(TEST_MODEL)
 
-        self.assertEqual(model.model_id, TEST_MODEL["id"])
+        self.assertEqual(model.version_id, TEST_MODEL["id"])
         self.assertEqual(model.kind, TEST_MODEL["kind"])
         self.assertEqual(model.owner_id, TEST_MODEL["owner"])
         self.assertEqual(model.parent_id, TEST_MODEL["parent"])

@@ -9,11 +9,13 @@ from dafni_cli.commands import get
 from dafni_cli.consts import (
     DATE_INPUT_FORMAT,
     TABLE_ACCESS_HEADER,
+    TABLE_DISPLAY_NAME_MAX_COLUMN_WIDTH,
     TABLE_NAME_HEADER,
     TABLE_PUBLICATION_DATE_HEADER,
     TABLE_STATUS_HEADER,
     TABLE_SUMMARY_HEADER,
     TABLE_SUMMARY_MAX_COLUMN_WIDTH,
+    TABLE_VERSION_ID_HEADER,
 )
 
 from test.fixtures.dataset_metadata import TEST_DATASET_METADATA
@@ -100,13 +102,21 @@ class TestGetModels(TestCase):
         self.mock_format_table.assert_called_once_with(
             [
                 TABLE_NAME_HEADER,
+                TABLE_VERSION_ID_HEADER,
                 TABLE_STATUS_HEADER,
                 TABLE_ACCESS_HEADER,
                 TABLE_PUBLICATION_DATE_HEADER,
                 TABLE_SUMMARY_HEADER,
             ],
             expected_rows,
-            [None, None, None, None, TABLE_SUMMARY_MAX_COLUMN_WIDTH],
+            [
+                TABLE_DISPLAY_NAME_MAX_COLUMN_WIDTH,
+                None,
+                None,
+                None,
+                None,
+                TABLE_SUMMARY_MAX_COLUMN_WIDTH,
+            ],
         )
         self.mock_click.echo.assert_called_once_with(
             self.mock_format_table.return_value
@@ -186,13 +196,21 @@ class TestGetModels(TestCase):
         self.mock_format_table.assert_called_once_with(
             [
                 TABLE_NAME_HEADER,
+                TABLE_VERSION_ID_HEADER,
                 TABLE_STATUS_HEADER,
                 TABLE_ACCESS_HEADER,
                 TABLE_PUBLICATION_DATE_HEADER,
                 TABLE_SUMMARY_HEADER,
             ],
             [models[0].get_brief_details.return_value],
-            [None, None, None, None, TABLE_SUMMARY_MAX_COLUMN_WIDTH],
+            [
+                TABLE_DISPLAY_NAME_MAX_COLUMN_WIDTH,
+                None,
+                None,
+                None,
+                None,
+                TABLE_SUMMARY_MAX_COLUMN_WIDTH,
+            ],
         )
         self.mock_click.echo.assert_called_once_with(
             self.mock_format_table.return_value
@@ -240,13 +258,21 @@ class TestGetModels(TestCase):
         self.mock_format_table.assert_called_once_with(
             [
                 TABLE_NAME_HEADER,
+                TABLE_VERSION_ID_HEADER,
                 TABLE_STATUS_HEADER,
                 TABLE_ACCESS_HEADER,
                 TABLE_PUBLICATION_DATE_HEADER,
                 TABLE_SUMMARY_HEADER,
             ],
             [models[0].get_brief_details.return_value],
-            [None, None, None, None, TABLE_SUMMARY_MAX_COLUMN_WIDTH],
+            [
+                TABLE_DISPLAY_NAME_MAX_COLUMN_WIDTH,
+                None,
+                None,
+                None,
+                None,
+                TABLE_SUMMARY_MAX_COLUMN_WIDTH,
+            ],
         )
         self.mock_click.echo.assert_called_once_with(
             self.mock_format_table.return_value
@@ -315,8 +341,9 @@ class TestGetModels(TestCase):
         self.mock_filter_multiple.assert_called_with(
             [mock_date_filter.return_value], models, model_dicts
         )
-        models[0].output_brief_details.assert_not_called()
-        models[1].output_brief_details.assert_not_called()
+        self.mock_click.echo.assert_not_called()
+        models[0].get_brief_details.assert_not_called()
+        models[1].get_brief_details.assert_not_called()
 
         self.mock_print_json.assert_called_with([model_dicts[0]])
 
