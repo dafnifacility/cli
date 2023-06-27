@@ -262,8 +262,9 @@ class Workflow(ParserBaseObject):
             ],
         )
 
-    def output_info(self):
-        """Prints information about the workflow to command line"""
+    def output_details(self):
+        """Prints information about the workflow to command line (used for get
+        workflow)"""
 
         click.echo(f"Name: {self.metadata.display_name}")
         click.echo(f"Created: {format_datetime(self.creation_date, include_time=True)}")

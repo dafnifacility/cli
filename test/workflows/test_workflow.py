@@ -280,19 +280,19 @@ class TestWorkflow(TestCase):
     @patch("dafni_cli.workflows.workflow.click")
     @patch.object(Workflow, "format_parameter_sets")
     @patch.object(Workflow, "format_instances")
-    def test_output_info(
+    def test_output_details(
         self,
         mock_format_instances,
         mock_format_parameter_sets,
         mock_click,
         mock_prose_print,
     ):
-        """Tests output_info works correctly"""
+        """Tests output_details works correctly"""
         # SETUP
         workflow = parse_workflow(TEST_WORKFLOW)
 
         # CALL
-        workflow.output_info()
+        workflow.output_details()
 
         # ASSERT
         mock_format_parameter_sets.assert_called_once()
@@ -324,21 +324,21 @@ class TestWorkflow(TestCase):
     @patch("dafni_cli.workflows.workflow.click")
     @patch.object(Workflow, "format_parameter_sets")
     @patch.object(Workflow, "format_instances")
-    def test_output_info_when_parameters_sets_and_instances_none(
+    def test_output_details_when_parameters_sets_and_instances_none(
         self,
         mock_format_instances,
         mock_format_parameter_sets,
         mock_click,
         mock_prose_print,
     ):
-        """Tests output_info works correctly"""
+        """Tests output_details works correctly"""
         # SETUP
         workflow = parse_workflow(TEST_WORKFLOW)
         workflow.parameter_sets = None
         workflow.instances = None
 
         # CALL
-        workflow.output_info()
+        workflow.output_details()
 
         # ASSERT
         mock_format_parameter_sets.assert_not_called()

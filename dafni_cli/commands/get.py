@@ -3,23 +3,30 @@ from typing import List, Optional
 import click
 from click import Context
 
-from dafni_cli.api.datasets_api import (get_all_datasets,
-                                        get_latest_dataset_metadata)
+from dafni_cli.api.datasets_api import get_all_datasets, get_latest_dataset_metadata
 from dafni_cli.api.exceptions import ResourceNotFoundError
 from dafni_cli.api.models_api import get_all_models, get_model
 from dafni_cli.api.session import DAFNISession
 from dafni_cli.api.workflows_api import get_all_workflows, get_workflow
-from dafni_cli.consts import (DATE_INPUT_FORMAT, DATE_INPUT_FORMAT_VERBOSE,
-                              TABLE_DISPLAY_NAME_MAX_COLUMN_WIDTH,
-                              TABLE_NAME_HEADER, TABLE_PUBLICATION_DATE_HEADER,
-                              TABLE_SUMMARY_HEADER,
-                              TABLE_SUMMARY_MAX_COLUMN_WIDTH,
-                              TABLE_VERSION_ID_HEADER)
+from dafni_cli.consts import (
+    DATE_INPUT_FORMAT,
+    DATE_INPUT_FORMAT_VERBOSE,
+    TABLE_DISPLAY_NAME_MAX_COLUMN_WIDTH,
+    TABLE_NAME_HEADER,
+    TABLE_PUBLICATION_DATE_HEADER,
+    TABLE_SUMMARY_HEADER,
+    TABLE_SUMMARY_MAX_COLUMN_WIDTH,
+    TABLE_VERSION_ID_HEADER,
+)
 from dafni_cli.datasets import dataset_filtering
 from dafni_cli.datasets.dataset import parse_datasets
 from dafni_cli.datasets.dataset_metadata import parse_dataset_metadata
-from dafni_cli.filtering import (creation_date_filter, filter_multiple,
-                                 publication_date_filter, text_filter)
+from dafni_cli.filtering import (
+    creation_date_filter,
+    filter_multiple,
+    publication_date_filter,
+    text_filter,
+)
 from dafni_cli.models.model import parse_model, parse_models
 from dafni_cli.utils import format_table, print_json
 from dafni_cli.workflows.workflow import parse_workflow, parse_workflows
@@ -430,4 +437,4 @@ def workflow(ctx: Context, version_id: List[str], version_history: bool, json: b
                 print_json(workflow_dictionary)
             else:
                 workflow_inst = parse_workflow(workflow_dictionary)
-                workflow_inst.output_info()
+                workflow_inst.output_details()
