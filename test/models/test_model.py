@@ -8,7 +8,7 @@ from dafni_cli.api.auth import Auth
 from dafni_cli.api.parser import ParserBaseObject
 from dafni_cli.consts import CONSOLE_WIDTH, TAB_SPACE
 from dafni_cli.models.inputs import ModelInputs
-from dafni_cli.models.model import Model, ModelSpec, parse_model, parse_models
+from dafni_cli.models.model import ModelSpec, parse_model, parse_models
 from dafni_cli.models.outputs import ModelOutputs
 from dafni_cli.utils import format_datetime
 
@@ -224,12 +224,14 @@ class TestModel(TestCase):
             ],
         )
 
+    @patch("dafni_cli.models.model.tabulate")
     @patch("dafni_cli.models.model.prose_print")
     @patch("dafni_cli.models.model.click")
     def test_output_details(
         self,
         mock_click,
         mock_prose_print,
+        mock_tabulate,
     ):
         """Tests output_details works correctly"""
         # SETUP
@@ -242,16 +244,27 @@ class TestModel(TestCase):
         self.mock_inputs_format_parameters.assert_called_once()
         self.mock_inputs_format_dataslots.assert_called_once()
         self.mock_outputs_format_outputs.assert_called_once()
-        mock_click.echo.assert_has_calls(
+        self.assertEqual(
+            mock_click.echo.mock_calls,
             [
-                call("Name: Some display name"),
                 call(
-                    f"Created: {format_datetime(model.creation_date, include_time=True)}"
+                    f"{model.metadata.display_name}  |  Status: {model.metadata.status}  |  Tags: {', '.join(model.version_tags)}"
                 ),
-                call("Parent ID: 0a0a0a0a-0a00-0a00-a000-0a0a0000000b"),
-                call("Summary: "),
-                call("For testing"),
-                call("Description: "),
+                call(""),
+                call(f"Published by: {str(model.metadata.publisher)}"),
+                call(""),
+                call(mock_tabulate.return_value),
+                call(""),
+                call("Version message:"),
+                call(model.version_message),
+                call(""),
+                call("Summary:"),
+                call(model.metadata.summary),
+                call(""),
+                call("Description:"),
+                call(""),
+                call("Source code:"),
+                call(model.metadata.source_code),
                 call(""),
                 call("Input Parameters: "),
                 call(self.mock_inputs_format_parameters.return_value),
@@ -261,14 +274,23 @@ class TestModel(TestCase):
                 call(""),
                 call("Outputs: "),
                 call(self.mock_outputs_format_outputs.return_value),
-            ]
+            ],
+        )
+        mock_tabulate.assert_called_once_with(
+            [
+                ["Date:", format_datetime(model.creation_date, include_time=True)],
+                ["ID:", model.model_id],
+                ["Parent ID:", model.parent_id],
+            ],
+            tablefmt="plain",
         )
         mock_prose_print.assert_called_once_with("Test description", CONSOLE_WIDTH)
 
+    @patch("dafni_cli.models.model.tabulate")
     @patch("dafni_cli.models.model.prose_print")
     @patch("dafni_cli.models.model.click")
     def test_output_details_correct_when_inputs_present_but_not_outputs(
-        self, mock_click, mock_prose_print
+        self, mock_click, mock_prose_print, mock_tabulate
     ):
         """Tests output_details works correctly"""
         # SETUP
@@ -284,14 +306,24 @@ class TestModel(TestCase):
         self.mock_outputs_format_outputs.assert_not_called()
         mock_click.echo.assert_has_calls(
             [
-                call("Name: Some display name"),
                 call(
-                    f"Created: {format_datetime(model.creation_date, include_time=True)}"
+                    f"{model.metadata.display_name}  |  Status: {model.metadata.status}  |  Tags: {', '.join(model.version_tags)}"
                 ),
-                call("Parent ID: 0a0a0a0a-0a00-0a00-a000-0a0a0000000b"),
-                call("Summary: "),
-                call("For testing"),
-                call("Description: "),
+                call(""),
+                call(f"Published by: {str(model.metadata.publisher)}"),
+                call(""),
+                call(mock_tabulate.return_value),
+                call(""),
+                call("Version message:"),
+                call(model.version_message),
+                call(""),
+                call("Summary:"),
+                call(model.metadata.summary),
+                call(""),
+                call("Description:"),
+                call(""),
+                call("Source code:"),
+                call(model.metadata.source_code),
                 call(""),
                 call("Input Parameters: "),
                 call(self.mock_inputs_format_parameters.return_value),
@@ -300,12 +332,21 @@ class TestModel(TestCase):
                 call(self.mock_inputs_format_dataslots.return_value),
             ]
         )
+        mock_tabulate.assert_called_once_with(
+            [
+                ["Date:", format_datetime(model.creation_date, include_time=True)],
+                ["ID:", model.model_id],
+                ["Parent ID:", model.parent_id],
+            ],
+            tablefmt="plain",
+        )
         mock_prose_print.assert_called_once_with("Test description", CONSOLE_WIDTH)
 
+    @patch("dafni_cli.models.model.tabulate")
     @patch("dafni_cli.models.model.prose_print")
     @patch("dafni_cli.models.model.click")
     def test_output_details_correct_when_outputs_present_but_not_inputs(
-        self, mock_click, mock_prose_print
+        self, mock_click, mock_prose_print, mock_tabulate
     ):
         """Tests output_details works correctly"""
         # SETUP
@@ -319,27 +360,47 @@ class TestModel(TestCase):
         self.mock_inputs_format_parameters.assert_not_called()
         self.mock_inputs_format_dataslots.assert_not_called()
         self.mock_outputs_format_outputs.assert_called_once()
-        mock_click.echo.assert_has_calls(
+        self.assertEqual(
+            mock_click.echo.mock_calls,
             [
-                call("Name: Some display name"),
                 call(
-                    f"Created: {format_datetime(model.creation_date, include_time=True)}"
+                    f"{model.metadata.display_name}  |  Status: {model.metadata.status}  |  Tags: {', '.join(model.version_tags)}"
                 ),
-                call("Parent ID: 0a0a0a0a-0a00-0a00-a000-0a0a0000000b"),
-                call("Summary: "),
-                call("For testing"),
-                call("Description: "),
+                call(""),
+                call(f"Published by: {str(model.metadata.publisher)}"),
+                call(""),
+                call(mock_tabulate.return_value),
+                call(""),
+                call("Version message:"),
+                call(model.version_message),
+                call(""),
+                call("Summary:"),
+                call(model.metadata.summary),
+                call(""),
+                call("Description:"),
+                call(""),
+                call("Source code:"),
+                call(model.metadata.source_code),
                 call(""),
                 call("Outputs: "),
                 call(self.mock_outputs_format_outputs.return_value),
-            ]
+            ],
+        )
+        mock_tabulate.assert_called_once_with(
+            [
+                ["Date:", format_datetime(model.creation_date, include_time=True)],
+                ["ID:", model.model_id],
+                ["Parent ID:", model.parent_id],
+            ],
+            tablefmt="plain",
         )
         mock_prose_print.assert_called_once_with("Test description", CONSOLE_WIDTH)
 
+    @patch("dafni_cli.models.model.tabulate")
     @patch("dafni_cli.models.model.prose_print")
     @patch("dafni_cli.models.model.click")
     def test_output_details_correct_when_neither_inputs_nor_outputs_are_present(
-        self, mock_click, mock_prose_print
+        self, mock_click, mock_prose_print, mock_tabulate
     ):
         """Tests output_details works correctly"""
         # SETUP
@@ -354,17 +415,36 @@ class TestModel(TestCase):
         self.mock_inputs_format_parameters.assert_not_called()
         self.mock_inputs_format_dataslots.assert_not_called()
         self.mock_outputs_format_outputs.assert_not_called()
-        mock_click.echo.assert_has_calls(
+        self.assertEqual(
+            mock_click.echo.mock_calls,
             [
-                call("Name: Some display name"),
                 call(
-                    f"Created: {format_datetime(model.creation_date, include_time=True)}"
+                    f"{model.metadata.display_name}  |  Status: {model.metadata.status}  |  Tags: {', '.join(model.version_tags)}"
                 ),
-                call("Parent ID: 0a0a0a0a-0a00-0a00-a000-0a0a0000000b"),
-                call("Summary: "),
-                call("For testing"),
-                call("Description: "),
-            ]
+                call(""),
+                call(f"Published by: {str(model.metadata.publisher)}"),
+                call(""),
+                call(mock_tabulate.return_value),
+                call(""),
+                call("Version message:"),
+                call(model.version_message),
+                call(""),
+                call("Summary:"),
+                call(model.metadata.summary),
+                call(""),
+                call("Description:"),
+                call(""),
+                call("Source code:"),
+                call(model.metadata.source_code),
+            ],
+        )
+        mock_tabulate.assert_called_once_with(
+            [
+                ["Date:", format_datetime(model.creation_date, include_time=True)],
+                ["ID:", model.model_id],
+                ["Parent ID:", model.parent_id],
+            ],
+            tablefmt="plain",
         )
         mock_prose_print.assert_called_once_with("Test description", CONSOLE_WIDTH)
 

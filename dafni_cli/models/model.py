@@ -3,6 +3,7 @@ from datetime import datetime
 from typing import ClassVar, List, Optional
 
 import click
+from tabulate import tabulate
 
 from dafni_cli.api.auth import Auth
 from dafni_cli.api.parser import ParserBaseObject, ParserParam, parse_datetime
@@ -243,13 +244,34 @@ class Model(ParserBaseObject):
         """Prints information about the model to command line (used for get
         model)"""
 
-        click.echo("Name: " + self.metadata.display_name)
-        click.echo("Created: " + format_datetime(self.creation_date, include_time=True))
-        click.echo("Parent ID: " + self.parent_id)
-        click.echo("Summary: ")
+        click.echo(
+            f"{self.metadata.display_name}  |  Status: {self.metadata.status}  |  Tags: {', '.join(self.version_tags)}"
+        )
+        click.echo("")
+        click.echo(f"Published by: {self.metadata.publisher}")
+        click.echo("")
+        click.echo(
+            tabulate(
+                [
+                    ["Date:", format_datetime(self.creation_date, include_time=True)],
+                    ["ID:", self.model_id],
+                    ["Parent ID:", self.parent_id],
+                ],
+                tablefmt="plain",
+            )
+        )
+        click.echo("")
+        click.echo("Version message:")
+        click.echo(self.version_message)
+        click.echo("")
+        click.echo("Summary:")
         click.echo(self.metadata.summary)
-        click.echo("Description: ")
+        click.echo("")
+        click.echo("Description:")
         prose_print(self.metadata.description, CONSOLE_WIDTH)
+        click.echo("")
+        click.echo("Source code:")
+        click.echo(self.metadata.source_code)
         if self.spec.inputs is not None:
             click.echo("")
             click.echo("Input Parameters: ")
