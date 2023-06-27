@@ -91,15 +91,6 @@ class TestDataset(TestCase):
                 ),
                 call(""),
                 call(""),
-                call(
-                    ", ".join(
-                        [
-                            format_data_format(data_format)
-                            for data_format in dataset1.formats
-                        ]
-                    )
-                ),
-                call(""),
             ],
         )
         mock_prose.assert_called_once_with("", CONSOLE_WIDTH)
@@ -136,15 +127,6 @@ class TestDataset(TestCase):
                     f"To: {end}"
                 ),
                 call(""),
-                call(""),
-                call(
-                    ", ".join(
-                        [
-                            format_data_format(data_format)
-                            for data_format in dataset2.formats
-                        ]
-                    )
-                ),
                 call(""),
             ],
         )

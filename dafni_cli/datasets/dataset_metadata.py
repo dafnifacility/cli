@@ -673,8 +673,9 @@ class DatasetMetadata(ParserBaseObject):
         Args:
             long (bool, optional): Flag to print additional metadata. Defaults to False.
         """
-        click.echo(f"\n{self.title}")
-        click.echo(f"Subject: {self.subject}{TAB_SPACE}Version ID: {self.version_id}")
+        click.echo(self.title)
+        click.echo(f"Subject: {self.subject}")
+        click.echo(f"Version ID: {self.version_id}")
         click.echo("")
         click.echo(f"Created: {format_datetime(self.created, include_time=True)}")
         click.echo(f"Creator: {self.creators[0].name}")
@@ -748,15 +749,6 @@ class DatasetMetadata(ParserBaseObject):
                 tablefmt="plain",
             )
         )
-
-        # click.echo(f"Theme(s):\n{self.themes}")
-        # click.echo(f"Publisher: {self.publisher}")
-        # click.echo(f"Issued: {self.issued}")
-        # click.echo("Rights:")
-        # prose_print(self.rights or "None", CONSOLE_WIDTH)
-        # click.echo(f"Language: {self.language}")
-        # click.echo(f"Standard: {self.standard}")
-        # click.echo(f"Update Frequency: {self.update_frequency}")
 
     def get_dataset_details(self) -> str:
         """Returns a string with details about the dataset (used prior to

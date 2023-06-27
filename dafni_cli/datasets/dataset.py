@@ -77,10 +77,6 @@ class Dataset(ParserBaseObject):
         click.echo("")
         prose_print(self.description or "", CONSOLE_WIDTH)
         click.echo("")
-        click.echo(
-            ", ".join([format_data_format(data_format) for data_format in self.formats])
-        )
-        click.echo("")
 
 
 # The following methods mostly exists to get round current python limitations

@@ -149,7 +149,7 @@ class TestContact(TestCase):
         self.assertEqual(contact.name, TEST_DATASET_METADATA_CONTACT["vcard:fn"])
         self.assertEqual(contact.email, TEST_DATASET_METADATA_CONTACT["vcard:hasEmail"])
 
-    def test_parse_defailt(self):
+    def test_parse_default(self):
         """Tests parsing of contact with optional values ignored"""
 
         contact: Contact = ParserBaseObject.parse_from_dict(
@@ -529,10 +529,9 @@ class TestDatasetMetadataTestCase(TestCase):
         self.assertEqual(
             mock_click.echo.mock_calls,
             [
-                call(f"\n{dataset_metadata.title}"),
-                call(
-                    f"Subject: {dataset_metadata.subject}{TAB_SPACE}Version ID: {dataset_metadata.version_id}"
-                ),
+                call(dataset_metadata.title),
+                call(f"Subject: {dataset_metadata.subject}"),
+                call(f"Version ID: {dataset_metadata.version_id}"),
                 call(""),
                 call(
                     f"Created: {format_datetime(dataset_metadata.created, include_time=True)}"
@@ -594,10 +593,9 @@ class TestDatasetMetadataTestCase(TestCase):
         self.assertEqual(
             mock_click.echo.mock_calls,
             [
-                call(f"\n{dataset_metadata.title}"),
-                call(
-                    f"Subject: {dataset_metadata.subject}{TAB_SPACE}Version ID: {dataset_metadata.version_id}"
-                ),
+                call(dataset_metadata.title),
+                call(f"Subject: {dataset_metadata.subject}"),
+                call(f"Version ID: {dataset_metadata.version_id}"),
                 call(""),
                 call(
                     f"Created: {format_datetime(dataset_metadata.created, include_time=True)}"
@@ -654,10 +652,9 @@ class TestDatasetMetadataTestCase(TestCase):
         self.assertEqual(
             mock_click.echo.mock_calls,
             [
-                call(f"\n{dataset_metadata.title}"),
-                call(
-                    f"Subject: {dataset_metadata.subject}{TAB_SPACE}Version ID: {dataset_metadata.version_id}"
-                ),
+                call(dataset_metadata.title),
+                call(f"Subject: {dataset_metadata.subject}"),
+                call(f"Version ID: {dataset_metadata.version_id}"),
                 call(""),
                 call(
                     f"Created: {format_datetime(dataset_metadata.created, include_time=True)}"
