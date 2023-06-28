@@ -1,5 +1,4 @@
 from datetime import datetime
-from test.fixtures.dataset_metadata import TEST_DATASET_METADATA
 from unittest import TestCase
 from unittest.mock import MagicMock, patch
 
@@ -8,13 +7,22 @@ from click.testing import CliRunner
 from dafni_cli.commands import get
 from dafni_cli.consts import (
     DATE_INPUT_FORMAT,
+    TABLE_ACCESS_HEADER,
+    TABLE_DISPLAY_NAME_MAX_COLUMN_WIDTH,
     TABLE_FINISHED_HEADER,
     TABLE_ID_HEADER,
+    TABLE_NAME_HEADER,
     TABLE_PARAMETER_SET_HEADER,
+    TABLE_PUBLICATION_DATE_HEADER,
     TABLE_STARTED_HEADER,
     TABLE_STATUS_HEADER,
+    TABLE_SUMMARY_HEADER,
+    TABLE_SUMMARY_MAX_COLUMN_WIDTH,
+    TABLE_VERSION_ID_HEADER,
     TABLE_WORKFLOW_VERSION_ID_HEADER,
 )
+
+from test.fixtures.dataset_metadata import TEST_DATASET_METADATA
 
 
 @patch("dafni_cli.commands.get.DAFNISession")
@@ -63,6 +71,8 @@ class TestGetModels(TestCase):
         self.mock_filter_multiple = patch(
             "dafni_cli.commands.get.filter_multiple"
         ).start()
+        self.mock_click = patch("dafni_cli.commands.get.click").start()
+        self.mock_format_table = patch("dafni_cli.commands.get.format_table").start()
 
         self.addCleanup(patch.stopall)
 
@@ -89,37 +99,32 @@ class TestGetModels(TestCase):
         self.mock_DAFNISession.assert_called_once()
         self.mock_get_all_models.assert_called_with(session)
         self.mock_filter_multiple.assert_called_with([], models, model_dicts)
+        expected_rows = []
         for model in models:
-            model.output_details.assert_called_with(False)
-        self.mock_print_json.assert_not_called()
-
-        self.assertEqual(result.exit_code, 0)
-
-    def test_get_models_with_long_true(self):
-        """Tests that the 'get models' command works correctly (with long
-        True)"""
-
-        # SETUP
-        session = MagicMock()
-        self.mock_DAFNISession.return_value = session
-        runner = CliRunner()
-        model_dicts = [MagicMock(), MagicMock()]
-        models = [MagicMock(), MagicMock()]
-        self.mock_get_all_models.return_value = model_dicts
-        self.mock_parse_models.return_value = models
-
-        # No filtering
-        self.mock_filter_multiple.return_value = models, model_dicts
-
-        # CALL
-        result = runner.invoke(get.get, ["models", "--long"])
-
-        # ASSERT
-        self.mock_DAFNISession.assert_called_once()
-        self.mock_get_all_models.assert_called_with(session)
-        self.mock_filter_multiple.assert_called_with([], models, model_dicts)
-        for model in models:
-            model.output_details.assert_called_with(True)
+            model.get_brief_details.assert_called_once()
+            expected_rows.append(model.get_brief_details.return_value)
+        self.mock_format_table.assert_called_once_with(
+            [
+                TABLE_NAME_HEADER,
+                TABLE_VERSION_ID_HEADER,
+                TABLE_STATUS_HEADER,
+                TABLE_ACCESS_HEADER,
+                TABLE_PUBLICATION_DATE_HEADER,
+                TABLE_SUMMARY_HEADER,
+            ],
+            expected_rows,
+            [
+                TABLE_DISPLAY_NAME_MAX_COLUMN_WIDTH,
+                None,
+                None,
+                None,
+                None,
+                TABLE_SUMMARY_MAX_COLUMN_WIDTH,
+            ],
+        )
+        self.mock_click.echo.assert_called_once_with(
+            self.mock_format_table.return_value
+        )
         self.mock_print_json.assert_not_called()
 
         self.assertEqual(result.exit_code, 0)
@@ -148,7 +153,9 @@ class TestGetModels(TestCase):
         self.mock_get_all_models.assert_called_with(session)
         self.mock_filter_multiple.assert_called_with([], models, model_dicts)
         for model in models:
-            model.output_details.assert_not_called()
+            model.get_brief_details.assert_not_called()
+        self.mock_format_table.assert_not_called()
+        self.mock_click.echo.assert_not_called()
         self.mock_print_json.assert_called_with(model_dicts)
 
         self.assertEqual(result.exit_code, 0)
@@ -187,8 +194,31 @@ class TestGetModels(TestCase):
             [self.mock_text_filter.return_value], models, model_dicts
         )
 
-        models[0].output_details.assert_called_with(False)
-        models[1].output_details.assert_not_called()
+        models[0].get_brief_details.assert_called_once()
+        models[1].get_brief_details.assert_not_called()
+
+        self.mock_format_table.assert_called_once_with(
+            [
+                TABLE_NAME_HEADER,
+                TABLE_VERSION_ID_HEADER,
+                TABLE_STATUS_HEADER,
+                TABLE_ACCESS_HEADER,
+                TABLE_PUBLICATION_DATE_HEADER,
+                TABLE_SUMMARY_HEADER,
+            ],
+            [models[0].get_brief_details.return_value],
+            [
+                TABLE_DISPLAY_NAME_MAX_COLUMN_WIDTH,
+                None,
+                None,
+                None,
+                None,
+                TABLE_SUMMARY_MAX_COLUMN_WIDTH,
+            ],
+        )
+        self.mock_click.echo.assert_called_once_with(
+            self.mock_format_table.return_value
+        )
         self.mock_print_json.assert_not_called()
 
         self.assertEqual(result.exit_code, 0)
@@ -197,7 +227,6 @@ class TestGetModels(TestCase):
         self,
         date_filter_options,
         mock_date_filter,
-        long,
     ):
         """Helper method for testing that the 'get models' command works
         correctly with the given date filters"""
@@ -218,8 +247,6 @@ class TestGetModels(TestCase):
 
         # CALL
         options = ["models", date_filter_options[0], date.strftime(DATE_INPUT_FORMAT)]
-        if long:
-            options.append("--long")
         result = runner.invoke(get.get, options)
 
         # ASSERT
@@ -229,9 +256,31 @@ class TestGetModels(TestCase):
         self.mock_filter_multiple.assert_called_with(
             [mock_date_filter.return_value], models, model_dicts
         )
-        models[0].output_details.assert_called_with(long)
-        models[1].output_details.assert_not_called()
+        models[0].get_brief_details.assert_called_with()
+        models[1].get_brief_details.assert_not_called()
 
+        self.mock_format_table.assert_called_once_with(
+            [
+                TABLE_NAME_HEADER,
+                TABLE_VERSION_ID_HEADER,
+                TABLE_STATUS_HEADER,
+                TABLE_ACCESS_HEADER,
+                TABLE_PUBLICATION_DATE_HEADER,
+                TABLE_SUMMARY_HEADER,
+            ],
+            [models[0].get_brief_details.return_value],
+            [
+                TABLE_DISPLAY_NAME_MAX_COLUMN_WIDTH,
+                None,
+                None,
+                None,
+                None,
+                TABLE_SUMMARY_MAX_COLUMN_WIDTH,
+            ],
+        )
+        self.mock_click.echo.assert_called_once_with(
+            self.mock_format_table.return_value
+        )
         self.mock_print_json.assert_not_called()
 
         self.assertEqual(result.exit_code, 0)
@@ -245,7 +294,6 @@ class TestGetModels(TestCase):
         self._test_get_models_with_date_filter(
             ("--creation-date", "creation"),
             self.mock_creation_date_filter,
-            False,
         )
 
     def test_get_models_with_publication_date_filter(
@@ -257,31 +305,6 @@ class TestGetModels(TestCase):
         self._test_get_models_with_date_filter(
             ("--publication-date", "publication"),
             self.mock_publication_date_filter,
-            False,
-        )
-
-    def test_get_models_with_creation_date_filter_and_long_true(
-        self,
-    ):
-        """Tests that the 'get models' command works correctly (while
-        filtering by creation date and long=True)"""
-
-        self._test_get_models_with_date_filter(
-            ("--creation-date", "creation"),
-            self.mock_creation_date_filter,
-            True,
-        )
-
-    def test_get_models_with_publication_date_filter_and_long_true(
-        self,
-    ):
-        """Tests that the 'get models' command works correctly (while
-        filtering by publication date and long=True)"""
-
-        self._test_get_models_with_date_filter(
-            ("--publication-date", "publication"),
-            self.mock_publication_date_filter,
-            True,
         )
 
     def _test_get_models_with_date_filter_json(
@@ -322,8 +345,12 @@ class TestGetModels(TestCase):
         self.mock_filter_multiple.assert_called_with(
             [mock_date_filter.return_value], models, model_dicts
         )
-        models[0].output_details.assert_not_called()
-        models[1].output_details.assert_not_called()
+        self.mock_click.echo.assert_not_called()
+        models[0].get_brief_details.assert_not_called()
+        models[1].get_brief_details.assert_not_called()
+
+        self.mock_format_table.assert_not_called()
+        self.mock_click.echo.assert_not_called()
 
         self.mock_print_json.assert_called_with([model_dicts[0]])
 
@@ -377,7 +404,7 @@ class TestGetModel(TestCase):
         # ASSERT
         mock_DAFNISession.assert_called_once()
         mock_cli_get_model.assert_called_with(session, "some_version_id")
-        model.output_info.assert_called_once()
+        model.output_details.assert_called_once()
         mock_print_json.assert_not_called()
 
         self.assertEqual(result.exit_code, 0)
@@ -401,7 +428,7 @@ class TestGetModel(TestCase):
         # ASSERT
         mock_DAFNISession.assert_called_once()
         mock_cli_get_model.assert_called_with(session, "some_version_id")
-        model.output_info.assert_not_called()
+        model.output_details.assert_not_called()
         mock_print_json.assert_called_once_with(model)
 
         self.assertEqual(result.exit_code, 0)

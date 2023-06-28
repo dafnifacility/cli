@@ -16,11 +16,18 @@ from dafni_cli.commands.helpers import (
 from dafni_cli.consts import (
     DATE_INPUT_FORMAT,
     DATE_INPUT_FORMAT_VERBOSE,
+    TABLE_ACCESS_HEADER,
+    TABLE_DISPLAY_NAME_MAX_COLUMN_WIDTH,
     TABLE_FINISHED_HEADER,
     TABLE_ID_HEADER,
+    TABLE_NAME_HEADER,
     TABLE_PARAMETER_SET_HEADER,
+    TABLE_PUBLICATION_DATE_HEADER,
     TABLE_STARTED_HEADER,
     TABLE_STATUS_HEADER,
+    TABLE_SUMMARY_HEADER,
+    TABLE_SUMMARY_MAX_COLUMN_WIDTH,
+    TABLE_VERSION_ID_HEADER,
     TABLE_WORKFLOW_VERSION_ID_HEADER,
 )
 from dafni_cli.datasets import dataset_filtering
@@ -56,13 +63,6 @@ def get(ctx: Context):
 ###############################################################################
 @get.command(help="List and filter models")
 @click.option(
-    "--long/--short",
-    "-l/-s",
-    default=False,
-    help="Also displays the description of each model. Default: -s",
-    type=bool,
-)
-@click.option(
     "--search",
     default=None,
     help="Search text to filter by. Models with this text in either their display name or summary will be displayed.",
@@ -90,24 +90,27 @@ def get(ctx: Context):
 @click.pass_context
 def models(
     ctx: Context,
-    long: bool,
     search: Optional[str],
     creation_date: datetime,
     publication_date: datetime,
     json: bool,
 ):
     """Displays list of model details with other options allowing
-        more details to be listed, filters, and for the json to be displayed.
+            more details to be listed, filters, and for the json to be displayed.
 
-    Args:
-        ctx (context): Contains user session for authentication
-        long (bool): Whether to print the description of each model as well
-        search (Optional[str]): Search text to filter models by
-        creation_date (datetime): For filtering by creation date. Format:
-                             DATE_INPUT_FORMAT_VERBOSE
-        publication_date (datetime): for filtering by publication date. Format:
-                                DATE_INPUT_FORMAT_VERBOSE
-        json (bool): whether to print the raw json returned by the DAFNI API
+        Args:
+    <<<<<<< HEAD
+            ctx (context): Contains user session for authentication
+            long (bool): Whether to print the description of each model as well
+    =======
+            ctx (context): contains user session for authentication
+    >>>>>>> main
+            search (Optional[str]): Search text to filter models by
+            creation_date (datetime): For filtering by creation date. Format:
+                                 DATE_INPUT_FORMAT_VERBOSE
+            publication_date (datetime): for filtering by publication date. Format:
+                                    DATE_INPUT_FORMAT_VERBOSE
+            json (bool): whether to print the raw json returned by the DAFNI API
     """
     model_dict_list = get_all_models(ctx.obj["session"])
     model_list = parse_models(model_dict_list)
@@ -129,8 +132,31 @@ def models(
     if json:
         print_json(filtered_model_dicts)
     else:
+        # Print brief details in a table
+        rows = []
         for model_inst in filtered_models:
-            model_inst.output_details(long)
+            rows.append(model_inst.get_brief_details())
+        click.echo(
+            format_table(
+                [
+                    TABLE_NAME_HEADER,
+                    TABLE_VERSION_ID_HEADER,
+                    TABLE_STATUS_HEADER,
+                    TABLE_ACCESS_HEADER,
+                    TABLE_PUBLICATION_DATE_HEADER,
+                    TABLE_SUMMARY_HEADER,
+                ],
+                rows,
+                [
+                    TABLE_DISPLAY_NAME_MAX_COLUMN_WIDTH,
+                    None,
+                    None,
+                    None,
+                    None,
+                    TABLE_SUMMARY_MAX_COLUMN_WIDTH,
+                ],
+            )
+        )
 
 
 @get.command(help="Display metadata or version history of a particular model or models")
@@ -174,7 +200,7 @@ def model(ctx: Context, version_id: List[str], version_history: bool, json: bool
                 print_json(model_dictionary)
             else:
                 model_inst = parse_model(model_dictionary)
-                model_inst.output_info()
+                model_inst.output_details()
 
 
 ###############################################################################
