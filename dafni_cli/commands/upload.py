@@ -12,8 +12,10 @@ from dafni_cli.commands.helpers import cli_get_latest_dataset_metadata
 from dafni_cli.commands.options import dataset_metadata_common_options
 from dafni_cli.datasets.dataset_metadata import parse_dataset_metadata
 from dafni_cli.datasets.dataset_upload import (
-    modify_dataset_metadata_for_upload, upload_dataset,
-    upload_dataset_metadata_version)
+    modify_dataset_metadata_for_upload,
+    upload_dataset,
+    upload_dataset_metadata_version,
+)
 from dafni_cli.models.upload import upload_model
 from dafni_cli.utils import argument_confirmation
 
