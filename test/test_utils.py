@@ -9,7 +9,13 @@ from unittest.mock import call, patch
 from zipfile import ZipFile
 
 from dafni_cli import utils
-from dafni_cli.consts import DATE_OUTPUT_FORMAT, DATE_TIME_OUTPUT_FORMAT, TABULATE_ARGS
+from dafni_cli.consts import (
+    DATA_FORMATS,
+    DATE_OUTPUT_FORMAT,
+    DATE_TIME_OUTPUT_FORMAT,
+    OUTPUT_UNKNOWN_FORMAT,
+    TABULATE_ARGS,
+)
 
 
 @patch("dafni_cli.utils.click")
@@ -89,8 +95,8 @@ class TestProsePrint(TestCase):
         )
 
 
-class TestProcessFileSize(TestCase):
-    """Test class to test the process_file_size functionality"""
+class TestFormatFileSize(TestCase):
+    """Test class to test the format_file_size functionality"""
 
     def test_empty_string_returned_if_non_integer_or_float_value_given(self):
         """Tests that an empty string is returned if the given file size is
@@ -101,7 +107,7 @@ class TestProcessFileSize(TestCase):
 
         # CALL & ASSERT
         for file_size in values:
-            self.assertEqual(utils.process_file_size(file_size), "")
+            self.assertEqual(utils.format_file_size(file_size), "")
 
     def test_file_size_processed_correctly(self):
         """Tests that the correct string is returned for various valid file
@@ -131,7 +137,7 @@ class TestProcessFileSize(TestCase):
 
         # CALL & ASSERT
         for file_size, result in values_and_results:
-            self.assertEqual(utils.process_file_size(file_size), result)
+            self.assertEqual(utils.format_file_size(file_size), result)
 
 
 @patch("dafni_cli.utils.click")
@@ -491,3 +497,24 @@ class TestIsValidEmailAddress(TestCase):
         self.assertFalse(utils.is_valid_email_address(""))
         self.assertFalse(utils.is_valid_email_address("some text"))
         self.assertFalse(utils.is_valid_email_address("test@example"))
+
+
+class TestFormatDataFormat(TestCase):
+    """Test class to test the format_data_format function"""
+
+    def test_formats_correctly(self):
+        """Tests that passing a valid format returns the correct value"""
+
+        for key in DATA_FORMATS.keys():
+            result = utils.format_data_format(key)
+            self.assertEqual(result, DATA_FORMATS[key])
+
+    def test_formats_invalid_values_correctly(self):
+        """Tests that passing an invalid format returns the correct value"""
+        self.assertEqual(
+            utils.format_data_format("invalid/format"), OUTPUT_UNKNOWN_FORMAT
+        )
+
+    def test_formats_none_correctly(self):
+        """Tests that passing None returns the correct value"""
+        self.assertEqual(utils.format_data_format(None), OUTPUT_UNKNOWN_FORMAT)
