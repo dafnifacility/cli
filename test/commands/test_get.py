@@ -1,14 +1,20 @@
 from datetime import datetime
+from test.fixtures.dataset_metadata import TEST_DATASET_METADATA
 from unittest import TestCase
 from unittest.mock import MagicMock, patch
 
 from click.testing import CliRunner
 
-from dafni_cli.api.exceptions import ResourceNotFoundError
 from dafni_cli.commands import get
-from dafni_cli.consts import DATE_INPUT_FORMAT
-
-from test.fixtures.dataset_metadata import TEST_DATASET_METADATA
+from dafni_cli.consts import (
+    DATE_INPUT_FORMAT,
+    TABLE_FINISHED_HEADER,
+    TABLE_ID_HEADER,
+    TABLE_PARAMETER_SET_HEADER,
+    TABLE_STARTED_HEADER,
+    TABLE_STATUS_HEADER,
+    TABLE_WORKFLOW_VERSION_ID_HEADER,
+)
 
 
 @patch("dafni_cli.commands.get.DAFNISession")
@@ -1267,12 +1273,19 @@ class TestGetWorkflowInstances(TestCase):
         self.mock_parse_workflow = patch(
             "dafni_cli.commands.get.parse_workflow"
         ).start()
+        self.mock_start_date_filter = patch(
+            "dafni_cli.commands.get.start_date_filter"
+        ).start()
+        self.mock_filter_multiple = patch(
+            "dafni_cli.commands.get.filter_multiple"
+        ).start()
         self.mock_print_json = patch("dafni_cli.commands.get.print_json").start()
         self.mock_click = patch("dafni_cli.commands.get.click").start()
+        self.mock_format_table = patch("dafni_cli.commands.get.format_table").start()
 
         self.addCleanup(patch.stopall)
 
-    def test_get_workflows(self):
+    def test_get_workflow_instances(self):
         """Tests that the 'get workflows' command works correctly (with no
         optional arguments)"""
 
@@ -1281,10 +1294,18 @@ class TestGetWorkflowInstances(TestCase):
         self.mock_DAFNISession.return_value = session
         runner = CliRunner()
         version_id = "version_id"
-        workflow_dict = {"instances": MagicMock()}
-        workflow = MagicMock()
+        workflow_instance_dicts = [MagicMock(), MagicMock()]
+        workflow_instances = [MagicMock(), MagicMock()]
+        workflow_dict = {"instances": workflow_instance_dicts}
+        workflow = MagicMock(instances=workflow_instances)
         self.mock_cli_get_workflow.return_value = workflow_dict
         self.mock_parse_workflow.return_value = workflow
+
+        # No filtering
+        self.mock_filter_multiple.return_value = (
+            workflow_instances,
+            workflow_instance_dicts,
+        )
 
         # CALL
         result = runner.invoke(get.get, ["workflow-instances", version_id])
@@ -1293,10 +1314,27 @@ class TestGetWorkflowInstances(TestCase):
         self.mock_DAFNISession.assert_called_once()
         self.mock_cli_get_workflow.assert_called_once_with(session, version_id)
         self.mock_parse_workflow.assert_called_once_with(workflow_dict)
+        self.mock_filter_multiple.assert_called_once_with(
+            [], workflow_instances, workflow_instance_dicts
+        )
         self.mock_print_json.assert_not_called()
-        workflow.format_instances.assert_called_once()
+        expected_rows = []
+        for workflow_instance in workflow_instances:
+            workflow_instance.get_brief_details.assert_called_once()
+            expected_rows.append(workflow_instance.get_brief_details.return_value)
+        self.mock_format_table.assert_called_once_with(
+            headers=[
+                TABLE_ID_HEADER,
+                TABLE_WORKFLOW_VERSION_ID_HEADER,
+                TABLE_PARAMETER_SET_HEADER,
+                TABLE_STARTED_HEADER,
+                TABLE_FINISHED_HEADER,
+                TABLE_STATUS_HEADER,
+            ],
+            rows=expected_rows,
+        )
         self.mock_click.echo.assert_called_once_with(
-            workflow.format_instances.return_value
+            self.mock_format_table.return_value
         )
 
         self.assertEqual(result.exit_code, 0)
@@ -1312,10 +1350,18 @@ class TestGetWorkflowInstances(TestCase):
         self.mock_DAFNISession.return_value = session
         runner = CliRunner()
         version_id = "version_id"
-        workflow_dict = {"instances": MagicMock()}
-        workflow = MagicMock()
+        workflow_instance_dicts = [MagicMock(), MagicMock()]
+        workflow_instances = [MagicMock(), MagicMock()]
+        workflow_dict = {"instances": workflow_instance_dicts}
+        workflow = MagicMock(instances=workflow_instances)
         self.mock_cli_get_workflow.return_value = workflow_dict
         self.mock_parse_workflow.return_value = workflow
+
+        # No filtering
+        self.mock_filter_multiple.return_value = (
+            workflow_instances,
+            workflow_instance_dicts,
+        )
 
         # CALL
         result = runner.invoke(get.get, ["workflow-instances", version_id, "--json"])
@@ -1324,8 +1370,13 @@ class TestGetWorkflowInstances(TestCase):
         self.mock_DAFNISession.assert_called_once()
         self.mock_cli_get_workflow.assert_called_once_with(session, version_id)
         self.mock_parse_workflow.assert_called_once_with(workflow_dict)
-        self.mock_print_json.assert_called_once_with(workflow_dict["instances"])
-        workflow.format_instances.assert_not_called()
+        self.mock_filter_multiple.assert_called_once_with(
+            [], workflow_instances, workflow_instance_dicts
+        )
+        self.mock_print_json.assert_called_once_with(workflow_instance_dicts)
+        for workflow_instance in workflow_instances:
+            workflow_instance.get_brief_details.assert_not_called()
+        self.mock_format_table.assert_not_called()
         self.mock_click.echo.assert_not_called()
 
         self.assertEqual(result.exit_code, 0)

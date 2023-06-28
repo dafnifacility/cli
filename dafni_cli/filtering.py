@@ -2,6 +2,7 @@ from datetime import datetime
 from typing import Any, Callable, List, Union
 
 from dafni_cli.models.model import Model
+from dafni_cli.workflows.instance import WorkflowInstance
 from dafni_cli.workflows.workflow import Workflow
 
 
@@ -109,3 +110,24 @@ def text_filter(
         )
 
     return filter_text
+
+
+def start_date_filter(
+    oldest_start_date: datetime,
+) -> Callable[[WorkflowInstance], bool]:
+    """Returns a filter for filtering workflow instances by the date they were
+    submitted
+
+    Args:
+        oldest_start_date (datetime): Start date to filter by. All objects
+                            with a start date after this will be returned by
+                            the filter. (Only the date part will be used)
+    Returns:
+        Callable[[Union[Model, Workflow]], bool]: Filter function to use with
+                                                  filter_multiple
+    """
+
+    def filter_start_date(value: WorkflowInstance) -> bool:
+        return value.submission_time.date() >= oldest_start_date.date()
+
+    return filter_start_date

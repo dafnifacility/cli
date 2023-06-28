@@ -1,3 +1,4 @@
+from datetime import datetime
 from typing import List, Optional
 
 import click
@@ -12,7 +13,16 @@ from dafni_cli.commands.helpers import (
     cli_get_model,
     cli_get_workflow,
 )
-from dafni_cli.consts import DATE_INPUT_FORMAT, DATE_INPUT_FORMAT_VERBOSE
+from dafni_cli.consts import (
+    DATE_INPUT_FORMAT,
+    DATE_INPUT_FORMAT_VERBOSE,
+    TABLE_FINISHED_HEADER,
+    TABLE_ID_HEADER,
+    TABLE_PARAMETER_SET_HEADER,
+    TABLE_STARTED_HEADER,
+    TABLE_STATUS_HEADER,
+    TABLE_WORKFLOW_VERSION_ID_HEADER,
+)
 from dafni_cli.datasets import dataset_filtering
 from dafni_cli.datasets.dataset import parse_datasets
 from dafni_cli.datasets.dataset_metadata import parse_dataset_metadata
@@ -20,10 +30,11 @@ from dafni_cli.filtering import (
     creation_date_filter,
     filter_multiple,
     publication_date_filter,
+    start_date_filter,
     text_filter,
 )
 from dafni_cli.models.model import parse_model, parse_models
-from dafni_cli.utils import print_json
+from dafni_cli.utils import format_table, print_json
 from dafni_cli.workflows.workflow import parse_workflow, parse_workflows
 
 
@@ -81,20 +92,20 @@ def models(
     ctx: Context,
     long: bool,
     search: Optional[str],
-    creation_date: str,
-    publication_date: str,
+    creation_date: datetime,
+    publication_date: datetime,
     json: bool,
 ):
     """Displays list of model details with other options allowing
         more details to be listed, filters, and for the json to be displayed.
 
     Args:
-        ctx (context): contains user session for authentication
-        long (bool): whether to print the description of each model as well
+        ctx (context): Contains user session for authentication
+        long (bool): Whether to print the description of each model as well
         search (Optional[str]): Search text to filter models by
-        creation_date (str): for filtering by creation date. Format:
+        creation_date (datetime): For filtering by creation date. Format:
                              DATE_INPUT_FORMAT_VERBOSE
-        publication_date (str): for filtering by publication date. Format:
+        publication_date (datetime): for filtering by publication date. Format:
                                 DATE_INPUT_FORMAT_VERBOSE
         json (bool): whether to print the raw json returned by the DAFNI API
     """
@@ -199,8 +210,8 @@ def model(ctx: Context, version_id: List[str], version_history: bool, json: bool
 def datasets(
     ctx: Context,
     search: Optional[str],
-    start_date: Optional[str],
-    end_date: Optional[str],
+    start_date: Optional[datetime],
+    end_date: Optional[datetime],
     json: Optional[bool],
 ):
     """
@@ -208,12 +219,14 @@ def datasets(
 
     Args:
         ctx (context): contains user session for authentication
-        search (Optional[str]): Search terms for elastic search. Format: "search terms"
-        start_date (Optional[str]): Filter for datasets with a start date since given date. Format:
-                                    DATE_INPUT_FORMAT_VERBOSE
-        end_date (Optional[str]): Filter for datasets with a end date up to given date. Format:
-                                  DATE_INPUT_FORMAT_VERBOSE
-        json (Optional[bool]): Whether to output raw json from API or pretty print information. Defaults to False.
+        search (Optional[str]): Search terms for elastic search.
+                                Format: "search terms"
+        start_date (Optional[datetime]): Filter for datasets with a start date
+                            since given date. Format: DATE_INPUT_FORMAT_VERBOSE
+        end_date (Optional[datetime]): Filter for datasets with a end date up
+                            to given date. Format: DATE_INPUT_FORMAT_VERBOSE
+        json (Optional[bool]): Whether to output raw json from API or pretty
+                               print information. Defaults to False.
     """
     filters = dataset_filtering.process_datasets_filters(search, start_date, end_date)
     dataset_dict_list = get_all_datasets(ctx.obj["session"], filters)
@@ -323,8 +336,8 @@ def workflows(
     ctx: Context,
     long: bool,
     search: Optional[str],
-    creation_date: Optional[str],
-    publication_date: Optional[str],
+    creation_date: Optional[datetime],
+    publication_date: Optional[datetime],
     json: bool,
 ):
     """
@@ -335,10 +348,10 @@ def workflows(
         ctx (context): contains user session for authentication
         long (bool): whether to print the description of each model as well
         search (Optional[str]): Search text to filter workflows by
-        creation_date (Optional[str]): for filtering by creation date. Format:
-                                       DATE_INPUT_FORMAT_VERBOSE
-        publication_date (Optional[str]): for filtering by publication date. Format:
-                                          DATE_INPUT_FORMAT_VERBOSE
+        creation_date (Optional[datetime]): For filtering by creation date.
+                                            Format: DATE_INPUT_FORMAT_VERBOSE
+        publication_date (Optional[datetime]): For filtering by publication date.
+                                            Format: DATE_INPUT_FORMAT_VERBOSE
         json (bool): whether to print the raw json returned by the DAFNI API
     """
     workflow_dict_list = get_all_workflows(ctx.obj["session"])
@@ -419,6 +432,12 @@ def workflow(ctx: Context, version_id: List[str], version_history: bool, json: b
 @get.command(help="List and filter workflow instances")
 @click.argument("version-id", required=True)
 @click.option(
+    "--start-date",
+    default=None,
+    help=f"Filter instances submitted after a given date. Format: {DATE_INPUT_FORMAT_VERBOSE}",
+    type=click.DateTime(formats=[DATE_INPUT_FORMAT]),
+)
+@click.option(
     "--json/--pretty",
     "-j/-p",
     default=False,
@@ -429,6 +448,7 @@ def workflow(ctx: Context, version_id: List[str], version_history: bool, json: b
 def workflow_instances(
     ctx: Context,
     version_id: str,
+    start_date: Optional[datetime],
     json: bool,
 ):
     """Display attributes of all workflows instances for a particular workflow
@@ -438,13 +458,36 @@ def workflow_instances(
         ctx (context): Contains user session for authentication
         version_id (str): Version ID of the workflow to display the instances
                           of
+        start_date (Optional[str]): For filtering by start date. Format:
+                                    DATE_INPUT_FORMAT_VERBOSE
         json (bool): Whether to print the raw json returned by the DAFNI API
     """
     workflow_dict = cli_get_workflow(ctx.obj["session"], version_id)
     workflow_inst = parse_workflow(workflow_dict)
 
+    # Apply filtering
+    filters = []
+    if start_date:
+        filters.append(start_date_filter(start_date))
+
+    filtered_instances, filtered_instance_dicts = filter_multiple(
+        filters, workflow_inst.instances, workflow_dict["instances"]
+    )
+
     # Output
     if json:
-        print_json(workflow_dict["instances"])
+        print_json(filtered_instance_dicts)
     else:
-        click.echo(workflow_inst.format_instances())
+        click.echo(
+            format_table(
+                headers=[
+                    TABLE_ID_HEADER,
+                    TABLE_WORKFLOW_VERSION_ID_HEADER,
+                    TABLE_PARAMETER_SET_HEADER,
+                    TABLE_STARTED_HEADER,
+                    TABLE_FINISHED_HEADER,
+                    TABLE_STATUS_HEADER,
+                ],
+                rows=[instance.get_brief_details() for instance in filtered_instances],
+            )
+        )

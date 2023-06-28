@@ -4,6 +4,7 @@ from unittest import TestCase
 from dateutil.tz import tzutc
 
 from dafni_cli.api.parser import ParserBaseObject
+from dafni_cli.utils import format_datetime
 from dafni_cli.workflows.instance import (
     WorkflowInstance,
     WorkflowInstanceParameterSet,
@@ -127,3 +128,26 @@ class TestWorkflowInstance(TestCase):
         # Only test the parameters that are supposed to be missing as the
         # rest are tested above anyway
         self.assertEqual(workflow_instance.finished_time, None)
+
+    def test_get_brief_details(self):
+        """Tests get_brief_details works correctly"""
+        # SETUP
+        workflow_instance: WorkflowInstance = ParserBaseObject.parse_from_dict(
+            WorkflowInstance, TEST_WORKFLOW_INSTANCE
+        )
+
+        # CALL
+        result = workflow_instance.get_brief_details()
+
+        # ASSERT
+        self.assertEqual(
+            result,
+            [
+                workflow_instance.instance_id,
+                workflow_instance.workflow_version.version_id,
+                workflow_instance.parameter_set.display_name,
+                format_datetime(workflow_instance.submission_time, include_time=True),
+                format_datetime(workflow_instance.finished_time, include_time=True),
+                workflow_instance.overall_status,
+            ],
+        )

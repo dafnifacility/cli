@@ -25,6 +25,7 @@ class TestDataclass:
     creation_date: datetime
     publication_date: datetime
     metadata: TestWorkflowMetadata
+    submission_time: datetime
 
 
 class TestFiltering(TestCase):
@@ -38,6 +39,7 @@ class TestFiltering(TestCase):
             datetime(2022, 1, 12),
             datetime(2022, 2, 12),
             TestWorkflowMetadata("Display name 1", "Simple summary 1"),
+            datetime(2022, 1, 12),
         ),
         TestDataclass(
             "Value2",
@@ -45,6 +47,7 @@ class TestFiltering(TestCase):
             datetime(2022, 8, 1),
             datetime(2022, 9, 1),
             TestWorkflowMetadata("Display name 2 test", "Simple summary 2"),
+            datetime(2022, 8, 1),
         ),
         TestDataclass(
             "Value3",
@@ -52,6 +55,7 @@ class TestFiltering(TestCase):
             datetime(2023, 6, 21),
             datetime(2023, 7, 21),
             TestWorkflowMetadata("Display name 3", "Simple summary 3 test"),
+            datetime(2023, 6, 21),
         ),
     ]
 
@@ -186,6 +190,24 @@ class TestFiltering(TestCase):
         # CALL
         filtered_instances, filtered_dictionaries = filtering.filter_multiple(
             [filtering.text_filter("test")],
+            self.TEST_INSTANCES,
+            self.TEST_DICTIONARIES,
+        )
+
+        # ASSERT
+        self.assertEqual(
+            filtered_instances, [self.TEST_INSTANCES[1], self.TEST_INSTANCES[2]]
+        )
+        self.assertEqual(
+            filtered_dictionaries,
+            [self.TEST_DICTIONARIES[1], self.TEST_DICTIONARIES[2]],
+        )
+
+    def test_start_date_filter(self):
+        """Tests start_date_filter works correctly"""
+        # CALL
+        filtered_instances, filtered_dictionaries = filtering.filter_multiple(
+            [filtering.start_date_filter(datetime(2022, 8, 1))],
             self.TEST_INSTANCES,
             self.TEST_DICTIONARIES,
         )
