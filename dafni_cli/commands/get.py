@@ -411,3 +411,40 @@ def workflow(ctx: Context, version_id: List[str], version_history: bool, json: b
             else:
                 workflow_inst = parse_workflow(workflow_dictionary)
                 workflow_inst.output_info()
+
+
+###############################################################################
+# Workflow instance commands
+###############################################################################
+@get.command(help="List and filter workflow instances")
+@click.argument("version-id", required=True)
+@click.option(
+    "--json/--pretty",
+    "-j/-p",
+    default=False,
+    help="Prints raw json returned from API. Default: -p",
+    type=bool,
+)
+@click.pass_context
+def workflow_instances(
+    ctx: Context,
+    version_id: str,
+    json: bool,
+):
+    """Display attributes of all workflows instances for a particular workflow
+    version
+
+    Args:
+        ctx (context): Contains user session for authentication
+        version_id (str): Version ID of the workflow to display the instances
+                          of
+        json (bool): Whether to print the raw json returned by the DAFNI API
+    """
+    workflow_dict = cli_get_workflow(ctx.obj["session"], version_id)
+    workflow_inst = parse_workflow(workflow_dict)
+
+    # Output
+    if json:
+        print_json(workflow_dict["instances"])
+    else:
+        click.echo(workflow_inst.format_instances())
