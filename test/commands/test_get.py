@@ -548,7 +548,7 @@ class TestGetDatasets(TestCase):
         mock_DAFNISession.assert_called_once()
         mock_get_all_datasets.assert_called_with(session, {})
         for dataset in datasets:
-            dataset.output_dataset_details.assert_called_once()
+            dataset.output_brief_details.assert_called_once()
         mock_print_json.assert_not_called()
 
         self.assertEqual(result.exit_code, 0)
@@ -610,8 +610,8 @@ class TestGetDatasets(TestCase):
         # ASSERT
         mock_DAFNISession.assert_called_once()
         mock_get_all_datasets.assert_called_with(session, date_filter_options[1])
-        datasets[0].output_dataset_details.assert_called_once()
-        datasets[1].output_dataset_details.assert_called_once()
+        datasets[0].output_brief_details.assert_called_once()
+        datasets[1].output_brief_details.assert_called_once()
         mock_print_json.assert_not_called()
 
         self.assertEqual(result.exit_code, 0)
@@ -700,7 +700,7 @@ class TestGetDataset(TestCase):
         # ASSERT
         mock_DAFNISession.assert_called_once()
         mock_get_latest_dataset_metadata.assert_called_with(session, "some_version_id")
-        dataset.output_metadata_details.assert_called_once()
+        dataset.output_details.assert_called_once()
         mock_print_json.assert_not_called()
 
         self.assertEqual(result.exit_code, 0)
@@ -735,7 +735,7 @@ class TestGetDataset(TestCase):
         mock_click.echo.assert_called_once_with(
             mock_get_latest_dataset_metadata.side_effect
         )
-        dataset.output_metadata_details.assert_not_called()
+        dataset.output_details.assert_not_called()
         mock_print_json.assert_not_called()
 
         self.assertEqual(result.exit_code, 1)
@@ -763,7 +763,7 @@ class TestGetDataset(TestCase):
         # ASSERT
         mock_DAFNISession.assert_called_once()
         mock_get_latest_dataset_metadata.assert_called_with(session, "some_version_id")
-        dataset.output_metadata_details.assert_not_called()
+        dataset.output_details.assert_not_called()
         mock_print_json.assert_called_once_with(dataset)
 
         self.assertEqual(result.exit_code, 0)
