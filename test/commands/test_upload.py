@@ -351,7 +351,7 @@ class TestUploadDataset(TestCase):
 
 @patch("dafni_cli.commands.upload.DAFNISession")
 @patch("dafni_cli.commands.upload.upload_dataset")
-@patch("dafni_cli.commands.upload.get_latest_dataset_metadata")
+@patch("dafni_cli.commands.upload.cli_get_latest_dataset_metadata")
 @patch("dafni_cli.commands.upload.modify_dataset_metadata_for_upload")
 class TestUploadDatasetVersion(TestCase):
     """Test class to test the upload dataset-version commands"""
@@ -359,7 +359,7 @@ class TestUploadDatasetVersion(TestCase):
     def test_upload_dataset_version(
         self,
         mock_modify_dataset_metadata_for_upload,
-        mock_get_latest_dataset_metadata,
+        mock_cli_get_latest_dataset_metadata,
         mock_upload_dataset,
         mock_DAFNISession,
     ):
@@ -371,7 +371,7 @@ class TestUploadDatasetVersion(TestCase):
         runner = CliRunner()
         dataset_version_id = "some-existing-version-id"
         file_path = "test_dataset.txt"
-        mock_get_latest_dataset_metadata.return_value = TEST_DATASET_METADATA
+        mock_cli_get_latest_dataset_metadata.return_value = TEST_DATASET_METADATA
         metadata = parse_dataset_metadata(TEST_DATASET_METADATA)
 
         # CALL
@@ -390,7 +390,7 @@ class TestUploadDatasetVersion(TestCase):
 
         # ASSERT
         mock_DAFNISession.assert_called_once()
-        mock_get_latest_dataset_metadata.assert_called_once_with(
+        mock_cli_get_latest_dataset_metadata.assert_called_once_with(
             session, dataset_version_id
         )
         mock_modify_dataset_metadata_for_upload.assert_called_once_with(
@@ -436,7 +436,7 @@ class TestUploadDatasetVersion(TestCase):
     def test_upload_dataset_version_with_multiple_files(
         self,
         mock_modify_dataset_metadata_for_upload,
-        mock_get_latest_dataset_metadata,
+        mock_cli_get_latest_dataset_metadata,
         mock_upload_dataset,
         mock_DAFNISession,
     ):
@@ -449,7 +449,7 @@ class TestUploadDatasetVersion(TestCase):
         runner = CliRunner()
         dataset_version_id = "some-existing-version-id"
         file_paths = ["test_dataset1.txt", "test_dataset2.txt"]
-        mock_get_latest_dataset_metadata.return_value = TEST_DATASET_METADATA
+        mock_cli_get_latest_dataset_metadata.return_value = TEST_DATASET_METADATA
         metadata = parse_dataset_metadata(TEST_DATASET_METADATA)
 
         # CALL
@@ -466,7 +466,7 @@ class TestUploadDatasetVersion(TestCase):
 
         # ASSERT
         mock_DAFNISession.assert_called_once()
-        mock_get_latest_dataset_metadata.assert_called_once_with(
+        mock_cli_get_latest_dataset_metadata.assert_called_once_with(
             session, dataset_version_id
         )
         mock_modify_dataset_metadata_for_upload.assert_called_once_with(
@@ -513,7 +513,7 @@ class TestUploadDatasetVersion(TestCase):
     def test_upload_dataset_version_saving_existing_metadata(
         self,
         mock_modify_dataset_metadata_for_upload,
-        mock_get_latest_dataset_metadata,
+        mock_cli_get_latest_dataset_metadata,
         mock_upload_dataset,
         mock_DAFNISession,
     ):
@@ -526,7 +526,7 @@ class TestUploadDatasetVersion(TestCase):
         runner = CliRunner()
         dataset_version_id = "some-existing-version-id"
         file_path = "test_dataset.txt"
-        mock_get_latest_dataset_metadata.return_value = TEST_DATASET_METADATA
+        mock_cli_get_latest_dataset_metadata.return_value = TEST_DATASET_METADATA
         mock_modify_dataset_metadata_for_upload.return_value = TEST_DATASET_METADATA
         metadata_save_path = "metadata_save_file.json"
 
@@ -550,7 +550,7 @@ class TestUploadDatasetVersion(TestCase):
 
         # ASSERT
         mock_DAFNISession.assert_called_once()
-        mock_get_latest_dataset_metadata.assert_called_once_with(
+        mock_cli_get_latest_dataset_metadata.assert_called_once_with(
             session, dataset_version_id
         )
         mock_modify_dataset_metadata_for_upload.assert_called_once_with(
@@ -589,7 +589,7 @@ class TestUploadDatasetVersion(TestCase):
     def test_upload_dataset_version_cancel(
         self,
         mock_modify_dataset_metadata_for_upload,
-        mock_get_latest_dataset_metadata,
+        mock_cli_get_latest_dataset_metadata,
         mock_upload_dataset,
         mock_DAFNISession,
     ):
@@ -601,7 +601,7 @@ class TestUploadDatasetVersion(TestCase):
         runner = CliRunner()
         dataset_version_id = "some-existing-version-id"
         file_path = "test_dataset.txt"
-        mock_get_latest_dataset_metadata.return_value = TEST_DATASET_METADATA
+        mock_cli_get_latest_dataset_metadata.return_value = TEST_DATASET_METADATA
         metadata = parse_dataset_metadata(TEST_DATASET_METADATA)
 
         # CALL
@@ -620,7 +620,7 @@ class TestUploadDatasetVersion(TestCase):
 
         # ASSERT
         mock_DAFNISession.assert_called_once()
-        mock_get_latest_dataset_metadata.assert_called_once_with(
+        mock_cli_get_latest_dataset_metadata.assert_called_once_with(
             session, dataset_version_id
         )
         mock_modify_dataset_metadata_for_upload.assert_called_once_with(
@@ -662,7 +662,7 @@ class TestUploadDatasetVersion(TestCase):
     def test_upload_dataset_version_with_metadata_and_all_optional_modifications(
         self,
         mock_modify_dataset_metadata_for_upload,
-        mock_get_latest_dataset_metadata,
+        mock_cli_get_latest_dataset_metadata,
         mock_upload_dataset,
         mock_DAFNISession,
     ):
@@ -676,7 +676,7 @@ class TestUploadDatasetVersion(TestCase):
         dataset_version_id = "some-existing-version-id"
         file_path = "test_dataset.txt"
         metadata_path = "definition.json"
-        mock_get_latest_dataset_metadata.return_value = TEST_DATASET_METADATA
+        mock_cli_get_latest_dataset_metadata.return_value = TEST_DATASET_METADATA
         metadata = parse_dataset_metadata(TEST_DATASET_METADATA)
 
         options = {
@@ -731,7 +731,7 @@ class TestUploadDatasetVersion(TestCase):
 
         # ASSERT
         mock_DAFNISession.assert_called_once()
-        mock_get_latest_dataset_metadata.assert_called_once_with(
+        mock_cli_get_latest_dataset_metadata.assert_called_once_with(
             session, dataset_version_id
         )
         mock_modify_dataset_metadata_for_upload.assert_called_once_with(
@@ -760,7 +760,7 @@ class TestUploadDatasetVersion(TestCase):
 
 @patch("dafni_cli.commands.upload.DAFNISession")
 @patch("dafni_cli.commands.upload.upload_dataset_metadata_version")
-@patch("dafni_cli.commands.upload.get_latest_dataset_metadata")
+@patch("dafni_cli.commands.upload.cli_get_latest_dataset_metadata")
 @patch("dafni_cli.commands.upload.modify_dataset_metadata_for_upload")
 class TestUploadDatasetMetadata(TestCase):
     """Test class to test the upload dataset-metadata commands"""
@@ -768,7 +768,7 @@ class TestUploadDatasetMetadata(TestCase):
     def test_upload_dataset_metadata(
         self,
         mock_modify_dataset_metadata_for_upload,
-        mock_get_latest_dataset_metadata,
+        mock_cli_get_latest_dataset_metadata,
         mock_upload_dataset_metadata_version,
         mock_DAFNISession,
     ):
@@ -779,7 +779,7 @@ class TestUploadDatasetMetadata(TestCase):
         mock_DAFNISession.return_value = session
         runner = CliRunner()
         dataset_version_id = "some-existing-version-id"
-        mock_get_latest_dataset_metadata.return_value = TEST_DATASET_METADATA
+        mock_cli_get_latest_dataset_metadata.return_value = TEST_DATASET_METADATA
         metadata = parse_dataset_metadata(TEST_DATASET_METADATA)
 
         # CALL
@@ -795,7 +795,7 @@ class TestUploadDatasetMetadata(TestCase):
 
         # ASSERT
         mock_DAFNISession.assert_called_once()
-        mock_get_latest_dataset_metadata.assert_called_once_with(
+        mock_cli_get_latest_dataset_metadata.assert_called_once_with(
             session, dataset_version_id
         )
         mock_modify_dataset_metadata_for_upload.assert_called_once_with(
@@ -840,7 +840,7 @@ class TestUploadDatasetMetadata(TestCase):
     def test_upload_dataset_metadata_saving_existing_metadata(
         self,
         mock_modify_dataset_metadata_for_upload,
-        mock_get_latest_dataset_metadata,
+        mock_cli_get_latest_dataset_metadata,
         mock_upload_dataset_metadata_version,
         mock_DAFNISession,
     ):
@@ -852,7 +852,7 @@ class TestUploadDatasetMetadata(TestCase):
         mock_DAFNISession.return_value = session
         runner = CliRunner()
         dataset_version_id = "some-existing-version-id"
-        mock_get_latest_dataset_metadata.return_value = TEST_DATASET_METADATA
+        mock_cli_get_latest_dataset_metadata.return_value = TEST_DATASET_METADATA
         mock_modify_dataset_metadata_for_upload.return_value = TEST_DATASET_METADATA
         metadata_save_path = "metadata_save_file.json"
 
@@ -873,7 +873,7 @@ class TestUploadDatasetMetadata(TestCase):
 
         # ASSERT
         mock_DAFNISession.assert_called_once()
-        mock_get_latest_dataset_metadata.assert_called_once_with(
+        mock_cli_get_latest_dataset_metadata.assert_called_once_with(
             session, dataset_version_id
         )
         mock_modify_dataset_metadata_for_upload.assert_called_once_with(
@@ -912,7 +912,7 @@ class TestUploadDatasetMetadata(TestCase):
     def test_upload_dataset_metadata_with_metadata_and_all_optional_modifications(
         self,
         mock_modify_dataset_metadata_for_upload,
-        mock_get_latest_dataset_metadata,
+        mock_cli_get_latest_dataset_metadata,
         mock_upload_dataset_metadata_version,
         mock_DAFNISession,
     ):
@@ -925,7 +925,7 @@ class TestUploadDatasetMetadata(TestCase):
         runner = CliRunner()
         dataset_version_id = "some-existing-version-id"
         metadata_path = "metadata.json"
-        mock_get_latest_dataset_metadata.return_value = TEST_DATASET_METADATA
+        mock_cli_get_latest_dataset_metadata.return_value = TEST_DATASET_METADATA
         metadata = parse_dataset_metadata(TEST_DATASET_METADATA)
 
         options = {
@@ -977,7 +977,7 @@ class TestUploadDatasetMetadata(TestCase):
 
         # ASSERT
         mock_DAFNISession.assert_called_once()
-        mock_get_latest_dataset_metadata.assert_called_once_with(
+        mock_cli_get_latest_dataset_metadata.assert_called_once_with(
             session, dataset_version_id
         )
         mock_modify_dataset_metadata_for_upload.assert_called_once_with(
@@ -1005,7 +1005,7 @@ class TestUploadDatasetMetadata(TestCase):
     def test_upload_metadata_cancel(
         self,
         mock_modify_dataset_metadata_for_upload,
-        mock_get_latest_dataset_metadata,
+        mock_cli_get_latest_dataset_metadata,
         mock_upload_dataset_metadata_version,
         mock_DAFNISession,
     ):
@@ -1016,7 +1016,7 @@ class TestUploadDatasetMetadata(TestCase):
         mock_DAFNISession.return_value = session
         runner = CliRunner()
         dataset_version_id = "some-existing-version-id"
-        mock_get_latest_dataset_metadata.return_value = TEST_DATASET_METADATA
+        mock_cli_get_latest_dataset_metadata.return_value = TEST_DATASET_METADATA
         metadata = parse_dataset_metadata(TEST_DATASET_METADATA)
 
         # CALL
@@ -1032,7 +1032,7 @@ class TestUploadDatasetMetadata(TestCase):
 
         # ASSERT
         mock_DAFNISession.assert_called_once()
-        mock_get_latest_dataset_metadata.assert_called_once_with(
+        mock_cli_get_latest_dataset_metadata.assert_called_once_with(
             session, dataset_version_id
         )
         mock_modify_dataset_metadata_for_upload.assert_called_once_with(

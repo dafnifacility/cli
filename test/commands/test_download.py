@@ -31,7 +31,7 @@ class TestDownload(TestCase):
 
 
 @patch("dafni_cli.commands.download.DAFNISession")
-@patch("dafni_cli.commands.download.get_latest_dataset_metadata")
+@patch("dafni_cli.commands.download.cli_get_latest_dataset_metadata")
 @patch("dafni_cli.commands.download.parse_dataset_metadata")
 @patch("dafni_cli.commands.download.write_files_to_zip")
 class TestDownloadDataset(TestCase):
@@ -41,7 +41,7 @@ class TestDownloadDataset(TestCase):
         self,
         mock_write_files_to_zip,
         mock_parse_dataset_metadata,
-        mock_get_latest_dataset_metadata,
+        mock_cli_get_latest_dataset_metadata,
         mock_DAFNISession,
     ):
         """Tests that the 'download dataset' command works correctly (with no
@@ -72,9 +72,11 @@ class TestDownloadDataset(TestCase):
 
         # ASSERT
         mock_DAFNISession.assert_called_once()
-        mock_get_latest_dataset_metadata.assert_called_once_with(session, version_id)
+        mock_cli_get_latest_dataset_metadata.assert_called_once_with(
+            session, version_id
+        )
         mock_parse_dataset_metadata.assert_called_once_with(
-            mock_get_latest_dataset_metadata.return_value
+            mock_cli_get_latest_dataset_metadata.return_value
         )
 
         metadata.download_dataset_files.assert_called_once_with(session)
@@ -96,7 +98,7 @@ class TestDownloadDataset(TestCase):
         self,
         mock_write_files_to_zip,
         mock_parse_dataset_metadata,
-        mock_get_latest_dataset_metadata,
+        mock_cli_get_latest_dataset_metadata,
         mock_DAFNISession,
     ):
         """Tests that the 'download dataset' command works correctly with a
@@ -134,9 +136,11 @@ class TestDownloadDataset(TestCase):
 
         # ASSERT
         mock_DAFNISession.assert_called_once()
-        mock_get_latest_dataset_metadata.assert_called_once_with(session, version_id)
+        mock_cli_get_latest_dataset_metadata.assert_called_once_with(
+            session, version_id
+        )
         mock_parse_dataset_metadata.assert_called_once_with(
-            mock_get_latest_dataset_metadata.return_value
+            mock_cli_get_latest_dataset_metadata.return_value
         )
 
         metadata.download_dataset_files.assert_called_once_with(session)
@@ -158,7 +162,7 @@ class TestDownloadDataset(TestCase):
         self,
         mock_write_files_to_zip,
         mock_parse_dataset_metadata,
-        mock_get_latest_dataset_metadata,
+        mock_cli_get_latest_dataset_metadata,
         mock_DAFNISession,
     ):
         """Tests that the 'download dataset' command works correctly when
@@ -177,9 +181,11 @@ class TestDownloadDataset(TestCase):
 
         # ASSERT
         mock_DAFNISession.assert_called_once()
-        mock_get_latest_dataset_metadata.assert_called_once_with(session, "version-id")
+        mock_cli_get_latest_dataset_metadata.assert_called_once_with(
+            session, "version-id"
+        )
         mock_parse_dataset_metadata.assert_called_once_with(
-            mock_get_latest_dataset_metadata.return_value
+            mock_cli_get_latest_dataset_metadata.return_value
         )
         mock_write_files_to_zip.assert_not_called()
 

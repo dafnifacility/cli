@@ -3,11 +3,15 @@ from typing import List, Optional
 import click
 from click import Context
 
-from dafni_cli.api.datasets_api import get_all_datasets, get_latest_dataset_metadata
-from dafni_cli.api.exceptions import ResourceNotFoundError
-from dafni_cli.api.models_api import get_all_models, get_model
+from dafni_cli.api.datasets_api import get_all_datasets
+from dafni_cli.api.models_api import get_all_models
 from dafni_cli.api.session import DAFNISession
-from dafni_cli.api.workflows_api import get_all_workflows, get_workflow
+from dafni_cli.api.workflows_api import get_all_workflows
+from dafni_cli.commands.helpers import (
+    cli_get_latest_dataset_metadata,
+    cli_get_model,
+    cli_get_workflow,
+)
 from dafni_cli.consts import DATE_INPUT_FORMAT, DATE_INPUT_FORMAT_VERBOSE
 from dafni_cli.datasets import dataset_filtering
 from dafni_cli.datasets.dataset import parse_datasets
@@ -145,11 +149,7 @@ def model(ctx: Context, version_id: List[str], version_history: bool, json: bool
     """
     for vid in version_id:
         # Attempt to get the model
-        try:
-            model_dictionary = get_model(ctx.obj["session"], vid)
-        except ResourceNotFoundError as err:
-            click.echo(err)
-            raise SystemExit(1) from err
+        model_dictionary = cli_get_model(ctx.obj["session"], vid)
 
         if version_history:
             if json:
@@ -265,11 +265,7 @@ def dataset(
         json (bool): Flag to view json returned from API
     """
     # Attempt to get the metadata
-    try:
-        metadata = get_latest_dataset_metadata(ctx.obj["session"], version_id)
-    except ResourceNotFoundError as err:
-        click.echo(err)
-        raise SystemExit(1) from err
+    metadata = cli_get_latest_dataset_metadata(ctx.obj["session"], version_id)
 
     if not version_history:
         if json:
@@ -400,11 +396,7 @@ def workflow(ctx: Context, version_id: List[str], version_history: bool, json: b
     """
     for vid in version_id:
         # Attempt to get the workflow
-        try:
-            workflow_dictionary = get_workflow(ctx.obj["session"], vid)
-        except ResourceNotFoundError as err:
-            click.echo(err)
-            raise SystemExit(1) from err
+        workflow_dictionary = cli_get_workflow(ctx.obj["session"], vid)
 
         if version_history:
             if json:

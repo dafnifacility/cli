@@ -6,13 +6,13 @@ from click.testing import CliRunner
 from dafni_cli.commands import delete
 
 
-@patch("dafni_cli.commands.delete.get_model")
+@patch("dafni_cli.commands.delete.cli_get_model")
 @patch("dafni_cli.commands.delete.parse_model")
 class TestCollateModelVersionDetails(TestCase):
     """Test class to test the collate_model_version_details function"""
 
     def test_single_model_with_valid_permissions_returns_single_model_details(
-        self, mock_parse_model, mock_get_model
+        self, mock_parse_model, mock_cli_get_model
     ):
         """Tests collate_model_version_details works correctly for a single
         model with delete permissions"""
@@ -31,13 +31,13 @@ class TestCollateModelVersionDetails(TestCase):
         result = delete.collate_model_version_details(session, version_ids)
 
         # ASSERT
-        mock_get_model.assert_called_once_with(session, version_id)
-        mock_parse_model.assert_called_once_with(mock_get_model.return_value)
+        mock_cli_get_model.assert_called_once_with(session, version_id)
+        mock_parse_model.assert_called_once_with(mock_cli_get_model.return_value)
         self.assertEqual(result, [model_mock.get_version_details.return_value])
 
     @patch("dafni_cli.commands.delete.click")
     def test_single_model_without_valid_permissions_exits(
-        self, mock_click, mock_parse_model, mock_get_model
+        self, mock_click, mock_parse_model, mock_cli_get_model
     ):
         """Tests collate_model_version_details works correctly for a single
         model without delete permissions"""
@@ -57,8 +57,8 @@ class TestCollateModelVersionDetails(TestCase):
             delete.collate_model_version_details(session, version_ids)
 
         # ASSERT
-        mock_get_model.assert_called_once_with(session, version_id)
-        mock_parse_model.assert_called_once_with(mock_get_model.return_value)
+        mock_cli_get_model.assert_called_once_with(session, version_id)
+        mock_parse_model.assert_called_once_with(mock_cli_get_model.return_value)
         mock_click.echo.assert_has_calls(
             [
                 call("You do not have sufficient permissions to delete model version:"),
@@ -67,7 +67,7 @@ class TestCollateModelVersionDetails(TestCase):
         )
 
     def test_multiple_models_with_valid_permissions_returns_multiple_model_details(
-        self, mock_parse_model, mock_get_model
+        self, mock_parse_model, mock_cli_get_model
     ):
         """Tests collate_model_version_details works correctly for a list
         of models with delete permissions"""
@@ -89,11 +89,14 @@ class TestCollateModelVersionDetails(TestCase):
         result = delete.collate_model_version_details(session, version_ids)
 
         # ASSERT
-        mock_get_model.assert_has_calls(
+        mock_cli_get_model.assert_has_calls(
             [call(session, version_id1), call(session, version_id2)]
         )
         mock_parse_model.assert_has_calls(
-            [call(mock_get_model.return_value), call(mock_get_model.return_value)]
+            [
+                call(mock_cli_get_model.return_value),
+                call(mock_cli_get_model.return_value),
+            ]
         )
         self.assertEqual(
             result,
@@ -105,7 +108,7 @@ class TestCollateModelVersionDetails(TestCase):
 
     @patch("dafni_cli.commands.delete.click")
     def test_first_model_with_permissions_but_second_without_exits_and_shows_model_without_permissions(
-        self, mock_click, mock_parse_model, mock_get_model
+        self, mock_click, mock_parse_model, mock_cli_get_model
     ):
         """Tests collate_model_version_details works correctly for a list
         of models where the first has delete permissions and the second does not"""
@@ -128,11 +131,14 @@ class TestCollateModelVersionDetails(TestCase):
             delete.collate_model_version_details(session, version_ids)
 
         # ASSERT
-        mock_get_model.assert_has_calls(
+        mock_cli_get_model.assert_has_calls(
             [call(session, version_id1), call(session, version_id2)]
         )
         mock_parse_model.assert_has_calls(
-            [call(mock_get_model.return_value), call(mock_get_model.return_value)]
+            [
+                call(mock_cli_get_model.return_value),
+                call(mock_cli_get_model.return_value),
+            ]
         )
         self.assertEqual(
             mock_click.echo.call_args_list,
@@ -143,13 +149,13 @@ class TestCollateModelVersionDetails(TestCase):
         )
 
 
-@patch("dafni_cli.commands.delete.get_latest_dataset_metadata")
+@patch("dafni_cli.commands.delete.cli_get_latest_dataset_metadata")
 @patch("dafni_cli.commands.delete.parse_dataset_metadata")
 class TestCollateDatasetDetails(TestCase):
     """Test class to test the collate_dataset_details function"""
 
     def test_single_dataset_with_valid_permissions_returns_single_dataset_details(
-        self, mock_parse_dataset_metadata, mock_get_latest_dataset_metadata
+        self, mock_parse_dataset_metadata, mock_cli_get_latest_dataset_metadata
     ):
         """Tests collate_dataset_details works correctly for a single dataset
         with delete permissions"""
@@ -169,9 +175,11 @@ class TestCollateDatasetDetails(TestCase):
         result = delete.collate_dataset_details(session, version_ids)
 
         # ASSERT
-        mock_get_latest_dataset_metadata.assert_called_once_with(session, version_id)
+        mock_cli_get_latest_dataset_metadata.assert_called_once_with(
+            session, version_id
+        )
         mock_parse_dataset_metadata.assert_called_once_with(
-            mock_get_latest_dataset_metadata.return_value
+            mock_cli_get_latest_dataset_metadata.return_value
         )
         self.assertEqual(
             result,
@@ -183,7 +191,10 @@ class TestCollateDatasetDetails(TestCase):
 
     @patch("dafni_cli.commands.delete.click")
     def test_single_dataset_without_valid_permissions_exits(
-        self, mock_click, mock_parse_dataset_metadata, mock_get_latest_dataset_metadata
+        self,
+        mock_click,
+        mock_parse_dataset_metadata,
+        mock_cli_get_latest_dataset_metadata,
     ):
         """Tests collate_dataset_details works correctly for a single dataset
         without delete permissions"""
@@ -204,9 +215,11 @@ class TestCollateDatasetDetails(TestCase):
             delete.collate_dataset_details(session, version_ids)
 
         # ASSERT
-        mock_get_latest_dataset_metadata.assert_called_once_with(session, version_id)
+        mock_cli_get_latest_dataset_metadata.assert_called_once_with(
+            session, version_id
+        )
         mock_parse_dataset_metadata.assert_called_once_with(
-            mock_get_latest_dataset_metadata.return_value
+            mock_cli_get_latest_dataset_metadata.return_value
         )
         mock_click.echo.assert_has_calls(
             [
@@ -216,7 +229,7 @@ class TestCollateDatasetDetails(TestCase):
         )
 
     def test_multiple_datasets_with_valid_permissions_returns_multiple_dataset_details(
-        self, mock_parse_dataset_metadata, mock_get_latest_dataset_metadata
+        self, mock_parse_dataset_metadata, mock_cli_get_latest_dataset_metadata
     ):
         """Tests collate_dataset_details works correctly for a list
         of datasets with delete permissions"""
@@ -240,13 +253,13 @@ class TestCollateDatasetDetails(TestCase):
         result = delete.collate_dataset_details(session, version_ids)
 
         # ASSERT
-        mock_get_latest_dataset_metadata.assert_has_calls(
+        mock_cli_get_latest_dataset_metadata.assert_has_calls(
             [call(session, version_id1), call(session, version_id2)]
         )
         mock_parse_dataset_metadata.assert_has_calls(
             [
-                call(mock_get_latest_dataset_metadata.return_value),
-                call(mock_get_latest_dataset_metadata.return_value),
+                call(mock_cli_get_latest_dataset_metadata.return_value),
+                call(mock_cli_get_latest_dataset_metadata.return_value),
             ]
         )
         self.assertEqual(
@@ -262,7 +275,10 @@ class TestCollateDatasetDetails(TestCase):
 
     @patch("dafni_cli.commands.delete.click")
     def test_first_dataset_with_permissions_but_second_without_exits_and_shows_dataset_without_permissions(
-        self, mock_click, mock_parse_dataset_metadata, mock_get_latest_dataset_metadata
+        self,
+        mock_click,
+        mock_parse_dataset_metadata,
+        mock_cli_get_latest_dataset_metadata,
     ):
         """Tests collate_dataset_details works correctly for a list of
         datasets where the first has delete permissions and the second does
@@ -288,13 +304,13 @@ class TestCollateDatasetDetails(TestCase):
             delete.collate_dataset_details(session, version_ids)
 
         # ASSERT
-        mock_get_latest_dataset_metadata.assert_has_calls(
+        mock_cli_get_latest_dataset_metadata.assert_has_calls(
             [call(session, version_id1), call(session, version_id2)]
         )
         mock_parse_dataset_metadata.assert_has_calls(
             [
-                call(mock_get_latest_dataset_metadata.return_value),
-                call(mock_get_latest_dataset_metadata.return_value),
+                call(mock_cli_get_latest_dataset_metadata.return_value),
+                call(mock_cli_get_latest_dataset_metadata.return_value),
             ]
         )
         self.assertEqual(
@@ -306,13 +322,13 @@ class TestCollateDatasetDetails(TestCase):
         )
 
 
-@patch("dafni_cli.commands.delete.get_latest_dataset_metadata")
+@patch("dafni_cli.commands.delete.cli_get_latest_dataset_metadata")
 @patch("dafni_cli.commands.delete.parse_dataset_metadata")
 class TestCollateDatasetVersionDetails(TestCase):
     """Test class to test the collate_dataset_version_details function"""
 
     def test_single_dataset_version_with_valid_permissions_returns_single_dataset_details(
-        self, mock_parse_dataset_metadata, mock_get_latest_dataset_metadata
+        self, mock_parse_dataset_metadata, mock_cli_get_latest_dataset_metadata
     ):
         """Tests collate_dataset_version_details works correctly for a single
         dataset version with delete permissions"""
@@ -332,9 +348,11 @@ class TestCollateDatasetVersionDetails(TestCase):
         result = delete.collate_dataset_version_details(session, version_ids)
 
         # ASSERT
-        mock_get_latest_dataset_metadata.assert_called_once_with(session, version_id)
+        mock_cli_get_latest_dataset_metadata.assert_called_once_with(
+            session, version_id
+        )
         mock_parse_dataset_metadata.assert_called_once_with(
-            mock_get_latest_dataset_metadata.return_value
+            mock_cli_get_latest_dataset_metadata.return_value
         )
         self.assertEqual(
             result,
@@ -346,7 +364,10 @@ class TestCollateDatasetVersionDetails(TestCase):
 
     @patch("dafni_cli.commands.delete.click")
     def test_single_dataset_version_without_valid_permissions_exits(
-        self, mock_click, mock_parse_dataset_metadata, mock_get_latest_dataset_metadata
+        self,
+        mock_click,
+        mock_parse_dataset_metadata,
+        mock_cli_get_latest_dataset_metadata,
     ):
         """Tests collate_dataset_version_details works correctly for a single
         dataset without delete permissions"""
@@ -367,9 +388,11 @@ class TestCollateDatasetVersionDetails(TestCase):
             delete.collate_dataset_version_details(session, version_ids)
 
         # ASSERT
-        mock_get_latest_dataset_metadata.assert_called_once_with(session, version_id)
+        mock_cli_get_latest_dataset_metadata.assert_called_once_with(
+            session, version_id
+        )
         mock_parse_dataset_metadata.assert_called_once_with(
-            mock_get_latest_dataset_metadata.return_value
+            mock_cli_get_latest_dataset_metadata.return_value
         )
         mock_click.echo.assert_has_calls(
             [
@@ -381,7 +404,7 @@ class TestCollateDatasetVersionDetails(TestCase):
         )
 
     def test_multiple_dataset_versions_with_valid_permissions_returns_multiple_dataset_details(
-        self, mock_parse_dataset_metadata, mock_get_latest_dataset_metadata
+        self, mock_parse_dataset_metadata, mock_cli_get_latest_dataset_metadata
     ):
         """Tests collate_dataset_version_details works correctly for a list
         of dataset versions with delete permissions"""
@@ -405,13 +428,13 @@ class TestCollateDatasetVersionDetails(TestCase):
         result = delete.collate_dataset_version_details(session, version_ids)
 
         # ASSERT
-        mock_get_latest_dataset_metadata.assert_has_calls(
+        mock_cli_get_latest_dataset_metadata.assert_has_calls(
             [call(session, version_id1), call(session, version_id2)]
         )
         mock_parse_dataset_metadata.assert_has_calls(
             [
-                call(mock_get_latest_dataset_metadata.return_value),
-                call(mock_get_latest_dataset_metadata.return_value),
+                call(mock_cli_get_latest_dataset_metadata.return_value),
+                call(mock_cli_get_latest_dataset_metadata.return_value),
             ]
         )
         self.assertEqual(
@@ -427,7 +450,10 @@ class TestCollateDatasetVersionDetails(TestCase):
 
     @patch("dafni_cli.commands.delete.click")
     def test_first_dataset_version_with_permissions_but_second_without_exits_and_shows_dataset_without_permissions(
-        self, mock_click, mock_parse_dataset_metadata, mock_get_latest_dataset_metadata
+        self,
+        mock_click,
+        mock_parse_dataset_metadata,
+        mock_cli_get_latest_dataset_metadata,
     ):
         """Tests collate_dataset_version_details works correctly for a list of
         dataset versions where the first has delete permissions and the second
@@ -453,13 +479,13 @@ class TestCollateDatasetVersionDetails(TestCase):
             delete.collate_dataset_version_details(session, version_ids)
 
         # ASSERT
-        mock_get_latest_dataset_metadata.assert_has_calls(
+        mock_cli_get_latest_dataset_metadata.assert_has_calls(
             [call(session, version_id1), call(session, version_id2)]
         )
         mock_parse_dataset_metadata.assert_has_calls(
             [
-                call(mock_get_latest_dataset_metadata.return_value),
-                call(mock_get_latest_dataset_metadata.return_value),
+                call(mock_cli_get_latest_dataset_metadata.return_value),
+                call(mock_cli_get_latest_dataset_metadata.return_value),
             ]
         )
         self.assertEqual(
@@ -473,13 +499,13 @@ class TestCollateDatasetVersionDetails(TestCase):
         )
 
 
-@patch("dafni_cli.commands.delete.get_workflow")
+@patch("dafni_cli.commands.delete.cli_get_workflow")
 @patch("dafni_cli.commands.delete.parse_workflow")
 class TestCollateWorkflowVersionDetails(TestCase):
     """Test class to test the collate_workflow_version_details function"""
 
     def test_single_workflow_with_valid_permissions_returns_single_model_details(
-        self, mock_parse_workflow, mock_get_workflow
+        self, mock_parse_workflow, mock_cli_get_workflow
     ):
         """Tests collate_workflow_version_details works correctly for a single
         workflow with delete permissions"""
@@ -498,13 +524,13 @@ class TestCollateWorkflowVersionDetails(TestCase):
         result = delete.collate_workflow_version_details(session, version_ids)
 
         # ASSERT
-        mock_get_workflow.assert_called_once_with(session, version_id)
-        mock_parse_workflow.assert_called_once_with(mock_get_workflow.return_value)
+        mock_cli_get_workflow.assert_called_once_with(session, version_id)
+        mock_parse_workflow.assert_called_once_with(mock_cli_get_workflow.return_value)
         self.assertEqual(result, [workflow_mock.get_version_details.return_value])
 
     @patch("dafni_cli.commands.delete.click")
     def test_single_workflow_without_valid_permissions_exits(
-        self, mock_click, mock_parse_workflow, mock_get_workflow
+        self, mock_click, mock_parse_workflow, mock_cli_get_workflow
     ):
         """Tests collate_workflow_version_details works correctly for a single
         model without delete permissions"""
@@ -524,8 +550,8 @@ class TestCollateWorkflowVersionDetails(TestCase):
             delete.collate_workflow_version_details(session, version_ids)
 
         # ASSERT
-        mock_get_workflow.assert_called_once_with(session, version_id)
-        mock_parse_workflow.assert_called_once_with(mock_get_workflow.return_value)
+        mock_cli_get_workflow.assert_called_once_with(session, version_id)
+        mock_parse_workflow.assert_called_once_with(mock_cli_get_workflow.return_value)
         mock_click.echo.assert_has_calls(
             [
                 call(
@@ -536,7 +562,7 @@ class TestCollateWorkflowVersionDetails(TestCase):
         )
 
     def test_multiple_workflow_with_valid_permissions_returns_multiple_workflow_details(
-        self, mock_parse_workflow, mock_get_workflow
+        self, mock_parse_workflow, mock_cli_get_workflow
     ):
         """Tests collate_model_version_details works correctly for a list
         of models with delete permissions"""
@@ -558,11 +584,14 @@ class TestCollateWorkflowVersionDetails(TestCase):
         result = delete.collate_workflow_version_details(session, version_ids)
 
         # ASSERT
-        mock_get_workflow.assert_has_calls(
+        mock_cli_get_workflow.assert_has_calls(
             [call(session, version_id1), call(session, version_id2)]
         )
         mock_parse_workflow.assert_has_calls(
-            [call(mock_get_workflow.return_value), call(mock_get_workflow.return_value)]
+            [
+                call(mock_cli_get_workflow.return_value),
+                call(mock_cli_get_workflow.return_value),
+            ]
         )
         self.assertEqual(
             result,
@@ -574,7 +603,7 @@ class TestCollateWorkflowVersionDetails(TestCase):
 
     @patch("dafni_cli.commands.delete.click")
     def test_first_workflow_with_permissions_but_second_without_exits_and_shows_workflow_without_permissions(
-        self, mock_click, mock_parse_workflow, mock_get_workflow
+        self, mock_click, mock_parse_workflow, mock_cli_get_workflow
     ):
         """Tests collate_workflow_version_details works correctly for a list
         of workflows where the first has delete permissions and the second does not"""
@@ -597,11 +626,14 @@ class TestCollateWorkflowVersionDetails(TestCase):
             delete.collate_workflow_version_details(session, version_ids)
 
         # ASSERT
-        mock_get_workflow.assert_has_calls(
+        mock_cli_get_workflow.assert_has_calls(
             [call(session, version_id1), call(session, version_id2)]
         )
         mock_parse_workflow.assert_has_calls(
-            [call(mock_get_workflow.return_value), call(mock_get_workflow.return_value)]
+            [
+                call(mock_cli_get_workflow.return_value),
+                call(mock_cli_get_workflow.return_value),
+            ]
         )
         self.assertEqual(
             mock_click.echo.call_args_list,

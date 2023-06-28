@@ -6,17 +6,14 @@ from typing import List, Optional, Tuple
 import click
 from click import Context
 
-from dafni_cli.api.datasets_api import get_latest_dataset_metadata
-from dafni_cli.api.models_api import get_all_models
 from dafni_cli.api.session import DAFNISession
 from dafni_cli.api.workflows_api import upload_workflow
+from dafni_cli.commands.helpers import cli_get_latest_dataset_metadata
 from dafni_cli.commands.options import dataset_metadata_common_options
 from dafni_cli.datasets.dataset_metadata import parse_dataset_metadata
 from dafni_cli.datasets.dataset_upload import (
-    modify_dataset_metadata_for_upload,
-    upload_dataset,
-    upload_dataset_metadata_version,
-)
+    modify_dataset_metadata_for_upload, upload_dataset,
+    upload_dataset_metadata_version)
 from dafni_cli.models.upload import upload_model
 from dafni_cli.utils import argument_confirmation
 
@@ -206,7 +203,7 @@ def dataset_version(
     # dataset id for the actual upload - instead of requiring both, we look up
     # dataset with the version_id here and obtain both the id and existing
     # metadata once
-    dataset_metadata_dict = get_latest_dataset_metadata(
+    dataset_metadata_dict = cli_get_latest_dataset_metadata(
         ctx.obj["session"], existing_version_id
     )
     dataset_metadata_obj = parse_dataset_metadata(dataset_metadata_dict)
@@ -329,7 +326,7 @@ def dataset_metadata(
     # dataset id for the actual upload - instead of requiring both, we look up
     # dataset with the version_id here and obtain both the id and existing
     # metadata once
-    dataset_metadata_dict = get_latest_dataset_metadata(
+    dataset_metadata_dict = cli_get_latest_dataset_metadata(
         ctx.obj["session"], existing_version_id
     )
     dataset_metadata_obj = parse_dataset_metadata(dataset_metadata_dict)

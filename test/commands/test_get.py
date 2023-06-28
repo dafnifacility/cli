@@ -345,14 +345,14 @@ class TestGetModels(TestCase):
 
 
 @patch("dafni_cli.commands.get.DAFNISession")
-@patch("dafni_cli.commands.get.get_model")
+@patch("dafni_cli.commands.get.cli_get_model")
 @patch("dafni_cli.commands.get.parse_model")
 @patch("dafni_cli.commands.get.print_json")
 class TestGetModel(TestCase):
     """Test class to test the get model command"""
 
     def test_get_model(
-        self, mock_print_json, mock_parse_model, mock_get_model, mock_DAFNISession
+        self, mock_print_json, mock_parse_model, mock_cli_get_model, mock_DAFNISession
     ):
         """Tests that the 'get model' command works correctly (with no
         optional arguments)"""
@@ -362,7 +362,7 @@ class TestGetModel(TestCase):
         mock_DAFNISession.return_value = session
         runner = CliRunner()
         model = MagicMock()
-        mock_get_model.return_value = model
+        mock_cli_get_model.return_value = model
         mock_parse_model.return_value = model
 
         # CALL
@@ -370,45 +370,14 @@ class TestGetModel(TestCase):
 
         # ASSERT
         mock_DAFNISession.assert_called_once()
-        mock_get_model.assert_called_with(session, "some_version_id")
+        mock_cli_get_model.assert_called_with(session, "some_version_id")
         model.output_info.assert_called_once()
         mock_print_json.assert_not_called()
 
         self.assertEqual(result.exit_code, 0)
 
-    @patch("dafni_cli.commands.get.click")
-    def test_get_model_when_not_found(
-        self,
-        mock_click,
-        mock_print_json,
-        mock_parse_model,
-        mock_get_model,
-        mock_DAFNISession,
-    ):
-        """Tests that the 'get model' command works correctly when the
-        requested model isn't found"""
-
-        # SETUP
-        session = MagicMock()
-        mock_DAFNISession.return_value = session
-        runner = CliRunner()
-        model = MagicMock()
-        mock_get_model.side_effect = ResourceNotFoundError("Some error message")
-
-        # CALL
-        result = runner.invoke(get.get, ["model", "some_version_id"])
-
-        # ASSERT
-        mock_DAFNISession.assert_called_once()
-        mock_get_model.assert_called_with(session, "some_version_id")
-        mock_click.echo.assert_called_once_with(mock_get_model.side_effect)
-        model.output_info.assert_not_called()
-        mock_print_json.assert_not_called()
-
-        self.assertEqual(result.exit_code, 1)
-
     def test_get_model_json(
-        self, mock_print_json, mock_parse_model, mock_get_model, mock_DAFNISession
+        self, mock_print_json, mock_parse_model, mock_cli_get_model, mock_DAFNISession
     ):
         """Tests that the 'get model' command works correctly (with --json)"""
 
@@ -417,7 +386,7 @@ class TestGetModel(TestCase):
         mock_DAFNISession.return_value = session
         runner = CliRunner()
         model = MagicMock()
-        mock_get_model.return_value = model
+        mock_cli_get_model.return_value = model
         mock_parse_model.return_value = model
 
         # CALL
@@ -425,14 +394,14 @@ class TestGetModel(TestCase):
 
         # ASSERT
         mock_DAFNISession.assert_called_once()
-        mock_get_model.assert_called_with(session, "some_version_id")
+        mock_cli_get_model.assert_called_with(session, "some_version_id")
         model.output_info.assert_not_called()
         mock_print_json.assert_called_once_with(model)
 
         self.assertEqual(result.exit_code, 0)
 
     def test_get_model_version_history(
-        self, mock_print_json, mock_parse_model, mock_get_model, mock_DAFNISession
+        self, mock_print_json, mock_parse_model, mock_cli_get_model, mock_DAFNISession
     ):
         """Tests that the 'get model' command works correctly (with
         --version-history)"""
@@ -442,7 +411,7 @@ class TestGetModel(TestCase):
         mock_DAFNISession.return_value = session
         runner = CliRunner()
         model = MagicMock()
-        mock_get_model.return_value = model
+        mock_cli_get_model.return_value = model
         mock_parse_model.return_value = model
 
         # CALL
@@ -452,14 +421,14 @@ class TestGetModel(TestCase):
 
         # ASSERT
         mock_DAFNISession.assert_called_once()
-        mock_get_model.assert_called_with(session, "some_version_id")
+        mock_cli_get_model.assert_called_with(session, "some_version_id")
         model.output_version_history.assert_called_once()
         mock_print_json.assert_not_called()
 
         self.assertEqual(result.exit_code, 0)
 
     def test_get_model_version_history_json(
-        self, mock_print_json, mock_parse_model, mock_get_model, mock_DAFNISession
+        self, mock_print_json, mock_parse_model, mock_cli_get_model, mock_DAFNISession
     ):
         """Tests that the 'get model' command works correctly (with --json
         and --version-history)"""
@@ -470,7 +439,7 @@ class TestGetModel(TestCase):
         runner = CliRunner()
         model = MagicMock()
         version_history = MagicMock()
-        mock_get_model.return_value = {"version_history": [version_history]}
+        mock_cli_get_model.return_value = {"version_history": [version_history]}
         mock_parse_model.return_value = model
 
         # CALL
@@ -480,7 +449,7 @@ class TestGetModel(TestCase):
 
         # ASSERT
         mock_DAFNISession.assert_called_once()
-        mock_get_model.assert_called_with(session, "some_version_id")
+        mock_cli_get_model.assert_called_with(session, "some_version_id")
         model.output_version_history.assert_not_called()
         mock_print_json.assert_called_once_with(version_history)
 
@@ -641,7 +610,7 @@ class TestGetDatasets(TestCase):
 
 
 @patch("dafni_cli.commands.get.DAFNISession")
-@patch("dafni_cli.commands.get.get_latest_dataset_metadata")
+@patch("dafni_cli.commands.get.cli_get_latest_dataset_metadata")
 @patch("dafni_cli.commands.get.parse_dataset_metadata")
 @patch("dafni_cli.commands.get.print_json")
 class TestGetDataset(TestCase):
@@ -651,7 +620,7 @@ class TestGetDataset(TestCase):
         self,
         mock_print_json,
         mock_parse_dataset_metadata,
-        mock_get_latest_dataset_metadata,
+        mock_cli_get_latest_dataset_metadata,
         mock_DAFNISession,
     ):
         """Tests that the 'get dataset' command works correctly (with no
@@ -662,7 +631,7 @@ class TestGetDataset(TestCase):
         mock_DAFNISession.return_value = session
         runner = CliRunner()
         dataset = MagicMock()
-        mock_get_latest_dataset_metadata.return_value = dataset
+        mock_cli_get_latest_dataset_metadata.return_value = dataset
         mock_parse_dataset_metadata.return_value = dataset
 
         # CALL
@@ -670,52 +639,19 @@ class TestGetDataset(TestCase):
 
         # ASSERT
         mock_DAFNISession.assert_called_once()
-        mock_get_latest_dataset_metadata.assert_called_with(session, "some_version_id")
+        mock_cli_get_latest_dataset_metadata.assert_called_with(
+            session, "some_version_id"
+        )
         dataset.output_details.assert_called_once()
         mock_print_json.assert_not_called()
 
         self.assertEqual(result.exit_code, 0)
 
-    @patch("dafni_cli.commands.get.click")
-    def test_get_dataset_when_not_found(
-        self,
-        mock_click,
-        mock_print_json,
-        mock_parse_dataset_metadata,
-        mock_get_latest_dataset_metadata,
-        mock_DAFNISession,
-    ):
-        """Tests that the 'get dataset' command works correctly when the
-        requested dataset isn't found"""
-
-        # SETUP
-        session = MagicMock()
-        mock_DAFNISession.return_value = session
-        runner = CliRunner()
-        dataset = MagicMock()
-        mock_get_latest_dataset_metadata.side_effect = ResourceNotFoundError(
-            "Some error message"
-        )
-
-        # CALL
-        result = runner.invoke(get.get, ["dataset", "some_version_id"])
-
-        # ASSERT
-        mock_DAFNISession.assert_called_once()
-        mock_get_latest_dataset_metadata.assert_called_with(session, "some_version_id")
-        mock_click.echo.assert_called_once_with(
-            mock_get_latest_dataset_metadata.side_effect
-        )
-        dataset.output_details.assert_not_called()
-        mock_print_json.assert_not_called()
-
-        self.assertEqual(result.exit_code, 1)
-
     def test_get_dataset_json(
         self,
         mock_print_json,
         mock_parse_dataset_metadata,
-        mock_get_latest_dataset_metadata,
+        mock_cli_get_latest_dataset_metadata,
         mock_DAFNISession,
     ):
         """Tests that the 'get dataset' command works correctly (with --json)"""
@@ -725,7 +661,7 @@ class TestGetDataset(TestCase):
         mock_DAFNISession.return_value = session
         runner = CliRunner()
         dataset = MagicMock()
-        mock_get_latest_dataset_metadata.return_value = dataset
+        mock_cli_get_latest_dataset_metadata.return_value = dataset
         mock_parse_dataset_metadata.return_value = dataset
 
         # CALL
@@ -733,7 +669,9 @@ class TestGetDataset(TestCase):
 
         # ASSERT
         mock_DAFNISession.assert_called_once()
-        mock_get_latest_dataset_metadata.assert_called_with(session, "some_version_id")
+        mock_cli_get_latest_dataset_metadata.assert_called_with(
+            session, "some_version_id"
+        )
         dataset.output_details.assert_not_called()
         mock_print_json.assert_called_once_with(dataset)
 
@@ -743,7 +681,7 @@ class TestGetDataset(TestCase):
         self,
         mock_print_json,
         mock_parse_dataset_metadata,
-        mock_get_latest_dataset_metadata,
+        mock_cli_get_latest_dataset_metadata,
         mock_DAFNISession,
     ):
         """Tests that the 'get dataset' command works correctly with
@@ -755,7 +693,7 @@ class TestGetDataset(TestCase):
         runner = CliRunner()
         dataset = MagicMock()
         dataset.version_history = MagicMock()
-        mock_get_latest_dataset_metadata.return_value = TEST_DATASET_METADATA
+        mock_cli_get_latest_dataset_metadata.return_value = TEST_DATASET_METADATA
         mock_parse_dataset_metadata.return_value = dataset
 
         # CALL
@@ -765,7 +703,9 @@ class TestGetDataset(TestCase):
 
         # ASSERT
         mock_DAFNISession.assert_called_once()
-        mock_get_latest_dataset_metadata.assert_called_with(session, "some_version_id")
+        mock_cli_get_latest_dataset_metadata.assert_called_with(
+            session, "some_version_id"
+        )
         dataset.version_history.output_version_history.assert_called_once()
         mock_print_json.assert_not_called()
 
@@ -775,7 +715,7 @@ class TestGetDataset(TestCase):
         self,
         mock_print_json,
         mock_parse_dataset_metadata,
-        mock_get_latest_dataset_metadata,
+        mock_cli_get_latest_dataset_metadata,
         mock_DAFNISession,
     ):
         """Tests that the 'get dataset' command works correctly with --json
@@ -787,7 +727,7 @@ class TestGetDataset(TestCase):
         runner = CliRunner()
         dataset = MagicMock()
         dataset.version_history = MagicMock()
-        mock_get_latest_dataset_metadata.return_value = TEST_DATASET_METADATA
+        mock_cli_get_latest_dataset_metadata.return_value = TEST_DATASET_METADATA
         mock_parse_dataset_metadata.return_value = dataset
 
         # CALL
@@ -798,7 +738,9 @@ class TestGetDataset(TestCase):
 
         # ASSERT
         mock_DAFNISession.assert_called_once()
-        mock_get_latest_dataset_metadata.assert_called_with(session, "some_version_id")
+        mock_cli_get_latest_dataset_metadata.assert_called_with(
+            session, "some_version_id"
+        )
         dataset.version_history.output_version_history.assert_not_called()
         mock_print_json.assert_called_once_with(
             TEST_DATASET_METADATA["version_history"]
@@ -1183,14 +1125,18 @@ class TestGetWorkflows(TestCase):
 
 
 @patch("dafni_cli.commands.get.DAFNISession")
-@patch("dafni_cli.commands.get.get_workflow")
+@patch("dafni_cli.commands.get.cli_get_workflow")
 @patch("dafni_cli.commands.get.parse_workflow")
 @patch("dafni_cli.commands.get.print_json")
 class TestGetWorkflow(TestCase):
     """Test class to test the get workflow command"""
 
     def test_get_workflow(
-        self, mock_print_json, mock_parse_workflow, mock_get_workflow, mock_DAFNISession
+        self,
+        mock_print_json,
+        mock_parse_workflow,
+        mock_cli_get_workflow,
+        mock_DAFNISession,
     ):
         """Tests that the 'get workflow' command works correctly (with no
         optional arguments)"""
@@ -1200,7 +1146,7 @@ class TestGetWorkflow(TestCase):
         mock_DAFNISession.return_value = session
         runner = CliRunner()
         workflow = MagicMock()
-        mock_get_workflow.return_value = workflow
+        mock_cli_get_workflow.return_value = workflow
         mock_parse_workflow.return_value = workflow
 
         # CALL
@@ -1208,45 +1154,18 @@ class TestGetWorkflow(TestCase):
 
         # ASSERT
         mock_DAFNISession.assert_called_once()
-        mock_get_workflow.assert_called_with(session, "some_version_id")
+        mock_cli_get_workflow.assert_called_with(session, "some_version_id")
         workflow.output_info.assert_called_once()
         mock_print_json.assert_not_called()
 
         self.assertEqual(result.exit_code, 0)
 
-    @patch("dafni_cli.commands.get.click")
-    def test_get_workflow_when_not_found(
+    def test_get_workflow_json(
         self,
-        mock_click,
         mock_print_json,
         mock_parse_workflow,
-        mock_get_workflow,
+        mock_cli_get_workflow,
         mock_DAFNISession,
-    ):
-        """Tests that the 'get workflow' command works correctly when the
-        requested workflow isn't found"""
-
-        # SETUP
-        session = MagicMock()
-        mock_DAFNISession.return_value = session
-        runner = CliRunner()
-        workflow = MagicMock()
-        mock_get_workflow.side_effect = ResourceNotFoundError("Some error message")
-
-        # CALL
-        result = runner.invoke(get.get, ["workflow", "some_version_id"])
-
-        # ASSERT
-        mock_DAFNISession.assert_called_once()
-        mock_get_workflow.assert_called_with(session, "some_version_id")
-        mock_click.echo.assert_called_once_with(mock_get_workflow.side_effect)
-        workflow.output_info.assert_not_called()
-        mock_print_json.assert_not_called()
-
-        self.assertEqual(result.exit_code, 1)
-
-    def test_get_workflow_json(
-        self, mock_print_json, mock_parse_workflow, mock_get_workflow, mock_DAFNISession
     ):
         """Tests that the 'get workflow' command works correctly (with --json)"""
 
@@ -1255,7 +1174,7 @@ class TestGetWorkflow(TestCase):
         mock_DAFNISession.return_value = session
         runner = CliRunner()
         workflow = MagicMock()
-        mock_get_workflow.return_value = workflow
+        mock_cli_get_workflow.return_value = workflow
         mock_parse_workflow.return_value = workflow
 
         # CALL
@@ -1263,14 +1182,18 @@ class TestGetWorkflow(TestCase):
 
         # ASSERT
         mock_DAFNISession.assert_called_once()
-        mock_get_workflow.assert_called_with(session, "some_version_id")
+        mock_cli_get_workflow.assert_called_with(session, "some_version_id")
         workflow.output_info.assert_not_called()
         mock_print_json.assert_called_once_with(workflow)
 
         self.assertEqual(result.exit_code, 0)
 
     def test_get_workflow_version_history(
-        self, mock_print_json, mock_parse_workflow, mock_get_workflow, mock_DAFNISession
+        self,
+        mock_print_json,
+        mock_parse_workflow,
+        mock_cli_get_workflow,
+        mock_DAFNISession,
     ):
         """Tests that the 'get workflow' command works correctly (with
         --version-history)"""
@@ -1280,7 +1203,7 @@ class TestGetWorkflow(TestCase):
         mock_DAFNISession.return_value = session
         runner = CliRunner()
         workflow = MagicMock()
-        mock_get_workflow.return_value = workflow
+        mock_cli_get_workflow.return_value = workflow
         mock_parse_workflow.return_value = workflow
 
         # CALL
@@ -1290,14 +1213,18 @@ class TestGetWorkflow(TestCase):
 
         # ASSERT
         mock_DAFNISession.assert_called_once()
-        mock_get_workflow.assert_called_with(session, "some_version_id")
+        mock_cli_get_workflow.assert_called_with(session, "some_version_id")
         workflow.output_version_history.assert_called_once()
         mock_print_json.assert_not_called()
 
         self.assertEqual(result.exit_code, 0)
 
     def test_get_workflow_version_history_json(
-        self, mock_print_json, mock_parse_workflow, mock_get_workflow, mock_DAFNISession
+        self,
+        mock_print_json,
+        mock_parse_workflow,
+        mock_cli_get_workflow,
+        mock_DAFNISession,
     ):
         """Tests that the 'get workflow' command works correctly (with --json
         and --version-history)"""
@@ -1308,7 +1235,7 @@ class TestGetWorkflow(TestCase):
         runner = CliRunner()
         workflow = MagicMock()
         version_history = MagicMock()
-        mock_get_workflow.return_value = {"version_history": [version_history]}
+        mock_cli_get_workflow.return_value = {"version_history": [version_history]}
         mock_parse_workflow.return_value = workflow
 
         # CALL
@@ -1318,7 +1245,7 @@ class TestGetWorkflow(TestCase):
 
         # ASSERT
         mock_DAFNISession.assert_called_once()
-        mock_get_workflow.assert_called_with(session, "some_version_id")
+        mock_cli_get_workflow.assert_called_with(session, "some_version_id")
         workflow.output_version_history.assert_not_called()
         mock_print_json.assert_called_once_with(version_history)
 

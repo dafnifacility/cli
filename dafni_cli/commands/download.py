@@ -4,8 +4,8 @@ from typing import List, Optional
 import click
 from click import Context
 
-from dafni_cli.api.datasets_api import get_latest_dataset_metadata
 from dafni_cli.api.session import DAFNISession
+from dafni_cli.commands.helpers import cli_get_latest_dataset_metadata
 from dafni_cli.datasets.dataset_metadata import parse_dataset_metadata
 from dafni_cli.utils import write_files_to_zip
 
@@ -43,7 +43,7 @@ def dataset(
         directory (Optional[Path]): Directory to write zip folder to
     """
     metadata = parse_dataset_metadata(
-        get_latest_dataset_metadata(ctx.obj["session"], version_id)
+        cli_get_latest_dataset_metadata(ctx.obj["session"], version_id)
     )
 
     if len(metadata.files) > 0:
