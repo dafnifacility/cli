@@ -3,13 +3,21 @@ from datetime import datetime
 from typing import ClassVar, List, Optional
 
 import click
+from tabulate import tabulate
 
 from dafni_cli.api.auth import Auth
 from dafni_cli.api.parser import ParserBaseObject, ParserParam, parse_datetime
-from dafni_cli.consts import CONSOLE_WIDTH, TAB_SPACE
+from dafni_cli.consts import (
+    CONSOLE_WIDTH,
+    TAB_SPACE,
+    TABLE_PUBLICATION_DATE_HEADER,
+    TABLE_VERSION_ID_HEADER,
+    TABLE_VERSION_MESSAGE_HEADER,
+    TABLE_VERSION_TAGS_HEADER,
+)
 from dafni_cli.models.inputs import ModelInputs
 from dafni_cli.models.outputs import ModelOutputs
-from dafni_cli.utils import format_datetime, prose_print
+from dafni_cli.utils import format_datetime, format_table, prose_print
 
 
 @dataclass
@@ -45,6 +53,14 @@ class ModelMetadata(ParserBaseObject):
     publisher: Optional[str] = None
     source_code: Optional[str] = None
 
+    STATUS_STRINGS = {
+        "P": "Pending",
+        "F": "Failed",
+        "L": "Live",
+        "S": "Superseded",
+        "D": "Deprecated",
+    }
+
     _parser_params: ClassVar[List[ParserParam]] = [
         ParserParam("display_name", "display_name", str),
         ParserParam("name", "name", str),
@@ -54,6 +70,19 @@ class ModelMetadata(ParserBaseObject):
         ParserParam("publisher", "publisher", str),
         ParserParam("source_code", "source_code", str),
     ]
+
+    def get_status_string(self) -> str:
+        """Return a human readable string representing the status of the model
+        this metadata is for
+
+        e.g.
+            P - Pending
+            F - Failed
+            L - Live
+            S - Superseded
+            D - Deprecated
+        """
+        return self.STATUS_STRINGS.get(self.status, "Unknown")
 
 
 @dataclass
@@ -222,40 +251,55 @@ class Model(ParserBaseObject):
         )
         return self._metadata
 
-    def output_details(self, long: bool = False):
-        """Prints relevant model attributes to command line
+    def get_brief_details(self) -> List:
+        """Returns an array containing brief details about this model for
+        the get models command
 
-        Args:
-            long (bool): Whether to print with the (potentially long)
-                         description (ignored if description is None)
+        Returns
+            List: Containing display_name, model_id, status, access,
+                  publication date and summary
         """
+        return [
+            self.metadata.display_name,
+            self.model_id,
+            self.metadata.get_status_string(),
+            self.auth.get_permission_string(),
+            format_datetime(self.publication_date, include_time=False),
+            self.metadata.summary,
+        ]
+
+    def output_details(self):
+        """Prints information about the model to command line (used for get
+        model)"""
 
         click.echo(
-            "Name: "
-            + self.metadata.display_name
-            + TAB_SPACE
-            + "ID: "
-            + self.model_id
-            + TAB_SPACE
-            + "Created: "
-            + format_datetime(self.creation_date, include_time=True)
+            f"{self.metadata.display_name}  |  Status: {self.metadata.get_status_string()}  |  Tags: {', '.join(self.version_tags)}"
         )
-        click.echo("Summary: " + self.metadata.summary)
-        if long and self.metadata.description is not None:
-            click.echo("Description: ")
-            prose_print(self.metadata.description, CONSOLE_WIDTH)
         click.echo("")
-
-    def output_info(self):
-        """Prints information about the model to command line"""
-
-        click.echo("Name: " + self.metadata.display_name)
-        click.echo("Created: " + format_datetime(self.creation_date, include_time=True))
-        click.echo("Parent ID: " + self.parent_id)
-        click.echo("Summary: ")
+        click.echo(f"Published by: {self.metadata.publisher}")
+        click.echo("")
+        click.echo(
+            tabulate(
+                [
+                    ["Date:", format_datetime(self.creation_date, include_time=True)],
+                    ["ID:", self.model_id],
+                    ["Parent ID:", self.parent_id],
+                ],
+                tablefmt="plain",
+            )
+        )
+        click.echo("")
+        click.echo("Version message:")
+        click.echo(self.version_message)
+        click.echo("")
+        click.echo("Summary:")
         click.echo(self.metadata.summary)
-        click.echo("Description: ")
+        click.echo("")
+        click.echo("Description:")
         prose_print(self.metadata.description, CONSOLE_WIDTH)
+        click.echo("")
+        click.echo("Source code:")
+        click.echo(self.metadata.source_code)
         if self.spec.inputs is not None:
             click.echo("")
             click.echo("Input Parameters: ")
@@ -280,16 +324,29 @@ class Model(ParserBaseObject):
         )
 
     def output_version_history(self):
-        """Prints the version history for the model to the command line"""
+        """Iterates through all versions and outputs their details in a table
+        printed to the command line"""
+        table_rows = []
         for version in self.version_history:
-            click.echo(
-                f"Name: {self.metadata.display_name}{TAB_SPACE}"
-                f"ID: {version.version_id}{TAB_SPACE}"
-                f"Publication date: {format_datetime(version.publication_date, include_time=True)}"
+            table_rows.append(
+                [
+                    version.version_id,
+                    format_datetime(version.publication_date, include_time=True),
+                    ", ".join(version.version_tags),
+                    version.version_message,
+                ]
             )
-            click.echo(f"Version message: {version.version_message}")
-            click.echo(f"Version tags: {', '.join(version.version_tags)}")
-            click.echo("")
+        click.echo(
+            format_table(
+                headers=[
+                    TABLE_VERSION_ID_HEADER,
+                    TABLE_PUBLICATION_DATE_HEADER,
+                    TABLE_VERSION_TAGS_HEADER,
+                    TABLE_VERSION_MESSAGE_HEADER,
+                ],
+                rows=table_rows,
+            )
+        )
 
 
 # The following methods mostly exists to get round current python limitations
