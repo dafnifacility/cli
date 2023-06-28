@@ -44,3 +44,27 @@ class TestAuth(TestCase):
                 name=TEST_AUTH_DATA_OBJECTS["name"],
             ),
         )
+
+    def test_get_permission_string_full_access(self):
+        """Tests get_permission_string returns 'Full access' when
+        appropriate"""
+        auth_obj = ParserBaseObject.parse_from_dict(Auth, TEST_AUTH_DATA_OBJECTS)
+        auth_obj.read = True
+        auth_obj.view = True
+        self.assertEqual(auth_obj.get_permission_string(), "Full access")
+
+    def test_get_permission_string_view_only(self):
+        """Tests get_permission_string returns 'View only' when
+        appropriate"""
+        auth_obj = ParserBaseObject.parse_from_dict(Auth, TEST_AUTH_DATA_OBJECTS)
+        auth_obj.read = False
+        auth_obj.view = True
+        self.assertEqual(auth_obj.get_permission_string(), "View only")
+
+    def test_get_permission_string_not_visible(self):
+        """Tests get_permission_string returns 'Not visible' when
+        appropriate"""
+        auth_obj = ParserBaseObject.parse_from_dict(Auth, TEST_AUTH_DATA_OBJECTS)
+        auth_obj.read = False
+        auth_obj.view = False
+        self.assertEqual(auth_obj.get_permission_string(), "Not visible")

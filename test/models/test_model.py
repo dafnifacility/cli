@@ -6,9 +6,16 @@ from dateutil.tz import tzutc
 
 from dafni_cli.api.auth import Auth
 from dafni_cli.api.parser import ParserBaseObject
-from dafni_cli.consts import CONSOLE_WIDTH, TAB_SPACE
+from dafni_cli.consts import (
+    CONSOLE_WIDTH,
+    TAB_SPACE,
+    TABLE_PUBLICATION_DATE_HEADER,
+    TABLE_VERSION_ID_HEADER,
+    TABLE_VERSION_MESSAGE_HEADER,
+    TABLE_VERSION_TAGS_HEADER,
+)
 from dafni_cli.models.inputs import ModelInputs
-from dafni_cli.models.model import Model, ModelSpec, parse_model, parse_models
+from dafni_cli.models.model import ModelMetadata, ModelSpec, parse_model, parse_models
 from dafni_cli.models.outputs import ModelOutputs
 from dafni_cli.utils import format_datetime
 
@@ -20,6 +27,42 @@ from test.fixtures.models import (
     TEST_MODEL_SPEC_DEFAULT,
     TEST_MODELS,
 )
+
+
+class TestModelMetadata(TestCase):
+    """Tests the ModelMetadata dataclass"""
+
+    def test_parse(self):
+        """Tests get_status_string"""
+        model_metadata: ModelMetadata = ParserBaseObject.parse_from_dict(
+            ModelMetadata, TEST_MODEL_METADATA
+        )
+
+        self.assertEqual(
+            model_metadata.display_name,
+            TEST_MODEL_METADATA["display_name"],
+        )
+        self.assertEqual(model_metadata.name, TEST_MODEL_METADATA["name"])
+        self.assertEqual(model_metadata.summary, TEST_MODEL_METADATA["summary"])
+        self.assertEqual(model_metadata.status, TEST_MODEL_METADATA["status"])
+        self.assertEqual(model_metadata.description, TEST_MODEL_METADATA["description"])
+        self.assertEqual(model_metadata.publisher, TEST_MODEL_METADATA["publisher"])
+        self.assertEqual(model_metadata.source_code, TEST_MODEL_METADATA["source_code"])
+
+    def test_get_status_string(self):
+        """Tests get_status_string"""
+        model_metadata: ModelMetadata = ParserBaseObject.parse_from_dict(
+            ModelMetadata, TEST_MODEL_METADATA
+        )
+
+        # Check each status
+        for key, value in ModelMetadata.STATUS_STRINGS.items():
+            model_metadata.status = key
+            self.assertEqual(model_metadata.get_status_string(), value)
+
+        # Check an invalid status
+        model_metadata.status = "InvalidKey"
+        self.assertEqual(model_metadata.get_status_string(), "Unknown")
 
 
 class TestModelSpec(TestCase):
@@ -58,7 +101,7 @@ class TestModel(TestCase):
     ) -> None:
         super().setUp()
 
-        # These are used for test_output_info_*
+        # These are used for test_output_details_*
         self.mock_inputs_format_parameters = patch.object(
             ModelInputs, "format_parameters"
         ).start()
@@ -203,8 +246,36 @@ class TestModel(TestCase):
         self.assertEqual(model.metadata.publisher, TEST_MODEL_METADATA["publisher"])
         self.assertEqual(model.metadata.source_code, TEST_MODEL_METADATA["source_code"])
 
+    def test_get_brief_details(self):
+        """Tests get_brief_details works correctly"""
+        # SETUP
+        model = parse_model(TEST_MODEL)
+
+        # CALL
+        result = model.get_brief_details()
+
+        # ASSERT
+        self.assertEqual(
+            result,
+            [
+                model.metadata.display_name,
+                model.model_id,
+                model.metadata.get_status_string(),
+                model.auth.get_permission_string(),
+                format_datetime(model.publication_date, include_time=False),
+                model.metadata.summary,
+            ],
+        )
+
+    @patch("dafni_cli.models.model.tabulate")
+    @patch("dafni_cli.models.model.prose_print")
     @patch("dafni_cli.models.model.click")
-    def test_output_details(self, mock_click):
+    def test_output_details(
+        self,
+        mock_click,
+        mock_prose_print,
+        mock_tabulate,
+    ):
         """Tests output_details works correctly"""
         # SETUP
         model = parse_model(TEST_MODEL)
@@ -213,71 +284,30 @@ class TestModel(TestCase):
         model.output_details()
 
         # ASSERT
-        mock_click.echo.assert_has_calls(
-            [
-                call(
-                    f"Name: Some display name{TAB_SPACE}"
-                    f"ID: 0a0a0a0a-0a00-0a00-a000-0a0a0000000a{TAB_SPACE}"
-                    f"Created: {format_datetime(model.creation_date, include_time=True)}"
-                ),
-                call("Summary: For testing"),
-                call(""),
-            ]
-        )
-
-    @patch("dafni_cli.models.model.prose_print")
-    @patch("dafni_cli.models.model.click")
-    def test_output_details_with_long(self, mock_click, mock_prose_print):
-        """Tests output_details works correctly when 'long' is set to True"""
-        # SETUP
-        model = parse_model(TEST_MODEL)
-
-        # CALL
-        model.output_details(long=True)
-
-        # ASSERT
-        mock_click.echo.assert_has_calls(
-            [
-                call(
-                    f"Name: Some display name{TAB_SPACE}"
-                    f"ID: 0a0a0a0a-0a00-0a00-a000-0a0a0000000a{TAB_SPACE}"
-                    f"Created: {format_datetime(model.creation_date, include_time=True)}"
-                ),
-                call("Summary: For testing"),
-                call("Description: "),
-                call(""),
-            ]
-        )
-        mock_prose_print.called_once_with("description", CONSOLE_WIDTH)
-
-    @patch("dafni_cli.models.model.prose_print")
-    @patch("dafni_cli.models.model.click")
-    def test_output_info(
-        self,
-        mock_click,
-        mock_prose_print,
-    ):
-        """Tests output_info works correctly"""
-        # SETUP
-        model = parse_model(TEST_MODEL)
-
-        # CALL
-        model.output_info()
-
-        # ASSERT
         self.mock_inputs_format_parameters.assert_called_once()
         self.mock_inputs_format_dataslots.assert_called_once()
         self.mock_outputs_format_outputs.assert_called_once()
-        mock_click.echo.assert_has_calls(
+        self.assertEqual(
+            mock_click.echo.mock_calls,
             [
-                call("Name: Some display name"),
                 call(
-                    f"Created: {format_datetime(model.creation_date, include_time=True)}"
+                    f"{model.metadata.display_name}  |  Status: {model.metadata.get_status_string()}  |  Tags: {', '.join(model.version_tags)}"
                 ),
-                call("Parent ID: 0a0a0a0a-0a00-0a00-a000-0a0a0000000b"),
-                call("Summary: "),
-                call("For testing"),
-                call("Description: "),
+                call(""),
+                call(f"Published by: {str(model.metadata.publisher)}"),
+                call(""),
+                call(mock_tabulate.return_value),
+                call(""),
+                call("Version message:"),
+                call(model.version_message),
+                call(""),
+                call("Summary:"),
+                call(model.metadata.summary),
+                call(""),
+                call("Description:"),
+                call(""),
+                call("Source code:"),
+                call(model.metadata.source_code),
                 call(""),
                 call("Input Parameters: "),
                 call(self.mock_inputs_format_parameters.return_value),
@@ -287,22 +317,31 @@ class TestModel(TestCase):
                 call(""),
                 call("Outputs: "),
                 call(self.mock_outputs_format_outputs.return_value),
-            ]
+            ],
+        )
+        mock_tabulate.assert_called_once_with(
+            [
+                ["Date:", format_datetime(model.creation_date, include_time=True)],
+                ["ID:", model.model_id],
+                ["Parent ID:", model.parent_id],
+            ],
+            tablefmt="plain",
         )
         mock_prose_print.assert_called_once_with("Test description", CONSOLE_WIDTH)
 
+    @patch("dafni_cli.models.model.tabulate")
     @patch("dafni_cli.models.model.prose_print")
     @patch("dafni_cli.models.model.click")
-    def test_output_info_correct_when_inputs_present_but_not_outputs(
-        self, mock_click, mock_prose_print
+    def test_output_details_correct_when_inputs_present_but_not_outputs(
+        self, mock_click, mock_prose_print, mock_tabulate
     ):
-        """Tests output_info works correctly"""
+        """Tests output_details works correctly"""
         # SETUP
         model = parse_model(TEST_MODEL)
         model.spec.outputs = None
 
         # CALL
-        model.output_info()
+        model.output_details()
 
         # ASSERT
         self.mock_inputs_format_parameters.assert_called_once()
@@ -310,14 +349,24 @@ class TestModel(TestCase):
         self.mock_outputs_format_outputs.assert_not_called()
         mock_click.echo.assert_has_calls(
             [
-                call("Name: Some display name"),
                 call(
-                    f"Created: {format_datetime(model.creation_date, include_time=True)}"
+                    f"{model.metadata.display_name}  |  Status: {model.metadata.get_status_string()}  |  Tags: {', '.join(model.version_tags)}"
                 ),
-                call("Parent ID: 0a0a0a0a-0a00-0a00-a000-0a0a0000000b"),
-                call("Summary: "),
-                call("For testing"),
-                call("Description: "),
+                call(""),
+                call(f"Published by: {str(model.metadata.publisher)}"),
+                call(""),
+                call(mock_tabulate.return_value),
+                call(""),
+                call("Version message:"),
+                call(model.version_message),
+                call(""),
+                call("Summary:"),
+                call(model.metadata.summary),
+                call(""),
+                call("Description:"),
+                call(""),
+                call("Source code:"),
+                call(model.metadata.source_code),
                 call(""),
                 call("Input Parameters: "),
                 call(self.mock_inputs_format_parameters.return_value),
@@ -326,71 +375,119 @@ class TestModel(TestCase):
                 call(self.mock_inputs_format_dataslots.return_value),
             ]
         )
+        mock_tabulate.assert_called_once_with(
+            [
+                ["Date:", format_datetime(model.creation_date, include_time=True)],
+                ["ID:", model.model_id],
+                ["Parent ID:", model.parent_id],
+            ],
+            tablefmt="plain",
+        )
         mock_prose_print.assert_called_once_with("Test description", CONSOLE_WIDTH)
 
+    @patch("dafni_cli.models.model.tabulate")
     @patch("dafni_cli.models.model.prose_print")
     @patch("dafni_cli.models.model.click")
-    def test_output_info_correct_when_outputs_present_but_not_inputs(
-        self, mock_click, mock_prose_print
+    def test_output_details_correct_when_outputs_present_but_not_inputs(
+        self, mock_click, mock_prose_print, mock_tabulate
     ):
-        """Tests output_info works correctly"""
+        """Tests output_details works correctly"""
         # SETUP
         model = parse_model(TEST_MODEL)
         model.spec.inputs = None
 
         # CALL
-        model.output_info()
+        model.output_details()
 
         # ASSERT
         self.mock_inputs_format_parameters.assert_not_called()
         self.mock_inputs_format_dataslots.assert_not_called()
         self.mock_outputs_format_outputs.assert_called_once()
-        mock_click.echo.assert_has_calls(
+        self.assertEqual(
+            mock_click.echo.mock_calls,
             [
-                call("Name: Some display name"),
                 call(
-                    f"Created: {format_datetime(model.creation_date, include_time=True)}"
+                    f"{model.metadata.display_name}  |  Status: {model.metadata.get_status_string()}  |  Tags: {', '.join(model.version_tags)}"
                 ),
-                call("Parent ID: 0a0a0a0a-0a00-0a00-a000-0a0a0000000b"),
-                call("Summary: "),
-                call("For testing"),
-                call("Description: "),
+                call(""),
+                call(f"Published by: {str(model.metadata.publisher)}"),
+                call(""),
+                call(mock_tabulate.return_value),
+                call(""),
+                call("Version message:"),
+                call(model.version_message),
+                call(""),
+                call("Summary:"),
+                call(model.metadata.summary),
+                call(""),
+                call("Description:"),
+                call(""),
+                call("Source code:"),
+                call(model.metadata.source_code),
                 call(""),
                 call("Outputs: "),
                 call(self.mock_outputs_format_outputs.return_value),
-            ]
+            ],
+        )
+        mock_tabulate.assert_called_once_with(
+            [
+                ["Date:", format_datetime(model.creation_date, include_time=True)],
+                ["ID:", model.model_id],
+                ["Parent ID:", model.parent_id],
+            ],
+            tablefmt="plain",
         )
         mock_prose_print.assert_called_once_with("Test description", CONSOLE_WIDTH)
 
+    @patch("dafni_cli.models.model.tabulate")
     @patch("dafni_cli.models.model.prose_print")
     @patch("dafni_cli.models.model.click")
-    def test_output_info_correct_when_neither_inputs_nor_outputs_are_present(
-        self, mock_click, mock_prose_print
+    def test_output_details_correct_when_neither_inputs_nor_outputs_are_present(
+        self, mock_click, mock_prose_print, mock_tabulate
     ):
-        """Tests output_info works correctly"""
+        """Tests output_details works correctly"""
         # SETUP
         model = parse_model(TEST_MODEL)
         model.spec.inputs = None
         model.spec.outputs = None
 
         # CALL
-        model.output_info()
+        model.output_details()
 
         # ASSERT
         self.mock_inputs_format_parameters.assert_not_called()
         self.mock_inputs_format_dataslots.assert_not_called()
         self.mock_outputs_format_outputs.assert_not_called()
-        mock_click.echo.assert_has_calls(
+        self.assertEqual(
+            mock_click.echo.mock_calls,
             [
-                call("Name: Some display name"),
                 call(
-                    f"Created: {format_datetime(model.creation_date, include_time=True)}"
+                    f"{model.metadata.display_name}  |  Status: {model.metadata.get_status_string()}  |  Tags: {', '.join(model.version_tags)}"
                 ),
-                call("Parent ID: 0a0a0a0a-0a00-0a00-a000-0a0a0000000b"),
-                call("Summary: "),
-                call("For testing"),
-                call("Description: "),
-            ]
+                call(""),
+                call(f"Published by: {str(model.metadata.publisher)}"),
+                call(""),
+                call(mock_tabulate.return_value),
+                call(""),
+                call("Version message:"),
+                call(model.version_message),
+                call(""),
+                call("Summary:"),
+                call(model.metadata.summary),
+                call(""),
+                call("Description:"),
+                call(""),
+                call("Source code:"),
+                call(model.metadata.source_code),
+            ],
+        )
+        mock_tabulate.assert_called_once_with(
+            [
+                ["Date:", format_datetime(model.creation_date, include_time=True)],
+                ["ID:", model.model_id],
+                ["Parent ID:", model.parent_id],
+            ],
+            tablefmt="plain",
         )
         mock_prose_print.assert_called_once_with("Test description", CONSOLE_WIDTH)
 
@@ -411,8 +508,9 @@ class TestModel(TestCase):
             "Version message: ",
         )
 
+    @patch("dafni_cli.models.model.format_table")
     @patch("dafni_cli.models.model.click")
-    def test_output_version_history(self, mock_click):
+    def test_output_version_history(self, mock_click, mock_format_table):
         """Tests output_version_history works correctly"""
         # SETUP
         model = parse_model(TEST_MODEL)
@@ -421,15 +519,20 @@ class TestModel(TestCase):
         model.output_version_history()
 
         # ASSERT
-        mock_click.echo.assert_has_calls(
-            [
-                call(
-                    f"Name: Some display name{TAB_SPACE}"
-                    f"ID: 0a0a0a0a-0a00-0a00-a000-0a0a0000000d{TAB_SPACE}"
-                    f"Publication date: {format_datetime(model.publication_date, include_time=True)}"
-                ),
-                call("Version message: First version"),
-                call("Version tags: latest"),
-                call(""),
-            ]
+        mock_format_table.assert_called_once_with(
+            headers=[
+                TABLE_VERSION_ID_HEADER,
+                TABLE_PUBLICATION_DATE_HEADER,
+                TABLE_VERSION_TAGS_HEADER,
+                TABLE_VERSION_MESSAGE_HEADER,
+            ],
+            rows=[
+                [
+                    "0a0a0a0a-0a00-0a00-a000-0a0a0000000d",
+                    format_datetime(datetime(2020, 4, 2, 9, 12, 25), include_time=True),
+                    "latest",
+                    "First version",
+                ]
+            ],
         )
+        mock_click.echo.assert_called_once_with(mock_format_table.return_value)
