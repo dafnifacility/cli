@@ -15,7 +15,7 @@ from dafni_cli.consts import (
     TABLE_VERSION_TAGS_HEADER,
 )
 from dafni_cli.models.inputs import ModelInputs
-from dafni_cli.models.model import ModelSpec, parse_model, parse_models
+from dafni_cli.models.model import ModelMetadata, ModelSpec, parse_model, parse_models
 from dafni_cli.models.outputs import ModelOutputs
 from dafni_cli.utils import format_datetime
 
@@ -27,6 +27,42 @@ from test.fixtures.models import (
     TEST_MODEL_SPEC_DEFAULT,
     TEST_MODELS,
 )
+
+
+class TestModelMetadata(TestCase):
+    """Tests the ModelMetadata dataclass"""
+
+    def test_parse(self):
+        """Tests get_status_string"""
+        model_metadata: ModelMetadata = ParserBaseObject.parse_from_dict(
+            ModelMetadata, TEST_MODEL_METADATA
+        )
+
+        self.assertEqual(
+            model_metadata.display_name,
+            TEST_MODEL_METADATA["display_name"],
+        )
+        self.assertEqual(model_metadata.name, TEST_MODEL_METADATA["name"])
+        self.assertEqual(model_metadata.summary, TEST_MODEL_METADATA["summary"])
+        self.assertEqual(model_metadata.status, TEST_MODEL_METADATA["status"])
+        self.assertEqual(model_metadata.description, TEST_MODEL_METADATA["description"])
+        self.assertEqual(model_metadata.publisher, TEST_MODEL_METADATA["publisher"])
+        self.assertEqual(model_metadata.source_code, TEST_MODEL_METADATA["source_code"])
+
+    def test_get_status_string(self):
+        """Tests get_status_string"""
+        model_metadata: ModelMetadata = ParserBaseObject.parse_from_dict(
+            ModelMetadata, TEST_MODEL_METADATA
+        )
+
+        # Check each status
+        for key, value in ModelMetadata.STATUS_STRINGS.items():
+            model_metadata.status = key
+            self.assertEqual(model_metadata.get_status_string(), value)
+
+        # Check an invalid status
+        model_metadata.status = "InvalidKey"
+        self.assertEqual(model_metadata.get_status_string(), "Unknown")
 
 
 class TestModelSpec(TestCase):
@@ -224,7 +260,7 @@ class TestModel(TestCase):
             [
                 model.metadata.display_name,
                 model.model_id,
-                model.metadata.status,
+                model.metadata.get_status_string(),
                 model.auth.get_permission_string(),
                 format_datetime(model.publication_date, include_time=False),
                 model.metadata.summary,
@@ -255,7 +291,7 @@ class TestModel(TestCase):
             mock_click.echo.mock_calls,
             [
                 call(
-                    f"{model.metadata.display_name}  |  Status: {model.metadata.status}  |  Tags: {', '.join(model.version_tags)}"
+                    f"{model.metadata.display_name}  |  Status: {model.metadata.get_status_string()}  |  Tags: {', '.join(model.version_tags)}"
                 ),
                 call(""),
                 call(f"Published by: {str(model.metadata.publisher)}"),
@@ -314,7 +350,7 @@ class TestModel(TestCase):
         mock_click.echo.assert_has_calls(
             [
                 call(
-                    f"{model.metadata.display_name}  |  Status: {model.metadata.status}  |  Tags: {', '.join(model.version_tags)}"
+                    f"{model.metadata.display_name}  |  Status: {model.metadata.get_status_string()}  |  Tags: {', '.join(model.version_tags)}"
                 ),
                 call(""),
                 call(f"Published by: {str(model.metadata.publisher)}"),
@@ -371,7 +407,7 @@ class TestModel(TestCase):
             mock_click.echo.mock_calls,
             [
                 call(
-                    f"{model.metadata.display_name}  |  Status: {model.metadata.status}  |  Tags: {', '.join(model.version_tags)}"
+                    f"{model.metadata.display_name}  |  Status: {model.metadata.get_status_string()}  |  Tags: {', '.join(model.version_tags)}"
                 ),
                 call(""),
                 call(f"Published by: {str(model.metadata.publisher)}"),
@@ -426,7 +462,7 @@ class TestModel(TestCase):
             mock_click.echo.mock_calls,
             [
                 call(
-                    f"{model.metadata.display_name}  |  Status: {model.metadata.status}  |  Tags: {', '.join(model.version_tags)}"
+                    f"{model.metadata.display_name}  |  Status: {model.metadata.get_status_string()}  |  Tags: {', '.join(model.version_tags)}"
                 ),
                 call(""),
                 call(f"Published by: {str(model.metadata.publisher)}"),

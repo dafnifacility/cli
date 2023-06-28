@@ -53,6 +53,14 @@ class ModelMetadata(ParserBaseObject):
     publisher: Optional[str] = None
     source_code: Optional[str] = None
 
+    STATUS_STRINGS = {
+        "P": "Pending",
+        "F": "Failed",
+        "L": "Live",
+        "S": "Superseded",
+        "D": "Deprecated",
+    }
+
     _parser_params: ClassVar[List[ParserParam]] = [
         ParserParam("display_name", "display_name", str),
         ParserParam("name", "name", str),
@@ -62,6 +70,19 @@ class ModelMetadata(ParserBaseObject):
         ParserParam("publisher", "publisher", str),
         ParserParam("source_code", "source_code", str),
     ]
+
+    def get_status_string(self) -> str:
+        """Return a human readable string representing the status of the model
+        this metadata is for
+
+        e.g.
+            P - Pending
+            F - Failed
+            L - Live
+            S - Superseded
+            D - Deprecated
+        """
+        return self.STATUS_STRINGS.get(self.status, "Unknown")
 
 
 @dataclass
@@ -241,7 +262,7 @@ class Model(ParserBaseObject):
         return [
             self.metadata.display_name,
             self.model_id,
-            self.metadata.status,
+            self.metadata.get_status_string(),
             self.auth.get_permission_string(),
             format_datetime(self.publication_date, include_time=False),
             self.metadata.summary,
@@ -252,7 +273,7 @@ class Model(ParserBaseObject):
         model)"""
 
         click.echo(
-            f"{self.metadata.display_name}  |  Status: {self.metadata.status}  |  Tags: {', '.join(self.version_tags)}"
+            f"{self.metadata.display_name}  |  Status: {self.metadata.get_status_string()}  |  Tags: {', '.join(self.version_tags)}"
         )
         click.echo("")
         click.echo(f"Published by: {self.metadata.publisher}")
