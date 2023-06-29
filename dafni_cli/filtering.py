@@ -1,6 +1,8 @@
 from datetime import datetime
 from typing import Any, Callable, List, Union
 
+from dateutil.tz import tzutc
+
 from dafni_cli.models.model import Model
 from dafni_cli.workflows.instance import WorkflowInstance
 from dafni_cli.workflows.workflow import Workflow
@@ -112,22 +114,65 @@ def text_filter(
     return filter_text
 
 
-def start_date_filter(
-    oldest_start_date: datetime,
+def start_filter(
+    oldest_start_datetime: datetime,
 ) -> Callable[[WorkflowInstance], bool]:
-    """Returns a filter for filtering workflow instances by the date they were
-    submitted
+    """Returns a filter for filtering workflow instances by the date & time
+    they were submitted
 
     Args:
-        oldest_start_date (datetime): Start date to filter by. All objects
-                            with a start date after this will be returned by
-                            the filter. (Only the date part will be used)
+        oldest_start_datetime (datetime): Start datetime to filter by. All objects
+                            with a submission time after this will be returned by
+                            the filter.
     Returns:
-        Callable[[Union[Model, Workflow]], bool]: Filter function to use with
-                                                  filter_multiple
+        Callable[[Union[WorkflowInstance]], bool]: Filter function to use with
+                                                   filter_multiple
     """
 
-    def filter_start_date(value: WorkflowInstance) -> bool:
-        return value.submission_time.date() >= oldest_start_date.date()
+    def filter_start(value: WorkflowInstance) -> bool:
+        return value.submission_time >= oldest_start_datetime.replace(tzinfo=tzutc())
 
-    return filter_start_date
+    return filter_start
+
+
+def end_filter(
+    oldest_end_datetime: datetime,
+) -> Callable[[WorkflowInstance], bool]:
+    """Returns a filter for filtering workflow instances by the date & time
+    they finished executing
+
+    Args:
+        oldest_end_datetime (datetime): End datetime to filter by. All objects
+                            with a finished time after this will be returned by
+                            the filter. (Will also filter any out that haven't
+                            finished)
+    Returns:
+        Callable[[Union[WorkflowInstance]], bool]: Filter function to use with
+                                                   filter_multiple
+    """
+
+    def filter_end(value: WorkflowInstance) -> bool:
+        if value.finished_time is None:
+            return False
+        return value.finished_time >= oldest_end_datetime.replace(tzinfo=tzutc())
+
+    return filter_end
+
+
+def status_filter(
+    status: str,
+) -> Callable[[WorkflowInstance], bool]:
+    """Returns a filter for filtering workflow instances their overall status
+
+    Args:
+        status (str): Status to filter by. All instances with a status equal
+                      to the filter will be returned.
+    Returns:
+        Callable[[Union[WorkflowInstance]], bool]: Filter function to use with
+                                                   filter_multiple
+    """
+
+    def filter_status(value: WorkflowInstance) -> bool:
+        return value.overall_status == status
+
+    return filter_status

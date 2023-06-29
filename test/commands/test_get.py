@@ -1313,7 +1313,7 @@ class TestGetWorkflowInstances(TestCase):
         self.addCleanup(patch.stopall)
 
     def test_get_workflow_instances(self):
-        """Tests that the 'get workflows' command works correctly (with no
+        """Tests that the 'get workflow-instances' command works correctly (with no
         optional arguments)"""
 
         # SETUP
@@ -1366,10 +1366,10 @@ class TestGetWorkflowInstances(TestCase):
 
         self.assertEqual(result.exit_code, 0)
 
-    def test_get_workflows_with_json_true(
+    def test_get_workflow_instances_with_json_true(
         self,
     ):
-        """Tests that the 'get workflows' command works correctly (with json
+        """Tests that the 'get workflow-instances' command works correctly (with json
         True)"""
 
         # SETUP

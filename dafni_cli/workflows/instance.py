@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 from datetime import datetime
-from typing import ClassVar, List
+from typing import ClassVar, List, Optional
 
 from dafni_cli.api.parser import ParserBaseObject, ParserParam, parse_datetime
 from dafni_cli.utils import format_datetime
@@ -68,7 +68,7 @@ class WorkflowInstance(ParserBaseObject):
     overall_status: str
     parameter_set: WorkflowInstanceParameterSet
     workflow_version: WorkflowInstanceWorkflowVersion
-    finished_time: datetime = None
+    finished_time: Optional[datetime] = None
 
     _parser_params: ClassVar[List[ParserParam]] = [
         ParserParam("instance_id", "instance_id", str),

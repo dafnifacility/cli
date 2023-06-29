@@ -16,6 +16,8 @@ from dafni_cli.commands.helpers import (
 from dafni_cli.consts import (
     DATE_INPUT_FORMAT,
     DATE_INPUT_FORMAT_VERBOSE,
+    DATE_TIME_INPUT_FORMAT,
+    DATE_TIME_INPUT_FORMAT_VERBOSE,
     TABLE_ACCESS_HEADER,
     TABLE_DISPLAY_NAME_MAX_COLUMN_WIDTH,
     TABLE_FINISHED_HEADER,
@@ -35,9 +37,11 @@ from dafni_cli.datasets.dataset import parse_datasets
 from dafni_cli.datasets.dataset_metadata import parse_dataset_metadata
 from dafni_cli.filtering import (
     creation_date_filter,
+    end_filter,
+    status_filter,
     filter_multiple,
     publication_date_filter,
-    start_date_filter,
+    start_filter,
     text_filter,
 )
 from dafni_cli.models.model import parse_model, parse_models
@@ -458,10 +462,32 @@ def workflow(ctx: Context, version_id: List[str], version_history: bool, json: b
 @get.command(help="List and filter workflow instances")
 @click.argument("version-id", required=True)
 @click.option(
-    "--start-date",
+    "--start",
     default=None,
-    help=f"Filter instances submitted after a given date. Format: {DATE_INPUT_FORMAT_VERBOSE}",
-    type=click.DateTime(formats=[DATE_INPUT_FORMAT]),
+    help=f"Filter instances submitted after a given date/time. Format: {DATE_INPUT_FORMAT_VERBOSE} or {DATE_TIME_INPUT_FORMAT_VERBOSE}",
+    type=click.DateTime(formats=[DATE_INPUT_FORMAT, DATE_TIME_INPUT_FORMAT]),
+)
+@click.option(
+    "--end",
+    default=None,
+    help=f"Filter instances that finished after a given date/time. Format: {DATE_INPUT_FORMAT_VERBOSE} or {DATE_TIME_INPUT_FORMAT_VERBOSE}",
+    type=click.DateTime(formats=[DATE_INPUT_FORMAT, DATE_TIME_INPUT_FORMAT]),
+)
+@click.option(
+    "--succeeded",
+    "-s",
+    is_flag=True,
+    default=False,
+    help="Filters instances that succeeded execution.",
+    type=bool,
+)
+@click.option(
+    "--failed",
+    "-f",
+    is_flag=True,
+    default=False,
+    help="Filters instances that failed execution.",
+    type=bool,
 )
 @click.option(
     "--json/--pretty",
@@ -474,7 +500,10 @@ def workflow(ctx: Context, version_id: List[str], version_history: bool, json: b
 def workflow_instances(
     ctx: Context,
     version_id: str,
-    start_date: Optional[datetime],
+    start: Optional[datetime],
+    end: Optional[datetime],
+    succeeded: bool,
+    failed: bool,
     json: bool,
 ):
     """Display attributes of all workflows instances for a particular workflow
@@ -484,8 +513,14 @@ def workflow_instances(
         ctx (context): Contains user session for authentication
         version_id (str): Version ID of the workflow to display the instances
                           of
-        start_date (Optional[str]): For filtering by start date. Format:
-                                    DATE_INPUT_FORMAT_VERBOSE
+        start (Optional[str]): For filtering by start date/time. Format:
+                               DATE_INPUT_FORMAT_VERBOSE or
+                               DATE_TIME_INPUT_FORMAT_VERBOSE
+        end (Optional[str]): For filtering by start date/time. Format:
+                             DATE_INPUT_FORMAT_VERBOSE or
+                             DATE_TIME_INPUT_FORMAT_VERBOSE
+        succeeded (bool): Whether to filter successful instances
+        failed (bool): Whether to filter failed instances
         json (bool): Whether to print the raw json returned by the DAFNI API
     """
     workflow_dict = cli_get_workflow(ctx.obj["session"], version_id)
@@ -493,8 +528,14 @@ def workflow_instances(
 
     # Apply filtering
     filters = []
-    if start_date:
-        filters.append(start_date_filter(start_date))
+    if start:
+        filters.append(start_filter(start))
+    if end:
+        filters.append(end_filter(start))
+    if succeeded:
+        filters.append(status_filter("Succeeded"))
+    if failed:
+        filters.append(status_filter("Failed"))
 
     filtered_instances, filtered_instance_dicts = filter_multiple(
         filters, workflow_inst.instances, workflow_dict["instances"]
