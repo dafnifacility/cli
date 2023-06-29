@@ -750,7 +750,7 @@ class DatasetMetadata(ParserBaseObject):
             )
         )
 
-    def get_dataset_details(self) -> str:
+    def get_details(self) -> str:
         """Returns a string with details about the dataset (used prior to
         deletion)"""
         version_ids = "\n".join(
@@ -764,7 +764,7 @@ class DatasetMetadata(ParserBaseObject):
             f"Version IDs:\n{version_ids}\n"
         )
 
-    def get_dataset_version_details(self) -> str:
+    def get_version_details(self) -> str:
         """Returns a string with details about the dataset version (used prior
         to deletion)"""
         return (

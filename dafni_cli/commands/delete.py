@@ -153,7 +153,7 @@ def collate_dataset_details(
     return _collate_dataset_details(
         session=session,
         version_ids=version_ids,
-        obtain_details=lambda dataset_meta: dataset_meta.get_dataset_details(),
+        obtain_details=lambda dataset_meta: dataset_meta.get_details(),
         permissions_message="You do not have sufficient permissions to delete dataset:",
     )
 
@@ -204,7 +204,7 @@ def collate_dataset_version_details(
     return _collate_dataset_details(
         session=session,
         version_ids=version_ids,
-        obtain_details=lambda dataset_meta: dataset_meta.get_dataset_version_details(),
+        obtain_details=lambda dataset_meta: dataset_meta.get_version_details(),
         permissions_message="You do not have sufficient permissions to delete dataset version:",
     )
 

@@ -784,15 +784,15 @@ class TestDatasetMetadataTestCase(TestCase):
             tablefmt="plain",
         )
 
-    def test_get_dataset_details(self):
-        """Tests test_get_dataset_details functions as expected"""
+    def test_get_details(self):
+        """Tests test_get_details functions as expected"""
         # SETUP
         dataset_metadata: DatasetMetadata = parse_dataset_metadata(
             TEST_DATASET_METADATA
         )
 
         # CALL
-        result = dataset_metadata.get_dataset_details()
+        result = dataset_metadata.get_details()
 
         # ASSERT
         self.assertEqual(
@@ -806,15 +806,15 @@ class TestDatasetMetadataTestCase(TestCase):
             f"{dataset_metadata.version_history.versions[1].version_id}\n",
         )
 
-    def test_get_dataset_version_details(self):
-        """Tests test_get_dataset_version_details functions as expected"""
+    def test_get_version_details(self):
+        """Tests test_get_version_details functions as expected"""
         # SETUP
         dataset_metadata: DatasetMetadata = parse_dataset_metadata(
             TEST_DATASET_METADATA
         )
 
         # CALL
-        result = dataset_metadata.get_dataset_version_details()
+        result = dataset_metadata.get_version_details()
 
         # ASSERT
         self.assertEqual(

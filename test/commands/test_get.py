@@ -1,5 +1,4 @@
 from datetime import datetime
-from test.fixtures.dataset_metadata import TEST_DATASET_METADATA
 from unittest import TestCase
 from unittest.mock import MagicMock, patch
 
@@ -18,6 +17,8 @@ from dafni_cli.consts import (
     TABLE_SUMMARY_MAX_COLUMN_WIDTH,
     TABLE_VERSION_ID_HEADER,
 )
+
+from test.fixtures.dataset_metadata import TEST_DATASET_METADATA
 
 
 @patch("dafni_cli.commands.get.DAFNISession")
