@@ -531,7 +531,7 @@ def workflow_instances(
     if start:
         filters.append(start_filter(start))
     if end:
-        filters.append(end_filter(start))
+        filters.append(end_filter(end))
     if succeeded:
         filters.append(status_filter("Succeeded"))
     if failed:

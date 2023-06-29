@@ -1,7 +1,10 @@
 from dataclasses import dataclass
 from datetime import datetime
+from typing import Optional
 from unittest import TestCase
 from unittest.mock import MagicMock
+
+from dateutil.tz import tzutc
 
 from dafni_cli import filtering
 
@@ -26,6 +29,8 @@ class TestDataclass:
     publication_date: datetime
     metadata: TestWorkflowMetadata
     submission_time: datetime
+    finished_time: Optional[datetime]
+    overall_status: str
 
 
 class TestFiltering(TestCase):
@@ -36,26 +41,32 @@ class TestFiltering(TestCase):
         TestDataclass(
             "Value1",
             "Description of object 1",
-            datetime(2022, 1, 12),
-            datetime(2022, 2, 12),
+            datetime(2022, 1, 12, tzinfo=tzutc()),
+            datetime(2022, 2, 12, tzinfo=tzutc()),
             TestWorkflowMetadata("Display name 1", "Simple summary 1"),
-            datetime(2022, 1, 12),
+            datetime(2022, 1, 12, tzinfo=tzutc()),
+            datetime(2022, 2, 12, tzinfo=tzutc()),
+            "Failed",
         ),
         TestDataclass(
             "Value2",
             "Something completely different",
-            datetime(2022, 8, 1),
-            datetime(2022, 9, 1),
+            datetime(2022, 8, 1, tzinfo=tzutc()),
+            datetime(2022, 9, 1, tzinfo=tzutc()),
             TestWorkflowMetadata("Display name 2 test", "Simple summary 2"),
-            datetime(2022, 8, 1),
+            datetime(2022, 8, 1, tzinfo=tzutc()),
+            datetime(2022, 9, 1, tzinfo=tzutc()),
+            "Succeeded",
         ),
         TestDataclass(
             "Value3",
             "Description of object 3",
-            datetime(2023, 6, 21),
-            datetime(2023, 7, 21),
+            datetime(2023, 6, 21, tzinfo=tzutc()),
+            datetime(2023, 7, 21, tzinfo=tzutc()),
             TestWorkflowMetadata("Display name 3", "Simple summary 3 test"),
-            datetime(2023, 6, 21),
+            datetime(2023, 6, 21, tzinfo=tzutc()),
+            None,
+            "",
         ),
     ]
 
@@ -203,11 +214,11 @@ class TestFiltering(TestCase):
             [self.TEST_DICTIONARIES[1], self.TEST_DICTIONARIES[2]],
         )
 
-    def test_start_date_filter(self):
-        """Tests start_date_filter works correctly"""
+    def test_start_filter(self):
+        """Tests start_filter works correctly"""
         # CALL
         filtered_instances, filtered_dictionaries = filtering.filter_multiple(
-            [filtering.start_date_filter(datetime(2022, 8, 1))],
+            [filtering.start_filter(datetime(2022, 8, 1))],
             self.TEST_INSTANCES,
             self.TEST_DICTIONARIES,
         )
@@ -219,4 +230,42 @@ class TestFiltering(TestCase):
         self.assertEqual(
             filtered_dictionaries,
             [self.TEST_DICTIONARIES[1], self.TEST_DICTIONARIES[2]],
+        )
+
+    def test_end_filter(self):
+        """Tests start_filter works correctly"""
+        # CALL
+        filtered_instances, filtered_dictionaries = filtering.filter_multiple(
+            [filtering.end_filter(datetime(2022, 9, 1))],
+            self.TEST_INSTANCES,
+            self.TEST_DICTIONARIES,
+        )
+
+        # ASSERT
+
+        # Here the 2nd instance has a finished_time of None, although should
+        # otherwise pass
+        self.assertEqual(filtered_instances, [self.TEST_INSTANCES[1]])
+        self.assertEqual(
+            filtered_dictionaries,
+            [self.TEST_DICTIONARIES[1]],
+        )
+
+    def test_status_filter(self):
+        """Tests start_filter works correctly"""
+        # CALL
+        filtered_instances, filtered_dictionaries = filtering.filter_multiple(
+            [filtering.status_filter("Succeeded")],
+            self.TEST_INSTANCES,
+            self.TEST_DICTIONARIES,
+        )
+
+        # ASSERT
+
+        # Here the 2nd instance has a finished_time of None, although should
+        # otherwise pass
+        self.assertEqual(filtered_instances, [self.TEST_INSTANCES[1]])
+        self.assertEqual(
+            filtered_dictionaries,
+            [self.TEST_DICTIONARIES[1]],
         )

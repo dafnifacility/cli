@@ -1,6 +1,7 @@
 from datetime import datetime
+from typing import List
 from unittest import TestCase
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock, call, patch
 
 from click.testing import CliRunner
 
@@ -1300,9 +1301,9 @@ class TestGetWorkflowInstances(TestCase):
         self.mock_parse_workflow = patch(
             "dafni_cli.commands.get.parse_workflow"
         ).start()
-        self.mock_start_date_filter = patch(
-            "dafni_cli.commands.get.start_date_filter"
-        ).start()
+        self.mock_start_filter = patch("dafni_cli.commands.get.start_filter").start()
+        self.mock_end_filter = patch("dafni_cli.commands.get.end_filter").start()
+        self.mock_status_filter = patch("dafni_cli.commands.get.status_filter").start()
         self.mock_filter_multiple = patch(
             "dafni_cli.commands.get.filter_multiple"
         ).start()
@@ -1312,9 +1313,14 @@ class TestGetWorkflowInstances(TestCase):
 
         self.addCleanup(patch.stopall)
 
-    def test_get_workflow_instances(self):
-        """Tests that the 'get workflow-instances' command works correctly (with no
-        optional arguments)"""
+    def _test_get_workflow_instances_with_filters(
+        self,
+        filter_arguments: List,
+        expected_filters: List,
+        json: bool,
+    ):
+        """Helper method for testing that the 'get workflow-instances' command
+        works correctly for some given filters"""
 
         # SETUP
         session = MagicMock()
@@ -1328,43 +1334,69 @@ class TestGetWorkflowInstances(TestCase):
         self.mock_cli_get_workflow.return_value = workflow_dict
         self.mock_parse_workflow.return_value = workflow
 
-        # No filtering
+        # Make the first workflow filter but the second not
         self.mock_filter_multiple.return_value = (
-            workflow_instances,
-            workflow_instance_dicts,
+            [workflow_instances[0]],
+            [workflow_instance_dicts[0]],
         )
 
         # CALL
-        result = runner.invoke(get.get, ["workflow-instances", version_id])
+        options = [
+            "workflow-instances",
+            version_id,
+        ]
+        options.extend(filter_arguments)
+        if json:
+            options.append("--json")
+        result = runner.invoke(get.get, options)
 
         # ASSERT
         self.mock_DAFNISession.assert_called_once()
         self.mock_cli_get_workflow.assert_called_once_with(session, version_id)
         self.mock_parse_workflow.assert_called_once_with(workflow_dict)
         self.mock_filter_multiple.assert_called_once_with(
-            [], workflow_instances, workflow_instance_dicts
-        )
-        self.mock_print_json.assert_not_called()
-        expected_rows = []
-        for workflow_instance in workflow_instances:
-            workflow_instance.get_brief_details.assert_called_once()
-            expected_rows.append(workflow_instance.get_brief_details.return_value)
-        self.mock_format_table.assert_called_once_with(
-            headers=[
-                TABLE_ID_HEADER,
-                TABLE_WORKFLOW_VERSION_ID_HEADER,
-                TABLE_PARAMETER_SET_HEADER,
-                TABLE_STARTED_HEADER,
-                TABLE_FINISHED_HEADER,
-                TABLE_STATUS_HEADER,
-            ],
-            rows=expected_rows,
-        )
-        self.mock_click.echo.assert_called_once_with(
-            self.mock_format_table.return_value
+            expected_filters,
+            workflow_instances,
+            workflow_instance_dicts,
         )
 
+        # Different outputs depending on json flag
+        if json:
+            self.mock_print_json.assert_called_once_with([workflow_instance_dicts[0]])
+            for workflow_instance in workflow_instances:
+                workflow_instance.get_brief_details.assert_not_called()
+            self.mock_format_table.assert_not_called()
+            self.mock_click.echo.assert_not_called()
+        else:
+            self.mock_print_json.assert_not_called()
+
+            workflow_instances[0].get_brief_details.assert_called_once()
+            workflow_instances[1].get_brief_details.assert_not_called()
+
+            self.mock_format_table.assert_called_once_with(
+                headers=[
+                    TABLE_ID_HEADER,
+                    TABLE_WORKFLOW_VERSION_ID_HEADER,
+                    TABLE_PARAMETER_SET_HEADER,
+                    TABLE_STARTED_HEADER,
+                    TABLE_FINISHED_HEADER,
+                    TABLE_STATUS_HEADER,
+                ],
+                rows=[workflow_instances[0].get_brief_details.return_value],
+            )
+            self.mock_click.echo.assert_called_once_with(
+                self.mock_format_table.return_value
+            )
+
         self.assertEqual(result.exit_code, 0)
+
+    def test_get_workflow_instances(self):
+        """Tests that the 'get workflow-instances' command works correctly (with no
+        optional arguments)"""
+
+        self._test_get_workflow_instances_with_filters(
+            filter_arguments=[], expected_filters=[], json=False
+        )
 
     def test_get_workflow_instances_with_json_true(
         self,
@@ -1372,38 +1404,150 @@ class TestGetWorkflowInstances(TestCase):
         """Tests that the 'get workflow-instances' command works correctly (with json
         True)"""
 
-        # SETUP
-        session = MagicMock()
-        self.mock_DAFNISession.return_value = session
-        runner = CliRunner()
-        version_id = "version_id"
-        workflow_instance_dicts = [MagicMock(), MagicMock()]
-        workflow_instances = [MagicMock(), MagicMock()]
-        workflow_dict = {"instances": workflow_instance_dicts}
-        workflow = MagicMock(instances=workflow_instances)
-        self.mock_cli_get_workflow.return_value = workflow_dict
-        self.mock_parse_workflow.return_value = workflow
-
-        # No filtering
-        self.mock_filter_multiple.return_value = (
-            workflow_instances,
-            workflow_instance_dicts,
+        self._test_get_workflow_instances_with_filters(
+            filter_arguments=[], expected_filters=[], json=True
         )
+
+    def _test_get_workflow_instances_with_datetime_filter(
+        self,
+        filter_argument: str,
+        mock_datetime_filter,
+        json: bool,
+    ):
+        """Helper method for testing that the 'get workflow-instances' command
+        works correctly with the given datetime filters"""
+
+        # SETUP
+        date = datetime(2023, 1, 1)
+
+        # CALL & ASSERT
+        self._test_get_workflow_instances_with_filters(
+            filter_arguments=[filter_argument, date.strftime(DATE_INPUT_FORMAT)],
+            expected_filters=[mock_datetime_filter.return_value],
+            json=json,
+        )
+        mock_datetime_filter.assert_called_once_with(date)
+
+    def test_get_workflow_instances_with_start_filter(
+        self,
+    ):
+        """Tests that the 'get workflow-instances' command works correctly
+        (while filtering by start date/time)"""
+
+        self._test_get_workflow_instances_with_datetime_filter(
+            filter_argument="--start",
+            mock_datetime_filter=self.mock_start_filter,
+            json=False,
+        )
+
+    def test_get_workflow_instances_with_start_filter_json(
+        self,
+    ):
+        """Tests that the 'get workflow-instances' command works correctly
+        (while filtering by start date/time and json=True)"""
+
+        self._test_get_workflow_instances_with_datetime_filter(
+            filter_argument="--start",
+            mock_datetime_filter=self.mock_start_filter,
+            json=True,
+        )
+
+    def test_get_workflow_instances_with_end_filter(
+        self,
+    ):
+        """Tests that the 'get workflow-instances' command works correctly
+        (while filtering by end date/time)"""
+
+        self._test_get_workflow_instances_with_datetime_filter(
+            filter_argument="--end",
+            mock_datetime_filter=self.mock_end_filter,
+            json=False,
+        )
+
+    def test_get_workflow_instances_with_end_filter_json(
+        self,
+    ):
+        """Tests that the 'get workflow-instances' command works correctly
+        (while filtering by end date/time and json=True)"""
+
+        self._test_get_workflow_instances_with_datetime_filter(
+            filter_argument="--end",
+            mock_datetime_filter=self.mock_end_filter,
+            json=True,
+        )
+
+    def test_get_workflow_instances_with_succeeded_filter(self):
+        """Tests that the 'get workflow-instances' command works correctly
+        (while filtering by the succeeded status)"""
+
+        self._test_get_workflow_instances_with_filters(
+            filter_arguments=["--succeeded"],
+            expected_filters=[self.mock_status_filter.return_value],
+            json=False,
+        )
+        self.mock_status_filter.assert_called_once_with("Succeeded")
+
+    def test_get_workflow_instances_with_succeeded_filter_json(self):
+        """Tests that the 'get workflow-instances' command works correctly
+        (while filtering by the succeeded status and json=True)"""
+
+        self._test_get_workflow_instances_with_filters(
+            filter_arguments=["--succeeded"],
+            expected_filters=[self.mock_status_filter.return_value],
+            json=True,
+        )
+        self.mock_status_filter.assert_called_once_with("Succeeded")
+
+    def test_get_workflow_instances_with_failed_filter(self):
+        """Tests that the 'get workflow-instances' command works correctly
+        (while filtering by the failed status)"""
+
+        self._test_get_workflow_instances_with_filters(
+            filter_arguments=["--failed"],
+            expected_filters=[self.mock_status_filter.return_value],
+            json=False,
+        )
+        self.mock_status_filter.assert_called_once_with("Failed")
+
+    def test_get_workflow_instances_with_failed_filter_json(self):
+        """Tests that the 'get workflow-instances' command works correctly
+        (while filtering by the failed status and json=True)"""
+
+        self._test_get_workflow_instances_with_filters(
+            filter_arguments=["--failed"],
+            expected_filters=[self.mock_status_filter.return_value],
+            json=True,
+        )
+        self.mock_status_filter.assert_called_once_with("Failed")
+
+    def test_get_workflow_instances_with_all_filters(self):
+        """Tests that the 'get workflow-instances' command works correctly
+        (while filtering by everything at once)"""
+
+        # SETUP
+        start = datetime(2022, 6, 28)
+        end = datetime(2022, 12, 11)
 
         # CALL
-        result = runner.invoke(get.get, ["workflow-instances", version_id, "--json"])
-
-        # ASSERT
-        self.mock_DAFNISession.assert_called_once()
-        self.mock_cli_get_workflow.assert_called_once_with(session, version_id)
-        self.mock_parse_workflow.assert_called_once_with(workflow_dict)
-        self.mock_filter_multiple.assert_called_once_with(
-            [], workflow_instances, workflow_instance_dicts
+        self._test_get_workflow_instances_with_filters(
+            filter_arguments=[
+                "--start",
+                start.strftime(DATE_INPUT_FORMAT),
+                "--end",
+                end.strftime(DATE_INPUT_FORMAT),
+                "--succeeded",
+                "--failed",
+            ],
+            expected_filters=[
+                self.mock_start_filter.return_value,
+                self.mock_end_filter.return_value,
+                self.mock_status_filter.return_value,
+                self.mock_status_filter.return_value,
+            ],
+            json=False,
         )
-        self.mock_print_json.assert_called_once_with(workflow_instance_dicts)
-        for workflow_instance in workflow_instances:
-            workflow_instance.get_brief_details.assert_not_called()
-        self.mock_format_table.assert_not_called()
-        self.mock_click.echo.assert_not_called()
-
-        self.assertEqual(result.exit_code, 0)
+        self.mock_start_filter.assert_called_once_with(start)
+        self.mock_end_filter.assert_called_once_with(end)
+        self.assertEqual(
+            self.mock_status_filter.mock_calls, [call("Succeeded"), call("Failed")]
+        )
