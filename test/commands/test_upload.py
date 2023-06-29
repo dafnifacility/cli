@@ -9,7 +9,7 @@ from click.testing import CliRunner
 from dafni_cli.commands import upload
 from dafni_cli.datasets.dataset_metadata import parse_dataset_metadata
 
-from test.commands.test_optional import add_dataset_metadata_common_options
+from test.commands.test_options import add_dataset_metadata_common_options
 from test.fixtures.dataset_metadata import TEST_DATASET_METADATA
 
 

@@ -1476,49 +1476,91 @@ class TestGetWorkflowInstances(TestCase):
             json=True,
         )
 
-    def test_get_workflow_instances_with_succeeded_filter(self):
+    def _test_get_workflow_instances_with_status_filter(
+        self, filter_argument: str, status: str, json: bool
+    ):
         """Tests that the 'get workflow-instances' command works correctly
-        (while filtering by the succeeded status)"""
+        (while filtering based on some status)"""
 
         self._test_get_workflow_instances_with_filters(
-            filter_arguments=["--succeeded"],
+            filter_arguments=[filter_argument],
             expected_filters=[self.mock_status_filter.return_value],
-            json=False,
+            json=json,
         )
-        self.mock_status_filter.assert_called_once_with("Succeeded")
+        self.mock_status_filter.assert_called_once_with(status)
 
-    def test_get_workflow_instances_with_succeeded_filter_json(self):
-        """Tests that the 'get workflow-instances' command works correctly
-        (while filtering by the succeeded status and json=True)"""
-
-        self._test_get_workflow_instances_with_filters(
-            filter_arguments=["--succeeded"],
-            expected_filters=[self.mock_status_filter.return_value],
-            json=True,
+    # The following uncommented tests each tests that the
+    # 'get workflow-instances' command works correctly while filtering by
+    # each potential status either with or without json flags
+    def test_get_workflow_instances_with_cancelled_filter(self):
+        self._test_get_workflow_instances_with_status_filter(
+            "--cancelled", "Cancelled", json=False
         )
-        self.mock_status_filter.assert_called_once_with("Succeeded")
+
+    def test_get_workflow_instances_with_cancelled_filter_json(self):
+        self._test_get_workflow_instances_with_status_filter(
+            "--cancelled", "Cancelled", json=True
+        )
+
+    def test_get_workflow_instances_with_error_filter(self):
+        self._test_get_workflow_instances_with_status_filter(
+            "--error", "Error", json=False
+        )
+
+    def test_get_workflow_instances_with_error_filter_json(self):
+        self._test_get_workflow_instances_with_status_filter(
+            "--error", "Error", json=True
+        )
 
     def test_get_workflow_instances_with_failed_filter(self):
-        """Tests that the 'get workflow-instances' command works correctly
-        (while filtering by the failed status)"""
-
-        self._test_get_workflow_instances_with_filters(
-            filter_arguments=["--failed"],
-            expected_filters=[self.mock_status_filter.return_value],
-            json=False,
+        self._test_get_workflow_instances_with_status_filter(
+            "--failed", "Failed", json=False
         )
-        self.mock_status_filter.assert_called_once_with("Failed")
 
     def test_get_workflow_instances_with_failed_filter_json(self):
-        """Tests that the 'get workflow-instances' command works correctly
-        (while filtering by the failed status and json=True)"""
-
-        self._test_get_workflow_instances_with_filters(
-            filter_arguments=["--failed"],
-            expected_filters=[self.mock_status_filter.return_value],
-            json=True,
+        self._test_get_workflow_instances_with_status_filter(
+            "--failed", "Failed", json=True
         )
-        self.mock_status_filter.assert_called_once_with("Failed")
+
+    def test_get_workflow_instances_with_omitted_filter(self):
+        self._test_get_workflow_instances_with_status_filter(
+            "--omitted", "Omitted", json=False
+        )
+
+    def test_get_workflow_instances_with_omitted_filter_json(self):
+        self._test_get_workflow_instances_with_status_filter(
+            "--omitted", "Omitted", json=True
+        )
+
+    def test_get_workflow_instances_with_pending_filter(self):
+        self._test_get_workflow_instances_with_status_filter(
+            "--pending", "Pending", json=False
+        )
+
+    def test_get_workflow_instances_with_pending_filter_json(self):
+        self._test_get_workflow_instances_with_status_filter(
+            "--pending", "Pending", json=True
+        )
+
+    def test_get_workflow_instances_with_running_filter(self):
+        self._test_get_workflow_instances_with_status_filter(
+            "--running", "Running", json=False
+        )
+
+    def test_get_workflow_instances_with_running_filter_json(self):
+        self._test_get_workflow_instances_with_status_filter(
+            "--running", "Running", json=True
+        )
+
+    def test_get_workflow_instances_with_succeeded_filter(self):
+        self._test_get_workflow_instances_with_status_filter(
+            "--succeeded", "Succeeded", json=False
+        )
+
+    def test_get_workflow_instances_with_succeeded_filter_json(self):
+        self._test_get_workflow_instances_with_status_filter(
+            "--succeeded", "Succeeded", json=True
+        )
 
     def test_get_workflow_instances_with_all_filters(self):
         """Tests that the 'get workflow-instances' command works correctly
@@ -1535,12 +1577,22 @@ class TestGetWorkflowInstances(TestCase):
                 start.strftime(DATE_INPUT_FORMAT),
                 "--end",
                 end.strftime(DATE_INPUT_FORMAT),
-                "--succeeded",
+                "--cancelled",
+                "--error",
                 "--failed",
+                "--omitted",
+                "--pending",
+                "--running",
+                "--succeeded",
             ],
             expected_filters=[
                 self.mock_start_filter.return_value,
                 self.mock_end_filter.return_value,
+                self.mock_status_filter.return_value,
+                self.mock_status_filter.return_value,
+                self.mock_status_filter.return_value,
+                self.mock_status_filter.return_value,
+                self.mock_status_filter.return_value,
                 self.mock_status_filter.return_value,
                 self.mock_status_filter.return_value,
             ],
@@ -1549,5 +1601,14 @@ class TestGetWorkflowInstances(TestCase):
         self.mock_start_filter.assert_called_once_with(start)
         self.mock_end_filter.assert_called_once_with(end)
         self.assertEqual(
-            self.mock_status_filter.mock_calls, [call("Succeeded"), call("Failed")]
+            self.mock_status_filter.mock_calls,
+            [
+                call("Cancelled"),
+                call("Error"),
+                call("Failed"),
+                call("Omitted"),
+                call("Pending"),
+                call("Running"),
+                call("Succeeded"),
+            ],
         )

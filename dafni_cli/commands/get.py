@@ -13,6 +13,7 @@ from dafni_cli.commands.helpers import (
     cli_get_model,
     cli_get_workflow,
 )
+from dafni_cli.commands.options import filter_flag_option
 from dafni_cli.consts import (
     DATE_INPUT_FORMAT,
     DATE_INPUT_FORMAT_VERBOSE,
@@ -473,22 +474,15 @@ def workflow(ctx: Context, version_id: List[str], version_history: bool, json: b
     help=f"Filter instances that finished after a given date/time. Format: {DATE_INPUT_FORMAT_VERBOSE} or {DATE_TIME_INPUT_FORMAT_VERBOSE}",
     type=click.DateTime(formats=[DATE_INPUT_FORMAT, DATE_TIME_INPUT_FORMAT]),
 )
-@click.option(
-    "--succeeded",
-    "-s",
-    is_flag=True,
-    default=False,
-    help="Filters instances that succeeded execution.",
-    type=bool,
+@filter_flag_option("--cancelled", help="Filters instances with a 'Cancelled' status.")
+@filter_flag_option("--error", help="Filters instances with a 'Error' status.")
+@filter_flag_option(
+    "--succeeded", "-s", help="Filters instances with a 'Succeeded' status."
 )
-@click.option(
-    "--failed",
-    "-f",
-    is_flag=True,
-    default=False,
-    help="Filters instances that failed execution.",
-    type=bool,
-)
+@filter_flag_option("--failed", "-f", help="Filters instances with a 'Failed' status.")
+@filter_flag_option("--omitted", help="Filters instances with an 'Omitted' status.")
+@filter_flag_option("--pending", help="Filters instances with a 'Pending' status.")
+@filter_flag_option("--running", help="Filters instances with a 'Running' status.")
 @click.option(
     "--json/--pretty",
     "-j/-p",
@@ -502,8 +496,13 @@ def workflow_instances(
     version_id: str,
     start: Optional[datetime],
     end: Optional[datetime],
-    succeeded: bool,
+    cancelled: bool,
+    error: bool,
     failed: bool,
+    omitted: bool,
+    pending: bool,
+    running: bool,
+    succeeded: bool,
     json: bool,
 ):
     """Display attributes of all workflows instances for a particular workflow
@@ -519,8 +518,11 @@ def workflow_instances(
         end (Optional[str]): For filtering by start date/time. Format:
                              DATE_INPUT_FORMAT_VERBOSE or
                              DATE_TIME_INPUT_FORMAT_VERBOSE
-        succeeded (bool): Whether to filter successful instances
-        failed (bool): Whether to filter failed instances
+        cancelled (bool): Whether to filter instances with a cancelled status
+        failed (bool): Whether to filter instances with a failed status
+        error (bool): Whether to filter instances with an error status
+        running (bool): Whether to filter instances with a running status
+        succeeded (bool): Whether to filter instances with a successful status
         json (bool): Whether to print the raw json returned by the DAFNI API
     """
     workflow_dict = cli_get_workflow(ctx.obj["session"], version_id)
@@ -532,10 +534,20 @@ def workflow_instances(
         filters.append(start_filter(start))
     if end:
         filters.append(end_filter(end))
-    if succeeded:
-        filters.append(status_filter("Succeeded"))
+    if cancelled:
+        filters.append(status_filter("Cancelled"))
+    if error:
+        filters.append(status_filter("Error"))
     if failed:
         filters.append(status_filter("Failed"))
+    if omitted:
+        filters.append(status_filter("Omitted"))
+    if pending:
+        filters.append(status_filter("Pending"))
+    if running:
+        filters.append(status_filter("Running"))
+    if succeeded:
+        filters.append(status_filter("Succeeded"))
 
     filtered_instances, filtered_instance_dicts = filter_multiple(
         filters, workflow_inst.instances, workflow_dict["instances"]
