@@ -143,7 +143,7 @@ def models(
             rows.append(model_inst.get_brief_details())
         click.echo(
             format_table(
-                [
+                headers=[
                     TABLE_NAME_HEADER,
                     TABLE_VERSION_ID_HEADER,
                     TABLE_STATUS_HEADER,
@@ -151,8 +151,8 @@ def models(
                     TABLE_PUBLICATION_DATE_HEADER,
                     TABLE_SUMMARY_HEADER,
                 ],
-                rows,
-                [
+                rows=rows,
+                max_column_widths=[
                     TABLE_DISPLAY_NAME_MAX_COLUMN_WIDTH,
                     None,
                     None,
