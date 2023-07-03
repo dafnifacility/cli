@@ -785,7 +785,7 @@ class TestDatasetMetadataTestCase(TestCase):
         )
 
     def test_get_details(self):
-        """Tests test_get_details functions as expected"""
+        """Tests get_details functions as expected"""
         # SETUP
         dataset_metadata: DatasetMetadata = parse_dataset_metadata(
             TEST_DATASET_METADATA
@@ -807,7 +807,7 @@ class TestDatasetMetadataTestCase(TestCase):
         )
 
     def test_get_version_details(self):
-        """Tests test_get_version_details functions as expected"""
+        """Tests get_version_details functions as expected"""
         # SETUP
         dataset_metadata: DatasetMetadata = parse_dataset_metadata(
             TEST_DATASET_METADATA
