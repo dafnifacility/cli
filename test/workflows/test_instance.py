@@ -103,7 +103,7 @@ class TestWorkflowInstanceList(TestCase):
             TEST_WORKFLOW_INSTANCE["overall_status"],
         )
 
-        # WorkflowInstanceParameterSet (contents tested in TestWorkflowInstanceParameterSet)
+        # WorkflowInstanceListParameterSet (contents tested in TestWorkflowInstanceListParameterSet)
         self.assertEqual(
             type(workflow_instance.parameter_set), WorkflowInstanceListParameterSet
         )

@@ -8,7 +8,6 @@ from dafni_cli.api.auth import Auth
 from dafni_cli.api.parser import ParserBaseObject
 from dafni_cli.consts import (
     CONSOLE_WIDTH,
-    TAB_SPACE,
     TABLE_FINISHED_HEADER,
     TABLE_ID_HEADER,
     TABLE_NAME_HEADER,
