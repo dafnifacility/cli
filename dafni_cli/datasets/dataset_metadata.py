@@ -12,7 +12,6 @@ from dafni_cli.api.parser import ParserBaseObject, ParserParam, parse_datetime
 from dafni_cli.api.session import DAFNISession
 from dafni_cli.consts import (
     CONSOLE_WIDTH,
-    TAB_SPACE,
     TABLE_MODIFIED_HEADER,
     TABLE_VERSION_ID_HEADER,
     TABLE_VERSION_MESSAGE_HEADER,
