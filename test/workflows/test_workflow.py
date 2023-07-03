@@ -13,10 +13,14 @@ from dafni_cli.consts import (
     TABLE_ID_HEADER,
     TABLE_NAME_HEADER,
     TABLE_PARAMETER_SET_HEADER,
+    TABLE_PUBLICATION_DATE_HEADER,
     TABLE_PUBLISHED_BY_HEADER,
     TABLE_PUBLISHED_DATE_HEADER,
     TABLE_STARTED_HEADER,
     TABLE_STATUS_HEADER,
+    TABLE_VERSION_ID_HEADER,
+    TABLE_VERSION_MESSAGE_HEADER,
+    TABLE_VERSION_TAGS_HEADER,
     TABLE_WORKFLOW_VERSION_ID_HEADER,
 )
 from dafni_cli.utils import format_datetime
@@ -183,52 +187,24 @@ class TestWorkflow(TestCase):
             workflow.metadata.description, TEST_WORKFLOW_METADATA["description"]
         )
 
-    @patch("dafni_cli.workflows.workflow.click")
-    def test_output_details(self, mock_click):
-        """Tests output_details works correctly"""
+    def test_get_brief_details(self):
+        """Tests get_brief_details works correctly"""
         # SETUP
-        workflow = parse_workflow(TEST_WORKFLOW)
+        workflow: Workflow = parse_workflow(TEST_WORKFLOW)
 
         # CALL
-        workflow.output_details()
+        result = workflow.get_brief_details()
 
         # ASSERT
-        mock_click.echo.assert_has_calls(
+        self.assertEqual(
+            result,
             [
-                call(
-                    f"Name: A Workflow{TAB_SPACE}"
-                    f"ID: 0a0a0a0a-0a00-0a00-a000-0a0a0000000a{TAB_SPACE}"
-                    f"Created: {format_datetime(workflow.creation_date, include_time=True)}"
-                ),
-                call("Summary: Test workflow created to learn about DAFNI"),
-                call(""),
-            ]
+                workflow.metadata.display_name,
+                workflow.workflow_id,
+                format_datetime(workflow.publication_date, include_time=False),
+                workflow.metadata.summary,
+            ],
         )
-
-    @patch("dafni_cli.workflows.workflow.prose_print")
-    @patch("dafni_cli.workflows.workflow.click")
-    def test_output_details_with_long(self, mock_click, mock_prose_print):
-        """Tests output_details works correctly when 'long' is set to True"""
-        # SETUP
-        workflow = parse_workflow(TEST_WORKFLOW)
-
-        # CALL
-        workflow.output_details(long=True)
-
-        # ASSERT
-        mock_click.echo.assert_has_calls(
-            [
-                call(
-                    f"Name: A Workflow{TAB_SPACE}"
-                    f"ID: 0a0a0a0a-0a00-0a00-a000-0a0a0000000a{TAB_SPACE}"
-                    f"Created: {format_datetime(workflow.creation_date, include_time=True)}"
-                ),
-                call("Summary: Test workflow created to learn about DAFNI"),
-                call("Description: "),
-                call(""),
-            ]
-        )
-        mock_prose_print.called_once_with("description", CONSOLE_WIDTH)
 
     @patch("dafni_cli.workflows.workflow.format_table")
     def test_format_parameter_sets(
@@ -304,37 +280,46 @@ class TestWorkflow(TestCase):
         )
         self.assertEqual(result, mock_format_table.return_value)
 
+    @patch("dafni_cli.workflows.workflow.tabulate")
     @patch("dafni_cli.workflows.workflow.prose_print")
     @patch("dafni_cli.workflows.workflow.click")
     @patch.object(Workflow, "format_parameter_sets")
     @patch.object(Workflow, "format_instances")
-    def test_output_info(
+    def test_output_details(
         self,
         mock_format_instances,
         mock_format_parameter_sets,
         mock_click,
         mock_prose_print,
+        mock_tabulate,
     ):
-        """Tests output_info works correctly"""
+        """Tests output_details works correctly"""
         # SETUP
         workflow = parse_workflow(TEST_WORKFLOW)
 
         # CALL
-        workflow.output_info()
+        workflow.output_details()
 
         # ASSERT
         mock_format_parameter_sets.assert_called_once()
         mock_format_instances.assert_called_once()
-        mock_click.echo.assert_has_calls(
+        self.assertEqual(
+            mock_click.echo.mock_calls,
             [
-                call(f"Name: {workflow.metadata.display_name}"),
                 call(
-                    f"Created: {format_datetime(workflow.creation_date, include_time=True)}"
+                    f"{workflow.metadata.display_name}  |  Tags: {', '.join(workflow.version_tags)}"
                 ),
+                call(""),
+                call(f"Published by: {workflow.metadata.publisher_id}"),
+                call(""),
+                call(mock_tabulate.return_value),
+                call(""),
                 call("Version message:"),
                 call(workflow.version_message),
+                call(""),
                 call("Summary:"),
                 call(workflow.metadata.summary),
+                call(""),
                 call("Description:"),
                 call(""),
                 call("Parameter sets:"),
@@ -342,47 +327,71 @@ class TestWorkflow(TestCase):
                 call(""),
                 call("Instances:"),
                 call(mock_format_instances.return_value),
-            ]
+            ],
+        )
+        mock_tabulate.assert_called_once_with(
+            [
+                ["Date:", format_datetime(workflow.creation_date, include_time=True)],
+                ["ID:", workflow.workflow_id],
+                ["Parent ID:", workflow.parent_id],
+            ],
+            tablefmt="plain",
         )
         mock_prose_print.assert_called_once_with(
             workflow.metadata.description, CONSOLE_WIDTH
         )
 
+    @patch("dafni_cli.workflows.workflow.tabulate")
     @patch("dafni_cli.workflows.workflow.prose_print")
     @patch("dafni_cli.workflows.workflow.click")
     @patch.object(Workflow, "format_parameter_sets")
     @patch.object(Workflow, "format_instances")
-    def test_output_info_when_parameters_sets_and_instances_none(
+    def test_output_details_when_parameters_sets_and_instances_none(
         self,
         mock_format_instances,
         mock_format_parameter_sets,
         mock_click,
         mock_prose_print,
+        mock_tabulate,
     ):
-        """Tests output_info works correctly"""
+        """Tests output_details works correctly"""
         # SETUP
         workflow = parse_workflow(TEST_WORKFLOW)
         workflow.parameter_sets = None
         workflow.instances = None
 
         # CALL
-        workflow.output_info()
+        workflow.output_details()
 
         # ASSERT
         mock_format_parameter_sets.assert_not_called()
         mock_format_instances.assert_not_called()
         mock_click.echo.assert_has_calls(
             [
-                call(f"Name: {workflow.metadata.display_name}"),
                 call(
-                    f"Created: {format_datetime(workflow.creation_date, include_time=True)}"
+                    f"{workflow.metadata.display_name}  |  Tags: {', '.join(workflow.version_tags)}"
                 ),
+                call(""),
+                call(f"Published by: {workflow.metadata.publisher_id}"),
+                call(""),
+                call(mock_tabulate.return_value),
+                call(""),
                 call("Version message:"),
                 call(workflow.version_message),
+                call(""),
                 call("Summary:"),
                 call(workflow.metadata.summary),
+                call(""),
                 call("Description:"),
             ]
+        )
+        mock_tabulate.assert_called_once_with(
+            [
+                ["Date:", format_datetime(workflow.creation_date, include_time=True)],
+                ["ID:", workflow.workflow_id],
+                ["Parent ID:", workflow.parent_id],
+            ],
+            tablefmt="plain",
         )
         mock_prose_print.assert_called_once_with(
             workflow.metadata.description, CONSOLE_WIDTH
@@ -399,14 +408,15 @@ class TestWorkflow(TestCase):
         # ASSERT
         self.assertEqual(
             result,
-            f"ID: 0a0a0a0a-0a00-0a00-a000-0a0a0000000a{TAB_SPACE}"
-            f"Name: A Workflow{TAB_SPACE}"
-            f"Publication date: {format_datetime(workflow.publication_date, include_time=True)}{TAB_SPACE}"
-            "Version message: Initial Workflow version",
+            f"ID: 0a0a0a0a-0a00-0a00-a000-0a0a0000000a\n"
+            f"Name: A Workflow\n"
+            f"Publication date: {format_datetime(workflow.publication_date, include_time=True)}\n"
+            "Version message: Initial Workflow version\n",
         )
 
+    @patch("dafni_cli.workflows.workflow.format_table")
     @patch("dafni_cli.workflows.workflow.click")
-    def test_output_version_history(self, mock_click):
+    def test_output_version_history(self, mock_click, mock_format_table):
         """Tests output_version_history works correctly"""
         # SETUP
         workflow = parse_workflow(TEST_WORKFLOW)
@@ -415,15 +425,20 @@ class TestWorkflow(TestCase):
         workflow.output_version_history()
 
         # ASSERT
-        mock_click.echo.assert_has_calls(
-            [
-                call(
-                    f"Name: A Workflow{TAB_SPACE}"
-                    f"ID: 0a0a0a0a-0a00-0a00-a000-0a0a0000000a{TAB_SPACE}"
-                    f"Publication date: {format_datetime(workflow.publication_date, include_time=True)}"
-                ),
-                call("Version message: Initial Workflow version"),
-                call("Version tags: latest"),
-                call(""),
-            ]
+        mock_format_table.assert_called_once_with(
+            headers=[
+                TABLE_VERSION_ID_HEADER,
+                TABLE_PUBLICATION_DATE_HEADER,
+                TABLE_VERSION_TAGS_HEADER,
+                TABLE_VERSION_MESSAGE_HEADER,
+            ],
+            rows=[
+                [
+                    "0a0a0a0a-0a00-0a00-a000-0a0a0000000a",
+                    format_datetime(datetime(2023, 4, 4, 8, 34, 36), include_time=True),
+                    "latest",
+                    "Initial Workflow version",
+                ]
+            ],
         )
+        mock_click.echo.assert_called_once_with(mock_format_table.return_value)

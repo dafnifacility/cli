@@ -176,7 +176,7 @@ class TestCollateDatasetDetails(TestCase):
         self.assertEqual(
             result,
             (
-                [dataset_mock.get_dataset_details.return_value],
+                [dataset_mock.get_details.return_value],
                 [dataset_mock.dataset_id],
             ),
         )
@@ -211,7 +211,7 @@ class TestCollateDatasetDetails(TestCase):
         mock_click.echo.assert_has_calls(
             [
                 call("You do not have sufficient permissions to delete dataset:"),
-                call(dataset_mock.get_dataset_details.return_value),
+                call(dataset_mock.get_details.return_value),
             ]
         )
 
@@ -253,8 +253,8 @@ class TestCollateDatasetDetails(TestCase):
             result,
             (
                 [
-                    dataset_mock1.get_dataset_details.return_value,
-                    dataset_mock2.get_dataset_details.return_value,
+                    dataset_mock1.get_details.return_value,
+                    dataset_mock2.get_details.return_value,
                 ],
                 [dataset_mock1.dataset_id, dataset_mock2.dataset_id],
             ),
@@ -301,7 +301,7 @@ class TestCollateDatasetDetails(TestCase):
             mock_click.echo.call_args_list,
             [
                 call("You do not have sufficient permissions to delete dataset:"),
-                call(dataset_mock2.get_dataset_details.return_value),
+                call(dataset_mock2.get_details.return_value),
             ],
         )
 
@@ -339,7 +339,7 @@ class TestCollateDatasetVersionDetails(TestCase):
         self.assertEqual(
             result,
             (
-                [dataset_mock.get_dataset_version_details.return_value],
+                [dataset_mock.get_version_details.return_value],
                 [dataset_mock.dataset_id],
             ),
         )
@@ -376,7 +376,7 @@ class TestCollateDatasetVersionDetails(TestCase):
                 call(
                     "You do not have sufficient permissions to delete dataset version:"
                 ),
-                call(dataset_mock.get_dataset_version_details.return_value),
+                call(dataset_mock.get_version_details.return_value),
             ]
         )
 
@@ -418,8 +418,8 @@ class TestCollateDatasetVersionDetails(TestCase):
             result,
             (
                 [
-                    dataset_mock1.get_dataset_version_details.return_value,
-                    dataset_mock2.get_dataset_version_details.return_value,
+                    dataset_mock1.get_version_details.return_value,
+                    dataset_mock2.get_version_details.return_value,
                 ],
                 [dataset_mock1.dataset_id, dataset_mock2.dataset_id],
             ),
@@ -468,7 +468,7 @@ class TestCollateDatasetVersionDetails(TestCase):
                 call(
                     "You do not have sufficient permissions to delete dataset version:"
                 ),
-                call(dataset_mock2.get_dataset_version_details.return_value),
+                call(dataset_mock2.get_version_details.return_value),
             ],
         )
 
