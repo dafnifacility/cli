@@ -690,9 +690,14 @@ class TestGetWorkflows(TestCase):
 
         self.addCleanup(patch.stopall)
 
-    def test_get_workflows(self):
-        """Tests that the 'get workflows' command works correctly (with no
-        optional arguments)"""
+    def _test_get_workflows_with_filters(
+        self,
+        filter_arguments: List,
+        expected_filters: List,
+        json: bool,
+    ):
+        """Helper method for testing that the 'get workflows' command
+        works correctly for some given filters"""
 
         # SETUP
         session = MagicMock()
@@ -703,74 +708,82 @@ class TestGetWorkflows(TestCase):
         self.mock_get_all_workflows.return_value = workflow_dicts
         self.mock_parse_workflows.return_value = workflows
 
-        # No filtering
-        self.mock_filter_multiple.return_value = workflows, workflow_dicts
+        # Make the first workflow filter but the second not
+        self.mock_filter_multiple.return_value = (
+            [workflows[0]],
+            [workflow_dicts[0]],
+        )
 
         # CALL
-        result = runner.invoke(get.get, ["workflows"])
+        options = [
+            "workflows",
+        ]
+        options.extend(filter_arguments)
+        if json:
+            options.append("--json")
+        result = runner.invoke(get.get, options)
 
         # ASSERT
         self.mock_DAFNISession.assert_called_once()
         self.mock_get_all_workflows.assert_called_with(session)
-        self.mock_filter_multiple.assert_called_with([], workflows, workflow_dicts)
-        expected_rows = []
-        for workflow in workflows:
-            workflow.get_brief_details.assert_called_once()
-            expected_rows.append(workflow.get_brief_details.return_value)
-        self.mock_format_table.assert_called_once_with(
-            [
-                TABLE_NAME_HEADER,
-                TABLE_VERSION_ID_HEADER,
-                TABLE_PUBLICATION_DATE_HEADER,
-                TABLE_SUMMARY_HEADER,
-            ],
-            expected_rows,
-            [
-                TABLE_DISPLAY_NAME_MAX_COLUMN_WIDTH,
-                None,
-                None,
-                TABLE_SUMMARY_MAX_COLUMN_WIDTH,
-            ],
+        self.mock_parse_workflows.assert_called_once_with(workflow_dicts)
+        self.mock_filter_multiple.assert_called_once_with(
+            expected_filters,
+            workflows,
+            workflow_dicts,
         )
-        self.mock_click.echo.assert_called_once_with(
-            self.mock_format_table.return_value
-        )
-        self.mock_print_json.assert_not_called()
+
+        # Different outputs depending on json flag
+        if json:
+            self.mock_print_json.assert_called_once_with([workflow_dicts[0]])
+            for workflow_instance in workflows:
+                workflow_instance.get_brief_details.assert_not_called()
+            self.mock_format_table.assert_not_called()
+            self.mock_click.echo.assert_not_called()
+        else:
+            self.mock_print_json.assert_not_called()
+
+            workflows[0].get_brief_details.assert_called_once()
+            workflows[1].get_brief_details.assert_not_called()
+
+            self.mock_format_table.assert_called_once_with(
+                headers=[
+                    TABLE_NAME_HEADER,
+                    TABLE_VERSION_ID_HEADER,
+                    TABLE_PUBLICATION_DATE_HEADER,
+                    TABLE_SUMMARY_HEADER,
+                ],
+                rows=[workflows[0].get_brief_details.return_value],
+                max_column_widths=[
+                    TABLE_DISPLAY_NAME_MAX_COLUMN_WIDTH,
+                    None,
+                    None,
+                    TABLE_SUMMARY_MAX_COLUMN_WIDTH,
+                ],
+            )
+            self.mock_click.echo.assert_called_once_with(
+                self.mock_format_table.return_value
+            )
 
         self.assertEqual(result.exit_code, 0)
 
-    def test_get_workflows_with_json_true(
+    def test_get_workflows(self):
+        """Tests that the 'get workflows' command works correctly (with no
+        optional arguments)"""
+
+        self._test_get_workflows_with_filters(
+            filter_arguments=[], expected_filters=[], json=False
+        )
+
+    def test_get_workflows_json(
         self,
     ):
         """Tests that the 'get workflows' command works correctly (with json
         True)"""
 
-        # SETUP
-        session = MagicMock()
-        self.mock_DAFNISession.return_value = session
-        runner = CliRunner()
-        workflow_dicts = [MagicMock(), MagicMock()]
-        workflows = [MagicMock(), MagicMock()]
-        self.mock_get_all_workflows.return_value = workflow_dicts
-        self.mock_parse_workflows.return_value = workflows
-
-        # No filtering
-        self.mock_filter_multiple.return_value = workflows, workflow_dicts
-
-        # CALL
-        result = runner.invoke(get.get, ["workflows", "--json"])
-
-        # ASSERT
-        self.mock_DAFNISession.assert_called_once()
-        self.mock_get_all_workflows.assert_called_with(session)
-        self.mock_filter_multiple.assert_called_with([], workflows, workflow_dicts)
-        for workflow in workflows:
-            workflow.get_brief_details.assert_not_called()
-        self.mock_format_table.assert_not_called()
-        self.mock_click.echo.assert_not_called()
-        self.mock_print_json.assert_called_with(workflow_dicts)
-
-        self.assertEqual(result.exit_code, 0)
+        self._test_get_workflows_with_filters(
+            filter_arguments=[], expected_filters=[], json=True
+        )
 
     def test_get_workflows_with_text_filter(
         self,
@@ -779,120 +792,52 @@ class TestGetWorkflows(TestCase):
         search text filter"""
 
         # SETUP
-        session = MagicMock()
-        self.mock_DAFNISession.return_value = session
-        runner = CliRunner()
-        workflow_dicts = [MagicMock(), MagicMock()]
-        workflows = [MagicMock(), MagicMock()]
         search_text = "Test"
 
-        self.mock_get_all_workflows.return_value = workflow_dicts
-        self.mock_parse_workflows.return_value = workflows
-
-        # Make the first model filter but the second not
-        self.mock_filter_multiple.return_value = [workflows[0]], [workflow_dicts[0]]
-
-        # CALL
-        options = ["workflows", "--search", search_text]
-        result = runner.invoke(get.get, options)
-
-        # ASSERT
-        self.mock_DAFNISession.assert_called_once()
-        self.mock_get_all_workflows.assert_called_with(session)
+        # CALL & ASSERT
+        self._test_get_workflows_with_filters(
+            filter_arguments=["--search", search_text],
+            expected_filters=[self.mock_text_filter.return_value],
+            json=False,
+        )
         self.mock_text_filter.assert_called_once_with(search_text)
-        self.mock_creation_date_filter.assert_not_called()
-        self.mock_publication_date_filter.assert_not_called()
-        self.mock_filter_multiple.assert_called_with(
-            [self.mock_text_filter.return_value], workflows, workflow_dicts
-        )
 
-        workflows[0].get_brief_details.assert_called_once()
-        workflows[1].get_brief_details.assert_not_called()
+    def test_get_workflows_with_text_filter_json(
+        self,
+    ):
+        """Tests that the 'get workflows' command works correctly with a
+        search text filter (and json=True)"""
 
-        self.mock_format_table.assert_called_once_with(
-            [
-                TABLE_NAME_HEADER,
-                TABLE_VERSION_ID_HEADER,
-                TABLE_PUBLICATION_DATE_HEADER,
-                TABLE_SUMMARY_HEADER,
-            ],
-            [workflows[0].get_brief_details.return_value],
-            [
-                TABLE_DISPLAY_NAME_MAX_COLUMN_WIDTH,
-                None,
-                None,
-                TABLE_SUMMARY_MAX_COLUMN_WIDTH,
-            ],
-        )
-        self.mock_click.echo.assert_called_once_with(
-            self.mock_format_table.return_value
-        )
-        self.mock_print_json.assert_not_called()
+        # SETUP
+        search_text = "Test"
 
-        self.assertEqual(result.exit_code, 0)
+        # CALL & ASSERT
+        self._test_get_workflows_with_filters(
+            filter_arguments=["--search", search_text],
+            expected_filters=[self.mock_text_filter.return_value],
+            json=True,
+        )
+        self.mock_text_filter.assert_called_once_with(search_text)
 
     def _test_get_workflows_with_date_filter(
         self,
-        date_filter_options,
+        filter_argument: str,
         mock_date_filter,
+        json: bool,
     ):
         """Helper method for testing that the 'get workflows' command works
-        correctly with the given date filters"""
+        correctly with the given date filter"""
 
         # SETUP
-        session = MagicMock()
-        self.mock_DAFNISession.return_value = session
-        runner = CliRunner()
-        workflow_dicts = [MagicMock(), MagicMock()]
-        workflows = [MagicMock(), MagicMock()]
         date = datetime(2023, 1, 1)
 
-        self.mock_get_all_workflows.return_value = workflow_dicts
-        self.mock_parse_workflows.return_value = workflows
-
-        # Make the first workflow filter but the second not
-        self.mock_filter_multiple.return_value = [workflows[0]], [workflow_dicts[0]]
-
-        # CALL
-        options = [
-            "workflows",
-            date_filter_options[0],
-            date.strftime(DATE_INPUT_FORMAT),
-        ]
-        result = runner.invoke(get.get, options)
-
-        # ASSERT
-        self.mock_DAFNISession.assert_called_once()
-        self.mock_get_all_workflows.assert_called_with(session)
+        # CALL & ASSERT
+        self._test_get_workflows_with_filters(
+            filter_arguments=[filter_argument, date.strftime(DATE_INPUT_FORMAT)],
+            expected_filters=[mock_date_filter.return_value],
+            json=json,
+        )
         mock_date_filter.assert_called_once_with(date)
-        self.mock_filter_multiple.assert_called_with(
-            [mock_date_filter.return_value], workflows, workflow_dicts
-        )
-
-        workflows[0].get_brief_details.assert_called_once()
-        workflows[1].get_brief_details.assert_not_called()
-
-        self.mock_format_table.assert_called_once_with(
-            [
-                TABLE_NAME_HEADER,
-                TABLE_VERSION_ID_HEADER,
-                TABLE_PUBLICATION_DATE_HEADER,
-                TABLE_SUMMARY_HEADER,
-            ],
-            [workflows[0].get_brief_details.return_value],
-            [
-                TABLE_DISPLAY_NAME_MAX_COLUMN_WIDTH,
-                None,
-                None,
-                TABLE_SUMMARY_MAX_COLUMN_WIDTH,
-            ],
-        )
-        self.mock_click.echo.assert_called_once_with(
-            self.mock_format_table.return_value
-        )
-        self.mock_print_json.assert_not_called()
-
-        self.assertEqual(result.exit_code, 0)
 
     def test_get_workflows_with_creation_date_filter(
         self,
@@ -901,8 +846,21 @@ class TestGetWorkflows(TestCase):
         filtering by creation date)"""
 
         self._test_get_workflows_with_date_filter(
-            ("--creation-date", "creation"),
-            self.mock_creation_date_filter,
+            filter_argument="--creation-date",
+            mock_date_filter=self.mock_creation_date_filter,
+            json=False,
+        )
+
+    def test_get_workflows_with_creation_date_filter_json(
+        self,
+    ):
+        """Tests that the 'get workflows' command works correctly (while
+        filtering by creation date and json=True)"""
+
+        self._test_get_workflows_with_date_filter(
+            filter_argument="--creation-date",
+            mock_date_filter=self.mock_creation_date_filter,
+            json=True,
         )
 
     def test_get_workflows_with_publication_date_filter(
@@ -912,153 +870,51 @@ class TestGetWorkflows(TestCase):
         filtering by publication date)"""
 
         self._test_get_workflows_with_date_filter(
-            ("--publication-date", "publication"),
-            self.mock_publication_date_filter,
-        )
-
-    def _test_get_workflows_with_date_filter_json(
-        self,
-        date_filter_options,
-        mock_date_filter,
-    ):
-        """Helper method for testing that the 'get workflows' command works
-        correctly with the given date filters and the --json flag"""
-
-        # SETUP
-        session = MagicMock()
-        self.mock_DAFNISession.return_value = session
-        runner = CliRunner()
-        workflow_dicts = [MagicMock(), MagicMock()]
-        workflows = [MagicMock(), MagicMock()]
-        date = datetime(2023, 1, 1)
-
-        self.mock_get_all_workflows.return_value = workflow_dicts
-        self.mock_parse_workflows.return_value = workflows
-
-        # Make the first workflow filter but the second not
-        self.mock_filter_multiple.return_value = [workflows[0]], [workflow_dicts[0]]
-
-        # CALL
-        options = [
-            "workflows",
-            date_filter_options[0],
-            date.strftime(DATE_INPUT_FORMAT),
-            "--json",
-        ]
-        result = runner.invoke(get.get, options)
-
-        # ASSERT
-        self.mock_DAFNISession.assert_called_once()
-        self.mock_get_all_workflows.assert_called_with(session)
-        mock_date_filter.assert_called_once_with(date)
-        self.mock_filter_multiple.assert_called_with(
-            [mock_date_filter.return_value], workflows, workflow_dicts
-        )
-        workflows[0].get_brief_details.assert_not_called()
-        workflows[1].get_brief_details.assert_not_called()
-
-        self.mock_format_table.assert_not_called()
-        self.mock_click.echo.assert_not_called()
-
-        self.mock_print_json.assert_called_with([workflow_dicts[0]])
-
-        self.assertEqual(result.exit_code, 0)
-
-    def test_get_workflows_with_creation_date_filter_json(
-        self,
-    ):
-        """Tests that the 'get workflows' command works correctly (while
-        filtering by creation date and printing json)"""
-
-        self._test_get_workflows_with_date_filter_json(
-            ("--creation-date", "creation"),
-            self.mock_creation_date_filter,
+            filter_argument="--publication-date",
+            mock_date_filter=self.mock_publication_date_filter,
+            json=False,
         )
 
     def test_get_workflows_with_publication_date_filter_json(
         self,
     ):
         """Tests that the 'get workflows' command works correctly (while
-        filtering by publication date and printing json)"""
+        filtering by publication date and json=True)"""
 
-        self._test_get_workflows_with_date_filter_json(
-            ("--publication-date", "publication"), self.mock_publication_date_filter
+        self._test_get_workflows_with_date_filter(
+            filter_argument="--publication-date",
+            mock_date_filter=self.mock_publication_date_filter,
+            json=True,
         )
 
     def test_get_workflows_with_all_filters(
         self,
     ):
-        """Tests that the 'get workflows' command works correctly with a
-        one of each filter"""
+        """Tests that the 'get workflows' command works correctly while
+        filtering by everything at once"""
 
         # SETUP
-        session = MagicMock()
-        self.mock_DAFNISession.return_value = session
-        runner = CliRunner()
-        workflow_dicts = [MagicMock(), MagicMock()]
-        workflows = [MagicMock(), MagicMock()]
         search_text = "Test"
         creation_date = datetime(2022, 6, 28)
         publication_date = datetime(2022, 12, 11)
 
-        self.mock_get_all_workflows.return_value = workflow_dicts
-        self.mock_parse_workflows.return_value = workflows
-
-        # Make the first model filter but the second not
-        self.mock_filter_multiple.return_value = [workflows[0]], [workflow_dicts[0]]
-
-        # CALL
-        options = [
-            "workflows",
-            "--search",
-            search_text,
-            "--creation-date",
-            creation_date,
-            "--publication-date",
-            publication_date,
-        ]
-        result = runner.invoke(get.get, options)
-
-        # ASSERT
-        self.mock_DAFNISession.assert_called_once()
-        self.mock_get_all_workflows.assert_called_with(session)
-        self.mock_text_filter.assert_called_once_with(search_text)
-        self.mock_creation_date_filter.assert_called_once_with(creation_date)
-        self.mock_publication_date_filter.assert_called_once_with(publication_date)
-        self.mock_filter_multiple.assert_called_with(
-            [
+        # CALL & ASSERT
+        self._test_get_workflows_with_filters(
+            filter_arguments=[
+                "--search",
+                search_text,
+                "--creation-date",
+                creation_date.strftime(DATE_INPUT_FORMAT),
+                "--publication-date",
+                publication_date.strftime(DATE_INPUT_FORMAT),
+            ],
+            expected_filters=[
                 self.mock_text_filter.return_value,
                 self.mock_creation_date_filter.return_value,
                 self.mock_publication_date_filter.return_value,
             ],
-            workflows,
-            workflow_dicts,
+            json=False,
         )
-
-        workflows[0].get_brief_details.assert_called_once()
-        workflows[1].get_brief_details.assert_not_called()
-
-        self.mock_format_table.assert_called_once_with(
-            [
-                TABLE_NAME_HEADER,
-                TABLE_VERSION_ID_HEADER,
-                TABLE_PUBLICATION_DATE_HEADER,
-                TABLE_SUMMARY_HEADER,
-            ],
-            [workflows[0].get_brief_details.return_value],
-            [
-                TABLE_DISPLAY_NAME_MAX_COLUMN_WIDTH,
-                None,
-                None,
-                TABLE_SUMMARY_MAX_COLUMN_WIDTH,
-            ],
-        )
-        self.mock_click.echo.assert_called_once_with(
-            self.mock_format_table.return_value
-        )
-        self.mock_print_json.assert_not_called()
-
-        self.assertEqual(result.exit_code, 0)
 
 
 @patch("dafni_cli.commands.get.DAFNISession")
@@ -1237,7 +1093,7 @@ class TestGetWorkflowInstances(TestCase):
         self.mock_cli_get_workflow.return_value = workflow_dict
         self.mock_parse_workflow.return_value = workflow
 
-        # Make the first workflow filter but the second not
+        # Make the first workflow instance filter but the second not
         self.mock_filter_multiple.return_value = (
             [workflow_instances[0]],
             [workflow_instance_dicts[0]],
@@ -1467,13 +1323,13 @@ class TestGetWorkflowInstances(TestCase):
 
     def test_get_workflow_instances_with_all_filters(self):
         """Tests that the 'get workflow-instances' command works correctly
-        (while filtering by everything at once)"""
+        while filtering by everything at once"""
 
         # SETUP
         start = datetime(2022, 6, 28)
         end = datetime(2022, 12, 11)
 
-        # CALL
+        # CALL & ASSERT
         self._test_get_workflow_instances_with_filters(
             filter_arguments=[
                 "--start",
