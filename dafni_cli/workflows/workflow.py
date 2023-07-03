@@ -3,6 +3,7 @@ from datetime import datetime
 from typing import ClassVar, List, Optional
 
 import click
+from tabulate import tabulate
 
 from dafni_cli.api.auth import Auth
 from dafni_cli.api.parser import ParserBaseObject, ParserParam, parse_datetime
@@ -13,10 +14,14 @@ from dafni_cli.consts import (
     TABLE_ID_HEADER,
     TABLE_NAME_HEADER,
     TABLE_PARAMETER_SET_HEADER,
+    TABLE_PUBLICATION_DATE_HEADER,
     TABLE_PUBLISHED_BY_HEADER,
     TABLE_PUBLISHED_DATE_HEADER,
     TABLE_STARTED_HEADER,
     TABLE_STATUS_HEADER,
+    TABLE_VERSION_ID_HEADER,
+    TABLE_VERSION_MESSAGE_HEADER,
+    TABLE_VERSION_TAGS_HEADER,
     TABLE_WORKFLOW_VERSION_ID_HEADER,
 )
 from dafni_cli.utils import format_datetime, format_table, prose_print
@@ -195,23 +200,20 @@ class Workflow(ParserBaseObject):
         )
         return self._metadata
 
-    def output_details(self, long: bool = False):
-        """Prints relevant workflow attributes to command line
+    def get_brief_details(self) -> List:
+        """Returns an array containing brief details about this workflow for
+        the get workflows command
 
-        Args:
-            long (bool): Whether to print with the (potentially long)
-                         description (ignored if description is None)
+        Returns
+            List: Containing display_name, workflow_id, publication date and
+                  summary
         """
-        click.echo(
-            f"Name: {self.metadata.display_name}{TAB_SPACE}"
-            f"ID: {self.workflow_id}{TAB_SPACE}"
-            f"Created: {format_datetime(self.creation_date, include_time=True)}"
-        )
-        click.echo(f"Summary: {self.metadata.summary}")
-        if long and self.metadata.description is not None:
-            click.echo("Description: ")
-            prose_print(self.metadata.description, CONSOLE_WIDTH)
-        click.echo("")
+        return [
+            self.metadata.display_name,
+            self.workflow_id,
+            format_datetime(self.publication_date, include_time=False),
+            self.metadata.summary,
+        ]
 
     def format_parameter_sets(self) -> str:
         """Formats parameter_sets into a string which prints as a table
@@ -265,15 +267,33 @@ class Workflow(ParserBaseObject):
             ],
         )
 
-    def output_info(self):
-        """Prints information about the workflow to command line"""
+    def output_details(self):
+        """Prints information about the workflow to command line (used for get
+        workflow)"""
 
-        click.echo(f"Name: {self.metadata.display_name}")
-        click.echo(f"Created: {format_datetime(self.creation_date, include_time=True)}")
+        click.echo(
+            f"{self.metadata.display_name}  |  Tags: {', '.join(self.version_tags)}"
+        )
+        click.echo("")
+        click.echo(f"Published by: {self.metadata.publisher_id}")
+        click.echo("")
+        click.echo(
+            tabulate(
+                [
+                    ["Date:", format_datetime(self.creation_date, include_time=True)],
+                    ["ID:", self.workflow_id],
+                    ["Parent ID:", self.parent_id],
+                ],
+                tablefmt="plain",
+            )
+        )
+        click.echo("")
         click.echo("Version message:")
         click.echo(self.version_message)
+        click.echo("")
         click.echo("Summary:")
         click.echo(self.metadata.summary)
+        click.echo("")
         click.echo("Description:")
         prose_print(self.metadata.description, CONSOLE_WIDTH)
         if self.parameter_sets is not None:
@@ -287,26 +307,39 @@ class Workflow(ParserBaseObject):
 
     def get_version_details(self) -> str:
         """Returns a string with the workflow ID, display name, publication
-        time and version message on one line
+        time and version message (used prior to deletion)
         """
         return (
-            f"ID: {self.workflow_id}{TAB_SPACE}"
-            f"Name: {self.metadata.display_name}{TAB_SPACE}"
-            f"Publication date: {format_datetime(self.publication_date, include_time=True)}{TAB_SPACE}"
-            f"Version message: {self.version_message}"
+            f"ID: {self.workflow_id}\n"
+            f"Name: {self.metadata.display_name}\n"
+            f"Publication date: {format_datetime(self.publication_date, include_time=True)}\n"
+            f"Version message: {self.version_message}\n"
         )
 
     def output_version_history(self):
-        """Prints the version history for the workflow to the command line"""
+        """Iterates through all versions and outputs their details in a table
+        printed to the command line"""
+        table_rows = []
         for version in self.version_history:
-            click.echo(
-                f"Name: {self.metadata.display_name}{TAB_SPACE}"
-                f"ID: {version.version_id}{TAB_SPACE}"
-                f"Publication date: {format_datetime(version.publication_date, include_time=True)}"
+            table_rows.append(
+                [
+                    version.version_id,
+                    format_datetime(version.publication_date, include_time=True),
+                    ", ".join(version.version_tags),
+                    version.version_message,
+                ]
             )
-            click.echo(f"Version message: {version.version_message}")
-            click.echo(f"Version tags: {', '.join(version.version_tags)}")
-            click.echo("")
+        click.echo(
+            format_table(
+                headers=[
+                    TABLE_VERSION_ID_HEADER,
+                    TABLE_PUBLICATION_DATE_HEADER,
+                    TABLE_VERSION_TAGS_HEADER,
+                    TABLE_VERSION_MESSAGE_HEADER,
+                ],
+                rows=table_rows,
+            )
+        )
 
 
 # The following methods mostly exists to get round current python limitations

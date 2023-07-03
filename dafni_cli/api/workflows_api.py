@@ -118,5 +118,5 @@ def delete_workflow_version(session: DAFNISession, version_id: str) -> Response:
         session (DAFNISession): User session
         version_id (str): version ID of workflow to be deleted
     """
-    url = f"{NIMS_API_URL}/workflows/{version_id}"
+    url = f"{NIMS_API_URL}/workflows/{version_id}/"
     return session.delete_request(url)
