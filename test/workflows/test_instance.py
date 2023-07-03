@@ -5,9 +5,9 @@ from dateutil.tz import tzutc
 
 from dafni_cli.api.parser import ParserBaseObject
 from dafni_cli.workflows.instance import (
-    WorkflowInstance,
-    WorkflowInstanceParameterSet,
-    WorkflowInstanceWorkflowVersion,
+    WorkflowInstanceList,
+    WorkflowInstanceListParameterSet,
+    WorkflowInstanceListWorkflowVersion,
 )
 
 TEST_WORKFLOW_INSTANCE_PARAMETER_SET = {
@@ -38,14 +38,14 @@ TEST_WORKFLOW_INSTANCE_DEFAULT = {
 }
 
 
-class TestWorkflowInstanceParameterSet(TestCase):
-    """Tests the WorkflowInstanceParameterSet dataclass"""
+class TestWorkflowInstanceListParameterSet(TestCase):
+    """Tests the WorkflowInstanceListParameterSet dataclass"""
 
     def test_parse(self):
-        """Tests parsing of WorkflowInstanceParameterSet"""
-        workflow_instance_param_set: WorkflowInstanceParameterSet = (
+        """Tests parsing of WorkflowInstanceListParameterSet"""
+        workflow_instance_param_set: WorkflowInstanceListParameterSet = (
             ParserBaseObject.parse_from_dict(
-                WorkflowInstanceParameterSet, TEST_WORKFLOW_INSTANCE_PARAMETER_SET
+                WorkflowInstanceListParameterSet, TEST_WORKFLOW_INSTANCE_PARAMETER_SET
             )
         )
 
@@ -59,14 +59,15 @@ class TestWorkflowInstanceParameterSet(TestCase):
         )
 
 
-class TestWorkflowInstanceWorkflowVersion(TestCase):
-    """Tests the WorkflowInstanceWorkflowVersion dataclass"""
+class TestWorkflowInstanceListWorkflowVersion(TestCase):
+    """Tests the WorkflowInstanceListWorkflowVersion dataclass"""
 
     def test_parse(self):
         """Tests parsing of WorkflowInstanceWorkflowVersion"""
-        workflow_instance_workflow_version: WorkflowInstanceWorkflowVersion = (
+        workflow_instance_workflow_version: WorkflowInstanceListWorkflowVersion = (
             ParserBaseObject.parse_from_dict(
-                WorkflowInstanceWorkflowVersion, TEST_WORKFLOW_INSTANCE_WORKFLOW_VERSION
+                WorkflowInstanceListWorkflowVersion,
+                TEST_WORKFLOW_INSTANCE_WORKFLOW_VERSION,
             )
         )
 
@@ -80,13 +81,13 @@ class TestWorkflowInstanceWorkflowVersion(TestCase):
         )
 
 
-class TestWorkflowInstance(TestCase):
-    """Tests the WorkflowInstance dataclass"""
+class TestWorkflowInstanceList(TestCase):
+    """Tests the WorkflowInstanceList dataclass"""
 
     def test_parse(self):
         """Tests parsing of WorkflowInstance"""
-        workflow_instance: WorkflowInstance = ParserBaseObject.parse_from_dict(
-            WorkflowInstance, TEST_WORKFLOW_INSTANCE
+        workflow_instance: WorkflowInstanceList = ParserBaseObject.parse_from_dict(
+            WorkflowInstanceList, TEST_WORKFLOW_INSTANCE
         )
 
         self.assertEqual(
@@ -104,12 +105,13 @@ class TestWorkflowInstance(TestCase):
 
         # WorkflowInstanceParameterSet (contents tested in TestWorkflowInstanceParameterSet)
         self.assertEqual(
-            type(workflow_instance.parameter_set), WorkflowInstanceParameterSet
+            type(workflow_instance.parameter_set), WorkflowInstanceListParameterSet
         )
 
         # WorkflowInstanceWorkflowVersion (contents tested in TestWorkflowInstanceWorkflowVersion)
         self.assertEqual(
-            type(workflow_instance.workflow_version), WorkflowInstanceWorkflowVersion
+            type(workflow_instance.workflow_version),
+            WorkflowInstanceListWorkflowVersion,
         )
 
         self.assertEqual(
@@ -120,8 +122,8 @@ class TestWorkflowInstance(TestCase):
     def test_parse_default(self):
         """Tests parsing of WorkflowInstance when optional parameters are
         missing"""
-        workflow_instance: WorkflowInstance = ParserBaseObject.parse_from_dict(
-            WorkflowInstance, TEST_WORKFLOW_INSTANCE_DEFAULT
+        workflow_instance: WorkflowInstanceList = ParserBaseObject.parse_from_dict(
+            WorkflowInstanceList, TEST_WORKFLOW_INSTANCE_DEFAULT
         )
 
         # Only test the parameters that are supposed to be missing as the

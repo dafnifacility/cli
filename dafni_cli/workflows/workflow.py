@@ -20,7 +20,7 @@ from dafni_cli.consts import (
     TABLE_WORKFLOW_VERSION_ID_HEADER,
 )
 from dafni_cli.utils import format_datetime, format_table, prose_print
-from dafni_cli.workflows.instance import WorkflowInstance
+from dafni_cli.workflows.instance import WorkflowInstanceList
 from dafni_cli.workflows.parameter_set import WorkflowParameterSet
 
 
@@ -129,7 +129,7 @@ class Workflow(ParserBaseObject):
     version_message: str
     parent_id: str
 
-    instances: Optional[List[WorkflowInstance]] = None
+    instances: Optional[List[WorkflowInstanceList]] = None
     parameter_sets: Optional[List[WorkflowParameterSet]] = None
     api_version: Optional[str] = None
     # TODO: Left as a dict for now, would just need its own parsing function
@@ -157,7 +157,7 @@ class Workflow(ParserBaseObject):
         ParserParam("version_tags", "version_tags"),
         ParserParam("version_message", "version_message", str),
         ParserParam("parent_id", "parent", str),
-        ParserParam("instances", "instances", WorkflowInstance),
+        ParserParam("instances", "instances", WorkflowInstanceList),
         ParserParam("parameter_sets", "parameter_sets", WorkflowParameterSet),
         ParserParam("api_version", "api_version", str),
         ParserParam("spec", "spec"),

@@ -6,7 +6,7 @@ from dafni_cli.api.parser import ParserBaseObject, ParserParam, parse_datetime
 
 
 @dataclass
-class WorkflowInstanceParameterSet(ParserBaseObject):
+class WorkflowInstanceListParameterSet(ParserBaseObject):
     """Dataclass representing the information gathered about the parameter set
        a workflow instance was executed with
 
@@ -25,7 +25,7 @@ class WorkflowInstanceParameterSet(ParserBaseObject):
 
 
 @dataclass
-class WorkflowInstanceWorkflowVersion(ParserBaseObject):
+class WorkflowInstanceListWorkflowVersion(ParserBaseObject):
     """Dataclass representing the information gathered about the workflow
        version a workflow instance was executed with
 
@@ -44,9 +44,9 @@ class WorkflowInstanceWorkflowVersion(ParserBaseObject):
 
 
 @dataclass
-class WorkflowInstance(ParserBaseObject):
+class WorkflowInstanceList(ParserBaseObject):
     """Dataclass representing a workflow instance (an execution of a DAFNI
-       workflow)
+       workflow) as returned when getting a Workflow
 
     Attributes:
         instance_id (str): ID of this instance
@@ -65,17 +65,17 @@ class WorkflowInstance(ParserBaseObject):
     instance_id: str
     submission_time: datetime
     overall_status: str
-    parameter_set: WorkflowInstanceParameterSet
-    workflow_version: WorkflowInstanceWorkflowVersion
+    parameter_set: WorkflowInstanceListParameterSet
+    workflow_version: WorkflowInstanceListWorkflowVersion
     finished_time: datetime = None
 
     _parser_params: ClassVar[List[ParserParam]] = [
         ParserParam("instance_id", "instance_id", str),
         ParserParam("submission_time", "submission_time", parse_datetime),
         ParserParam("overall_status", "overall_status", str),
-        ParserParam("parameter_set", "parameter_set", WorkflowInstanceParameterSet),
+        ParserParam("parameter_set", "parameter_set", WorkflowInstanceListParameterSet),
         ParserParam(
-            "workflow_version", "workflow_version", WorkflowInstanceWorkflowVersion
+            "workflow_version", "workflow_version", WorkflowInstanceListWorkflowVersion
         ),
         ParserParam("finished_time", "finished_time", parse_datetime),
     ]
