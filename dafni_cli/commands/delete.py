@@ -65,7 +65,7 @@ def collate_model_version_details(
     return model_version_details_list
 
 
-@delete.command(help="Delete one or more model version(s)")
+@delete.command(help="Delete one or more model versions")
 @click.argument("version-ids", nargs=-1, required=True, type=str)
 @click.pass_context
 def model_version(ctx: Context, version_ids: List[str]):
@@ -154,7 +154,7 @@ def collate_dataset_details(
     return _collate_dataset_details(
         session=session,
         version_ids=version_ids,
-        obtain_details=lambda dataset_meta: dataset_meta.get_dataset_details(),
+        obtain_details=lambda dataset_meta: dataset_meta.get_details(),
         permissions_message="You do not have sufficient permissions to delete dataset:",
     )
 
@@ -205,7 +205,7 @@ def collate_dataset_version_details(
     return _collate_dataset_details(
         session=session,
         version_ids=version_ids,
-        obtain_details=lambda dataset_meta: dataset_meta.get_dataset_version_details(),
+        obtain_details=lambda dataset_meta: dataset_meta.get_version_details(),
         permissions_message="You do not have sufficient permissions to delete dataset version:",
     )
 
@@ -268,7 +268,7 @@ def collate_workflow_version_details(
     return workflow_version_details_list
 
 
-@delete.command(help="Delete one or more workflow version(s)")
+@delete.command(help="Delete one or more workflow versions")
 @click.argument("version-ids", nargs=-1, required=True, type=str)
 @click.pass_context
 def workflow_version(ctx: Context, version_ids: List[str]):

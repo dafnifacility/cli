@@ -130,5 +130,5 @@ def delete_model_version(session: DAFNISession, version_id: str) -> Response:
         session (DAFNISession): User session
         version_id (str): Model version ID for selected model
     """
-    url = f"{NIMS_API_URL}/models/{version_id}"
+    url = f"{NIMS_API_URL}/models/{version_id}/"
     return session.delete_request(url)

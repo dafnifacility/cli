@@ -685,6 +685,8 @@ class TestGetWorkflows(TestCase):
         self.mock_filter_multiple = patch(
             "dafni_cli.commands.get.filter_multiple"
         ).start()
+        self.mock_click = patch("dafni_cli.commands.get.click").start()
+        self.mock_format_table = patch("dafni_cli.commands.get.format_table").start()
 
         self.addCleanup(patch.stopall)
 
@@ -711,37 +713,28 @@ class TestGetWorkflows(TestCase):
         self.mock_DAFNISession.assert_called_once()
         self.mock_get_all_workflows.assert_called_with(session)
         self.mock_filter_multiple.assert_called_with([], workflows, workflow_dicts)
+        expected_rows = []
         for workflow in workflows:
-            workflow.output_details.assert_called_with(False)
-        self.mock_print_json.assert_not_called()
-
-        self.assertEqual(result.exit_code, 0)
-
-    def test_get_workflows_with_long_true(self):
-        """Tests that the 'get workflows' command works correctly (with long
-        True)"""
-
-        # SETUP
-        session = MagicMock()
-        self.mock_DAFNISession.return_value = session
-        runner = CliRunner()
-        workflow_dicts = [MagicMock(), MagicMock()]
-        workflows = [MagicMock(), MagicMock()]
-        self.mock_get_all_workflows.return_value = workflow_dicts
-        self.mock_parse_workflows.return_value = workflows
-
-        # No filtering
-        self.mock_filter_multiple.return_value = workflows, workflow_dicts
-
-        # CALL
-        result = runner.invoke(get.get, ["workflows", "--long"])
-
-        # ASSERT
-        self.mock_DAFNISession.assert_called_once()
-        self.mock_get_all_workflows.assert_called_with(session)
-        self.mock_filter_multiple.assert_called_with([], workflows, workflow_dicts)
-        for workflow in workflows:
-            workflow.output_details.assert_called_with(True)
+            workflow.get_brief_details.assert_called_once()
+            expected_rows.append(workflow.get_brief_details.return_value)
+        self.mock_format_table.assert_called_once_with(
+            [
+                TABLE_NAME_HEADER,
+                TABLE_VERSION_ID_HEADER,
+                TABLE_PUBLICATION_DATE_HEADER,
+                TABLE_SUMMARY_HEADER,
+            ],
+            expected_rows,
+            [
+                TABLE_DISPLAY_NAME_MAX_COLUMN_WIDTH,
+                None,
+                None,
+                TABLE_SUMMARY_MAX_COLUMN_WIDTH,
+            ],
+        )
+        self.mock_click.echo.assert_called_once_with(
+            self.mock_format_table.return_value
+        )
         self.mock_print_json.assert_not_called()
 
         self.assertEqual(result.exit_code, 0)
@@ -772,7 +765,9 @@ class TestGetWorkflows(TestCase):
         self.mock_get_all_workflows.assert_called_with(session)
         self.mock_filter_multiple.assert_called_with([], workflows, workflow_dicts)
         for workflow in workflows:
-            workflow.output_details.assert_not_called()
+            workflow.get_brief_details.assert_not_called()
+        self.mock_format_table.assert_not_called()
+        self.mock_click.echo.assert_not_called()
         self.mock_print_json.assert_called_with(workflow_dicts)
 
         self.assertEqual(result.exit_code, 0)
@@ -811,8 +806,27 @@ class TestGetWorkflows(TestCase):
             [self.mock_text_filter.return_value], workflows, workflow_dicts
         )
 
-        workflows[0].output_details.assert_called_with(False)
-        workflows[1].output_details.assert_not_called()
+        workflows[0].get_brief_details.assert_called_once()
+        workflows[1].get_brief_details.assert_not_called()
+
+        self.mock_format_table.assert_called_once_with(
+            [
+                TABLE_NAME_HEADER,
+                TABLE_VERSION_ID_HEADER,
+                TABLE_PUBLICATION_DATE_HEADER,
+                TABLE_SUMMARY_HEADER,
+            ],
+            [workflows[0].get_brief_details.return_value],
+            [
+                TABLE_DISPLAY_NAME_MAX_COLUMN_WIDTH,
+                None,
+                None,
+                TABLE_SUMMARY_MAX_COLUMN_WIDTH,
+            ],
+        )
+        self.mock_click.echo.assert_called_once_with(
+            self.mock_format_table.return_value
+        )
         self.mock_print_json.assert_not_called()
 
         self.assertEqual(result.exit_code, 0)
@@ -821,7 +835,6 @@ class TestGetWorkflows(TestCase):
         self,
         date_filter_options,
         mock_date_filter,
-        long,
     ):
         """Helper method for testing that the 'get workflows' command works
         correctly with the given date filters"""
@@ -846,8 +859,6 @@ class TestGetWorkflows(TestCase):
             date_filter_options[0],
             date.strftime(DATE_INPUT_FORMAT),
         ]
-        if long:
-            options.append("--long")
         result = runner.invoke(get.get, options)
 
         # ASSERT
@@ -858,8 +869,27 @@ class TestGetWorkflows(TestCase):
             [mock_date_filter.return_value], workflows, workflow_dicts
         )
 
-        workflows[0].output_details.assert_called_with(long)
-        workflows[1].output_details.assert_not_called()
+        workflows[0].get_brief_details.assert_called_once()
+        workflows[1].get_brief_details.assert_not_called()
+
+        self.mock_format_table.assert_called_once_with(
+            [
+                TABLE_NAME_HEADER,
+                TABLE_VERSION_ID_HEADER,
+                TABLE_PUBLICATION_DATE_HEADER,
+                TABLE_SUMMARY_HEADER,
+            ],
+            [workflows[0].get_brief_details.return_value],
+            [
+                TABLE_DISPLAY_NAME_MAX_COLUMN_WIDTH,
+                None,
+                None,
+                TABLE_SUMMARY_MAX_COLUMN_WIDTH,
+            ],
+        )
+        self.mock_click.echo.assert_called_once_with(
+            self.mock_format_table.return_value
+        )
         self.mock_print_json.assert_not_called()
 
         self.assertEqual(result.exit_code, 0)
@@ -873,7 +903,6 @@ class TestGetWorkflows(TestCase):
         self._test_get_workflows_with_date_filter(
             ("--creation-date", "creation"),
             self.mock_creation_date_filter,
-            False,
         )
 
     def test_get_workflows_with_publication_date_filter(
@@ -885,31 +914,6 @@ class TestGetWorkflows(TestCase):
         self._test_get_workflows_with_date_filter(
             ("--publication-date", "publication"),
             self.mock_publication_date_filter,
-            False,
-        )
-
-    def test_get_workflows_with_creation_date_filter_and_long_true(
-        self,
-    ):
-        """Tests that the 'get workflows' command works correctly (while
-        filtering by creation date and long=True)"""
-
-        self._test_get_workflows_with_date_filter(
-            ("--creation-date", "creation"),
-            self.mock_creation_date_filter,
-            True,
-        )
-
-    def test_get_workflows_with_publication_date_filter_and_long_true(
-        self,
-    ):
-        """Tests that the 'get workflows' command works correctly (while
-        filtering by publication date and long=True)"""
-
-        self._test_get_workflows_with_date_filter(
-            ("--publication-date", "publication"),
-            self.mock_publication_date_filter,
-            True,
         )
 
     def _test_get_workflows_with_date_filter_json(
@@ -950,8 +954,12 @@ class TestGetWorkflows(TestCase):
         self.mock_filter_multiple.assert_called_with(
             [mock_date_filter.return_value], workflows, workflow_dicts
         )
-        workflows[0].output_details.assert_not_called()
-        workflows[1].output_details.assert_not_called()
+        workflows[0].get_brief_details.assert_not_called()
+        workflows[1].get_brief_details.assert_not_called()
+
+        self.mock_format_table.assert_not_called()
+        self.mock_click.echo.assert_not_called()
+
         self.mock_print_json.assert_called_with([workflow_dicts[0]])
 
         self.assertEqual(result.exit_code, 0)
@@ -1027,8 +1035,27 @@ class TestGetWorkflows(TestCase):
             workflow_dicts,
         )
 
-        workflows[0].output_details.assert_called_with(False)
-        workflows[1].output_details.assert_not_called()
+        workflows[0].get_brief_details.assert_called_once()
+        workflows[1].get_brief_details.assert_not_called()
+
+        self.mock_format_table.assert_called_once_with(
+            [
+                TABLE_NAME_HEADER,
+                TABLE_VERSION_ID_HEADER,
+                TABLE_PUBLICATION_DATE_HEADER,
+                TABLE_SUMMARY_HEADER,
+            ],
+            [workflows[0].get_brief_details.return_value],
+            [
+                TABLE_DISPLAY_NAME_MAX_COLUMN_WIDTH,
+                None,
+                None,
+                TABLE_SUMMARY_MAX_COLUMN_WIDTH,
+            ],
+        )
+        self.mock_click.echo.assert_called_once_with(
+            self.mock_format_table.return_value
+        )
         self.mock_print_json.assert_not_called()
 
         self.assertEqual(result.exit_code, 0)
@@ -1065,7 +1092,7 @@ class TestGetWorkflow(TestCase):
         # ASSERT
         mock_DAFNISession.assert_called_once()
         mock_cli_get_workflow.assert_called_with(session, "some_version_id")
-        workflow.output_info.assert_called_once()
+        workflow.output_details.assert_called_once()
         mock_print_json.assert_not_called()
 
         self.assertEqual(result.exit_code, 0)
@@ -1093,7 +1120,7 @@ class TestGetWorkflow(TestCase):
         # ASSERT
         mock_DAFNISession.assert_called_once()
         mock_cli_get_workflow.assert_called_with(session, "some_version_id")
-        workflow.output_info.assert_not_called()
+        workflow.output_details.assert_not_called()
         mock_print_json.assert_called_once_with(workflow)
 
         self.assertEqual(result.exit_code, 0)

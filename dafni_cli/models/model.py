@@ -314,13 +314,13 @@ class Model(ParserBaseObject):
 
     def get_version_details(self) -> str:
         """Returns a string with the model ID, display name, publication date
-        and version message on one line
+        and version message (used prior to deletion)
         """
         return (
-            f"ID: {self.model_id}{TAB_SPACE}"
-            f"Name: {self.metadata.display_name}{TAB_SPACE}"
-            f"Publication date: {format_datetime(self.publication_date, include_time=True)}{TAB_SPACE}"
-            f"Version message: {self.version_message}"
+            f"Name: {self.metadata.display_name}\n"
+            f"ID: {self.model_id}\n"
+            f"Publication date: {format_datetime(self.publication_date, include_time=True)}\n"
+            f"Version message: {self.version_message}\n"
         )
 
     def output_version_history(self):

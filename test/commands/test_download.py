@@ -89,7 +89,7 @@ class TestDownloadDataset(TestCase):
 
         self.assertEqual(
             result.output,
-            f"\nThe dataset files have been downloaded to:\n{expected_download_path}\n",
+            f"The dataset files have been downloaded to:\n{expected_download_path}\n",
         )
 
         self.assertEqual(result.exit_code, 0)
@@ -153,7 +153,7 @@ class TestDownloadDataset(TestCase):
 
         self.assertEqual(
             result.output,
-            f"\nThe dataset files have been downloaded to:\n{expected_download_path}\n",
+            f"The dataset files have been downloaded to:\n{expected_download_path}\n",
         )
 
         self.assertEqual(result.exit_code, 0)
@@ -191,7 +191,7 @@ class TestDownloadDataset(TestCase):
 
         self.assertEqual(
             result.output,
-            "\nThere are no files currently associated with the Dataset to download\n",
+            "There are no files currently associated with the Dataset to download\n",
         )
 
         self.assertEqual(result.exit_code, 0)

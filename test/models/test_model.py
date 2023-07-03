@@ -502,10 +502,10 @@ class TestModel(TestCase):
         # ASSERT
         self.assertEqual(
             result,
-            f"ID: 0a0a0a0a-0a00-0a00-a000-0a0a0000000a{TAB_SPACE}"
-            f"Name: Some display name{TAB_SPACE}"
-            f"Publication date: {format_datetime(model.publication_date, include_time=True)}{TAB_SPACE}"
-            "Version message: ",
+            f"Name: Some display name\n"
+            f"ID: 0a0a0a0a-0a00-0a00-a000-0a0a0000000a\n"
+            f"Publication date: {format_datetime(model.publication_date, include_time=True)}\n"
+            "Version message: \n",
         )
 
     @patch("dafni_cli.models.model.format_table")
