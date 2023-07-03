@@ -7,7 +7,11 @@ from dafni_cli.api.datasets_api import get_all_datasets, get_latest_dataset_meta
 from dafni_cli.api.exceptions import ResourceNotFoundError
 from dafni_cli.api.models_api import get_all_models, get_model
 from dafni_cli.api.session import DAFNISession
-from dafni_cli.api.workflows_api import get_all_workflows, get_workflow
+from dafni_cli.api.workflows_api import (
+    get_all_workflows,
+    get_workflow,
+    get_workflow_instance,
+)
 from dafni_cli.consts import (
     DATE_INPUT_FORMAT,
     DATE_INPUT_FORMAT_VERBOSE,
@@ -250,7 +254,7 @@ def datasets(
             dataset_inst.output_brief_details()
 
 
-@get.command(help="Prints metadata or version history of a dataset version")
+@get.command(help="Display metadata or version history of a particular dataset version")
 @click.option(
     "--version-history/--metadata",
     "-v/-m",
@@ -444,3 +448,34 @@ def workflow(ctx: Context, version_id: List[str], version_history: bool, json: b
             else:
                 workflow_inst = parse_workflow(workflow_dictionary)
                 workflow_inst.output_info()
+
+
+@get.command(help="Display information about a workflow instance")
+@click.argument("instance-id", required=True)
+@click.option(
+    "--json/--pretty",
+    "-j/-p",
+    default=False,
+    help="Prints raw json returned from API. Default: -p",
+    type=bool,
+)
+@click.pass_context
+def workflow_instance(
+    ctx: Context,
+    instance_id: str,
+    json: bool,
+):
+    """Display attributes of all workflows instances for a particular workflow
+    version
+    Args:
+        ctx (context): Contains user session for authentication
+        instance_id (str): Instance ID of the workflow instance to display
+        json (bool): Whether to print the raw json returned by the DAFNI API
+    """
+    workflow_instance_dict = get_workflow_instance(ctx.obj["session"], instance_id)
+
+    # Output
+    if json:
+        print_json(workflow_instance_dict)
+    else:
+        pass
