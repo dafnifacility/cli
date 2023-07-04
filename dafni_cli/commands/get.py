@@ -609,4 +609,4 @@ def workflow_instance(
         print_json(workflow_instance_dict)
     else:
         workflow_instance = parse_workflow_instance(workflow_instance_dict)
-        print(workflow_instance)
+        workflow_instance.output_details()

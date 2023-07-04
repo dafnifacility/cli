@@ -1,5 +1,6 @@
 from datetime import datetime
 from unittest import TestCase
+from unittest.mock import patch
 
 from dateutil.tz import tzutc
 
@@ -14,6 +15,7 @@ from dafni_cli.workflows.instance import (
     WorkflowInstanceProducedAsset,
     WorkflowInstanceStepStatus,
     WorkflowInstanceWorkflowVersion,
+    parse_workflow_instance,
 )
 from dafni_cli.workflows.metadata import WorkflowMetadata
 from dafni_cli.workflows.parameter_set import WorkflowParameterSet
@@ -293,8 +295,7 @@ class TestWorkflowInstance(TestCase):
 
     def test_parse(self):
         """Tests parsing of WorkflowInstance"""
-        workflow_instance: WorkflowInstance = ParserBaseObject.parse_from_dict(
-            WorkflowInstance,
+        workflow_instance: WorkflowInstance = parse_workflow_instance(
             TEST_WORKFLOW_INSTANCE,
         )
 
@@ -342,3 +343,44 @@ class TestWorkflowInstance(TestCase):
             workflow_instance.finished_time,
             datetime(2023, 6, 15, 11, 41, 53, tzinfo=tzutc()),
         )
+
+    @patch("dafni_cli.workflows.instance.format_table")
+    def test_format_steps(self, mock_format_table):
+        """Tests format_steps works correctly"""
+
+        # SETUP
+        workflow_instance = parse_workflow_instance(TEST_WORKFLOW_INSTANCE)
+
+        # CALL
+        result = workflow_instance.format_steps()
+
+        # ASSERT
+        mock_format_table.assert_called_once_with(
+            headers=["Step name", "Step type", "Asset version ID", "Status"],
+            rows=[
+                [
+                    "some-name",
+                    "publisher",
+                    "0a0a0a0a-0a00-0a00-a000-0a0a0000000d",
+                    "Succeeded",
+                ],
+                ["test", "model", "0a0a0a0a-0a00-0a00-a000-0a0a0000000e", "Succeeded"],
+                ["test", "model", "0a0a0a0a-0a00-0a00-a000-0a0a0000000f", "Succeeded"],
+            ],
+        )
+        self.assertEqual(result, mock_format_table.return_value)
+
+    @patch("dafni_cli.workflows.instance.click")
+    @patch.object(WorkflowInstance, "format_steps")
+    def test_output_details(self, mock_format_steps, mock_click):
+        """Tests output_details works correctly"""
+
+        # SETUP
+        workflow_instance = parse_workflow_instance(TEST_WORKFLOW_INSTANCE)
+
+        # CALL
+        workflow_instance.output_details()
+
+        # ASSERT
+        mock_format_steps.assert_called_once()
+        mock_click.echo.assert_called_once_with(mock_format_steps.return_value)

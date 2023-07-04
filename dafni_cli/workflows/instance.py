@@ -2,6 +2,8 @@ from dataclasses import dataclass
 from datetime import datetime
 from typing import ClassVar, Dict, List, Optional
 
+import click
+
 from dafni_cli.api.auth import Auth
 from dafni_cli.api.parser import (
     ParserBaseObject,
@@ -9,10 +11,13 @@ from dafni_cli.api.parser import (
     parse_datetime,
     parse_dict_retaining_keys,
 )
-from dafni_cli.utils import format_datetime
+from dafni_cli.utils import format_datetime, format_table
 from dafni_cli.workflows.metadata import WorkflowMetadata
 from dafni_cli.workflows.parameter_set import WorkflowParameterSet
-from dafni_cli.workflows.specification import WorkflowSpecification
+from dafni_cli.workflows.specification import (
+    WorkflowSpecification,
+    WorkflowSpecificationStep,
+)
 
 
 @dataclass
@@ -260,6 +265,62 @@ class WorkflowInstance(ParserBaseObject):
         ),
         ParserParam("finished_time", "finished_time", parse_datetime),
     ]
+
+    def _find_step_info(self, step_id: str, step: WorkflowSpecificationStep):
+        """Returns information about a given step to display in a table
+        for format_steps
+
+        Arguments:
+            step_id (str): Step ID
+            step (WorkflowSpecificationStep): Step dataclass instance
+
+        Returns:
+            List: Containing the name, type, asset version id, and status
+                  The asset version id will be the produced dataset version
+                  id in the case of a publisher step, and the model version
+                  id used in the case of a model step.
+        """
+
+        # Check the step type and assign an asset version id to display
+        asset_version_id = None
+        if step.kind == "publisher":
+            # Here once finished expect an asset to be produced, so
+            # display that once available
+            if step_id in self.produced_assets:
+                asset_version_id = self.produced_assets[step_id].version_id
+        elif step.kind == "model":
+            # Here model step is taking in a model, so display its version
+            # id
+            asset_version_id = step.model_version
+
+        return [
+            step.name,
+            step.kind,
+            asset_version_id,
+            self.step_statuses[step_id].status,
+        ]
+
+    def format_steps(self) -> str:
+        """Formats steps and their statuses into a string which prints as a
+        table
+
+        Returns:
+            str: Formatted string that will appear as a table when printed
+        """
+
+        return format_table(
+            headers=["Step name", "Step type", "Asset version ID", "Status"],
+            rows=[
+                self._find_step_info(step_id, step)
+                for step_id, step in self.workflow_version.spec.steps.items()
+            ],
+        )
+
+    def output_details(self):
+        """Prints information about the workflow instance to command line
+        (used for get workflow-instance)"""
+
+        click.echo(self.format_steps())
 
 
 # The following method mostly exists to get round current python limitations
