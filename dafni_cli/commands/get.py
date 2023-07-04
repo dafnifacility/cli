@@ -101,21 +101,16 @@ def models(
     json: bool,
 ):
     """Displays list of model details with other options allowing
-            more details to be listed, filters, and for the json to be displayed.
+    more details to be listed, filters, and for the json to be displayed.
 
-        Args:
-    <<<<<<< HEAD
-            ctx (context): Contains user session for authentication
-            long (bool): Whether to print the description of each model as well
-    =======
-            ctx (context): contains user session for authentication
-    >>>>>>> main
-            search (Optional[str]): Search text to filter models by
-            creation_date (datetime): For filtering by creation date. Format:
-                                 DATE_INPUT_FORMAT_VERBOSE
-            publication_date (datetime): for filtering by publication date. Format:
-                                    DATE_INPUT_FORMAT_VERBOSE
-            json (bool): whether to print the raw json returned by the DAFNI API
+    Args:
+        ctx (context): Contains user session for authentication
+        search (Optional[str]): Search text to filter models by
+        creation_date (datetime): For filtering by creation date. Format:
+                             DATE_INPUT_FORMAT_VERBOSE
+        publication_date (datetime): for filtering by publication date. Format:
+                                DATE_INPUT_FORMAT_VERBOSE
+        json (bool): whether to print the raw json returned by the DAFNI API
     """
     model_dict_list = get_all_models(ctx.obj["session"])
     model_list = parse_models(model_dict_list)
@@ -254,7 +249,7 @@ def datasets(
                                 Format: "search terms"
         start_date (Optional[datetime]): Filter for datasets with a start date
                             since given date. Format: DATE_INPUT_FORMAT_VERBOSE
-        end_date (Optional[datetime]): Filter for datasets with a end date up
+        end_date (Optional[datetime]): Filter for datasets with an end date up
                             to given date. Format: DATE_INPUT_FORMAT_VERBOSE
         json (Optional[bool]): Whether to output raw json from API or pretty
                                print information. Defaults to False.

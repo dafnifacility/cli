@@ -252,7 +252,7 @@ class TestFiltering(TestCase):
         )
 
     def test_status_filter(self):
-        """Tests start_filter works correctly"""
+        """Tests status_filter works correctly"""
         # CALL
         filtered_instances, filtered_dictionaries = filtering.filter_multiple(
             [filtering.status_filter("Succeeded")],
@@ -262,8 +262,7 @@ class TestFiltering(TestCase):
 
         # ASSERT
 
-        # Here the 2nd instance has a finished_time of None, although should
-        # otherwise pass
+        # Only the second status has a status of Succeeded
         self.assertEqual(filtered_instances, [self.TEST_INSTANCES[1]])
         self.assertEqual(
             filtered_dictionaries,
