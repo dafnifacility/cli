@@ -1,11 +1,17 @@
 from datetime import datetime
 from unittest import TestCase
-from unittest.mock import patch
+from unittest.mock import call, patch
 
 from dateutil.tz import tzutc
 
 from dafni_cli.api.auth import Auth
 from dafni_cli.api.parser import ParserBaseObject
+from dafni_cli.consts import (
+    TABLE_ASSERT_VERSION_ID_HEADER,
+    TABLE_STATUS_HEADER,
+    TABLE_STEP_NAME_HEADER,
+    TABLE_STEP_TYPE_HEADER,
+)
 from dafni_cli.utils import format_datetime
 from dafni_cli.workflows.instance import (
     WorkflowInstance,
@@ -356,7 +362,12 @@ class TestWorkflowInstance(TestCase):
 
         # ASSERT
         mock_format_table.assert_called_once_with(
-            headers=["Step name", "Step type", "Asset version ID", "Status"],
+            headers=[
+                TABLE_STEP_NAME_HEADER,
+                TABLE_STEP_TYPE_HEADER,
+                TABLE_ASSERT_VERSION_ID_HEADER,
+                TABLE_STATUS_HEADER,
+            ],
             rows=[
                 [
                     "some-name",
@@ -370,9 +381,10 @@ class TestWorkflowInstance(TestCase):
         )
         self.assertEqual(result, mock_format_table.return_value)
 
+    @patch("dafni_cli.workflows.instance.tabulate")
     @patch("dafni_cli.workflows.instance.click")
     @patch.object(WorkflowInstance, "format_steps")
-    def test_output_details(self, mock_format_steps, mock_click):
+    def test_output_details(self, mock_format_steps, mock_click, mock_tabulate):
         """Tests output_details works correctly"""
 
         # SETUP
@@ -383,4 +395,34 @@ class TestWorkflowInstance(TestCase):
 
         # ASSERT
         mock_format_steps.assert_called_once()
-        mock_click.echo.assert_called_once_with(mock_format_steps.return_value)
+        self.assertEqual(
+            mock_click.echo.mock_calls,
+            [
+                call(workflow_instance.workflow_version.metadata.display_name),
+                call(),
+                call(mock_tabulate.return_value),
+                call(),
+                call(mock_format_steps.return_value),
+            ],
+        )
+        mock_tabulate.assert_called_once_with(
+            [
+                [
+                    "Workflow version ID:",
+                    workflow_instance.workflow_version.workflow_id,
+                ],
+                ["Parameter set ID:", workflow_instance.parameter_set.parameter_set_id],
+                [
+                    "Started:",
+                    format_datetime(
+                        workflow_instance.submission_time, include_time=True
+                    ),
+                ],
+                [
+                    "Finished:",
+                    format_datetime(workflow_instance.finished_time, include_time=True),
+                ],
+                ["Overall status:", workflow_instance.overall_status],
+            ],
+            tablefmt="plain",
+        )

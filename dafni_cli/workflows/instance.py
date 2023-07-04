@@ -3,6 +3,7 @@ from datetime import datetime
 from typing import ClassVar, Dict, List, Optional
 
 import click
+from tabulate import tabulate
 
 from dafni_cli.api.auth import Auth
 from dafni_cli.api.parser import (
@@ -10,6 +11,12 @@ from dafni_cli.api.parser import (
     ParserParam,
     parse_datetime,
     parse_dict_retaining_keys,
+)
+from dafni_cli.consts import (
+    TABLE_ASSERT_VERSION_ID_HEADER,
+    TABLE_STATUS_HEADER,
+    TABLE_STEP_NAME_HEADER,
+    TABLE_STEP_TYPE_HEADER,
 )
 from dafni_cli.utils import format_datetime, format_table
 from dafni_cli.workflows.metadata import WorkflowMetadata
@@ -309,7 +316,12 @@ class WorkflowInstance(ParserBaseObject):
         """
 
         return format_table(
-            headers=["Step name", "Step type", "Asset version ID", "Status"],
+            headers=[
+                TABLE_STEP_NAME_HEADER,
+                TABLE_STEP_TYPE_HEADER,
+                TABLE_ASSERT_VERSION_ID_HEADER,
+                TABLE_STATUS_HEADER,
+            ],
             rows=[
                 self._find_step_info(step_id, step)
                 for step_id, step in self.workflow_version.spec.steps.items()
@@ -320,6 +332,32 @@ class WorkflowInstance(ParserBaseObject):
         """Prints information about the workflow instance to command line
         (used for get workflow-instance)"""
 
+        click.echo(self.workflow_version.metadata.display_name)
+        click.echo()
+
+        click.echo(
+            tabulate(
+                [
+                    # Information about the workflow this is an instance of
+                    ["Workflow version ID:", self.workflow_version.workflow_id],
+                    ["Parameter set ID:", self.parameter_set.parameter_set_id],
+                    # Information about this instance
+                    [
+                        "Started:",
+                        format_datetime(self.submission_time, include_time=True),
+                    ],
+                    [
+                        "Finished:",
+                        format_datetime(self.finished_time, include_time=True),
+                    ],
+                    ["Overall status:", self.overall_status],
+                ],
+                tablefmt="plain",
+            )
+        )
+        click.echo()
+
+        # Workflow execution info
         click.echo(self.format_steps())
 
 
