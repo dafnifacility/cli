@@ -11,6 +11,7 @@ from dafni_cli.api.parser import (
 )
 from dafni_cli.workflows.metadata import WorkflowMetadata
 from dafni_cli.workflows.parameter_set import WorkflowParameterSet
+from dafni_cli.workflows.specification import WorkflowSpecification
 
 
 @dataclass
@@ -156,8 +157,8 @@ class WorkflowInstanceWorkflowVersion(ParserBaseObject):
         version_message (str): Message attached when the workflow was updated
                                to this workflow version
         parent_id (str): Parent workflow ID
-        spec (dict): Specification of the workflow (contains the
-                     steps of the workflow)
+        spec (WorkflowSpecification): Specification of the workflow (contains the
+                                      steps of the workflow)
     """
 
     workflow_id: str
@@ -170,9 +171,7 @@ class WorkflowInstanceWorkflowVersion(ParserBaseObject):
     version_tags: List[str]
     version_message: str
     parent_id: str
-
-    # TODO: Left as a dict for now, would just need its own parsing function
-    spec: Optional[dict] = None
+    spec: Optional[WorkflowSpecification] = None
 
     _parser_params: ClassVar[List[ParserParam]] = [
         ParserParam("workflow_id", "id", str),
@@ -185,7 +184,7 @@ class WorkflowInstanceWorkflowVersion(ParserBaseObject):
         ParserParam("version_tags", "version_tags"),
         ParserParam("version_message", "version_message", str),
         ParserParam("parent_id", "parent", str),
-        ParserParam("spec", "spec"),
+        ParserParam("spec", "spec", WorkflowSpecification),
     ]
 
 

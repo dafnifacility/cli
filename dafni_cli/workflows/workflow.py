@@ -27,6 +27,7 @@ from dafni_cli.utils import format_datetime, format_table, prose_print
 from dafni_cli.workflows.instance import WorkflowInstanceList
 from dafni_cli.workflows.metadata import WorkflowMetadata
 from dafni_cli.workflows.parameter_set import WorkflowParameterSet
+from dafni_cli.workflows.specification import WorkflowSpecification
 
 
 # TODO: Unify with ModelVersion
@@ -103,8 +104,7 @@ class Workflow(ParserBaseObject):
     instances: Optional[List[WorkflowInstanceList]] = None
     parameter_sets: Optional[List[WorkflowParameterSet]] = None
     api_version: Optional[str] = None
-    # TODO: Left as a dict for now, would just need its own parsing function
-    spec: Optional[dict] = None
+    spec: Optional[WorkflowSpecification] = None
 
     # Internal metadata storage - Defined explicitly for the
     # /workflow/<version_id> endpoint but is None otherwise, the property
@@ -131,7 +131,7 @@ class Workflow(ParserBaseObject):
         ParserParam("instances", "instances", WorkflowInstanceList),
         ParserParam("parameter_sets", "parameter_sets", WorkflowParameterSet),
         ParserParam("api_version", "api_version", str),
-        ParserParam("spec", "spec"),
+        ParserParam("spec", "spec", WorkflowSpecification),
         ParserParam("_metadata", "metadata", WorkflowMetadata),
         ParserParam("_display_name", "display_name", str),
         ParserParam("_name", "name", str),

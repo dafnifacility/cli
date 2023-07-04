@@ -25,6 +25,7 @@ from dafni_cli.consts import (
 from dafni_cli.utils import format_datetime
 from dafni_cli.workflows.instance import WorkflowInstanceList
 from dafni_cli.workflows.parameter_set import WorkflowParameterSet
+from dafni_cli.workflows.specification import WorkflowSpecification
 from dafni_cli.workflows.workflow import (
     Workflow,
     WorkflowVersion,
@@ -171,7 +172,12 @@ class TestWorkflow(TestCase):
         self.assertEqual(type(workflow.parameter_sets[0]), WorkflowParameterSet)
 
         self.assertEqual(workflow.api_version, TEST_WORKFLOW["api_version"])
-        self.assertEqual(workflow.spec, TEST_WORKFLOW["spec"])
+
+        # WorkflowSpecification (contents tested in TestWorkflowSpecification)
+        self.assertEqual(
+            type(workflow.spec),
+            WorkflowSpecification,
+        )
 
         # Ensure the metadata is correct
         self.assertEqual(

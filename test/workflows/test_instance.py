@@ -16,6 +16,7 @@ from dafni_cli.workflows.instance import (
 )
 from dafni_cli.workflows.metadata import WorkflowMetadata
 from dafni_cli.workflows.parameter_set import WorkflowParameterSet
+from dafni_cli.workflows.specification import WorkflowSpecification
 
 from test.fixtures.workflow_instance import (
     TEST_WORKFLOW_INSTANCE,
@@ -251,9 +252,11 @@ class TestWorkflowInstanceWorkflowVersion(TestCase):
             workflow_instance_workflow_version.parent_id,
             TEST_WORKFLOW_INSTANCE_WORKFLOW_VERSION["parent"],
         )
+
+        # WorkflowSpecification (contents tested in TestWorkflowSpecification)
         self.assertEqual(
-            workflow_instance_workflow_version.spec,
-            TEST_WORKFLOW_INSTANCE_WORKFLOW_VERSION["spec"],
+            type(workflow_instance_workflow_version.spec),
+            WorkflowSpecification,
         )
 
 

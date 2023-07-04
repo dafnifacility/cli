@@ -1,6 +1,7 @@
 from test.fixtures.auth import TEST_AUTH_DATA_OBJECT
 from test.fixtures.workflow_metadata import TEST_WORKFLOW_METADATA
 from test.fixtures.workflow_parameter_set import TEST_WORKFLOW_PARAMETER_SET
+from test.fixtures.workflow_specification import TEST_WORKFLOW_SPECIFICATION
 
 TEST_WORKFLOW_INSTANCE_LIST_PARAMETER_SET = {
     "id": "0a0a0a0a-0a00-0a00-a000-0a0a0000000a",
@@ -55,99 +56,7 @@ TEST_WORKFLOW_INSTANCE_WORKFLOW_VERSION = {
     "owner": "0a0a0a0a-0a00-0a00-a000-0a0a0000000e",
     "parent": "0a0a0a0a-0a00-0a00-a000-0a0a0000000f",
     "publication_date": "2023-06-12T15:37:23.658116Z",
-    "spec": {
-        "steps": {
-            "0a0a0a0a-0a00-0a00-a000-0a0a0000000a": {
-                "dependencies": ["0a0a0a0a-0a00-0a00-a000-0a0a0000000b"],
-                "files": [
-                    {
-                        "paths": ["outputs/**/*"],
-                        "step": "0a0a0a0a-0a00-0a00-a000-0a0a0000000b",
-                    }
-                ],
-                "kind": "publisher",
-                "metadata": {
-                    "in_step": {
-                        "@context": ["metadata-v1"],
-                        "@type": "dcat:Dataset",
-                        "dafni_version_note": "Initial dataset version",
-                        "dcat:contactPoint": {
-                            "@type": "vcard:Organization",
-                            "vcard:fn": "Joel Davies",
-                            "vcard:hasEmail": "joel.davies@stfc.ac.uk",
-                        },
-                        "dcat:keyword": ["test"],
-                        "dcat:theme": [],
-                        "dct:PeriodOfTime": {
-                            "time:hasBeginning": None,
-                            "time:hasEnd": None,
-                            "type": "dct:PeriodOfTime",
-                        },
-                        "dct:accrualPeriodicity": None,
-                        "dct:conformsTo": {
-                            "@id": None,
-                            "@type": "dct:Standard",
-                            "label": None,
-                        },
-                        "dct:created": "2023-06-12T15:37:23Z",
-                        "dct:creator": [
-                            {
-                                "@id": "https://dafni.ac.uk/",
-                                "@type": "foaf:Organization",
-                                "foaf:name": "test",
-                                "internalID": None,
-                            }
-                        ],
-                        "dct:description": "Test description",
-                        "dct:identifier": [],
-                        "dct:language": "en",
-                        "dct:license": {
-                            "@id": "https://creativecommons.org/licences/by/4.0/",
-                            "@type": "LicenseDocument",
-                            "rdfs:label": None,
-                        },
-                        "dct:publisher": {
-                            "@id": None,
-                            "@type": "foaf:Organization",
-                            "foaf:name": None,
-                            "internalID": None,
-                        },
-                        "dct:rights": None,
-                        "dct:spatial": {
-                            "@id": "2654669",
-                            "@type": "dct:Location",
-                            "rdfs:label": "British Isles, United Kingdom",
-                        },
-                        "dct:subject": "Health",
-                        "dct:title": "Dataset output",
-                        "geojson": {
-                            "geometry": {"coordinates": [54, -4], "type": "Point"},
-                            "properties": {},
-                            "type": "Feature",
-                        },
-                    }
-                },
-                "name": "some-name",
-                "position": {"x": 700, "y": 50},
-            },
-            "0a0a0a0a-0a00-0a00-a000-0a0a0000000c": {
-                "dependencies": [],
-                "inputs": [],
-                "kind": "model",
-                "model_version": "0a0a0a0a-0a00-0a00-a000-0a0a0000000e",
-                "name": "test",
-                "position": {"x": 200, "y": 50},
-            },
-            "0a0a0a0a-0a00-0a00-a000-0a0a0000000b": {
-                "dependencies": ["0a0a0a0a-0a00-0a00-a000-0a0a0000000c"],
-                "inputs": ["0a0a0a0a-0a00-0a00-a000-0a0a0000000c"],
-                "kind": "model",
-                "model_version": "0a0a0a0a-0a00-0a00-a000-0a0a0000000f",
-                "name": "test",
-                "position": {"x": 450, "y": 50},
-            },
-        }
-    },
+    "spec": TEST_WORKFLOW_SPECIFICATION,
     "version_message": "Version message",
     "version_tags": ["latest"],
 }
