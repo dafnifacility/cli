@@ -215,7 +215,7 @@ class WorkflowInstance(ParserBaseObject):
     instance_id: str
     submission_time: datetime
     overall_status: str
-    step_status: Dict[str, WorkflowInstanceStepStatus]
+    step_statuses: Dict[str, WorkflowInstanceStepStatus]
     produced_assets: Dict[str, WorkflowInstanceProducedAsset]
     parameter_set: WorkflowParameterSet
     workflow_version: WorkflowInstanceWorkflowVersion
@@ -227,7 +227,7 @@ class WorkflowInstance(ParserBaseObject):
         ParserParam("submission_time", "submission_time", parse_datetime),
         ParserParam("overall_status", "overall_status", str),
         ParserParam(
-            "step_status",
+            "step_statuses",
             "step_status",
             parse_dict_retaining_keys(WorkflowInstanceStepStatus),
         ),

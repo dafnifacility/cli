@@ -1,16 +1,9 @@
 from typing import List
 
 from test.fixtures.auth import TEST_AUTH_DATA_OBJECT, TEST_AUTH_DATA_OBJECTS
-from test.workflows.test_instance import TEST_WORKFLOW_INSTANCE
+from test.fixtures.workflow_metadata import TEST_WORKFLOW_METADATA
+from test.workflows.test_instance import TEST_WORKFLOW_INSTANCE_LIST
 from test.workflows.test_parameter_set import TEST_WORKFLOW_PARAMETER_SET
-
-TEST_WORKFLOW_METADATA: dict = {
-    "description": "Test workflow",
-    "display_name": "A Workflow",
-    "name": "test-workflow-name",
-    "publisher": "Joel Davies",
-    "summary": "Test workflow created to learn about DAFNI",
-}
 
 TEST_WORKFLOW_VERSION: dict = {
     "id": "0a0a0a0a-0a00-0a00-a000-0a0a0000000b",
@@ -50,7 +43,7 @@ TEST_WORKFLOW: dict = {
     ],
     "auth": TEST_AUTH_DATA_OBJECT,
     "instances": [
-        TEST_WORKFLOW_INSTANCE,
+        TEST_WORKFLOW_INSTANCE_LIST,
     ],
     "parameter_sets": [TEST_WORKFLOW_PARAMETER_SET],
     "api_version": "v1.0.2",
