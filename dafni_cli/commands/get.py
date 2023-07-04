@@ -7,14 +7,12 @@ from click import Context
 from dafni_cli.api.datasets_api import get_all_datasets
 from dafni_cli.api.models_api import get_all_models
 from dafni_cli.api.session import DAFNISession
-from dafni_cli.api.workflows_api import (
-    get_all_workflows,
-    get_workflow_instance,
-)
+from dafni_cli.api.workflows_api import get_all_workflows
 from dafni_cli.commands.helpers import (
     cli_get_latest_dataset_metadata,
     cli_get_model,
     cli_get_workflow,
+    cli_get_workflow_instance,
 )
 from dafni_cli.commands.options import filter_flag_option
 from dafni_cli.consts import (
@@ -42,10 +40,10 @@ from dafni_cli.datasets.dataset_metadata import parse_dataset_metadata
 from dafni_cli.filtering import (
     creation_date_filter,
     end_filter,
-    status_filter,
     filter_multiple,
     publication_date_filter,
     start_filter,
+    status_filter,
     text_filter,
 )
 from dafni_cli.models.model import parse_model, parse_models
@@ -604,7 +602,7 @@ def workflow_instance(
         instance_id (str): Instance ID of the workflow instance to display
         json (bool): Whether to print the raw json returned by the DAFNI API
     """
-    workflow_instance_dict = get_workflow_instance(ctx.obj["session"], instance_id)
+    workflow_instance_dict = cli_get_workflow_instance(ctx.obj["session"], instance_id)
 
     # Output
     if json:
