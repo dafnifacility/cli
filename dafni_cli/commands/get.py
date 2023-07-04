@@ -1,36 +1,51 @@
+from datetime import datetime
 from typing import List, Optional
 
 import click
 from click import Context
 
-from dafni_cli.api.datasets_api import get_all_datasets, get_latest_dataset_metadata
-from dafni_cli.api.exceptions import ResourceNotFoundError
-from dafni_cli.api.models_api import get_all_models, get_model
+from dafni_cli.api.datasets_api import get_all_datasets
+from dafni_cli.api.models_api import get_all_models
 from dafni_cli.api.session import DAFNISession
 from dafni_cli.api.workflows_api import (
     get_all_workflows,
-    get_workflow,
     get_workflow_instance,
 )
+from dafni_cli.commands.helpers import (
+    cli_get_latest_dataset_metadata,
+    cli_get_model,
+    cli_get_workflow,
+)
+from dafni_cli.commands.options import filter_flag_option
 from dafni_cli.consts import (
     DATE_INPUT_FORMAT,
     DATE_INPUT_FORMAT_VERBOSE,
+    DATE_TIME_INPUT_FORMAT,
+    DATE_TIME_INPUT_FORMAT_VERBOSE,
     TABLE_ACCESS_HEADER,
     TABLE_DISPLAY_NAME_MAX_COLUMN_WIDTH,
+    TABLE_FINISHED_HEADER,
+    TABLE_ID_HEADER,
     TABLE_NAME_HEADER,
+    TABLE_PARAMETER_SET_HEADER,
     TABLE_PUBLICATION_DATE_HEADER,
+    TABLE_STARTED_HEADER,
     TABLE_STATUS_HEADER,
     TABLE_SUMMARY_HEADER,
     TABLE_SUMMARY_MAX_COLUMN_WIDTH,
     TABLE_VERSION_ID_HEADER,
+    TABLE_WORKFLOW_VERSION_ID_HEADER,
 )
 from dafni_cli.datasets import dataset_filtering
 from dafni_cli.datasets.dataset import parse_datasets
 from dafni_cli.datasets.dataset_metadata import parse_dataset_metadata
 from dafni_cli.filtering import (
     creation_date_filter,
+    end_filter,
+    status_filter,
     filter_multiple,
     publication_date_filter,
+    start_filter,
     text_filter,
 )
 from dafni_cli.models.model import parse_model, parse_models
@@ -85,19 +100,19 @@ def get(ctx: Context):
 def models(
     ctx: Context,
     search: Optional[str],
-    creation_date: str,
-    publication_date: str,
+    creation_date: datetime,
+    publication_date: datetime,
     json: bool,
 ):
     """Displays list of model details with other options allowing
-        more details to be listed, filters, and for the json to be displayed.
+    more details to be listed, filters, and for the json to be displayed.
 
     Args:
-        ctx (context): contains user session for authentication
+        ctx (context): Contains user session for authentication
         search (Optional[str]): Search text to filter models by
-        creation_date (str): for filtering by creation date. Format:
+        creation_date (datetime): For filtering by creation date. Format:
                              DATE_INPUT_FORMAT_VERBOSE
-        publication_date (str): for filtering by publication date. Format:
+        publication_date (datetime): for filtering by publication date. Format:
                                 DATE_INPUT_FORMAT_VERBOSE
         json (bool): whether to print the raw json returned by the DAFNI API
     """
@@ -127,7 +142,7 @@ def models(
             rows.append(model_inst.get_brief_details())
         click.echo(
             format_table(
-                [
+                headers=[
                     TABLE_NAME_HEADER,
                     TABLE_VERSION_ID_HEADER,
                     TABLE_STATUS_HEADER,
@@ -135,8 +150,8 @@ def models(
                     TABLE_PUBLICATION_DATE_HEADER,
                     TABLE_SUMMARY_HEADER,
                 ],
-                rows,
-                [
+                rows=rows,
+                max_column_widths=[
                     TABLE_DISPLAY_NAME_MAX_COLUMN_WIDTH,
                     None,
                     None,
@@ -175,11 +190,7 @@ def model(ctx: Context, version_id: List[str], version_history: bool, json: bool
     """
     for vid in version_id:
         # Attempt to get the model
-        try:
-            model_dictionary = get_model(ctx.obj["session"], vid)
-        except ResourceNotFoundError as err:
-            click.echo(err)
-            raise SystemExit(1) from err
+        model_dictionary = cli_get_model(ctx.obj["session"], vid)
 
         if version_history:
             if json:
@@ -229,8 +240,8 @@ def model(ctx: Context, version_id: List[str], version_history: bool, json: bool
 def datasets(
     ctx: Context,
     search: Optional[str],
-    start_date: Optional[str],
-    end_date: Optional[str],
+    start_date: Optional[datetime],
+    end_date: Optional[datetime],
     json: Optional[bool],
 ):
     """
@@ -238,12 +249,14 @@ def datasets(
 
     Args:
         ctx (context): contains user session for authentication
-        search (Optional[str]): Search terms for elastic search. Format: "search terms"
-        start_date (Optional[str]): Filter for datasets with a start date since given date. Format:
-                                    DATE_INPUT_FORMAT_VERBOSE
-        end_date (Optional[str]): Filter for datasets with a end date up to given date. Format:
-                                  DATE_INPUT_FORMAT_VERBOSE
-        json (Optional[bool]): Whether to output raw json from API or pretty print information. Defaults to False.
+        search (Optional[str]): Search terms for elastic search.
+                                Format: "search terms"
+        start_date (Optional[datetime]): Filter for datasets with a start date
+                            since given date. Format: DATE_INPUT_FORMAT_VERBOSE
+        end_date (Optional[datetime]): Filter for datasets with an end date up
+                            to given date. Format: DATE_INPUT_FORMAT_VERBOSE
+        json (Optional[bool]): Whether to output raw json from API or pretty
+                               print information. Defaults to False.
     """
     filters = dataset_filtering.process_datasets_filters(search, start_date, end_date)
     dataset_dict_list = get_all_datasets(ctx.obj["session"], filters)
@@ -295,11 +308,7 @@ def dataset(
         json (bool): Flag to view json returned from API
     """
     # Attempt to get the metadata
-    try:
-        metadata = get_latest_dataset_metadata(ctx.obj["session"], version_id)
-    except ResourceNotFoundError as err:
-        click.echo(err)
-        raise SystemExit(1) from err
+    metadata = cli_get_latest_dataset_metadata(ctx.obj["session"], version_id)
 
     if not version_history:
         if json:
@@ -349,8 +358,8 @@ def dataset(
 def workflows(
     ctx: Context,
     search: Optional[str],
-    creation_date: Optional[str],
-    publication_date: Optional[str],
+    creation_date: Optional[datetime],
+    publication_date: Optional[datetime],
     json: bool,
 ):
     """
@@ -360,10 +369,10 @@ def workflows(
     Args:
         ctx (context): contains user session for authentication
         search (Optional[str]): Search text to filter workflows by
-        creation_date (Optional[str]): for filtering by creation date. Format:
-                                       DATE_INPUT_FORMAT_VERBOSE
-        publication_date (Optional[str]): for filtering by publication date. Format:
-                                          DATE_INPUT_FORMAT_VERBOSE
+        creation_date (Optional[datetime]): For filtering by creation date.
+                                            Format: DATE_INPUT_FORMAT_VERBOSE
+        publication_date (Optional[datetime]): For filtering by publication date.
+                                            Format: DATE_INPUT_FORMAT_VERBOSE
         json (bool): whether to print the raw json returned by the DAFNI API
     """
     workflow_dict_list = get_all_workflows(ctx.obj["session"])
@@ -392,14 +401,14 @@ def workflows(
             rows.append(workflow_inst.get_brief_details())
         click.echo(
             format_table(
-                [
+                headers=[
                     TABLE_NAME_HEADER,
                     TABLE_VERSION_ID_HEADER,
                     TABLE_PUBLICATION_DATE_HEADER,
                     TABLE_SUMMARY_HEADER,
                 ],
-                rows,
-                [
+                rows=rows,
+                max_column_widths=[
                     TABLE_DISPLAY_NAME_MAX_COLUMN_WIDTH,
                     None,
                     None,
@@ -440,11 +449,7 @@ def workflow(ctx: Context, version_id: List[str], version_history: bool, json: b
     """
     for vid in version_id:
         # Attempt to get the workflow
-        try:
-            workflow_dictionary = get_workflow(ctx.obj["session"], vid)
-        except ResourceNotFoundError as err:
-            click.echo(err)
-            raise SystemExit(1) from err
+        workflow_dictionary = cli_get_workflow(ctx.obj["session"], vid)
 
         if version_history:
             if json:
@@ -459,6 +464,121 @@ def workflow(ctx: Context, version_id: List[str], version_history: bool, json: b
             else:
                 workflow_inst = parse_workflow(workflow_dictionary)
                 workflow_inst.output_details()
+
+
+###############################################################################
+# Workflow instance commands
+###############################################################################
+@get.command(help="List and filter workflow instances")
+@click.argument("version-id", required=True)
+@click.option(
+    "--start",
+    default=None,
+    help=f"Filter instances submitted after a given date/time. Format: {DATE_INPUT_FORMAT_VERBOSE} or {DATE_TIME_INPUT_FORMAT_VERBOSE}",
+    type=click.DateTime(formats=[DATE_INPUT_FORMAT, DATE_TIME_INPUT_FORMAT]),
+)
+@click.option(
+    "--end",
+    default=None,
+    help=f"Filter instances that finished after a given date/time. Format: {DATE_INPUT_FORMAT_VERBOSE} or {DATE_TIME_INPUT_FORMAT_VERBOSE}",
+    type=click.DateTime(formats=[DATE_INPUT_FORMAT, DATE_TIME_INPUT_FORMAT]),
+)
+@filter_flag_option("--cancelled", help="Filters instances with a 'Cancelled' status.")
+@filter_flag_option("--error", help="Filters instances with a 'Error' status.")
+@filter_flag_option(
+    "--succeeded", "-s", help="Filters instances with a 'Succeeded' status."
+)
+@filter_flag_option("--failed", "-f", help="Filters instances with a 'Failed' status.")
+@filter_flag_option("--omitted", help="Filters instances with an 'Omitted' status.")
+@filter_flag_option("--pending", help="Filters instances with a 'Pending' status.")
+@filter_flag_option("--running", help="Filters instances with a 'Running' status.")
+@click.option(
+    "--json/--pretty",
+    "-j/-p",
+    default=False,
+    help="Prints raw json returned from API. Default: -p",
+    type=bool,
+)
+@click.pass_context
+def workflow_instances(
+    ctx: Context,
+    version_id: str,
+    start: Optional[datetime],
+    end: Optional[datetime],
+    cancelled: bool,
+    error: bool,
+    failed: bool,
+    omitted: bool,
+    pending: bool,
+    running: bool,
+    succeeded: bool,
+    json: bool,
+):
+    """Display attributes of all workflows instances for a particular workflow
+    version
+
+    Args:
+        ctx (context): Contains user session for authentication
+        version_id (str): Version ID of the workflow to display the instances
+                          of
+        start (Optional[str]): For filtering by start date/time. Format:
+                               DATE_INPUT_FORMAT_VERBOSE or
+                               DATE_TIME_INPUT_FORMAT_VERBOSE
+        end (Optional[str]): For filtering by start date/time. Format:
+                             DATE_INPUT_FORMAT_VERBOSE or
+                             DATE_TIME_INPUT_FORMAT_VERBOSE
+        cancelled (bool): Whether to filter instances with a cancelled status
+        failed (bool): Whether to filter instances with a failed status
+        error (bool): Whether to filter instances with an error status
+        running (bool): Whether to filter instances with a running status
+        succeeded (bool): Whether to filter instances with a successful status
+        json (bool): Whether to print the raw json returned by the DAFNI API
+    """
+    workflow_dict = cli_get_workflow(ctx.obj["session"], version_id)
+    workflow_inst = parse_workflow(workflow_dict)
+
+    # Apply filtering
+    filters = []
+    if start:
+        filters.append(start_filter(start))
+    if end:
+        filters.append(end_filter(end))
+    if cancelled:
+        filters.append(status_filter("Cancelled"))
+    if error:
+        filters.append(status_filter("Error"))
+    if failed:
+        filters.append(status_filter("Failed"))
+    if omitted:
+        filters.append(status_filter("Omitted"))
+    if pending:
+        filters.append(status_filter("Pending"))
+    if running:
+        filters.append(status_filter("Running"))
+    if succeeded:
+        filters.append(status_filter("Succeeded"))
+
+    filtered_instances, filtered_instance_dicts = filter_multiple(
+        filters, workflow_inst.instances, workflow_dict["instances"]
+    )
+
+    # Output
+    if json:
+        print_json(filtered_instance_dicts)
+    else:
+        click.echo(
+            format_table(
+                headers=[
+                    TABLE_ID_HEADER,
+                    TABLE_WORKFLOW_VERSION_ID_HEADER,
+                    TABLE_PARAMETER_SET_HEADER,
+                    TABLE_STARTED_HEADER,
+                    TABLE_FINISHED_HEADER,
+                    TABLE_STATUS_HEADER,
+                ],
+                rows=[instance.get_brief_details() for instance in filtered_instances],
+            )
+        )
 
 
 @get.command(help="Display information about a workflow instance")
@@ -478,6 +598,7 @@ def workflow_instance(
 ):
     """Display attributes of all workflows instances for a particular workflow
     version
+
     Args:
         ctx (context): Contains user session for authentication
         instance_id (str): Instance ID of the workflow instance to display

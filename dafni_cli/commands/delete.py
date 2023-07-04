@@ -3,14 +3,15 @@ from typing import Callable, List, Tuple
 import click
 from click import Context
 
-from dafni_cli.api.datasets_api import (
-    delete_dataset,
-    delete_dataset_version,
-    get_latest_dataset_metadata,
-)
-from dafni_cli.api.models_api import delete_model_version, get_model
+from dafni_cli.api.datasets_api import delete_dataset, delete_dataset_version
+from dafni_cli.api.models_api import delete_model_version
 from dafni_cli.api.session import DAFNISession
-from dafni_cli.api.workflows_api import delete_workflow_version, get_workflow
+from dafni_cli.api.workflows_api import delete_workflow_version
+from dafni_cli.commands.helpers import (
+    cli_get_latest_dataset_metadata,
+    cli_get_model,
+    cli_get_workflow,
+)
 from dafni_cli.datasets.dataset_metadata import DatasetMetadata, parse_dataset_metadata
 from dafni_cli.models.model import Model, parse_model
 from dafni_cli.utils import argument_confirmation
@@ -52,7 +53,7 @@ def collate_model_version_details(
     model_version_details_list = []
     for vid in version_ids:
         # Find details of each model version that will be deleted
-        model_ver: Model = parse_model(get_model(session, vid))
+        model_ver: Model = parse_model(cli_get_model(session, vid))
         # Exit if user doesn't have necessary permissions
         if not model_ver.auth.destroy:
             click.echo(
@@ -121,7 +122,7 @@ def _collate_dataset_details(
     for vid in version_ids:
         # Find details of each dataset that will be deleted
         dataset_meta: DatasetMetadata = parse_dataset_metadata(
-            get_latest_dataset_metadata(session, vid)
+            cli_get_latest_dataset_metadata(session, vid)
         )
         details = obtain_details(dataset_meta)
         # Exit if user doesn't have necessary permissions
@@ -255,7 +256,7 @@ def collate_workflow_version_details(
     workflow_version_details_list = []
     for vid in version_ids:
         # Find details of each workflow version that will be deleted
-        workflow_ver = parse_workflow(get_workflow(session, vid))
+        workflow_ver = parse_workflow(cli_get_workflow(session, vid))
         # Exit if user doesn't have necessary permissions
         if not workflow_ver.auth.destroy:
             click.echo(

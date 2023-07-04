@@ -1,7 +1,6 @@
 from datetime import datetime
 from typing import Optional
 from unittest import TestCase
-from unittest.mock import MagicMock, call, patch
 
 from dafni_cli.datasets import dataset_filtering
 

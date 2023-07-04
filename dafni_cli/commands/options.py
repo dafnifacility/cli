@@ -228,3 +228,26 @@ def dataset_metadata_common_options(all_optional: bool):
         return function
 
     return decorator
+
+
+def filter_flag_option(*param_decls: str, help: str):
+    """Decorator function for constructing a click option that acts as
+    a flag for filtering
+
+    Args:
+        *param_decls (str): See click.option
+        help (str): Help text to pass to click.option
+    """
+
+    def decorator(function):
+        function = click.option(
+            *param_decls,
+            is_flag=True,
+            default=False,
+            help=help,
+            type=bool,
+        )(function)
+
+        return function
+
+    return decorator

@@ -9,6 +9,7 @@ from dafni_cli.api.parser import (
     parse_datetime,
     parse_dict_retaining_keys,
 )
+from dafni_cli.utils import format_datetime
 from dafni_cli.workflows.metadata import WorkflowMetadata
 from dafni_cli.workflows.parameter_set import WorkflowParameterSet
 from dafni_cli.workflows.specification import WorkflowSpecification
@@ -88,6 +89,24 @@ class WorkflowInstanceList(ParserBaseObject):
         ),
         ParserParam("finished_time", "finished_time", parse_datetime),
     ]
+
+    def get_brief_details(self) -> List:
+        """Returns an array containing brief details about this instance for
+        the get workflow-instances command
+
+        Returns
+            List: Containing instance_id, workflow version_id, parameters_set
+                  display name, submission time, finished time and overall
+                  status
+        """
+        return [
+            self.instance_id,
+            self.workflow_version.version_id,
+            self.parameter_set.display_name,
+            format_datetime(self.submission_time, include_time=True),
+            format_datetime(self.finished_time, include_time=True),
+            self.overall_status,
+        ]
 
 
 @dataclass
