@@ -254,17 +254,7 @@ class Workflow(ParserBaseObject):
                 TABLE_FINISHED_HEADER,
                 TABLE_STATUS_HEADER,
             ],
-            rows=[
-                [
-                    instance.instance_id,
-                    instance.workflow_version.version_id,
-                    instance.parameter_set.display_name,
-                    format_datetime(instance.submission_time, include_time=True),
-                    format_datetime(instance.finished_time, include_time=True),
-                    instance.overall_status,
-                ]
-                for instance in self.instances
-            ],
+            rows=[instance.get_brief_details() for instance in self.instances],
         )
 
     def output_details(self):

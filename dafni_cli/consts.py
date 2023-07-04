@@ -45,8 +45,10 @@ VALIDATE_MODEL_CT = "application/yaml"
 DATE_TIME_OUTPUT_FORMAT = "%Y-%m-%dT%H:%M:%S"
 DATE_OUTPUT_FORMAT = "%Y-%m-%d"
 DATE_INPUT_FORMAT = "%Y-%m-%d"
+DATE_TIME_INPUT_FORMAT = "%Y-%m-%d %H:%M:%S"
 # Same as above but for displaying to the user
 DATE_INPUT_FORMAT_VERBOSE = "YYYY-MM-DD"
+DATE_TIME_INPUT_FORMAT_VERBOSE = "YYYY-MM-DD HH:MM:SS"
 
 # Tabulate arguments for table formatting
 TABULATE_ARGS = {"tablefmt": "simple", "stralign": "left", "numalign": "left"}
