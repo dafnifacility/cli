@@ -327,8 +327,23 @@ class DAFNISession:
         # Check for any kind of authentication error, or an attempted redirect
         # (this covers a case during file upload where a 302 is returned rather
         # than an actual authentication error)
-        if response.status_code == 403 or (
-            response.status_code == 302 and not allow_redirect
+
+        # When the token times out the S&D /metadata endpoint returns a 400 error
+        # instead but with a message like
+        # `Access to Dataset with dataset_id 'None' and version ID '5507336e-a4c8-428a-a92b-4928be29233a' denied.`
+        # This attempts to catch this case as well
+        # TODO: Remove this part if fixed
+        dataset_access_denied = False
+        if response.status_code == 400:
+            error_message = self.get_error_message(response)
+            dataset_access_denied = error_message is not None and (
+                "Access" in error_message and "denied" in error_message
+            )
+
+        if (
+            response.status_code == 403
+            or (response.status_code == 302 and not allow_redirect)
+            or dataset_access_denied
         ):
             # Try again, but only once
             if recursion_level > 1:

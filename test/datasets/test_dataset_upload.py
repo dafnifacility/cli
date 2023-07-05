@@ -283,7 +283,7 @@ class TestDatasetUpload(TestCase):
         file_paths = [Path("file_1.txt"), Path("file_2.txt")]
         urls = [f"upload/url/{file_path.name}" for file_path in file_paths]
         upload_urls = {
-            "URLs": {file_paths[idx].name: url for idx, url in enumerate(urls)}
+            "urls": {file_paths[idx].name: url for idx, url in enumerate(urls)}
         }
 
         mock_get_data_upload_urls.return_value = upload_urls

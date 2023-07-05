@@ -72,6 +72,16 @@ class TestDAFNISession(TestCase):
             },
         )
 
+    def create_mock_token_expiry_response_dataset_metadata(self):
+        """Returns a mock response indicating an access token as become invalid
+        while accessing a datasets metadata via the S&D"""
+        return create_mock_response(
+            403,
+            {
+                "errors": ["Invalid request: Access to Dataset with dataset_id 'None' and version ID '5507336e-a4c8-428a-a92b-4928be29233a' denied."]
+            },
+        )
+
     def create_mock_invalid_login_response(self):
         """Returns a mock response indicating a username/password was rejected"""
         return create_mock_response(
@@ -803,6 +813,51 @@ class TestDAFNISession(TestCase):
         # should be successful when retried
         mock_requests.request.side_effect = [
             self.create_mock_token_expiry_redirect_response(),
+            self.create_mock_success_response(),
+        ]
+
+        # New token
+        mock_requests.post.return_value = self.create_mock_access_token_response()
+
+        with patch(
+            "builtins.open", new_callable=mock_open, read_data=TEST_SESSION_FILE
+        ) as mock_file:
+            session.get_request(url="some_test_url")
+
+            # Should save new token
+            mock_file = mock_file()
+            mock_file.write.assert_called_once_with(
+                json.dumps(session._session_data.__dict__)
+            )
+
+        # Expect a request to obtain a new token
+        mock_requests.post.assert_called_once_with(
+            LOGIN_API_ENDPOINT,
+            data={
+                "client_id": "dafni-main",
+                "grant_type": "refresh_token",
+                "refresh_token": "some_refresh_token",
+            },
+            timeout=REQUESTS_TIMEOUT,
+        )
+
+        # Ensure get request is attempted again (should be successful the
+        # second time here)
+        self.assertEqual(mock_requests.request.call_count, 2)
+
+    def test_refresh_dataset_metadata(self, mock_requests):
+        """Tests token refreshing on an authentication failure for the S&D
+        /metadata endpoint"""
+
+        session = self.create_mock_session(True)
+
+        # Here will test only on the get request as the logic is handled by
+        # the base function called by all requests anyway
+
+        # To trigger a refresh need a response with a 403 status code, then
+        # should be successful when retried
+        mock_requests.request.side_effect = [
+            self.create_mock_token_expiry_response_dataset_metadata(),
             self.create_mock_success_response(),
         ]
 
