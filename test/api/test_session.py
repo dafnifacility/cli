@@ -78,7 +78,10 @@ class TestDAFNISession(TestCase):
         return create_mock_response(
             403,
             {
-                "errors": ["Invalid request: Access to Dataset with dataset_id 'None' and version ID '5507336e-a4c8-428a-a92b-4928be29233a' denied."]
+                "errors": [
+                    "Invalid request: Access to Dataset with dataset_id 'None' "
+                    "and version ID '5507336e-a4c8-428a-a92b-4928be29233a' denied."
+                ]
             },
         )
 
