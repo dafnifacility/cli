@@ -332,7 +332,7 @@ class DAFNISession:
         # instead but with a message like
         # `Access to Dataset with dataset_id 'None' and version ID '5507336e-a4c8-428a-a92b-4928be29233a' denied.`
         # This attempts to catch this case as well
-        # TODO: Remove this part if fixed
+        # TODO: Remove this part once fixed
         dataset_access_denied = False
         if response.status_code == 400:
             error_message = self.get_error_message(response)
