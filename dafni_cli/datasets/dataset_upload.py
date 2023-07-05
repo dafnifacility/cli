@@ -33,6 +33,7 @@ METADATA_KEYS_INVALID_FOR_UPLOAD = [
     "version_history",
     "auth",
     "dcat:distribution",
+    "status",
 ]
 
 

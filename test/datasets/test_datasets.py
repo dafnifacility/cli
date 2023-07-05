@@ -6,7 +6,7 @@ from dateutil.tz import tzutc
 
 from dafni_cli.consts import CONSOLE_WIDTH, TAB_SPACE
 from dafni_cli.datasets.dataset import parse_datasets
-from dafni_cli.utils import format_data_format, format_datetime
+from dafni_cli.utils import format_datetime
 
 from test.fixtures.datasets import TEST_DATASETS_DATA
 
@@ -34,6 +34,7 @@ class TestDataset(TestCase):
             datetime(2021, 3, 4, 15, 59, 26, tzinfo=tzutc()),
         )
         self.assertEqual(dataset1.source, dataset1_metadata["source"])
+        self.assertEqual(dataset1.status, dataset1_metadata["status"])
         self.assertEqual(dataset1.subject, dataset1_metadata["subject"])
         self.assertEqual(dataset1.title, dataset1_metadata["title"])
         self.assertEqual(dataset1.description, None)

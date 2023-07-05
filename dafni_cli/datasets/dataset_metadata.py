@@ -583,6 +583,7 @@ class DatasetMetadata(ParserBaseObject):
         contact (Contact): Contact relating to the dataset
         location (Location): Location the dataset relates to
         keywords (List[str]): Key words relating to the dataset e.g. Transportation
+        modified (datetime): Date & time the dataset was last modified
         issued (datetime): Date and time the dataset was issued
         language (str): The language used for the dataset
         asset_id (str): Asset identifier for dataset
@@ -591,11 +592,16 @@ class DatasetMetadata(ParserBaseObject):
                           dataset
         metadata_id (str): Metadata identifier of the latest metadata for this
                            dataset
+        auth (Auth): Authentication credentials giving the permissions the
+                     current user has on the dataset
+        files (List[DataFile]): Files associated with the dataset
+        status (str): Status of the dataset e.g. ingested
+        version_history (DatasetVersionHistory): Version history of the dataset
+        version_message (str): Version message of the dataset
         identifiers (List[str]): List of identifiers relating to the dataset
         themes (List[str]): Themes relating to dataset
         standard (Optional[Standard]): Any related standards associated
         publisher (Optional[Publisher]): Entity responsible for publishing the dataset
-        files (List[DataFile]): Files associated with the dataset
         rights (Optional[str]): The user rights linked to the Dataset
         update_frequency (Optional[str]): Update frequency if applicable
         start_date (Optional[datetime]): Dataset start date if applicable
@@ -619,6 +625,7 @@ class DatasetMetadata(ParserBaseObject):
     metadata_id: str
     auth: Auth
     files: List[DataFile]
+    status: str
     version_history: DatasetVersionHistory
     version_message: Optional[str] = None
     identifiers: List[str] = field(default_factory=list)
@@ -648,6 +655,7 @@ class DatasetMetadata(ParserBaseObject):
         ParserParam("metadata_id", ["@id", "metadata_uuid"], str),
         ParserParam("auth", "auth", Auth),
         ParserParam("files", "dcat:distribution", DataFile),
+        ParserParam("status", "status", str),
         ParserParam("version_history", "version_history", DatasetVersionHistory),
         ParserParam("version_message", "dafni_version_note", str),
         ParserParam("identifiers", "dct:identifier"),

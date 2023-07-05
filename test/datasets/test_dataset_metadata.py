@@ -461,6 +461,8 @@ class TestDatasetMetadataTestCase(TestCase):
         self.assertEqual(len(metadata.files), 1)
         self.assertEqual(type(metadata.files[0]), DataFile)
 
+        self.assertEqual(metadata.status, TEST_DATASET_METADATA["status"])
+
         self.assertEqual(
             metadata.version_message, TEST_DATASET_METADATA["dafni_version_note"]
         )

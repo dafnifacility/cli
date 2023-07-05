@@ -25,6 +25,7 @@ class Dataset(ParserBaseObject):
                            dataset
         modified_date (datetime): Date for when the dataset was last modified
         source (str): Publisher of the dataset e.g. DAFNI
+        status (str): Status of the dataset e.g. ingested
         subject (str): Subject relating to the dataset e.g. Transportation
         title (str): Title of the dataset
         formats (List[str]): The file formats related to the dataset
@@ -39,6 +40,7 @@ class Dataset(ParserBaseObject):
     metadata_id: str
     modified_date: datetime
     source: str
+    status: str
     subject: str
     title: str
     formats: List[str] = field(default_factory=list)
@@ -53,6 +55,7 @@ class Dataset(ParserBaseObject):
         ParserParam("metadata_id", ["id", "metadata_uuid"], str),
         ParserParam("modified_date", "modified_date", parse_datetime),
         ParserParam("source", "source", str),
+        ParserParam("status", "status", str),
         ParserParam("subject", "subject", str),
         ParserParam("title", "title", str),
         ParserParam("formats", "formats"),
