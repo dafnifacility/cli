@@ -76,7 +76,7 @@ class TestDAFNISession(TestCase):
         """Returns a mock response indicating an access token as become invalid
         while accessing a datasets metadata via the S&D"""
         return create_mock_response(
-            403,
+            400,
             {
                 "errors": [
                     "Invalid request: Access to Dataset with dataset_id 'None' "
