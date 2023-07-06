@@ -25,8 +25,11 @@ class WorkflowSpecificationStep(ParserBaseObject):
         metadata (Optional[dict]): Metadata to be used for a publisher step
                                    (if applicable)
 
-        model_version (Optional[str]) Model version ID used for a model step
-                                     (if applicable)
+        model_version (Optional[str]): Model version ID used for a model step
+                                      (if applicable)
+
+        workflow_version (Optional[str]): Workflow version ID used for a
+                                          loop step (if applicable)
     """
 
     dependencies: List[str]
@@ -39,12 +42,16 @@ class WorkflowSpecificationStep(ParserBaseObject):
     # Present only for a model step
     model_version: Optional[str] = None
 
+    # Present only for a loop step
+    workflow_version: Optional[str] = None
+
     _parser_params: ClassVar[List[ParserParam]] = [
         ParserParam("dependencies", "dependencies"),
         ParserParam("kind", "kind", str),
         ParserParam("name", "name", str),
-        ParserParam("metadata", "name", str),
+        ParserParam("metadata", "metadata"),
         ParserParam("model_version", "model_version", str),
+        ParserParam("workflow_version", "workflow_version", str),
     ]
 
 

@@ -377,6 +377,7 @@ class TestWorkflowInstance(TestCase):
                 ],
                 ["test", "model", "0a0a0a0a-0a00-0a00-a000-0a0a0000000e", "Succeeded"],
                 ["test", "model", "0a0a0a0a-0a00-0a00-a000-0a0a0000000f", "Succeeded"],
+                ["test_loop", "loop", "0a0a0a0a-0a00-0a00-a000-0a0a0000000e", "Failed"],
             ],
         )
         self.assertEqual(result, mock_format_table.return_value)

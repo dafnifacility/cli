@@ -8,6 +8,7 @@ from dafni_cli.workflows.specification import (
 
 from test.fixtures.workflow_specification import (
     TEST_WORKFLOW_SPECIFICATION,
+    TEST_WORKFLOW_SPECIFICATION_DEFAULT,
     TEST_WORKFLOW_SPECIFICATION_STEP,
 )
 
@@ -35,6 +36,34 @@ class TestWorkflowSpecificationStep(TestCase):
             workflow_specification_step.name,
             TEST_WORKFLOW_SPECIFICATION_STEP["name"],
         )
+
+        self.assertEqual(
+            workflow_specification_step.metadata,
+            TEST_WORKFLOW_SPECIFICATION_STEP["metadata"],
+        )
+        self.assertEqual(
+            workflow_specification_step.model_version,
+            TEST_WORKFLOW_SPECIFICATION_STEP["model_version"],
+        )
+        self.assertEqual(
+            workflow_specification_step.workflow_version,
+            TEST_WORKFLOW_SPECIFICATION_STEP["workflow_version"],
+        )
+
+    def test_parse_default(self):
+        """Tests parsing of WorkflowSpecificationStep when optional parameters
+        are missing"""
+        workflow_specification_step: WorkflowSpecificationStep = (
+            ParserBaseObject.parse_from_dict(
+                WorkflowSpecificationStep, TEST_WORKFLOW_SPECIFICATION_DEFAULT
+            )
+        )
+
+        # Only test the parameters that are supposed to be missing as the
+        # rest are tested above anyway
+        self.assertEqual(workflow_specification_step.metadata, None)
+        self.assertEqual(workflow_specification_step.model_version, None)
+        self.assertEqual(workflow_specification_step.workflow_version, None)
 
 
 class TestWorkflowSpecification(TestCase):

@@ -86,6 +86,11 @@ TEST_WORKFLOW_INSTANCE = {
             "started_at": "2023-06-15T11:40:21Z",
             "status": "Succeeded",
         },
+        "0a0a0a0a-0a00-0a00-a000-0a0a0000000d": {
+            "finished_at": "2023-06-15T11:41:22Z",
+            "started_at": "2023-06-15T11:40:21Z",
+            "status": "Failed",
+        },
         "data-retrieval-step": {
             "finished_at": "2023-06-15T11:38:06Z",
             "started_at": "2023-06-15T11:37:46Z",

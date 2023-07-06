@@ -299,6 +299,10 @@ class WorkflowInstance(ParserBaseObject):
             # Here model step is taking in a model, so display its version
             # id
             asset_version_id = step.model_version
+        elif step.kind == "loop":
+            # Here loop step is taking in a workflow, so display its version
+            # id
+            asset_version_id = step.workflow_version
 
         return [
             step.name,
