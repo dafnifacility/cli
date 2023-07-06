@@ -114,5 +114,31 @@ TEST_WORKFLOW_SPECIFICATION = {
             "position": {"x": 192, "y": 58},
             "workflow_version": "0a0a0a0a-0a00-0a00-a000-0a0a0000000e",
         },
+        "0a0a0a0a-0a00-0a00-a000-0a0a0000001a": {
+            "dependencies": ["0a0a0a0a-0a00-0a00-a000-0a0a0000000c"],
+            "files": [
+                {"paths": ["outputs/*"], "step": "0a0a0a0a-0a00-0a00-a000-0a0a0000000c"}
+            ],
+            "kind": "visualisation",
+            "metadata": {"some": "dict"},
+            "name": "pub-and-vis-1",
+            "position": {"x": 466, "y": 50},
+            "visualisation_builder": "0a0a0a0a-0a00-0a00-a000-0a0a0000000a",
+            "visualisation_description": "Test visualisation",
+            "visualisation_title": "test-vis",
+        },
+        "0a0a0a0a-0a00-0a00-a000-0a0a0000001b": {
+            "dependencies": ["0a0a0a0a-0a00-0a00-a000-0a0a0000000c"],
+            "files": [
+                {"paths": ["outputs/*"], "step": "0a0a0a0a-0a00-0a00-a000-0a0a0000000c"}
+            ],
+            "kind": "visualisation",
+            "metadata": {"some": "dict"},
+            "name": "vis-1",
+            "position": {"x": 466, "y": 50},
+            "visualisation_builder": "0a0a0a0a-0a00-0a00-a000-0a0a0000000a",
+            "visualisation_description": "Test visualisation",
+            "visualisation_title": "test-vis",
+        },
     }
 }

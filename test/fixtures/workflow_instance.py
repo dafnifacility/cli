@@ -68,7 +68,8 @@ TEST_WORKFLOW_INSTANCE = {
     "overall_status": "Succeeded",
     "parameter_set": TEST_WORKFLOW_PARAMETER_SET,
     "produced_assets": {
-        "0a0a0a0a-0a00-0a00-a000-0a0a0000000a": TEST_WORKFLOW_INSTANCE_PRODUCED_ASSET
+        "0a0a0a0a-0a00-0a00-a000-0a0a0000000a": TEST_WORKFLOW_INSTANCE_PRODUCED_ASSET,
+        "0a0a0a0a-0a00-0a00-a000-0a0a0000001a": TEST_WORKFLOW_INSTANCE_PRODUCED_ASSET,
     },
     "step_status": {
         "0a0a0a0a-0a00-0a00-a000-0a0a0000000a": {
@@ -90,6 +91,16 @@ TEST_WORKFLOW_INSTANCE = {
             "finished_at": "2023-06-15T11:41:22Z",
             "started_at": "2023-06-15T11:40:21Z",
             "status": "Failed",
+        },
+        "0a0a0a0a-0a00-0a00-a000-0a0a0000001a": {
+            "finished_at": "2023-06-15T11:41:22Z",
+            "started_at": "2023-06-15T11:40:21Z",
+            "status": "Succeeded",
+        },
+        "0a0a0a0a-0a00-0a00-a000-0a0a0000001b": {
+            "finished_at": "2023-06-15T11:41:22Z",
+            "started_at": "2023-06-15T11:40:21Z",
+            "status": "Succeeded",
         },
         "data-retrieval-step": {
             "finished_at": "2023-06-15T11:38:06Z",

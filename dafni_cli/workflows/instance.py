@@ -290,7 +290,7 @@ class WorkflowInstance(ParserBaseObject):
 
         # Check the step type and assign an asset version id to display
         asset_version_id = None
-        if step.kind == "publisher":
+        if step.kind == "publisher" or step.kind == "visualisation":
             # Here once finished expect an asset to be produced, so
             # display that once available
             if step_id in self.produced_assets:
