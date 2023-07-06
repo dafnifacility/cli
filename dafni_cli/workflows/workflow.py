@@ -1,11 +1,12 @@
 from dataclasses import dataclass
 from datetime import datetime
-from typing import ClassVar, List, Optional
+from typing import ClassVar, List, Optional, Tuple
 
 import click
 from tabulate import tabulate
 
 from dafni_cli.api.auth import Auth
+from dafni_cli.api.exceptions import ResourceNotFoundError
 from dafni_cli.api.parser import ParserBaseObject, ParserParam, parse_datetime
 from dafni_cli.consts import (
     CONSOLE_WIDTH,
@@ -295,6 +296,23 @@ class Workflow(ParserBaseObject):
                 ],
                 rows=table_rows,
             )
+        )
+
+    def get_parameter_set(self, parameter_set_id: str) -> WorkflowParameterSet:
+        """Returns a parameter set with a given ID
+
+        Args:
+            parameters_set_id (str): ID of the parameter set to obtain
+
+        Raises:
+            ResourceNotFoundError: If a parameter set with the given id wasn't found
+        """
+
+        for parameter_set in self.parameter_sets:
+            if parameter_set.parameter_set_id == parameter_set_id:
+                return parameter_set
+        raise ResourceNotFoundError(
+            f"Unable to find a parameter set with id '{parameter_set_id}'"
         )
 
 

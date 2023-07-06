@@ -37,7 +37,7 @@ def get_latest_dataset_metadata(session: DAFNISession, version_id: str) -> dict:
         dict: Dataset Version Metadata dict
 
     Raises:
-        ResourceNotFoundError: If a dataset with the given id's wasn't found
+        ResourceNotFoundError: If a dataset with the given id wasn't found
     """
     url = f"{SEARCH_AND_DISCOVERY_API_URL}/metadata/{version_id}"
 
