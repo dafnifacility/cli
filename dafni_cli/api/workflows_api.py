@@ -19,28 +19,27 @@ from dafni_cli.consts import NIMS_API_URL
 
 
 def get_all_workflows(session: DAFNISession) -> List[dict]:
-    """
-    Call the "workflows_list" endpoint and return the resulting list of dictionaries.
+    """Function to retrieve all workflows available to the user
 
     Args:
         session (DAFNISession): User session
 
     Returns:
-        List[dict]: list of dictionaries with raw response from API
+        List[dict]: List of dictionaries with raw response from API
     """
     url = f"{NIMS_API_URL}/workflows/"
     return session.get_request(url)
 
 
 def get_workflow(session: DAFNISession, version_id: str) -> dict:
-    """Call the "workflows" endpoint and return the resulting dictionary
+    """Function to get the details of a workflows
 
     Args:
         session (DAFNISession): User session
-        version_id (str): workflow version ID for selected workflow
+        version_id (str): Workflow version ID for selected workflow
 
     Returns:
-        dict: dictionary for the details of selected workflow
+        dict: Dictionary containing the details of the workflow
 
     Raises:
         ResourceNotFoundError: If a workflow with the given version_id wasn't
@@ -54,6 +53,33 @@ def get_workflow(session: DAFNISession, version_id: str) -> dict:
         # When the endpoint isn't found it means the workflow wasn't found
         raise ResourceNotFoundError(
             f"Unable to find a workflow with version id '{version_id}'"
+        ) from err
+
+
+def get_workflow_instance(session: DAFNISession, instance_id: str):
+    """Function to get the details of a workflow instance
+
+    Args:
+        session (DAFNISession): User session
+        version_id (str): Instance ID for selected workflow instance
+
+    Returns:
+        dict: Dictionary containing details of the workflow instance
+
+    Raises:
+        ResourceNotFoundError: If a workflow instance with the given
+                               instance_id wasn't found
+    """
+
+    url = f"{NIMS_API_URL}/workflows/instances/{instance_id}/"
+
+    try:
+        return session.get_request(url)
+    except EndpointNotFoundError as err:
+        # When the endpoint isn't found it means the workflow instance wasn't
+        # found
+        raise ResourceNotFoundError(
+            f"Unable to find a workflow instance with instance id '{instance_id}'"
         ) from err
 
 

@@ -1371,3 +1371,73 @@ class TestGetWorkflowInstances(TestCase):
                 call("Succeeded"),
             ],
         )
+
+
+@patch("dafni_cli.commands.get.DAFNISession")
+@patch("dafni_cli.commands.get.cli_get_workflow_instance")
+@patch("dafni_cli.commands.get.parse_workflow_instance")
+@patch("dafni_cli.commands.get.print_json")
+class TestGetWorkflowInstance(TestCase):
+    """Test class to test the get workflow-instance command"""
+
+    def test_get_workflow_instance(
+        self,
+        mock_print_json,
+        mock_parse_workflow_instance,
+        mock_cli_get_workflow_instance,
+        mock_DAFNISession,
+    ):
+        """Tests that the 'get workflow-instance' command works correctly"""
+
+        # SETUP
+        session = MagicMock()
+        mock_DAFNISession.return_value = session
+        runner = CliRunner()
+        workflow_instance_dict = MagicMock()
+        workflow_instance = MagicMock()
+        mock_cli_get_workflow_instance.return_value = workflow_instance_dict
+        mock_parse_workflow_instance.return_value = workflow_instance
+
+        # CALL
+        result = runner.invoke(get.get, ["workflow-instance", "some_instance_id"])
+
+        # ASSERT
+        mock_DAFNISession.assert_called_once()
+        mock_cli_get_workflow_instance.assert_called_with(session, "some_instance_id")
+        mock_print_json.assert_not_called()
+        mock_parse_workflow_instance.assert_called_once_with(workflow_instance_dict)
+        workflow_instance.output_details.assert_called_once()
+
+        self.assertEqual(result.exit_code, 0)
+
+    def test_get_workflow_instance_json(
+        self,
+        mock_print_json,
+        mock_parse_workflow_instance,
+        mock_cli_get_workflow_instance,
+        mock_DAFNISession,
+    ):
+        """Tests that the 'get workflow-version' command works correctly (with --json)"""
+
+        # SETUP
+        session = MagicMock()
+        mock_DAFNISession.return_value = session
+        runner = CliRunner()
+        workflow_instance_dict = MagicMock()
+        workflow_instance = MagicMock()
+        mock_cli_get_workflow_instance.return_value = workflow_instance_dict
+        mock_parse_workflow_instance.return_value = workflow_instance
+
+        # CALL
+        result = runner.invoke(
+            get.get, ["workflow-instance", "some_instance_id", "--json"]
+        )
+
+        # ASSERT
+        mock_DAFNISession.assert_called_once()
+        mock_cli_get_workflow_instance.assert_called_with(session, "some_instance_id")
+        mock_print_json.assert_called_once_with(workflow_instance_dict)
+        mock_parse_workflow_instance.assert_not_called()
+        workflow_instance.output_details.assert_not_called()
+
+        self.assertEqual(result.exit_code, 0)

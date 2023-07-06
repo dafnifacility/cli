@@ -71,8 +71,10 @@ COMMAND_PARAMS_PRODUCTION = {
     "workflows": [
         {"version_id": "cfb164b2-59de-4156-85ea-36049e147322"},
         {"version_id": "4a7c1897-e902-4966-b4a8-d8c4c64ff092"},
-        {"version_id": "797e8ba2-539d-4284-ba86-dea4a930206e"},
+        # Has some instances
+        {"version_id": "4397387e-1223-4fee-a258-6fac402de82c"},
     ],
+    "workflow_instances": [{"instance_id": "e7f4b809-a93c-40c1-8415-9eec8baceeda"}],
 }
 
 COMMAND_PARAMS_STAGING = {
@@ -83,20 +85,22 @@ COMMAND_PARAMS_STAGING = {
     ],
     "datasets": [
         {
-            "id": "b7410a50-ba42-4a9e-9865-e973408033ad",
-            "version_id": "be4e7635-8ba9-476e-89ec-34d29e639254",
+            "id": "2808b40c-0a97-4ba1-90d3-2c825151fb44",
+            "version_id": "63df8bb3-237a-4b22-ab87-07169dbf129d",
         },
         # Used for download test
         {
-            "id": "b7410a50-ba42-4a9e-9865-e973408033ad",
-            "version_id": "be4e7635-8ba9-476e-89ec-34d29e639254",
+            "id": "ff276247-3d94-43e1-a95e-13a5a8cd8b47",
+            "version_id": "81f8e9fb-bcbf-4a0a-a4ed-ec0dc95b4b9c",
         },
     ],
     "workflows": [
         {"version_id": "851bf5bf-2e09-4340-922a-205e8cf430fd"},
         {"version_id": "4f8cc1da-38ee-45ec-91e0-88de700a83ef"},
-        {"version_id": "1b296249-d06f-4195-9291-2c65efdba3f5"},
+        # Has some instances
+        {"version_id": "fcd964e4-4b2e-47ec-8c32-bb6bd002ba61"},
     ],
+    "workflow_instances": [{"instance_id": "4048d977-c7ce-46a8-9433-1bb471775486"}],
 }
 
 COMMAND_PARAMS = (
@@ -146,14 +150,11 @@ COMMANDS = {
             "dafni get models --help",
             "dafni get models",
             "dafni get models --json",
-            "dafni get models --long",
             "dafni get models --creation-date 2021-01-01",
             "dafni get models --creation-date 2019-01-01",
-            "dafni get models --creation-date 2019-01-01 --long",
             "dafni get models --publication-date 2021-01-01",
             "dafni get models --publication-date 2019-01-01",
-            "dafni get models --publication-date 2019-01-01 --long",
-            "dafni get models --publication-date 2019-01-01 --long --json",
+            "dafni get models --publication-date 2019-01-01 --json",
         ],
         "model": [
             "dafni get model --help",
@@ -190,14 +191,11 @@ COMMANDS = {
             "dafni get workflows --help",
             "dafni get workflows",
             "dafni get workflows --json",
-            "dafni get workflows --long",
             "dafni get workflows --creation-date 2021-01-01",
             "dafni get workflows --creation-date 2019-01-01",
-            "dafni get workflows --creation-date 2019-01-01 --long",
             "dafni get workflows --publication-date 2021-01-01",
             "dafni get workflows --publication-date 2019-01-01",
-            "dafni get workflows --publication-date 2019-01-01 --long",
-            "dafni get workflows --publication-date 2019-01-01 --long --json",
+            "dafni get workflows --publication-date 2019-01-01 --json",
         ],
         "workflow": [
             "dafni get workflow --help",
@@ -207,6 +205,21 @@ COMMANDS = {
             f"dafni get workflow {COMMAND_PARAMS['workflows'][0]['version_id']} --version-history",
             f"dafni get workflow {COMMAND_PARAMS['workflows'][1]['version_id']} {COMMAND_PARAMS['workflows'][2]['version_id']} --version-history",
             f"dafni get workflow {COMMAND_PARAMS['workflows'][1]['version_id']} {COMMAND_PARAMS['workflows'][2]['version_id']} --version-history --json",
+        ],
+        "workflow-instances": [
+            "dafni get workflow-instances --help",
+            f"dafni get workflow-instances {COMMAND_PARAMS['workflows'][2]['version_id']}",
+            f"dafni get workflow-instances {COMMAND_PARAMS['workflows'][2]['version_id']} --json",
+            f"dafni get workflow-instances {COMMAND_PARAMS['workflows'][2]['version_id']} --start \"2022-01-19 14:48:33\"",
+            f"dafni get workflow-instances {COMMAND_PARAMS['workflows'][2]['version_id']} --end \"2022-01-19 15:02:20\"",
+            # Just a selection of status flags used here as rest are the same
+            # and have unit tests
+            f"dafni get workflow-instances {COMMAND_PARAMS['workflows'][2]['version_id']} --succeeded",
+            f"dafni get workflow-instances {COMMAND_PARAMS['workflows'][2]['version_id']} --failed",
+        ],
+        "workflow-instance": [
+            "dafni get workflow-instance --help",
+            f"dafni get workflow-instance {COMMAND_PARAMS['workflow_instances'][0]['instance_id']}",
         ],
     },
     # The following commented out tests may be automated, but are tricker and
@@ -239,17 +252,21 @@ COMMANDS = {
     },
     "delete": {
         "help": ["dafni delete --help"],
-        "model": [
-            "dafni delete model --help",
-            # "dafni delete model 5ec7ebcc-7fcc-451d-8bd3-74e25ab9ccc9",
+        "model-version": [
+            "dafni delete model-version --help",
+            # "dafni delete model-version 5ec7ebcc-7fcc-451d-8bd3-74e25ab9ccc9",
         ],
         "dataset": [
-            "dafni delete dataset --help",
+            "dafni delete dataset --help"
             # "dafni delete dataset a4173ff8-2265-46de-89c3-02f814de4c35",
         ],
+        "dataset-version": [
+            "dafni delete dataset-version --help"
+            # "dafni delete dataset-version a4173ff8-2265-46de-89c3-02f814de4c35",
+        ],
         "workflow": [
-            "dafni delete workflow --help",
-            # "dafni delete workflow 5ec7ebcc-7fcc-451d-8bd3-74e25ab9ccc9",
+            "dafni delete workflow-version --help",
+            # "dafni delete workflow-version 5ec7ebcc-7fcc-451d-8bd3-74e25ab9ccc9",
         ],
     },
     "create": {

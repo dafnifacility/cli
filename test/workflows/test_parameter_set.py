@@ -53,7 +53,7 @@ class TestWorkflowParameterSetMetadata(TestCase):
     """Tests the WorkflowParameterSetMetadata dataclass"""
 
     def test_parse(self):
-        """Tests parsing of WorkflowInstanceParameterSet"""
+        """Tests parsing of WorkflowInstanceListParameterSet"""
         workflow_param_set_meta: WorkflowParameterSetMetadata = (
             ParserBaseObject.parse_from_dict(
                 WorkflowParameterSetMetadata, TEST_WORKFLOW_PARAMETER_SET_METADATA
@@ -86,7 +86,7 @@ class TestWorkflowParameterSet(TestCase):
     """Tests the WorkflowParameterSet dataclass"""
 
     def test_parse(self):
-        """Tests parsing of WorkflowInstanceParameterSet"""
+        """Tests parsing of WorkflowInstanceListParameterSet"""
         workflow_param_set: WorkflowParameterSet = ParserBaseObject.parse_from_dict(
             WorkflowParameterSet, TEST_WORKFLOW_PARAMETER_SET
         )

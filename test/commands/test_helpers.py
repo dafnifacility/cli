@@ -127,3 +127,43 @@ class TestCliGetWorkflow(TestCase):
         mock_get_workflow.assert_called_once_with(mock_session, version_id)
         mock_click.echo.assert_called_once_with(error)
         self.assertEqual(err.exception.code, 1)
+
+
+@patch("dafni_cli.commands.helpers.get_workflow_instance")
+@patch("dafni_cli.commands.helpers.click")
+class TestCliGetWorkflowInstance(TestCase):
+    """Test class to test cli_get_workflow_instance"""
+
+    def test_returns_correctly(self, mock_click, mock_get_workflow_instance):
+        """Tests the function returns the workflow instance when found"""
+        # SETUP
+        mock_session = MagicMock()
+        version_id = MagicMock()
+        workflow_dict = MagicMock()
+        mock_get_workflow_instance.return_value = workflow_dict
+
+        # CALL
+        result = helpers.cli_get_workflow_instance(mock_session, version_id)
+
+        # ASSERT
+        mock_get_workflow_instance.assert_called_once_with(mock_session, version_id)
+        self.assertEqual(result, workflow_dict)
+        mock_click.echo.assert_not_called()
+
+    def test_resource_not_found(self, mock_click, mock_get_workflow_instance):
+        """Tests the function prints an error message if the workflow instance
+        is not found"""
+        # SETUP
+        mock_session = MagicMock()
+        version_id = MagicMock()
+        error = ResourceNotFoundError("Some error message")
+        mock_get_workflow_instance.side_effect = error
+
+        # CALL
+        with self.assertRaises(SystemExit) as err:
+            helpers.cli_get_workflow_instance(mock_session, version_id)
+
+        # ASSERT
+        mock_get_workflow_instance.assert_called_once_with(mock_session, version_id)
+        mock_click.echo.assert_called_once_with(error)
+        self.assertEqual(err.exception.code, 1)

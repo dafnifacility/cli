@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import ClassVar, List, Optional, Union
+from typing import Callable, ClassVar, List, Optional, Union
 
 from dateutil.parser import isoparse
 
@@ -170,3 +170,16 @@ class ParserBaseObject:
 def parse_datetime(value: str):
     """Converts a datetime string to a datetime object using isoparse"""
     return isoparse(value)
+
+
+def parse_dict_retaining_keys(dataclass_type: type) -> Callable[[dict], dict]:
+    """Returns a function that converts the values inside a dictionary to a
+    given dataclass type while retaining the same keys
+    """
+
+    return lambda dictionary: {
+        key: ParserBaseObject.parse_from_dict(
+            dataclass_type=dataclass_type, dictionary=value
+        )
+        for key, value in dictionary.items()
+    }

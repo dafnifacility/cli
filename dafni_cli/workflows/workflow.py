@@ -9,7 +9,6 @@ from dafni_cli.api.auth import Auth
 from dafni_cli.api.parser import ParserBaseObject, ParserParam, parse_datetime
 from dafni_cli.consts import (
     CONSOLE_WIDTH,
-    TAB_SPACE,
     TABLE_FINISHED_HEADER,
     TABLE_ID_HEADER,
     TABLE_NAME_HEADER,
@@ -25,42 +24,10 @@ from dafni_cli.consts import (
     TABLE_WORKFLOW_VERSION_ID_HEADER,
 )
 from dafni_cli.utils import format_datetime, format_table, prose_print
-from dafni_cli.workflows.instance import WorkflowInstance
+from dafni_cli.workflows.instance import WorkflowInstanceList
+from dafni_cli.workflows.metadata import WorkflowMetadata
 from dafni_cli.workflows.parameter_set import WorkflowParameterSet
-
-
-@dataclass
-class WorkflowMetadata(ParserBaseObject):
-    """Dataclass representing a DAFNI workflows's metadata
-
-    Attributes:
-        display_name (str): The display name of the Workflow
-        name (str): Name of the Workflow
-        summary (str): A short summary of the Workflow
-
-        The following are only present for the /workflow/<version_id> endpoint
-        (but are guaranteed not to be None for it)
-        --------
-        publisher_id (Optional[str]): The name of the person or organisation who has
-                            published the Workflow
-        description (Optional[str]): A rich description of the Workflow
-    """
-
-    display_name: str
-    name: str
-    summary: str
-
-    publisher_id: Optional[str] = None
-    description: Optional[str] = None
-
-    _parser_params: ClassVar[List[ParserParam]] = [
-        ParserParam("display_name", "display_name", str),
-        ParserParam("name", "name", str),
-        ParserParam("summary", "summary", str),
-        ParserParam("description", "description", str),
-        ParserParam("publisher_id", "publisher", str),
-        ParserParam("summary", "summary", str),
-    ]
+from dafni_cli.workflows.specification import WorkflowSpecification
 
 
 # TODO: Unify with ModelVersion
@@ -115,8 +82,8 @@ class Workflow(ParserBaseObject):
         --------
         instances (Optional[List[WorkflowInstance]]): Workflow instances
                                 (executions of this workflow)
-        parameter_sets (Optional[List[WorkflowInstance]]): Parameter sets that
-                                can be run with this workflow
+        parameter_sets (Optional[List[WorkflowParameterSet]]): Parameter sets
+                                that can be run with this workflow
         api_version (Optional[str]): Version of the DAFNI API used to retrieve
                                      the workflow data
         spec (Optional[dict]): Specification of the workflow (contains the
@@ -134,11 +101,10 @@ class Workflow(ParserBaseObject):
     version_message: str
     parent_id: str
 
-    instances: Optional[List[WorkflowInstance]] = None
+    instances: Optional[List[WorkflowInstanceList]] = None
     parameter_sets: Optional[List[WorkflowParameterSet]] = None
     api_version: Optional[str] = None
-    # TODO: Left as a dict for now, would just need its own parsing function
-    spec: Optional[dict] = None
+    spec: Optional[WorkflowSpecification] = None
 
     # Internal metadata storage - Defined explicitly for the
     # /workflow/<version_id> endpoint but is None otherwise, the property
@@ -162,10 +128,10 @@ class Workflow(ParserBaseObject):
         ParserParam("version_tags", "version_tags"),
         ParserParam("version_message", "version_message", str),
         ParserParam("parent_id", "parent", str),
-        ParserParam("instances", "instances", WorkflowInstance),
+        ParserParam("instances", "instances", WorkflowInstanceList),
         ParserParam("parameter_sets", "parameter_sets", WorkflowParameterSet),
         ParserParam("api_version", "api_version", str),
-        ParserParam("spec", "spec"),
+        ParserParam("spec", "spec", WorkflowSpecification),
         ParserParam("_metadata", "metadata", WorkflowMetadata),
         ParserParam("_display_name", "display_name", str),
         ParserParam("_name", "name", str),

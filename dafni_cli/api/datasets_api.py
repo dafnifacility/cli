@@ -11,8 +11,7 @@ from dafni_cli.consts import NID_API_URL, SEARCH_AND_DISCOVERY_API_URL
 
 # TODO this should work with pagination - check
 def get_all_datasets(session: DAFNISession, filters: dict) -> List[dict]:
-    """Function to retrieve all datasets available to the
-    given user
+    """Function to retrieve all datasets available to the user
 
     Args:
         session (DAFNISession): User session

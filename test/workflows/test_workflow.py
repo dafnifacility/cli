@@ -8,7 +8,6 @@ from dafni_cli.api.auth import Auth
 from dafni_cli.api.parser import ParserBaseObject
 from dafni_cli.consts import (
     CONSOLE_WIDTH,
-    TAB_SPACE,
     TABLE_FINISHED_HEADER,
     TABLE_ID_HEADER,
     TABLE_NAME_HEADER,
@@ -24,8 +23,9 @@ from dafni_cli.consts import (
     TABLE_WORKFLOW_VERSION_ID_HEADER,
 )
 from dafni_cli.utils import format_datetime
-from dafni_cli.workflows.instance import WorkflowInstance
+from dafni_cli.workflows.instance import WorkflowInstanceList
 from dafni_cli.workflows.parameter_set import WorkflowParameterSet
+from dafni_cli.workflows.specification import WorkflowSpecification
 from dafni_cli.workflows.workflow import (
     Workflow,
     WorkflowVersion,
@@ -163,16 +163,21 @@ class TestWorkflow(TestCase):
         self.assertEqual(workflow.version_message, TEST_WORKFLOW["version_message"])
         self.assertEqual(workflow.parent_id, TEST_WORKFLOW["parent"])
 
-        # WorkflowInstance's (contents tested in TestWorkflowInstance)
+        # WorkflowInstanceList's (contents tested in TestWorkflowInstanceList)
         self.assertEqual(len(workflow.instances), 1)
-        self.assertEqual(type(workflow.instances[0]), WorkflowInstance)
+        self.assertEqual(type(workflow.instances[0]), WorkflowInstanceList)
 
-        # WorkflowParameterSet's (contents tested in TestWorkflowInstance)
+        # WorkflowParameterSet's (contents tested in TestWorkflowInstanceListParameterSet)
         self.assertEqual(len(workflow.parameter_sets), 1)
         self.assertEqual(type(workflow.parameter_sets[0]), WorkflowParameterSet)
 
         self.assertEqual(workflow.api_version, TEST_WORKFLOW["api_version"])
-        self.assertEqual(workflow.spec, TEST_WORKFLOW["spec"])
+
+        # WorkflowSpecification (contents tested in TestWorkflowSpecification)
+        self.assertEqual(
+            type(workflow.spec),
+            WorkflowSpecification,
+        )
 
         # Ensure the metadata is correct
         self.assertEqual(

@@ -38,6 +38,8 @@ class WorkflowParameterSetMetadata(ParserBaseObject):
 class WorkflowParameterSet(ParserBaseObject):
     """Dataclass representing a parameter set of a DAFNI workflow
 
+    Should be identical to ParameterSetRead on swagger.
+
     Attributes:
         parameter_set_id (str): ID of the parameter set
         owner_id (str): ID of the parameter set owner

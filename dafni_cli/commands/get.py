@@ -12,6 +12,7 @@ from dafni_cli.commands.helpers import (
     cli_get_latest_dataset_metadata,
     cli_get_model,
     cli_get_workflow,
+    cli_get_workflow_instance,
 )
 from dafni_cli.commands.options import filter_flag_option
 from dafni_cli.consts import (
@@ -39,14 +40,15 @@ from dafni_cli.datasets.dataset_metadata import parse_dataset_metadata
 from dafni_cli.filtering import (
     creation_date_filter,
     end_filter,
-    status_filter,
     filter_multiple,
     publication_date_filter,
     start_filter,
+    status_filter,
     text_filter,
 )
 from dafni_cli.models.model import parse_model, parse_models
 from dafni_cli.utils import format_table, print_json
+from dafni_cli.workflows.instance import parse_workflow_instance
 from dafni_cli.workflows.workflow import parse_workflow, parse_workflows
 
 
@@ -264,7 +266,7 @@ def datasets(
             dataset_inst.output_brief_details()
 
 
-@get.command(help="Prints metadata or version history of a dataset version")
+@get.command(help="Display metadata or version history of a particular dataset version")
 @click.option(
     "--version-history/--metadata",
     "-v/-m",
@@ -575,3 +577,36 @@ def workflow_instances(
                 rows=[instance.get_brief_details() for instance in filtered_instances],
             )
         )
+
+
+@get.command(help="Display information about a workflow instance")
+@click.argument("instance-id", required=True)
+@click.option(
+    "--json/--pretty",
+    "-j/-p",
+    default=False,
+    help="Prints raw json returned from API. Default: -p",
+    type=bool,
+)
+@click.pass_context
+def workflow_instance(
+    ctx: Context,
+    instance_id: str,
+    json: bool,
+):
+    """Display attributes of all workflows instances for a particular workflow
+    version
+
+    Args:
+        ctx (context): Contains user session for authentication
+        instance_id (str): Instance ID of the workflow instance to display
+        json (bool): Whether to print the raw json returned by the DAFNI API
+    """
+    workflow_instance_dict = cli_get_workflow_instance(ctx.obj["session"], instance_id)
+
+    # Output
+    if json:
+        print_json(workflow_instance_dict)
+    else:
+        workflow_instance = parse_workflow_instance(workflow_instance_dict)
+        workflow_instance.output_details()

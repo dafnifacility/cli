@@ -39,7 +39,7 @@ There is also a script for running full CLI commands against the current release
 
 The script will modify the ID's of the models, dataset and workflows based on whether the CLI is installed for running on production or staging. (See [Running against staging](#running-against-staging))
 
-Before running the tests make sure you login to the non-admin1 test account if running on production, otherwise the account shouldn't matter. If you are already logged in, logout first to ensure the refresh tokens wont expire during the execution.
+Before running the tests make sure you login to the non-admin1 test account. If you are already logged in, logout first to ensure the refresh tokens wont expire during the execution.
 
 You can then run the tests by using
 

@@ -1,8 +1,14 @@
 from dataclasses import dataclass
 from typing import ClassVar, List, Optional
 from unittest import TestCase
+from unittest.mock import MagicMock, patch
 
-from dafni_cli.api.parser import ParserBaseObject, ParserParam
+from dafni_cli.api.parser import (
+    ParserBaseObject,
+    ParserParam,
+    parse_datetime,
+    parse_dict_retaining_keys,
+)
 
 
 @dataclass
@@ -236,3 +242,49 @@ class TestParser(TestCase):
             TestDataclassDefault, {"value1": "test"}
         )
         self.assertEqual(parsed_obj, TestDataclassDefault(value1="test", value2=None))
+
+
+class TestParseFunctions(TestCase):
+    @patch("dafni_cli.api.parser.isoparse")
+    def test_parse_datetime(self, mock_isoparse):
+        """Tests parse_datetime functions correctly"""
+
+        # SETUP
+        date_string = MagicMock()
+
+        # CALL
+        result = parse_datetime(date_string)
+
+        # ASSERT
+        mock_isoparse.assert_called_once_with(date_string)
+        self.assertEqual(result, mock_isoparse.return_value)
+
+    @patch.object(ParserBaseObject, "parse_from_dict")
+    def test_parse_dict_retaining_keys(self, mock_parse_from_dict):
+        """Tests parse_dict_retaining_keys functions correctly"""
+
+        # SETUP
+        dictionary = {"id-1": TEST_DICT_DATA, "id-2": TEST_DICT_DATA}
+        func = parse_dict_retaining_keys(TestDataclass1)
+        instance_mocks = [MagicMock(), MagicMock()]
+        mock_parse_from_dict.side_effect = instance_mocks
+
+        # CALL
+        result = func(dictionary)
+
+        # ASSERT
+        self.assertEqual(result, {"id-1": instance_mocks[0], "id-2": instance_mocks[1]})
+
+    def test_parse_dict_retaining_keys_when_empty(self):
+        """Tests parse_dict_retaining_keys functions correctly when there
+        is nothing to parse"""
+
+        # SETUP
+        dictionary = {}
+        func = parse_dict_retaining_keys(TestDataclass1)
+
+        # CALL
+        result = func(dictionary)
+
+        # ASSERT
+        self.assertEqual(result, {})
