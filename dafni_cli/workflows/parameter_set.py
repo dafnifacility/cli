@@ -8,6 +8,7 @@ from dafni_cli.api.parser import (
     parse_datetime,
     parse_dict_retaining_keys,
 )
+from dafni_cli.workflows.specification import WorkflowSpecification
 
 
 @dataclass
@@ -156,3 +157,13 @@ class WorkflowParameterSet(ParserBaseObject):
         ),
         ParserParam("metadata", "metadata", WorkflowParameterSetMetadata),
     ]
+
+    def output_details(self, workflow_spec: WorkflowSpecification):
+        """Prints information about this parameter set to command line
+        (used for get workflow-parameter-set)
+
+        Args:
+            workflow_spec (WorkflowSpecfication): Workflow specification this
+                                    parameter set comes from (needed to looking
+                                    up step's themselves e.g. for their names)
+        """

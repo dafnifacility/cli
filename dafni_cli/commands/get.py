@@ -637,7 +637,7 @@ def workflow_parameter_set(
         parameter_set_id (str): ID of the parameter set
         json (bool): Whether to print the raw json returned by the DAFNI API
     """
-    parameter_set = cli_get_workflow_parameter_set(
+    workflow_inst, parameter_set = cli_get_workflow_parameter_set(
         ctx.obj["session"], workflow_version_id, parameter_set_id
     )
 
@@ -645,4 +645,4 @@ def workflow_parameter_set(
     if json:
         print_json(parameter_set.dictionary)
     else:
-        print(parameter_set.spec)
+        parameter_set.output_details(workflow_inst)

@@ -197,7 +197,7 @@ class TestCliGetWorkflowParameterSet(TestCase):
         mock_cli_get_workflow.assert_called_once_with(mock_session, workflow_version_id)
         mock_parse_workflow.assert_called_once_with(workflow_dict)
         workflow.get_parameter_set.assert_called_once_with(parameter_set_id)
-        self.assertEqual(result, workflow.get_parameter_set.return_value)
+        self.assertEqual(result, (workflow, workflow.get_parameter_set.return_value))
         mock_click.echo.assert_not_called()
 
     def test_resource_not_found(

@@ -225,7 +225,7 @@ class Workflow(ParserBaseObject):
         )
 
     def output_details(self):
-        """Prints information about the workflow to command line (used for get
+        """Prints information about this workflow to command line (used for get
         workflow)"""
 
         click.echo(
