@@ -1,8 +1,13 @@
 from dataclasses import dataclass
 from datetime import datetime
-from typing import ClassVar, List
+from typing import Any, ClassVar, Dict, List
 
-from dafni_cli.api.parser import ParserBaseObject, ParserParam, parse_datetime
+from dafni_cli.api.parser import (
+    ParserBaseObject,
+    ParserParam,
+    parse_datetime,
+    parse_dict_retaining_keys,
+)
 
 
 @dataclass
@@ -35,6 +40,80 @@ class WorkflowParameterSetMetadata(ParserBaseObject):
 
 
 @dataclass
+class WorkflowParameterSetSpecDataslot(ParserBaseObject):
+    """Dataclass representing a step dataslot as it appears in a workflow
+    parameters specification
+
+    Not everything is parsed here as there can be a lot of variation and not
+    all is currently needed.
+
+    Attributes:
+        datasets (List[str]): List of version IDs of datasets that fill the
+                              slot
+        name (str): Name of the dataslot
+        path (str): Path to the data in the dataset
+    """
+
+    datasets: List[str]
+    name: str
+    path: str
+
+    _parser_params: ClassVar[List[ParserParam]] = [
+        ParserParam("datasets", "datasets"),
+        ParserParam("name", "name", str),
+        ParserParam("path", "path", str),
+    ]
+
+
+@dataclass
+class WorkflowParameterSetSpecParameter(ParserBaseObject):
+    """Dataclass representing a step parameter as it appears in a workflow
+    parameters specification
+
+    Not everything is parsed here as there can be a lot of variation and not
+    all is currently needed.
+
+    Attributes:
+        name (str): Name of the parameter
+        value (str): Value of the parameter
+    """
+
+    name: str
+    value: Any
+
+    _parser_params: ClassVar[List[ParserParam]] = [
+        ParserParam("datasets", "datasets"),
+        ParserParam("name", "name", str),
+        ParserParam("value", "value"),
+    ]
+
+
+@dataclass
+class WorkflowParameterSetSpecStep(ParserBaseObject):
+    """Dataclass representing a step as it appears in a workflow parameters
+    specification
+
+    Not everything is parsed here as there can be a lot of variation and not
+    all is currently needed.
+
+    Attributes:
+        dataslots (List[WorkflowParameterSetSpecDataslot]): List of dataslots
+        kind (str): Type of step e.g. publisher, model
+        parameters (List[WorkflowParameterSetSpecParameter]) List of parameters
+    """
+
+    dataslots: List[WorkflowParameterSetSpecDataslot]
+    kind: str
+    parameters: List[WorkflowParameterSetSpecParameter]
+
+    _parser_params: ClassVar[List[ParserParam]] = [
+        ParserParam("dataslots", "dataslots", WorkflowParameterSetSpecDataslot),
+        ParserParam("kind", "kind", str),
+        ParserParam("parameters", "parameters", WorkflowParameterSetSpecParameter),
+    ]
+
+
+@dataclass
 class WorkflowParameterSet(ParserBaseObject):
     """Dataclass representing a parameter set of a DAFNI workflow
 
@@ -49,8 +128,8 @@ class WorkflowParameterSet(ParserBaseObject):
         kind (str): Type of DAFNI object (should be "P" for parameter set)
         api_version (str): Version of the DAFNI API used to retrieve the
                            parameter set data
-        spec (dict): Specification of the parameter set (contains information
-                     on the dataslots and parameters)
+        spec (Dict[str, WorkflowSpecificationStep]): Dictionary of step
+                                       ID's and parameters for each step
         metadata (WorkflowParameterSetMetadata): Metadata of the parameter set
     """
 
@@ -60,8 +139,7 @@ class WorkflowParameterSet(ParserBaseObject):
     publication_date: datetime
     kind: str
     api_version: str
-    # TODO: Left as a dict for now, would just need its own parsing function
-    spec: dict
+    spec: Dict[str, WorkflowParameterSetSpecStep]
     metadata: WorkflowParameterSetMetadata
 
     _parser_params: ClassVar[List[ParserParam]] = [
@@ -71,6 +149,10 @@ class WorkflowParameterSet(ParserBaseObject):
         ParserParam("publication_date", "publication_date", parse_datetime),
         ParserParam("kind", "kind", str),
         ParserParam("api_version", "api_version", str),
-        ParserParam("spec", "spec"),
+        ParserParam(
+            "spec",
+            "spec",
+            parse_dict_retaining_keys(WorkflowParameterSetSpecStep),
+        ),
         ParserParam("metadata", "metadata", WorkflowParameterSetMetadata),
     ]

@@ -7,46 +7,17 @@ from dafni_cli.api.parser import ParserBaseObject
 from dafni_cli.workflows.parameter_set import (
     WorkflowParameterSet,
     WorkflowParameterSetMetadata,
+    WorkflowParameterSetSpecDataslot,
+    WorkflowParameterSetSpecParameter,
+    WorkflowParameterSetSpecStep,
 )
 
-TEST_WORKFLOW_PARAMETER_SET_METADATA = {
-    "description": "First parameter set",
-    "display_name": "First parameter set",
-    "name": "first-param-set",
-    "publisher": "Joel Davies",
-    "workflow_version": "0a0a0a0a-0a00-0a00-a000-0a0a0000000a",
-}
-
-TEST_WORKFLOW_PARAMETER_SET = {
-    "id": "0a0a0a0a-0a00-0a00-a000-0a0a0000000a",
-    "owner": "0a0a0a0a-0a00-0a00-a000-0a0a0000000b",
-    "creation_date": "2023-04-04T08:34:36.823227Z",
-    "publication_date": "2023-04-04T08:34:36.823227Z",
-    "kind": "P",
-    "api_version": "v1.0.0",
-    "spec": {
-        "0a0a0a0a-0a00-0a00-a000-0a0a0000000c": {
-            "kind": "model",
-            "dataslots": [
-                {
-                    "name": "Rainfall data",
-                    "path": "inputs/rainfall/",
-                    "datasets": ["0a0a0a0a-0a00-0a00-a000-0a0a0000000d"],
-                },
-                {
-                    "name": "Maximum Temperature data",
-                    "path": "inputs/maximum-temperature/",
-                    "datasets": ["0a0a0a0a-0a00-0a00-a000-0a0a0000000e"],
-                },
-            ],
-            "parameters": [
-                {"name": "PROCESS_RAINFALL", "value": True},
-                {"name": "PREDICTION_CYCLE", "value": "daily"},
-            ],
-        }
-    },
-    "metadata": TEST_WORKFLOW_PARAMETER_SET_METADATA,
-}
+from test.fixtures.workflow_parameter_set import (
+    TEST_WORKFLOW_PARAMETER_SET,
+    TEST_WORKFLOW_PARAMETER_SET_METADATA,
+    TEST_WORKFLOW_PARAMETER_SET_SPEC_DATASLOT,
+    TEST_WORKFLOW_PARAMETER_SET_SPEC_PARAMETER,
+)
 
 
 class TestWorkflowParameterSetMetadata(TestCase):
@@ -79,6 +50,50 @@ class TestWorkflowParameterSetMetadata(TestCase):
         self.assertEqual(
             workflow_param_set_meta.workflow_version_id,
             TEST_WORKFLOW_PARAMETER_SET_METADATA["workflow_version"],
+        )
+
+
+class TestWorkflowParameterSetSpecDataslot(TestCase):
+    """Tests the WorkflowParameterSetSpecDataslot dataclass"""
+
+    def test_parse(self):
+        """Tests parsing of WorkflowParameterSetSpecDataslot"""
+        dataslot: WorkflowParameterSetSpecDataslot = ParserBaseObject.parse_from_dict(
+            WorkflowParameterSetSpecDataslot,
+            TEST_WORKFLOW_PARAMETER_SET_SPEC_DATASLOT,
+        )
+
+        self.assertEqual(
+            dataslot.datasets,
+            TEST_WORKFLOW_PARAMETER_SET_SPEC_DATASLOT["datasets"],
+        )
+        self.assertEqual(
+            dataslot.name,
+            TEST_WORKFLOW_PARAMETER_SET_SPEC_DATASLOT["name"],
+        )
+        self.assertEqual(
+            dataslot.path,
+            TEST_WORKFLOW_PARAMETER_SET_SPEC_DATASLOT["path"],
+        )
+
+
+class TestWorkflowParameterSetSpecParameter(TestCase):
+    """Tests the WorkflowParameterSetSpecParameter dataclass"""
+
+    def test_parse(self):
+        """Tests parsing of WorkflowParameterSetSpecParameter"""
+        parameter: WorkflowParameterSetSpecParameter = ParserBaseObject.parse_from_dict(
+            WorkflowParameterSetSpecParameter,
+            TEST_WORKFLOW_PARAMETER_SET_SPEC_PARAMETER,
+        )
+
+        self.assertEqual(
+            parameter.name,
+            TEST_WORKFLOW_PARAMETER_SET_SPEC_PARAMETER["name"],
+        )
+        self.assertEqual(
+            parameter.value,
+            TEST_WORKFLOW_PARAMETER_SET_SPEC_PARAMETER["value"],
         )
 
 
@@ -115,10 +130,15 @@ class TestWorkflowParameterSet(TestCase):
             workflow_param_set.api_version,
             TEST_WORKFLOW_PARAMETER_SET["api_version"],
         )
+
+        # WorkflowParameterSetSpecStep (contents tested in TestWorkflowParameterSetSpecStep)
         self.assertEqual(
-            workflow_param_set.spec,
-            TEST_WORKFLOW_PARAMETER_SET["spec"],
+            workflow_param_set.spec.keys(),
+            TEST_WORKFLOW_PARAMETER_SET["spec"].keys(),
         )
+        for step in workflow_param_set.spec.values():
+            self.assertEqual(type(step), WorkflowParameterSetSpecStep)
+
         # WorkflowParameterSetMetadata (contents tested in TestWorkflowParameterSetMetadata)
         self.assertEqual(
             type(workflow_param_set.metadata),

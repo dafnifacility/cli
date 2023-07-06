@@ -645,4 +645,4 @@ def workflow_parameter_set(
     if json:
         print_json(parameter_set.dictionary)
     else:
-        click.echo(parameter_set)
+        print(parameter_set.spec)

@@ -6,6 +6,17 @@ TEST_WORKFLOW_PARAMETER_SET_METADATA = {
     "workflow_version": "0a0a0a0a-0a00-0a00-a000-0a0a0000000a",
 }
 
+TEST_WORKFLOW_PARAMETER_SET_SPEC_DATASLOT = {
+    "name": "Rainfall data",
+    "path": "inputs/rainfall/",
+    "datasets": ["0a0a0a0a-0a00-0a00-a000-0a0a0000000a"],
+}
+
+TEST_WORKFLOW_PARAMETER_SET_SPEC_PARAMETER = {
+    "name": "PREDICTION_CYCLE",
+    "value": "daily",
+}
+
 TEST_WORKFLOW_PARAMETER_SET = {
     "id": "0a0a0a0a-0a00-0a00-a000-0a0a0000000a",
     "owner": "0a0a0a0a-0a00-0a00-a000-0a0a0000000b",
