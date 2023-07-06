@@ -12,6 +12,7 @@ TEST_DATASETS_DATA: dict = {
             "description": None,
             "subject": "Planning / Cadastre",
             "source": "DAFNI",
+            "status": "ingested",
             "date_range": {"begin": None, "end": None},
             "modified_date": "2021-03-04T15:59:26+00:00",
             "auth": {
@@ -34,6 +35,7 @@ TEST_DATASETS_DATA: dict = {
             "description": "Description 2",
             "subject": "Environment",
             "source": "DAFNI Workflows",
+            "status": "ingested",
             "date_range": {
                 "begin": "2019-01-01T12:00:00.000Z",
                 "end": "2021-01-01T12:00:00.000Z",

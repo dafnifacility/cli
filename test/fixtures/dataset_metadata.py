@@ -145,6 +145,7 @@ TEST_DATASET_METADATA: dict = {
     "dct:issued": "2021-03-16T09:27:21+00:00",
     "dcat:distribution": [TEST_DATASET_METADATA_DATAFILE],
     "mediatypes": [None],
+    "status": "ingested",
     "version_history": TEST_DATASET_METADATA_VERSION_HISTORY,
     "auth": {
         "asset_id": "0a0a0a0a-0a00-0a00-a000-0a0a0000000a",
@@ -187,6 +188,7 @@ TEST_DATASET_METADATA_DEFAULT: dict = {
     "dct:issued": "2021-03-16T09:27:21+00:00",
     "dcat:distribution": [TEST_DATASET_METADATA_DATAFILE],
     "mediatypes": [None],
+    "status": "ingested",
     "version_history": TEST_DATASET_METADATA_VERSION_HISTORY,
     "auth": {
         "asset_id": "0a0a0a0a-0a00-0a00-a000-0a0a0000000a",

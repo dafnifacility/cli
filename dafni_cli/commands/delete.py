@@ -222,16 +222,14 @@ def dataset_version(ctx: Context, version_ids: Tuple[str]):
         version_ids (str): Version ID(s) of the datasets to be deleted
     """
 
-    dataset_details_list, dataset_ids = collate_dataset_version_details(
+    dataset_details_list, _ = collate_dataset_version_details(
         ctx.obj["session"], version_ids
     )
     argument_confirmation(
         [], "Confirm deletion of dataset versions?", dataset_details_list
     )
-    for dataset_id, vid in zip(dataset_ids, version_ids):
-        delete_dataset_version(
-            ctx.obj["session"], dataset_id=dataset_id, version_id=vid
-        )
+    for vid in version_ids:
+        delete_dataset_version(ctx.obj["session"], version_id=vid)
     # Confirm action
     click.echo("Dataset versions deleted")
 

@@ -33,6 +33,7 @@ METADATA_KEYS_INVALID_FOR_UPLOAD = [
     "version_history",
     "auth",
     "dcat:distribution",
+    "status",
 ]
 
 
@@ -240,7 +241,7 @@ def upload_files(session: DAFNISession, temp_bucket_id: str, file_paths: List[Pa
     upload_urls = get_data_upload_urls(session, temp_bucket_id, list(file_names.keys()))
 
     click.echo("Uploading files")
-    for key, value in upload_urls["URLs"].items():
+    for key, value in upload_urls["urls"].items():
         upload_file_to_minio(session, value, file_names[key])
 
 

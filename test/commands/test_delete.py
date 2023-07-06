@@ -928,7 +928,7 @@ class TestDelete(TestCase):
             session, version_ids
         )
         mock_delete_dataset_version.assert_called_with(
-            session, dataset_id=dataset_ids[0], version_id=version_ids[0]
+            session, version_id=version_ids[0]
         )
 
         self.assertEqual(
@@ -975,8 +975,8 @@ class TestDelete(TestCase):
         self.assertEqual(
             mock_delete_dataset_version.call_args_list,
             [
-                call(session, dataset_id=dataset_ids[0], version_id=version_ids[0]),
-                call(session, dataset_id=dataset_ids[1], version_id=version_ids[1]),
+                call(session, version_id=version_ids[0]),
+                call(session, version_id=version_ids[1]),
             ],
         )
 

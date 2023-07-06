@@ -161,7 +161,7 @@ def models(
         )
 
 
-@get.command(help="Display metadata or version history of a particular model or models")
+@get.command(help="Display metadata or version history of a model or models")
 @click.argument("version-id", nargs=-1, required=True)
 @click.option(
     "--version-history/--metadata",
@@ -326,7 +326,7 @@ def dataset(
 ###############################################################################
 # Workflows commands
 ###############################################################################
-@get.command(help="List and filter models")
+@get.command(help="List and filter workflows")
 @click.option(
     "--search",
     default=None,
@@ -416,9 +416,7 @@ def workflows(
         )
 
 
-@get.command(
-    help="Display metadata or version history of a particular workflow or workflows"
-)
+@get.command(help="Display metadata or version history of a workflow or workflows")
 @click.argument("version-id", nargs=-1, required=True)
 @click.option(
     "--version-history/--metadata",

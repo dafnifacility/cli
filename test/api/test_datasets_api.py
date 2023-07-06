@@ -152,16 +152,13 @@ class TestDatasetsAPI(TestCase):
 
         # SETUP
         session = MagicMock()
-        dataset_id = "dataset-id"
         version_id = "version-id"
 
         # CALL
-        result = datasets_api.delete_dataset_version(
-            session, dataset_id=dataset_id, version_id=version_id
-        )
+        result = datasets_api.delete_dataset_version(session, version_id=version_id)
 
         # ASSERT
         session.delete_request.assert_called_once_with(
-            f"{NID_API_URL}/nid/dataset/{dataset_id}/{version_id}",
+            f"{NID_API_URL}/nid/version/{version_id}",
         )
         self.assertEqual(result, session.delete_request.return_value)
