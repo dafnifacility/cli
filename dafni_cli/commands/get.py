@@ -13,6 +13,7 @@ from dafni_cli.commands.helpers import (
     cli_get_model,
     cli_get_workflow,
     cli_get_workflow_instance,
+    cli_get_workflow_parameter_set,
 )
 from dafni_cli.commands.options import filter_flag_option
 from dafni_cli.consts import (
@@ -636,9 +637,12 @@ def workflow_parameter_set(
         parameter_set_id (str): ID of the parameter set
         json (bool): Whether to print the raw json returned by the DAFNI API
     """
-    workflow_instance_dict = cli_get_workflow_instance(
-        ctx.obj["session"], workflow_version_id
+    parameter_set = cli_get_workflow_parameter_set(
+        ctx.obj["session"], workflow_version_id, parameter_set_id
     )
-    workflow_instance_obj = parse_workflow_instance(workflow_instance_dict)
 
     # Output
+    if json:
+        print_json(parameter_set.dictionary)
+    else:
+        click.echo(parameter_set)
