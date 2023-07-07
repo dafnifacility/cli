@@ -155,10 +155,15 @@ class WorkflowParameterSetSpecStep(ParserBaseObject):
     def format_parameters(self) -> str:
         """Formats parameters into a string which prints as a table
 
+        If there aren't any parameters will return a string stating that
+
         Returns:
             str: Formatted string that will appear as a table when
                  printed
         """
+        if not self.parameters:
+            return "No parameters"
+
         if self.kind == "model":
             return format_table(
                 headers=["Parameter", "Value"],
@@ -188,10 +193,14 @@ class WorkflowParameterSetSpecStep(ParserBaseObject):
     def format_dataslots(self) -> str:
         """Formats data slots into a string which prints as a table
 
+        If there aren't any dataslots will return a string stating that
+
         Returns:
             str: Formatted string that will appear as a table when
                  printed
         """
+        if not self.dataslots:
+            return "No dataslots"
 
         if self.kind == "model":
             return format_table(
@@ -280,26 +289,6 @@ class WorkflowParameterSet(ParserBaseObject):
         # Info about the parameter set
         click.echo(self.metadata.display_name)
         click.echo()
-        click.echo(
-            tabulate(
-                [
-                    [
-                        "Created:",
-                        format_datetime(self.creation_date, include_time=True),
-                    ],
-                    [
-                        "Publication:",
-                        format_datetime(self.publication_date, include_time=True),
-                    ],
-                    ["Publisher:", self.metadata.publisher],
-                    ["Workflow version ID:", self.metadata.workflow_version_id],
-                ],
-                tablefmt="plain",
-            )
-        )
-        click.echo("Description:")
-        click.echo(self.metadata.description)
-        click.echo()
 
         # Go through each step
         for step_id, step in self.spec.items():
@@ -308,14 +297,13 @@ class WorkflowParameterSet(ParserBaseObject):
             click.echo("-" * CONSOLE_WIDTH)
             click.echo(f"Step - {workflow_spec_step.name}")
             click.echo()
-            click.echo(f"Base parameter set ID: {step.base_parameter_set}")
 
-            # Check the type
+            # Check the type (Only model and loop steps are shown on front end,
+            # and these are also the only kinds that actually get reported here)
             if workflow_spec_step.kind == "model":
                 click.echo(f"Model version ID: {workflow_spec_step.model_version}")
                 click.echo()
 
-                click.echo("Parameters:")
                 click.echo(step.format_parameters())
                 click.echo()
 
@@ -327,13 +315,30 @@ class WorkflowParameterSet(ParserBaseObject):
                         dependency = workflow_spec.steps[step_id]
                         included_from.append(dependency.name)
 
-                click.echo("Dataslots:")
-                if included_from:
-                    click.echo(f"Steps data included from: {', '.join(included_from)}")
+                click.echo(
+                    f"Steps data included from: {', '.join(included_from) if included_from else 'No steps data included'}"
+                )
                 click.echo(step.format_dataslots())
                 click.echo()
             elif workflow_spec_step.kind == "loop":
-                click.echo(f"Iteration mode: {workflow_spec_step.iteration_mode}")
+                click.echo(
+                    tabulate(
+                        [
+                            [
+                                "Looping workflow version ID:",
+                                workflow_spec_step.workflow_version,
+                            ],
+                            ["Iteration mode:", workflow_spec_step.iteration_mode],
+                            [
+                                "Base parameter set ID:",
+                                step.base_parameter_set
+                                if step.base_parameter_set
+                                else "No base parameter set",
+                            ],
+                        ],
+                        tablefmt="plain",
+                    )
+                )
                 click.echo()
 
                 click.echo("Parameters to iterate:")
