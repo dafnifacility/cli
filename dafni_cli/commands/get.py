@@ -645,4 +645,4 @@ def workflow_parameter_set(
     if json:
         print_json(parameter_set.dictionary)
     else:
-        parameter_set.output_details(workflow_inst)
+        parameter_set.output_details(workflow_inst.spec)

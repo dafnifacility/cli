@@ -1,6 +1,9 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import datetime
-from typing import Any, ClassVar, Dict, List
+from typing import Any, ClassVar, Dict, List, Optional
+
+import click
+from tabulate import tabulate
 
 from dafni_cli.api.parser import (
     ParserBaseObject,
@@ -8,7 +11,12 @@ from dafni_cli.api.parser import (
     parse_datetime,
     parse_dict_retaining_keys,
 )
-from dafni_cli.workflows.specification import WorkflowSpecification
+from dafni_cli.consts import CONSOLE_WIDTH
+from dafni_cli.utils import format_datetime, format_table
+from dafni_cli.workflows.specification import (
+    WorkflowSpecification,
+    WorkflowSpecificationStep,
+)
 
 
 @dataclass
@@ -49,20 +57,33 @@ class WorkflowParameterSetSpecDataslot(ParserBaseObject):
     all is currently needed.
 
     Attributes:
+
         datasets (List[str]): List of version IDs of datasets that fill the
-                              slot
+                              slot (Present for loop and model steps)
+
+        The following are present only for the step type: model
         name (str): Name of the dataslot
         path (str): Path to the data in the dataset
+
+        The following are only present for the step type: loop
+        steps (str): Step IDs
+        dataslot (str): Name of the dataslot being iterated
     """
 
     datasets: List[str]
-    name: str
-    path: str
+
+    name: Optional[str] = None
+    path: Optional[str] = None
+
+    steps: List = field(default_factory=list)
+    dataslot: Optional[str] = None
 
     _parser_params: ClassVar[List[ParserParam]] = [
         ParserParam("datasets", "datasets"),
         ParserParam("name", "name", str),
         ParserParam("path", "path", str),
+        ParserParam("steps", "steps"),
+        ParserParam("dataslot", "dataslot"),
     ]
 
 
@@ -75,17 +96,32 @@ class WorkflowParameterSetSpecParameter(ParserBaseObject):
     all is currently needed.
 
     Attributes:
+        The following are present only for the step type: model
         name (str): Name of the parameter
         value (str): Value of the parameter
+
+        The following are present only for the step type: loop
+        steps (List[str]): List of step IDs of steps this parameter is present in
+        values (List[str]): Values of this parameter
+        parameter (Optional[str]): Name of this parameter
+        calculate_values (bool): Appears as 'Generate Values' on front end
     """
 
-    name: str
-    value: Any
+    name: Optional[str] = None
+    value: Optional[Any] = None
+
+    steps: List[str] = field(default_factory=list)
+    values: List[str] = field(default_factory=list)
+    parameter: Optional[str] = None
+    calculate_values: Optional[str] = None
 
     _parser_params: ClassVar[List[ParserParam]] = [
-        ParserParam("datasets", "datasets"),
         ParserParam("name", "name", str),
         ParserParam("value", "value"),
+        ParserParam("steps", "steps"),
+        ParserParam("values", "values"),
+        ParserParam("parameter", "parameter", str),
+        ParserParam("calculate_values", "calculate_values"),
     ]
 
 
@@ -100,18 +136,91 @@ class WorkflowParameterSetSpecStep(ParserBaseObject):
     Attributes:
         dataslots (List[WorkflowParameterSetSpecDataslot]): List of dataslots
         kind (str): Type of step e.g. publisher, model
-        parameters (List[WorkflowParameterSetSpecParameter]) List of parameters
+        parameters (List[WorkflowParameterSetSpecParameter]): List of parameters
+        base_parameter_set (str): ID of a base parameter set (if applicable)
     """
 
     dataslots: List[WorkflowParameterSetSpecDataslot]
     kind: str
     parameters: List[WorkflowParameterSetSpecParameter]
+    base_parameter_set: Optional[str] = None
 
     _parser_params: ClassVar[List[ParserParam]] = [
         ParserParam("dataslots", "dataslots", WorkflowParameterSetSpecDataslot),
         ParserParam("kind", "kind", str),
         ParserParam("parameters", "parameters", WorkflowParameterSetSpecParameter),
+        ParserParam("base_parameter_set", "base_parameter_set", str),
     ]
+
+    def format_parameters(self) -> str:
+        """Formats parameters into a string which prints as a table
+
+        Returns:
+            str: Formatted string that will appear as a table when
+                 printed
+        """
+        if self.kind == "model":
+            return format_table(
+                headers=["Parameter", "Value"],
+                rows=[
+                    [parameter.name, parameter.value] for parameter in self.parameters
+                ],
+            )
+        elif self.kind == "loop":
+            return format_table(
+                headers=[
+                    "Name",
+                    "Steps that contain parameter",
+                    "Generate values",
+                    "Values",
+                ],
+                rows=[
+                    [
+                        parameter.parameter,
+                        "\n".join(parameter.steps),
+                        parameter.calculate_values,
+                        "\n".join(parameter.values),
+                    ]
+                    for parameter in self.parameters
+                ],
+            )
+
+    def format_dataslots(self) -> str:
+        """Formats data slots into a string which prints as a table
+
+        Returns:
+            str: Formatted string that will appear as a table when
+                 printed
+        """
+
+        if self.kind == "model":
+            return format_table(
+                headers=["Name", "Path to data", "Dataset version IDs"],
+                rows=[
+                    [dataslot.name, dataslot.path, "\n".join(dataslot.datasets)]
+                    for dataslot in self.dataslots
+                ],
+            )
+        elif self.kind == "loop":
+            # Here dataslot.datasets is a list of lists, one for each
+            # iteration
+
+            return format_table(
+                headers=["Name", "Steps that contain dataslot", "Dataset version IDs"],
+                rows=[
+                    [
+                        dataslot.dataslot,
+                        "\n".join(dataslot.steps),
+                        "\n".join(
+                            [
+                                (f"Iteration - {i}: " + "\n".join(dataset_ids))
+                                for i, dataset_ids in enumerate(dataslot.datasets)
+                            ]
+                        ),
+                    ]
+                    for dataslot in self.dataslots
+                ],
+            )
 
 
 @dataclass
@@ -163,7 +272,74 @@ class WorkflowParameterSet(ParserBaseObject):
         (used for get workflow-parameter-set)
 
         Args:
-            workflow_spec (WorkflowSpecfication): Workflow specification this
+            workflow_spec (WorkflowSpecification): Workflow specification this
                                     parameter set comes from (needed to looking
                                     up step's themselves e.g. for their names)
         """
+
+        # Info about the parameter set
+        click.echo(self.metadata.display_name)
+        click.echo()
+        click.echo(
+            tabulate(
+                [
+                    [
+                        "Created:",
+                        format_datetime(self.creation_date, include_time=True),
+                    ],
+                    [
+                        "Publication:",
+                        format_datetime(self.publication_date, include_time=True),
+                    ],
+                    ["Publisher:", self.metadata.publisher],
+                    ["Workflow version ID:", self.metadata.workflow_version_id],
+                ],
+                tablefmt="plain",
+            )
+        )
+        click.echo("Description:")
+        click.echo(self.metadata.description)
+        click.echo()
+
+        # Go through each step
+        for step_id, step in self.spec.items():
+            workflow_spec_step: WorkflowSpecificationStep = workflow_spec.steps[step_id]
+
+            click.echo("-" * CONSOLE_WIDTH)
+            click.echo(f"Step - {workflow_spec_step.name}")
+            click.echo()
+            click.echo(f"Base parameter set ID: {step.base_parameter_set}")
+
+            # Check the type
+            if workflow_spec_step.kind == "model":
+                click.echo(f"Model version ID: {workflow_spec_step.model_version}")
+                click.echo()
+
+                click.echo("Parameters:")
+                click.echo(step.format_parameters())
+                click.echo()
+
+                # To match front end, also want to show additional inputs from
+                # dependencies but matching up to the path
+                included_from = []
+                if workflow_spec_step.inputs:
+                    for step_id in workflow_spec_step.inputs:
+                        dependency = workflow_spec.steps[step_id]
+                        included_from.append(dependency.name)
+
+                click.echo("Dataslots:")
+                if included_from:
+                    click.echo(f"Steps data included from: {', '.join(included_from)}")
+                click.echo(step.format_dataslots())
+                click.echo()
+            elif workflow_spec_step.kind == "loop":
+                click.echo(f"Iteration mode: {workflow_spec_step.iteration_mode}")
+                click.echo()
+
+                click.echo("Parameters to iterate:")
+                click.echo(step.format_parameters())
+                click.echo()
+
+                click.echo("Dataslots to iterate:")
+                click.echo(step.format_dataslots())
+                click.echo()

@@ -147,8 +147,8 @@ class ModelInputs(ParserBaseObject):
            a table
 
         Returns:
-            Optional[str]: str: Formatted string that will appear as a table
-                                when printed
+            Optional[str]: Formatted string that will appear as a table when
+                           printed
         """
 
         if self.dataslots:

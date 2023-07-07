@@ -15,8 +15,12 @@ from dafni_cli.workflows.parameter_set import (
 from test.fixtures.workflow_parameter_set import (
     TEST_WORKFLOW_PARAMETER_SET,
     TEST_WORKFLOW_PARAMETER_SET_METADATA,
-    TEST_WORKFLOW_PARAMETER_SET_SPEC_DATASLOT,
-    TEST_WORKFLOW_PARAMETER_SET_SPEC_PARAMETER,
+    TEST_WORKFLOW_PARAMETER_SET_SPEC_DATASLOT_LOOP,
+    TEST_WORKFLOW_PARAMETER_SET_SPEC_DATASLOT_MODEL,
+    TEST_WORKFLOW_PARAMETER_SET_SPEC_PARAMETER_LOOP,
+    TEST_WORKFLOW_PARAMETER_SET_SPEC_PARAMETER_MODEL,
+    TEST_WORKFLOW_PARAMETER_SET_SPEC_STEP,
+    TEST_WORKFLOW_PARAMETER_SET_SPEC_STEP_DEFAULT,
 )
 
 
@@ -56,45 +60,134 @@ class TestWorkflowParameterSetMetadata(TestCase):
 class TestWorkflowParameterSetSpecDataslot(TestCase):
     """Tests the WorkflowParameterSetSpecDataslot dataclass"""
 
-    def test_parse(self):
-        """Tests parsing of WorkflowParameterSetSpecDataslot"""
+    def test_parse_model(self):
+        """Tests parsing of WorkflowParameterSetSpecDataslot using data for a
+        model step"""
         dataslot: WorkflowParameterSetSpecDataslot = ParserBaseObject.parse_from_dict(
             WorkflowParameterSetSpecDataslot,
-            TEST_WORKFLOW_PARAMETER_SET_SPEC_DATASLOT,
+            TEST_WORKFLOW_PARAMETER_SET_SPEC_DATASLOT_MODEL,
         )
 
         self.assertEqual(
             dataslot.datasets,
-            TEST_WORKFLOW_PARAMETER_SET_SPEC_DATASLOT["datasets"],
+            TEST_WORKFLOW_PARAMETER_SET_SPEC_DATASLOT_MODEL["datasets"],
         )
         self.assertEqual(
             dataslot.name,
-            TEST_WORKFLOW_PARAMETER_SET_SPEC_DATASLOT["name"],
+            TEST_WORKFLOW_PARAMETER_SET_SPEC_DATASLOT_MODEL["name"],
         )
         self.assertEqual(
             dataslot.path,
-            TEST_WORKFLOW_PARAMETER_SET_SPEC_DATASLOT["path"],
+            TEST_WORKFLOW_PARAMETER_SET_SPEC_DATASLOT_MODEL["path"],
+        )
+
+    def test_parse_loop(self):
+        """Tests parsing of WorkflowParameterSetSpecDataslot using data for a
+        loop step"""
+        dataslot: WorkflowParameterSetSpecDataslot = ParserBaseObject.parse_from_dict(
+            WorkflowParameterSetSpecDataslot,
+            TEST_WORKFLOW_PARAMETER_SET_SPEC_DATASLOT_LOOP,
+        )
+
+        self.assertEqual(
+            dataslot.datasets,
+            TEST_WORKFLOW_PARAMETER_SET_SPEC_DATASLOT_LOOP["datasets"],
+        )
+        self.assertEqual(
+            dataslot.steps,
+            TEST_WORKFLOW_PARAMETER_SET_SPEC_DATASLOT_LOOP["steps"],
+        )
+        self.assertEqual(
+            dataslot.dataslot,
+            TEST_WORKFLOW_PARAMETER_SET_SPEC_DATASLOT_LOOP["dataslot"],
         )
 
 
 class TestWorkflowParameterSetSpecParameter(TestCase):
     """Tests the WorkflowParameterSetSpecParameter dataclass"""
 
-    def test_parse(self):
-        """Tests parsing of WorkflowParameterSetSpecParameter"""
+    def test_parse_model(self):
+        """Tests parsing of WorkflowParameterSetSpecParameter using data for a
+        model step"""
         parameter: WorkflowParameterSetSpecParameter = ParserBaseObject.parse_from_dict(
             WorkflowParameterSetSpecParameter,
-            TEST_WORKFLOW_PARAMETER_SET_SPEC_PARAMETER,
+            TEST_WORKFLOW_PARAMETER_SET_SPEC_PARAMETER_MODEL,
         )
 
         self.assertEqual(
             parameter.name,
-            TEST_WORKFLOW_PARAMETER_SET_SPEC_PARAMETER["name"],
+            TEST_WORKFLOW_PARAMETER_SET_SPEC_PARAMETER_MODEL["name"],
         )
         self.assertEqual(
             parameter.value,
-            TEST_WORKFLOW_PARAMETER_SET_SPEC_PARAMETER["value"],
+            TEST_WORKFLOW_PARAMETER_SET_SPEC_PARAMETER_MODEL["value"],
         )
+
+    def test_parse_loop(self):
+        """Tests parsing of WorkflowParameterSetSpecParameter using data for a
+        loop step"""
+        parameter: WorkflowParameterSetSpecParameter = ParserBaseObject.parse_from_dict(
+            WorkflowParameterSetSpecParameter,
+            TEST_WORKFLOW_PARAMETER_SET_SPEC_PARAMETER_LOOP,
+        )
+
+        self.assertEqual(
+            parameter.steps,
+            TEST_WORKFLOW_PARAMETER_SET_SPEC_PARAMETER_LOOP["steps"],
+        )
+        self.assertEqual(
+            parameter.values,
+            TEST_WORKFLOW_PARAMETER_SET_SPEC_PARAMETER_LOOP["values"],
+        )
+        self.assertEqual(
+            parameter.parameter,
+            TEST_WORKFLOW_PARAMETER_SET_SPEC_PARAMETER_LOOP["parameter"],
+        )
+        self.assertEqual(
+            parameter.calculate_values,
+            TEST_WORKFLOW_PARAMETER_SET_SPEC_PARAMETER_LOOP["calculate_values"],
+        )
+
+
+class TestWorkflowParameterSetSpecStep(TestCase):
+    """Tests the WorkflowParameterSetSpecStep dataclass"""
+
+    def test_parse(self):
+        """Tests parsing of WorkflowInstanceListParameterSet"""
+        spec: WorkflowParameterSetSpecStep = ParserBaseObject.parse_from_dict(
+            WorkflowParameterSetSpecStep, TEST_WORKFLOW_PARAMETER_SET_SPEC_STEP
+        )
+
+        # WorkflowParameterSetSpecDataslot (contents tested in TestWorkflowParameterSetSpecDataslot)
+        self.assertEqual(len(spec.dataslots), 2)
+        for dataslot in spec.dataslots:
+            self.assertEqual(type(dataslot), WorkflowParameterSetSpecDataslot)
+
+        self.assertEqual(
+            spec.kind,
+            TEST_WORKFLOW_PARAMETER_SET_SPEC_STEP["kind"],
+        )
+
+        # WorkflowParameterSetSpecParameter (contents tested in TestWorkflowParameterSetSpecParameter)
+        self.assertEqual(len(spec.parameters), 2)
+        for parameter in spec.parameters:
+            self.assertEqual(type(parameter), WorkflowParameterSetSpecParameter)
+
+        self.assertEqual(
+            spec.base_parameter_set,
+            TEST_WORKFLOW_PARAMETER_SET_SPEC_STEP["base_parameter_set"],
+        )
+
+    def test_parse_default(self):
+        """Tests parsing of WorkflowInstanceListParameterSet when all optional
+        values are missing"""
+        spec: WorkflowParameterSetSpecStep = ParserBaseObject.parse_from_dict(
+            WorkflowParameterSetSpecStep, TEST_WORKFLOW_PARAMETER_SET_SPEC_STEP_DEFAULT
+        )
+
+        # Only test the parameters that are supposed to be missing as the
+        # rest are tested above anyway
+        self.assertEqual(spec.base_parameter_set, None)
 
 
 class TestWorkflowParameterSet(TestCase):
