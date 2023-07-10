@@ -118,7 +118,16 @@ TEST_WORKFLOW_PARAMETER_SET = {
     "kind": "P",
     "api_version": "v1.0.0",
     "spec": {
-        "0a0a0a0a-0a00-0a00-a000-0a0a0000000c": TEST_WORKFLOW_PARAMETER_SET_SPEC_STEP_MODEL
+        # These must match values in workflow_specification.py (two models here
+        # as one has 'inputs' and the other doesn't)
+        "0a0a0a0a-0a00-0a00-a000-0a0a0000000b": TEST_WORKFLOW_PARAMETER_SET_SPEC_STEP_MODEL,
+        "0a0a0a0a-0a00-0a00-a000-0a0a0000000c": TEST_WORKFLOW_PARAMETER_SET_SPEC_STEP_MODEL,
+        # Similarly the first of these has a base parameter set and the second doesn't
+        "0a0a0a0a-0a00-0a00-a000-0a0a0000000d": TEST_WORKFLOW_PARAMETER_SET_SPEC_STEP_LOOP,
+        "0a0a0a0a-0a00-0a00-a000-0a0a0000000e": {
+            **TEST_WORKFLOW_PARAMETER_SET_SPEC_STEP_LOOP,
+            "base_parameter_set": None,
+        },
     },
     "metadata": TEST_WORKFLOW_PARAMETER_SET_METADATA,
 }

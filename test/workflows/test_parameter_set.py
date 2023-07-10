@@ -1,11 +1,12 @@
 from datetime import datetime
 from unittest import TestCase
-from unittest.mock import patch
+from unittest.mock import call, patch
 
 from dateutil.tz import tzutc
 
 from dafni_cli.api.parser import ParserBaseObject
 from dafni_cli.consts import (
+    CONSOLE_WIDTH,
     TABLE_DATASET_VERSION_IDS_HEADER,
     TABLE_GENERATE_VALUES_HEADER,
     TABLE_NAME_HEADER,
@@ -23,6 +24,7 @@ from dafni_cli.workflows.parameter_set import (
     WorkflowParameterSetSpecParameter,
     WorkflowParameterSetSpecStep,
 )
+from dafni_cli.workflows.specification import WorkflowSpecification
 
 from test.fixtures.workflow_parameter_set import (
     TEST_WORKFLOW_PARAMETER_SET,
@@ -35,6 +37,7 @@ from test.fixtures.workflow_parameter_set import (
     TEST_WORKFLOW_PARAMETER_SET_SPEC_STEP_LOOP,
     TEST_WORKFLOW_PARAMETER_SET_SPEC_STEP_MODEL,
 )
+from test.fixtures.workflow_specification import TEST_WORKFLOW_SPECIFICATION
 
 
 class TestWorkflowParameterSetMetadata(TestCase):
@@ -396,4 +399,126 @@ class TestWorkflowParameterSet(TestCase):
         self.assertEqual(
             type(workflow_param_set.metadata),
             WorkflowParameterSetMetadata,
+        )
+
+    @patch("dafni_cli.workflows.parameter_set.click")
+    @patch("dafni_cli.workflows.parameter_set.tabulate")
+    def test_output_details(self, mock_tabulate, mock_click):
+        """Tests output_details works correctly"""
+
+        # SETUP
+        workflow_param_set: WorkflowParameterSet = ParserBaseObject.parse_from_dict(
+            WorkflowParameterSet, TEST_WORKFLOW_PARAMETER_SET
+        )
+
+        workflow_spec: WorkflowSpecification = ParserBaseObject.parse_from_dict(
+            WorkflowSpecification, TEST_WORKFLOW_SPECIFICATION
+        )
+
+        # To test all branches need one model step with extra inputs and one
+        # without
+
+        # Steps as found in the workflow spec (1 and 2 are identical
+        # except in WorkflowSpecification)
+        workflow_step1 = list(workflow_param_set.spec.values())[0]
+        workflow_spec_step1 = workflow_spec.steps[
+            list(workflow_param_set.spec.keys())[0]
+        ]
+        workflow_spec_step2 = workflow_spec.steps[
+            list(workflow_param_set.spec.keys())[1]
+        ]
+        workflow_step3 = list(workflow_param_set.spec.values())[2]
+        workflow_step4 = list(workflow_param_set.spec.values())[3]
+        workflow_spec_step3 = workflow_spec.steps[
+            list(workflow_param_set.spec.keys())[2]
+        ]
+        workflow_spec_step4 = workflow_spec.steps[
+            list(workflow_param_set.spec.keys())[3]
+        ]
+
+        # CALL
+        workflow_param_set.output_details(workflow_spec)
+
+        # ASSERT
+        mock_click.echo.assert_has_calls(
+            [
+                call(workflow_param_set.metadata.display_name),
+                call(),
+                # First step
+                call("-" * CONSOLE_WIDTH),
+                call(f"Step - {workflow_spec_step1.name}"),
+                call(),
+                call(f"Model version ID: {workflow_spec_step1.model_version}"),
+                call(),
+                call(workflow_step1.format_parameters()),
+                call(),
+                call("Steps data included from: test"),
+                call(workflow_step1.format_dataslots()),
+                call(),
+                # Second step (Same as first but doesn't have any 'inputs')
+                call("-" * CONSOLE_WIDTH),
+                call(f"Step - {workflow_spec_step2.name}"),
+                call(),
+                call(f"Model version ID: {workflow_spec_step2.model_version}"),
+                call(),
+                call(workflow_step1.format_parameters()),
+                call(),
+                call("Steps data included from: No steps data included"),
+                call(workflow_step1.format_dataslots()),
+                call(),
+                # Third step
+                call("-" * CONSOLE_WIDTH),
+                call(f"Step - {workflow_spec_step3.name}"),
+                call(),
+                call(mock_tabulate.return_value),
+                call(),
+                call("Parameters to iterate:"),
+                call(workflow_step3.format_parameters()),
+                call(),
+                call("Dataslots to iterate:"),
+                call(workflow_step3.format_dataslots()),
+                call(),
+                # Fourth step
+                call("-" * CONSOLE_WIDTH),
+                call(f"Step - {workflow_spec_step4.name}"),
+                call(),
+                call(mock_tabulate.return_value),
+                call(),
+                call("Parameters to iterate:"),
+                call(workflow_step4.format_parameters()),
+                call(),
+                call("Dataslots to iterate:"),
+                call(workflow_step4.format_dataslots()),
+                call(),
+            ]
+        )
+
+        mock_tabulate.assert_has_calls(
+            [
+                call(
+                    [
+                        [
+                            "Looping workflow version ID:",
+                            workflow_spec_step3.workflow_version,
+                        ],
+                        ["Iteration mode:", workflow_spec_step3.iteration_mode],
+                        ["Base parameter set ID:", workflow_step3.base_parameter_set],
+                    ],
+                    tablefmt="plain",
+                ),
+                call(
+                    [
+                        [
+                            "Looping workflow version ID:",
+                            workflow_spec_step4.workflow_version,
+                        ],
+                        ["Iteration mode:", workflow_spec_step4.iteration_mode],
+                        [
+                            "Base parameter set ID:",
+                            "No base parameter set",
+                        ],
+                    ],
+                    tablefmt="plain",
+                ),
+            ]
         )

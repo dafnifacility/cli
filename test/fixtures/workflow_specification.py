@@ -116,6 +116,14 @@ TEST_WORKFLOW_SPECIFICATION = {
             "position": {"x": 192, "y": 58},
             "workflow_version": "0a0a0a0a-0a00-0a00-a000-0a0a0000000e",
         },
+        "0a0a0a0a-0a00-0a00-a000-0a0a0000000e": {
+            "dependencies": [],
+            "iteration_mode": "parallel",
+            "kind": "loop",
+            "name": "test_loop",
+            "position": {"x": 192, "y": 58},
+            "workflow_version": "0a0a0a0a-0a00-0a00-a000-0a0a0000000e",
+        },
         "0a0a0a0a-0a00-0a00-a000-0a0a0000001a": {
             "dependencies": ["0a0a0a0a-0a00-0a00-a000-0a0a0000000c"],
             "files": [
