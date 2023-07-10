@@ -120,3 +120,24 @@ def delete_workflow_version(session: DAFNISession, version_id: str) -> Response:
     """
     url = f"{NIMS_API_URL}/workflows/{version_id}/"
     return session.delete_request(url)
+
+
+def validate_parameter_set_definition(
+    session: DAFNISession, parameter_set_definition_path: Path
+):
+    """Validates a parameter set definition file
+
+    Args:
+        session (DAFNISession): User session
+        parameter_set_definition_path (Path): Path to the parameter set
+                                              definition file
+
+    Raises:
+        ValidationError: If the validation fails
+    """
+    url = f"{NIMS_API_URL}/workflows/parameter-set/validate/"
+    with open(parameter_set_definition_path, "rb") as file:
+        # Error handling should automatically be handled here since
+        # a 200 is returned if validation succeeds and errors are returned
+        # otherwise
+        response = session.post_request(url=url, data=file)

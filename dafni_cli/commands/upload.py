@@ -7,7 +7,10 @@ import click
 from click import Context
 
 from dafni_cli.api.session import DAFNISession
-from dafni_cli.api.workflows_api import upload_workflow
+from dafni_cli.api.workflows_api import (
+    upload_workflow,
+    validate_parameter_set_definition,
+)
 from dafni_cli.commands.helpers import cli_get_latest_dataset_metadata
 from dafni_cli.commands.options import dataset_metadata_common_options
 from dafni_cli.datasets.dataset_metadata import parse_dataset_metadata
@@ -441,3 +444,30 @@ def workflow(
 
     click.echo("\nUpload successful")
     click.echo(f"Version ID: {details['id']}")
+
+
+###############################################################################
+# COMMAND: Upload a WORKFLOW PARAMETER SET to DAFNI
+###############################################################################
+@upload.command(help="Upload a workflow parameter set to DAFNI")
+@click.argument(
+    "definition", nargs=1, required=True, type=click.Path(exists=True, path_type=Path)
+)
+@click.pass_context
+def workflow_parameter_set(
+    ctx: Context,
+    definition: Path,
+):
+    """Uploads workflow parameter set to DAFNI
+
+    Args:
+        ctx (Context): contains user session for authentication
+        definition (Path): File path to the parameter set definition file
+    """
+    arguments = [
+        ("Parameter set definition file path", definition),
+    ]
+    confirmation_message = "Confirm parameter set upload?"
+    argument_confirmation(arguments, confirmation_message)
+
+    validate_parameter_set_definition(ctx.obj["session"], definition)
