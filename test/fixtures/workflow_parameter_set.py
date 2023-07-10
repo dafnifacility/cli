@@ -30,7 +30,7 @@ TEST_WORKFLOW_PARAMETER_SET_SPEC_PARAMETER_LOOP = {
     "calculate_values": False,
 }
 
-TEST_WORKFLOW_PARAMETER_SET_SPEC_STEP = {
+TEST_WORKFLOW_PARAMETER_SET_SPEC_STEP_MODEL = {
     "base_parameter_set": "0a0a0a0a-0a00-0a00-a000-0a0a0000001a",
     "kind": "model",
     "dataslots": [
@@ -48,6 +48,51 @@ TEST_WORKFLOW_PARAMETER_SET_SPEC_STEP = {
     "parameters": [
         {"name": "PROCESS_RAINFALL", "value": True},
         {"name": "PREDICTION_CYCLE", "value": "daily"},
+    ],
+}
+
+TEST_WORKFLOW_PARAMETER_SET_SPEC_STEP_LOOP = {
+    "base_parameter_set": "0a0a0a0a-0a00-0a00-a000-0a0a0000001a",
+    "kind": "loop",
+    "dataslots": [
+        {
+            "datasets": [
+                [
+                    "0a0a0a0a-0a00-0a00-a000-0a0a0000000a",
+                    "0a0a0a0a-0a00-0a00-a000-0a0a0000000b",
+                ],
+                ["0a0a0a0a-0a00-0a00-a000-0a0a0000000c"],
+            ],
+            "dataslot": "Data",
+            "steps": ["0a0a0a0a-0a00-0a00-a000-0a0a0000000d"],
+        },
+        {
+            "datasets": [
+                ["0a0a0a0a-0a00-0a00-a000-0a0a0000000a"],
+            ],
+            "dataslot": "AnotherSlot",
+            "steps": [
+                "0a0a0a0a-0a00-0a00-a000-0a0a0000000e",
+                "0a0a0a0a-0a00-0a00-a000-0a0a0000001b",
+            ],
+        },
+    ],
+    "parameters": [
+        {
+            "steps": ["0a0a0a0a-0a00-0a00-a000-0a0a0000000a"],
+            "values": ["some_file.csv"],
+            "parameter": "BATCH_FILENAME",
+            "calculate_values": False,
+        },
+        {
+            "steps": [
+                "0a0a0a0a-0a00-0a00-a000-0a0a0000000b",
+                "0a0a0a0a-0a00-0a00-a000-0a0a0000000c",
+            ],
+            "values": [10, 20, 30, 40],
+            "parameter": "SEQUENCE_LENGTH",
+            "calculate_values": False,
+        },
     ],
 }
 
@@ -73,7 +118,7 @@ TEST_WORKFLOW_PARAMETER_SET = {
     "kind": "P",
     "api_version": "v1.0.0",
     "spec": {
-        "0a0a0a0a-0a00-0a00-a000-0a0a0000000c": TEST_WORKFLOW_PARAMETER_SET_SPEC_STEP
+        "0a0a0a0a-0a00-0a00-a000-0a0a0000000c": TEST_WORKFLOW_PARAMETER_SET_SPEC_STEP_MODEL
     },
     "metadata": TEST_WORKFLOW_PARAMETER_SET_METADATA,
 }

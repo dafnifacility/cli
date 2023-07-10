@@ -11,7 +11,18 @@ from dafni_cli.api.parser import (
     parse_datetime,
     parse_dict_retaining_keys,
 )
-from dafni_cli.consts import CONSOLE_WIDTH
+from dafni_cli.consts import (
+    CONSOLE_WIDTH,
+    TABLE_DATASET_VERSION_IDS_HEADER,
+    TABLE_GENERATE_VALUES_HEADER,
+    TABLE_NAME_HEADER,
+    TABLE_PARAMETER_HEADER,
+    TABLE_PATH_TO_DATA_HEADER,
+    TABLE_STEPS_THAT_CONTAIN_DATASLOT_HEADER,
+    TABLE_STEPS_THAT_CONTAIN_PARAMETER_HEADER,
+    TABLE_VALUE_HEADER,
+    TABLE_VALUES_HEADER,
+)
 from dafni_cli.utils import format_datetime, format_table
 from dafni_cli.workflows.specification import (
     WorkflowSpecification,
@@ -111,7 +122,7 @@ class WorkflowParameterSetSpecParameter(ParserBaseObject):
     value: Optional[Any] = None
 
     steps: List[str] = field(default_factory=list)
-    values: List[str] = field(default_factory=list)
+    values: List[Any] = field(default_factory=list)
     parameter: Optional[str] = None
     calculate_values: Optional[str] = None
 
@@ -166,7 +177,7 @@ class WorkflowParameterSetSpecStep(ParserBaseObject):
 
         if self.kind == "model":
             return format_table(
-                headers=["Parameter", "Value"],
+                headers=[TABLE_PARAMETER_HEADER, TABLE_VALUE_HEADER],
                 rows=[
                     [parameter.name, parameter.value] for parameter in self.parameters
                 ],
@@ -174,17 +185,18 @@ class WorkflowParameterSetSpecStep(ParserBaseObject):
         elif self.kind == "loop":
             return format_table(
                 headers=[
-                    "Name",
-                    "Steps that contain parameter",
-                    "Generate values",
-                    "Values",
+                    TABLE_NAME_HEADER,
+                    TABLE_STEPS_THAT_CONTAIN_PARAMETER_HEADER,
+                    TABLE_GENERATE_VALUES_HEADER,
+                    TABLE_VALUES_HEADER,
                 ],
                 rows=[
                     [
                         parameter.parameter,
                         "\n".join(parameter.steps),
                         parameter.calculate_values,
-                        "\n".join(parameter.values),
+                        # Join requires all values to be strings
+                        "\n".join([str(value) for value in parameter.values]),
                     ]
                     for parameter in self.parameters
                 ],
@@ -204,7 +216,11 @@ class WorkflowParameterSetSpecStep(ParserBaseObject):
 
         if self.kind == "model":
             return format_table(
-                headers=["Name", "Path to data", "Dataset version IDs"],
+                headers=[
+                    TABLE_NAME_HEADER,
+                    TABLE_PATH_TO_DATA_HEADER,
+                    TABLE_DATASET_VERSION_IDS_HEADER,
+                ],
                 rows=[
                     [dataslot.name, dataslot.path, "\n".join(dataslot.datasets)]
                     for dataslot in self.dataslots
@@ -215,7 +231,11 @@ class WorkflowParameterSetSpecStep(ParserBaseObject):
             # iteration
 
             return format_table(
-                headers=["Name", "Steps that contain dataslot", "Dataset version IDs"],
+                headers=[
+                    TABLE_NAME_HEADER,
+                    TABLE_STEPS_THAT_CONTAIN_DATASLOT_HEADER,
+                    TABLE_DATASET_VERSION_IDS_HEADER,
+                ],
                 rows=[
                     [
                         dataslot.dataslot,

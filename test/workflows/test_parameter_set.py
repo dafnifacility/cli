@@ -1,9 +1,21 @@
 from datetime import datetime
 from unittest import TestCase
+from unittest.mock import patch
 
 from dateutil.tz import tzutc
 
 from dafni_cli.api.parser import ParserBaseObject
+from dafni_cli.consts import (
+    TABLE_DATASET_VERSION_IDS_HEADER,
+    TABLE_GENERATE_VALUES_HEADER,
+    TABLE_NAME_HEADER,
+    TABLE_PARAMETER_HEADER,
+    TABLE_PATH_TO_DATA_HEADER,
+    TABLE_STEPS_THAT_CONTAIN_DATASLOT_HEADER,
+    TABLE_STEPS_THAT_CONTAIN_PARAMETER_HEADER,
+    TABLE_VALUE_HEADER,
+    TABLE_VALUES_HEADER,
+)
 from dafni_cli.workflows.parameter_set import (
     WorkflowParameterSet,
     WorkflowParameterSetMetadata,
@@ -19,8 +31,9 @@ from test.fixtures.workflow_parameter_set import (
     TEST_WORKFLOW_PARAMETER_SET_SPEC_DATASLOT_MODEL,
     TEST_WORKFLOW_PARAMETER_SET_SPEC_PARAMETER_LOOP,
     TEST_WORKFLOW_PARAMETER_SET_SPEC_PARAMETER_MODEL,
-    TEST_WORKFLOW_PARAMETER_SET_SPEC_STEP,
     TEST_WORKFLOW_PARAMETER_SET_SPEC_STEP_DEFAULT,
+    TEST_WORKFLOW_PARAMETER_SET_SPEC_STEP_LOOP,
+    TEST_WORKFLOW_PARAMETER_SET_SPEC_STEP_MODEL,
 )
 
 
@@ -155,7 +168,7 @@ class TestWorkflowParameterSetSpecStep(TestCase):
     def test_parse(self):
         """Tests parsing of WorkflowInstanceListParameterSet"""
         spec: WorkflowParameterSetSpecStep = ParserBaseObject.parse_from_dict(
-            WorkflowParameterSetSpecStep, TEST_WORKFLOW_PARAMETER_SET_SPEC_STEP
+            WorkflowParameterSetSpecStep, TEST_WORKFLOW_PARAMETER_SET_SPEC_STEP_MODEL
         )
 
         # WorkflowParameterSetSpecDataslot (contents tested in TestWorkflowParameterSetSpecDataslot)
@@ -165,7 +178,7 @@ class TestWorkflowParameterSetSpecStep(TestCase):
 
         self.assertEqual(
             spec.kind,
-            TEST_WORKFLOW_PARAMETER_SET_SPEC_STEP["kind"],
+            TEST_WORKFLOW_PARAMETER_SET_SPEC_STEP_MODEL["kind"],
         )
 
         # WorkflowParameterSetSpecParameter (contents tested in TestWorkflowParameterSetSpecParameter)
@@ -175,7 +188,7 @@ class TestWorkflowParameterSetSpecStep(TestCase):
 
         self.assertEqual(
             spec.base_parameter_set,
-            TEST_WORKFLOW_PARAMETER_SET_SPEC_STEP["base_parameter_set"],
+            TEST_WORKFLOW_PARAMETER_SET_SPEC_STEP_MODEL["base_parameter_set"],
         )
 
     def test_parse_default(self):
@@ -188,6 +201,153 @@ class TestWorkflowParameterSetSpecStep(TestCase):
         # Only test the parameters that are supposed to be missing as the
         # rest are tested above anyway
         self.assertEqual(spec.base_parameter_set, None)
+
+    def test_format_parameters_no_parameters(self):
+        """Tests format_parameters works correctly when there are no parameters"""
+
+        # SETUP
+        spec: WorkflowParameterSetSpecStep = ParserBaseObject.parse_from_dict(
+            WorkflowParameterSetSpecStep, TEST_WORKFLOW_PARAMETER_SET_SPEC_STEP_MODEL
+        )
+        spec.parameters = []
+
+        # CALL
+        result = spec.format_parameters()
+
+        # ASSERT
+        self.assertEqual(result, "No parameters")
+
+    @patch("dafni_cli.workflows.parameter_set.format_table")
+    def test_format_parameters_model(self, mock_format_table):
+        """Tests format_parameters works correctly for a model step"""
+        spec: WorkflowParameterSetSpecStep = ParserBaseObject.parse_from_dict(
+            WorkflowParameterSetSpecStep, TEST_WORKFLOW_PARAMETER_SET_SPEC_STEP_MODEL
+        )
+
+        # CALL
+        result = spec.format_parameters()
+
+        # ASSERT
+        mock_format_table.assert_called_once_with(
+            headers=[TABLE_PARAMETER_HEADER, TABLE_VALUE_HEADER],
+            rows=[["PROCESS_RAINFALL", True], ["PREDICTION_CYCLE", "daily"]],
+        )
+        self.assertEqual(result, mock_format_table.return_value)
+
+    @patch("dafni_cli.workflows.parameter_set.format_table")
+    def test_format_parameters_loop(self, mock_format_table):
+        """Tests format_parameters works correctly for a loop step"""
+        spec: WorkflowParameterSetSpecStep = ParserBaseObject.parse_from_dict(
+            WorkflowParameterSetSpecStep, TEST_WORKFLOW_PARAMETER_SET_SPEC_STEP_LOOP
+        )
+        spec.kind = "loop"
+
+        # CALL
+        result = spec.format_parameters()
+
+        # ASSERT
+        mock_format_table.assert_called_once_with(
+            headers=[
+                TABLE_NAME_HEADER,
+                TABLE_STEPS_THAT_CONTAIN_PARAMETER_HEADER,
+                TABLE_GENERATE_VALUES_HEADER,
+                TABLE_VALUES_HEADER,
+            ],
+            rows=[
+                [
+                    "BATCH_FILENAME",
+                    "0a0a0a0a-0a00-0a00-a000-0a0a0000000a",
+                    False,
+                    "some_file.csv",
+                ],
+                [
+                    "SEQUENCE_LENGTH",
+                    "0a0a0a0a-0a00-0a00-a000-0a0a0000000b\n0a0a0a0a-0a00-0a00-a000-0a0a0000000c",
+                    False,
+                    "10\n20\n30\n40",
+                ],
+            ],
+        )
+        self.assertEqual(result, mock_format_table.return_value)
+
+    def test_format_dataslots_no_dataslots(self):
+        """Tests format_dataslots works correctly when there are no dataslots"""
+
+        # SETUP
+        spec: WorkflowParameterSetSpecStep = ParserBaseObject.parse_from_dict(
+            WorkflowParameterSetSpecStep, TEST_WORKFLOW_PARAMETER_SET_SPEC_STEP_MODEL
+        )
+        spec.dataslots = []
+
+        # CALL
+        result = spec.format_dataslots()
+
+        # ASSERT
+        self.assertEqual(result, "No dataslots")
+
+    @patch("dafni_cli.workflows.parameter_set.format_table")
+    def test_format_dataslots_model(self, mock_format_table):
+        """Tests format_dataslots works correctly for a model step"""
+        spec: WorkflowParameterSetSpecStep = ParserBaseObject.parse_from_dict(
+            WorkflowParameterSetSpecStep, TEST_WORKFLOW_PARAMETER_SET_SPEC_STEP_MODEL
+        )
+
+        # CALL
+        result = spec.format_dataslots()
+
+        # ASSERT
+        mock_format_table.assert_called_once_with(
+            headers=[
+                TABLE_NAME_HEADER,
+                TABLE_PATH_TO_DATA_HEADER,
+                TABLE_DATASET_VERSION_IDS_HEADER,
+            ],
+            rows=[
+                [
+                    "Rainfall data",
+                    "inputs/rainfall/",
+                    "0a0a0a0a-0a00-0a00-a000-0a0a0000000d",
+                ],
+                [
+                    "Maximum Temperature data",
+                    "inputs/maximum-temperature/",
+                    "0a0a0a0a-0a00-0a00-a000-0a0a0000000e",
+                ],
+            ],
+        )
+        self.assertEqual(result, mock_format_table.return_value)
+
+    @patch("dafni_cli.workflows.parameter_set.format_table")
+    def test_format_dataslots_loop(self, mock_format_table):
+        """Tests format_dataslots works correctly for a loop step"""
+        spec: WorkflowParameterSetSpecStep = ParserBaseObject.parse_from_dict(
+            WorkflowParameterSetSpecStep, TEST_WORKFLOW_PARAMETER_SET_SPEC_STEP_LOOP
+        )
+
+        # CALL
+        result = spec.format_dataslots()
+
+        # ASSERT
+        mock_format_table.assert_called_once_with(
+            headers=[
+                TABLE_NAME_HEADER,
+                TABLE_STEPS_THAT_CONTAIN_DATASLOT_HEADER,
+                TABLE_DATASET_VERSION_IDS_HEADER,
+            ],
+            rows=[
+                [
+                    "Data",
+                    "0a0a0a0a-0a00-0a00-a000-0a0a0000000d",
+                    "Iteration - 0: 0a0a0a0a-0a00-0a00-a000-0a0a0000000a\n0a0a0a0a-0a00-0a00-a000-0a0a0000000b\nIteration - 1: 0a0a0a0a-0a00-0a00-a000-0a0a0000000c",
+                ],
+                [
+                    "AnotherSlot",
+                    "0a0a0a0a-0a00-0a00-a000-0a0a0000000e\n0a0a0a0a-0a00-0a00-a000-0a0a0000001b",
+                    "Iteration - 0: 0a0a0a0a-0a00-0a00-a000-0a0a0000000a",
+                ],
+            ],
+        )
+        self.assertEqual(result, mock_format_table.return_value)
 
 
 class TestWorkflowParameterSet(TestCase):
