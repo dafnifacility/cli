@@ -8,6 +8,7 @@ from click import Context
 
 from dafni_cli.api.session import DAFNISession
 from dafni_cli.api.workflows_api import (
+    upload_parameter_set,
     upload_workflow,
     validate_parameter_set_definition,
 )
@@ -471,3 +472,9 @@ def workflow_parameter_set(
     argument_confirmation(arguments, confirmation_message)
 
     validate_parameter_set_definition(ctx.obj["session"], definition)
+
+    details = upload_parameter_set(ctx.obj["session"], definition)
+
+    # Output details
+    click.echo("\nUpload successful")
+    click.echo(f"Parameter set ID: {details['id']}")

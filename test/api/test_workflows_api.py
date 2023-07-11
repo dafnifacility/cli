@@ -297,3 +297,28 @@ class TestWorkflowsAPI(TestCase):
             data=open(parameter_set_definition_path, "rb"),
             error_message_func=mock_error_message_func.return_value,
         )
+
+    @patch("builtins.open", new_callable=mock_open, read_data="definition file")
+    @patch(
+        "dafni_cli.api.workflows_api._validate_parameter_set_definition_error_message_func"
+    )
+    def test_upload_parameter_set(self, mock_error_message_func, open_mock):
+        """Tests that upload_parameter_set works as expected"""
+
+        # SETUP
+        session = MagicMock()
+        parameter_set_definition_path = Path("path/to/file")
+        session.put_request.return_value = create_mock_response(200)
+
+        # CALL
+        workflows_api.upload_parameter_set(
+            session, parameter_set_definition_path=parameter_set_definition_path
+        )
+
+        # ASSERT
+        open_mock.assert_called_once_with(parameter_set_definition_path, "rb")
+        session.post_request.assert_called_once_with(
+            url=f"{NIMS_API_URL}/workflows/parameter-set/upload/",
+            data=open(parameter_set_definition_path, "rb"),
+            error_message_func=mock_error_message_func.return_value,
+        )

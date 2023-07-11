@@ -167,7 +167,7 @@ def validate_parameter_set_definition(
     Args:
         session (DAFNISession): User session
         parameter_set_definition_path (Path): Path to the parameter set
-                                              definition files
+                                              definition file
 
     Raises:
         EndpointNotFoundError: If the response returns a 404 status code
@@ -179,6 +179,31 @@ def validate_parameter_set_definition(
     url = f"{NIMS_API_URL}/workflows/parameter-set/validate/"
     with open(parameter_set_definition_path, "rb") as file:
         session.post_request(
+            url=url,
+            data=file,
+            error_message_func=_validate_parameter_set_definition_error_message_func(
+                session
+            ),
+        )
+
+
+def upload_parameter_set(
+    session: DAFNISession, parameter_set_definition_path: Path
+) -> dict:
+    """Uploads a parameter set
+
+    Args:
+        session (DAFNISession): User session
+        parameter_set_definition_path (Path): Path to the parameter set
+                                              definition file
+
+    Returns:
+        dict: JSON from response returned in post request (Forms a
+              WorkflowParameterSet)
+    """
+    url = f"{NIMS_API_URL}/workflows/parameter-set/upload/"
+    with open(parameter_set_definition_path, "rb") as file:
+        return session.post_request(
             url=url,
             data=file,
             error_message_func=_validate_parameter_set_definition_error_message_func(
