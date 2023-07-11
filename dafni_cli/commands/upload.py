@@ -5,6 +5,7 @@ from typing import List, Optional, Tuple
 
 import click
 from click import Context
+from dafni_cli.api.exceptions import ValidationError
 
 from dafni_cli.api.session import DAFNISession
 from dafni_cli.api.workflows_api import (
@@ -471,8 +472,15 @@ def workflow_parameter_set(
     confirmation_message = "Confirm parameter set upload?"
     argument_confirmation(arguments, confirmation_message)
 
-    validate_parameter_set_definition(ctx.obj["session"], definition)
+    click.echo("Validating parameter set definition")
+    try:
+        validate_parameter_set_definition(ctx.obj["session"], definition)
+    except ValidationError as err:
+        click.echo(err)
 
+        raise SystemExit(1) from err
+
+    click.echo("Uploading parameter set")
     details = upload_parameter_set(ctx.obj["session"], definition)
 
     # Output details

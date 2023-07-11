@@ -14,7 +14,12 @@ from typing import List, Optional, Tuple
 import requests
 from requests import Response
 
-from dafni_cli.api.exceptions import EndpointNotFoundError, ResourceNotFoundError
+from dafni_cli.api.exceptions import (
+    DAFNIError,
+    EndpointNotFoundError,
+    ResourceNotFoundError,
+    ValidationError,
+)
 from dafni_cli.api.session import DAFNISession
 from dafni_cli.consts import NIMS_API_URL
 
@@ -170,21 +175,26 @@ def validate_parameter_set_definition(
                                               definition file
 
     Raises:
-        EndpointNotFoundError: If the response returns a 404 status code
-        DAFNIError: If an error occurs with an error message from DAFNI
-        HTTPError: If any other error occurs without an error message from
-                    DAFNI
+        ValidationError: If the validation fails
     """
 
     url = f"{NIMS_API_URL}/workflows/parameter-set/validate/"
     with open(parameter_set_definition_path, "rb") as file:
-        session.post_request(
-            url=url,
-            data=file,
-            error_message_func=_validate_parameter_set_definition_error_message_func(
-                session
-            ),
-        )
+        # For this endpoint we assume any error with a message is a validation
+        # error
+        try:
+            session.post_request(
+                url=url,
+                data=file,
+                error_message_func=_validate_parameter_set_definition_error_message_func(
+                    session
+                ),
+            )
+        except DAFNIError as err:
+            raise ValidationError(
+                "Parameter set definition validation failed with the following "
+                f"message:\n\n{str(err)}"
+            ) from err
 
 
 def upload_parameter_set(

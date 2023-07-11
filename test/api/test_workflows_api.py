@@ -6,7 +6,12 @@ from unittest.mock import MagicMock, mock_open, patch
 import requests
 
 from dafni_cli.api import workflows_api
-from dafni_cli.api.exceptions import EndpointNotFoundError, ResourceNotFoundError
+from dafni_cli.api.exceptions import (
+    DAFNIError,
+    EndpointNotFoundError,
+    ResourceNotFoundError,
+    ValidationError,
+)
 from dafni_cli.consts import NIMS_API_URL
 
 from test.fixtures.session import create_mock_error_response, create_mock_response
@@ -283,7 +288,7 @@ class TestWorkflowsAPI(TestCase):
         # SETUP
         session = MagicMock()
         parameter_set_definition_path = Path("path/to/file")
-        session.put_request.return_value = create_mock_response(200)
+        session.post_request.return_value = create_mock_response(200)
 
         # CALL
         workflows_api.validate_parameter_set_definition(
@@ -296,6 +301,41 @@ class TestWorkflowsAPI(TestCase):
             url=f"{NIMS_API_URL}/workflows/parameter-set/validate/",
             data=open(parameter_set_definition_path, "rb"),
             error_message_func=mock_error_message_func.return_value,
+        )
+
+    @patch("builtins.open", new_callable=mock_open, read_data="definition file")
+    @patch(
+        "dafni_cli.api.workflows_api._validate_parameter_set_definition_error_message_func"
+    )
+    def test_validate_parameter_set_definition_when_def_invalid(
+        self, mock_error_message_func, open_mock
+    ):
+        """Tests that test_validate_parameter_set_definition works as expected
+        when the definition is found to be invalid"""
+
+        # SETUP
+        session = MagicMock()
+        parameter_set_definition_path = Path("path/to/file")
+        error = DAFNIError("Some error message")
+        session.post_request.side_effect = error
+
+        # CALL
+        with self.assertRaises(ValidationError) as err:
+            workflows_api.validate_parameter_set_definition(
+                session, parameter_set_definition_path=parameter_set_definition_path
+            )
+
+        # ASSERT
+        open_mock.assert_called_once_with(parameter_set_definition_path, "rb")
+        session.post_request.assert_called_once_with(
+            url=f"{NIMS_API_URL}/workflows/parameter-set/validate/",
+            data=open(parameter_set_definition_path, "rb"),
+            error_message_func=mock_error_message_func.return_value,
+        )
+        self.assertEqual(
+            str(err.exception),
+            "Parameter set definition validation failed with the following "
+            f"message:\n\n{str(error)}",
         )
 
     @patch("builtins.open", new_callable=mock_open, read_data="definition file")
