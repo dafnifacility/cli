@@ -13,6 +13,7 @@ from dafni_cli.api.exceptions import (
     ValidationError,
 )
 from dafni_cli.consts import NIMS_API_URL
+from dafni_cli.utils import construct_validation_errors_from_dict
 
 from test.fixtures.session import create_mock_error_response, create_mock_response
 
@@ -251,7 +252,7 @@ class TestWorkflowsAPI(TestCase):
         self.assertEqual(
             error_message,
             "Found the following errors in the definition:\n"
-            + json.dumps(mock_response.json(), indent=2, sort_keys=True),
+            + "\n".join(construct_validation_errors_from_dict(mock_response.json())),
         )
 
     def test_validate_parameter_set_definition_error_message_func_handles_decode_error(

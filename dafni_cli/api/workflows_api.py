@@ -22,6 +22,7 @@ from dafni_cli.api.exceptions import (
 )
 from dafni_cli.api.session import DAFNISession
 from dafni_cli.consts import NIMS_API_URL
+from dafni_cli.utils import construct_validation_errors_from_dict
 
 
 def get_all_workflows(session: DAFNISession) -> List[dict]:
@@ -130,7 +131,7 @@ def delete_workflow_version(session: DAFNISession, version_id: str) -> Response:
 
 def _validate_parameter_set_definition_error_message_func(session: DAFNISession):
     """Custom error message parser used here only because the endpoint may
-    also return a dictionary of missing parameters e.g.
+    also return a dictionary with errors e.g.
 
     {
         "api_version": [
@@ -145,7 +146,7 @@ def _validate_parameter_set_definition_error_message_func(session: DAFNISession)
     }
 
     In such a case, we first check for any regular errors, and then use
-    this dictionary as the error message if there are no other options
+    this dictionary to form the error string if there aren't any
     """
 
     def error_message_func(response: requests.Response):
@@ -155,7 +156,9 @@ def _validate_parameter_set_definition_error_message_func(session: DAFNISession)
             if error_message is None:
                 decoded_response = response.json()
                 error_message = "Found the following errors in the definition:\n"
-                error_message += json.dumps(decoded_response, indent=2, sort_keys=True)
+                error_message += "\n".join(
+                    construct_validation_errors_from_dict(decoded_response)
+                )
 
             return error_message
         except requests.JSONDecodeError:
