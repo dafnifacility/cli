@@ -341,7 +341,7 @@ class DAFNISession:
             else:
                 self._refresh_tokens()
 
-                # It seems in the event the refresh token fail's requests still
+                # It seems in the event the token needs a refresh requests still
                 # reads at least a small part of any file being uploaded - this
                 # for example can result in  the validation of some metadata
                 # files to fail citing that they are missing all parameters when
