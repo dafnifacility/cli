@@ -1,3 +1,4 @@
+from io import BufferedReader
 import json
 from dataclasses import dataclass
 from pathlib import Path
@@ -339,13 +340,22 @@ class DAFNISession:
                 raise RuntimeError(f"Could not authenticate request: {message}")
             else:
                 self._refresh_tokens()
+
+                # It seems in the event the refresh token fail's requests still
+                # reads at least a small part of any file being uploaded - this
+                # for example can result in  the validation of some metadata
+                # files to fail citing that they are missing all parameters when
+                # in fact they are defined. Resetting any file reader here
+                # solves the issue.
+                if isinstance(data, BufferedReader):
+                    data.seek(0)
                 response = self._authenticated_request(
                     method,
-                    url,
-                    headers,
-                    data,
-                    json,
-                    allow_redirect,
+                    url=url,
+                    headers=headers,
+                    data=data,
+                    json=json,
+                    allow_redirect=allow_redirect,
                     recursion_level=recursion_level + 1,
                 )
 

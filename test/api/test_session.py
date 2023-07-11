@@ -1,4 +1,5 @@
 import json
+from io import BufferedReader
 from pathlib import Path
 from unittest import TestCase
 from unittest.mock import MagicMock, call, mock_open, patch
@@ -26,7 +27,6 @@ from test.fixtures.session import (
     create_mock_errors_response,
     create_mock_invalid_login_response,
     create_mock_invalid_password_response,
-    create_mock_metadata_errors_response,
     create_mock_refresh_token_expiry_response,
     create_mock_response,
     create_mock_success_response,
@@ -756,6 +756,56 @@ class TestDAFNISession(TestCase):
             mock_file.write.assert_called_once_with(
                 json.dumps(session._session_data.__dict__)
             )
+
+        # Expect a request to obtain a new token
+        mock_requests.post.assert_called_once_with(
+            LOGIN_API_ENDPOINT,
+            data={
+                "client_id": "dafni-main",
+                "grant_type": "refresh_token",
+                "refresh_token": "some_refresh_token",
+            },
+            timeout=REQUESTS_TIMEOUT,
+        )
+
+        # Ensure get request is attempted again (should be successful the
+        # second time here)
+        self.assertEqual(mock_requests.request.call_count, 2)
+
+    def test_refresh_when_uploading_file(self, mock_requests):
+        """Tests token refreshing on an authentication failure while trying
+        to upload a file (ensures the file read is reset on failure)"""
+
+        session = self.create_mock_session(True)
+
+        # Here will test only on the get request as the logic is handled by
+        # the base function called by all requests anyway
+
+        # To trigger a refresh need a response with a 403 status code, then
+        # should be successful when retried
+        mock_requests.request.side_effect = [
+            create_mock_token_expiry_response(),
+            create_mock_success_response(),
+        ]
+
+        # New token
+        mock_requests.post.return_value = create_mock_access_token_response()
+
+        mock_file_to_upload = MagicMock(spec=BufferedReader)
+
+        with patch(
+            "builtins.open", new_callable=mock_open, read_data=TEST_SESSION_FILE
+        ) as mock_file:
+            session.post_request(url="some_test_url", data=mock_file_to_upload)
+
+            # Should save new token
+            mock_file = mock_file()
+            mock_file.write.assert_called_once_with(
+                json.dumps(session._session_data.__dict__)
+            )
+
+        # Should have reset the file
+        mock_file_to_upload.seek.assert_called_with(0)
 
         # Expect a request to obtain a new token
         mock_requests.post.assert_called_once_with(
