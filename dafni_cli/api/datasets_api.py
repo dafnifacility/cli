@@ -51,6 +51,36 @@ def get_latest_dataset_metadata(session: DAFNISession, version_id: str) -> dict:
         ) from err
 
 
+# TODO: This is needed due to a bug, remove once fixed
+def _upload_dataset_metadata_error_message_func(session: DAFNISession):
+    """Custom error message parser used here due to a bug meaning all
+    errors for the dataset metadata upload endpoints are returned under
+    a dictionary named "metadata
+
+    This returns a function that will parse errors from this if they are
+    not found automatically."""
+
+    def error_message_func(response: requests.Response):
+        try:
+            error_message = session.get_error_message(response)
+
+            if error_message is None:
+                decoded_response = response.json()
+
+                if "metadata" in decoded_response:
+                    # This returns a list of errors, add them all to the
+                    # message
+                    error_message = "Found errors in metadata:"
+                    for error in decoded_response["metadata"]:
+                        error_message += f"\n{error}"
+
+            return error_message
+        except requests.JSONDecodeError:
+            return None
+
+    return error_message_func
+
+
 def upload_dataset_metadata(
     session: DAFNISession,
     temp_bucket_id: str,
@@ -79,12 +109,17 @@ def upload_dataset_metadata(
     Returns:
         Response: Upload Response
     """
+
     if dataset_id:
         url = f"{NID_API_URL}/nid/dataset/{dataset_id}"
     else:
         url = f"{NID_API_URL}/nid/dataset/"
     data = {"bucketId": temp_bucket_id, "metadata": metadata}
-    return session.post_request(url=url, json=data)
+    return session.post_request(
+        url=url,
+        json=data,
+        error_message_func=_upload_dataset_metadata_error_message_func(session),
+    )
 
 
 def upload_dataset_metadata_version(
@@ -113,7 +148,11 @@ def upload_dataset_metadata_version(
     """
     url = f"{NID_API_URL}/nid/metadata/{dataset_id}/{version_id}"
     data = {"metadata": metadata}
-    return session.post_request(url=url, json=data)
+    return session.post_request(
+        url=url,
+        json=data,
+        error_message_func=_upload_dataset_metadata_error_message_func(session),
+    )
 
 
 def delete_dataset(session: DAFNISession, dataset_id: str) -> Response:

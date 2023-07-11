@@ -11,6 +11,7 @@ import json
 from pathlib import Path
 from typing import List, Optional, Tuple
 
+import requests
 from requests import Response
 
 from dafni_cli.api.exceptions import EndpointNotFoundError, ResourceNotFoundError
@@ -135,9 +136,43 @@ def validate_parameter_set_definition(
     Raises:
         ValidationError: If the validation fails
     """
+
+    def get_error_message(response: requests.Response):
+        """Custom error message parser used here only because the endpoint may
+        also return a dictionary of missing parameters e.g.
+
+        {
+            "api_version": [
+                "This field is required."
+            ],
+            "kind": [
+                "This field is required."
+            ],
+            "metadata": [
+                "This field is required."
+            ]
+        }
+
+        In such a case, we first check for any regular errors, and then use
+        this dictionary as the error message if there are no other options
+        """
+        try:
+            error_message = session.get_error_message(response)
+
+            if error_message is None:
+                decoded_response = response.json()
+                error_message = "Found the following errors in the definition:\n"
+                error_message += json.dumps(decoded_response, indent=2, sort_keys=True)
+
+            return error_message
+        except requests.JSONDecodeError:
+            return None
+
     url = f"{NIMS_API_URL}/workflows/parameter-set/validate/"
     with open(parameter_set_definition_path, "rb") as file:
         # Error handling should automatically be handled here since
         # a 200 is returned if validation succeeds and errors are returned
         # otherwise
-        response = session.post_request(url=url, data=file)
+        response = session.post_request(
+            url=url, data=file, error_message_func=get_error_message
+        )
