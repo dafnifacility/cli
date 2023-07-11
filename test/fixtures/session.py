@@ -110,9 +110,6 @@ def create_mock_success_response():
 
 def create_mock_error_response():
     """Returns a mock response with a single error"""
-    mock_response = MagicMock()
-    mock_response.status_code = 400
-    mock_response.json.return_value = {"error": "Error"}
     return create_mock_response(
         400,
         {"error": "Error"},

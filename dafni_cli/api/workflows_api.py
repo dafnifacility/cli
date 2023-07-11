@@ -123,39 +123,27 @@ def delete_workflow_version(session: DAFNISession, version_id: str) -> Response:
     return session.delete_request(url)
 
 
-def validate_parameter_set_definition(
-    session: DAFNISession, parameter_set_definition_path: Path
-):
-    """Validates a parameter set definition file
+def _validate_parameter_set_definition_error_message_func(session: DAFNISession):
+    """Custom error message parser used here only because the endpoint may
+    also return a dictionary of missing parameters e.g.
 
-    Args:
-        session (DAFNISession): User session
-        parameter_set_definition_path (Path): Path to the parameter set
-                                              definition file
+    {
+        "api_version": [
+            "This field is required."
+        ],
+        "kind": [
+            "This field is required."
+        ],
+        "metadata": [
+            "This field is required."
+        ]
+    }
 
-    Raises:
-        ValidationError: If the validation fails
+    In such a case, we first check for any regular errors, and then use
+    this dictionary as the error message if there are no other options
     """
 
-    def get_error_message(response: requests.Response):
-        """Custom error message parser used here only because the endpoint may
-        also return a dictionary of missing parameters e.g.
-
-        {
-            "api_version": [
-                "This field is required."
-            ],
-            "kind": [
-                "This field is required."
-            ],
-            "metadata": [
-                "This field is required."
-            ]
-        }
-
-        In such a case, we first check for any regular errors, and then use
-        this dictionary as the error message if there are no other options
-        """
+    def error_message_func(response: requests.Response):
         try:
             error_message = session.get_error_message(response)
 
@@ -168,11 +156,32 @@ def validate_parameter_set_definition(
         except requests.JSONDecodeError:
             return None
 
+    return error_message_func
+
+
+def validate_parameter_set_definition(
+    session: DAFNISession, parameter_set_definition_path: Path
+):
+    """Validates a parameter set definition file
+
+    Args:
+        session (DAFNISession): User session
+        parameter_set_definition_path (Path): Path to the parameter set
+                                              definition files
+
+    Raises:
+        EndpointNotFoundError: If the response returns a 404 status code
+        DAFNIError: If an error occurs with an error message from DAFNI
+        HTTPError: If any other error occurs without an error message from
+                    DAFNI
+    """
+
     url = f"{NIMS_API_URL}/workflows/parameter-set/validate/"
     with open(parameter_set_definition_path, "rb") as file:
-        # Error handling should automatically be handled here since
-        # a 200 is returned if validation succeeds and errors are returned
-        # otherwise
-        response = session.post_request(
-            url=url, data=file, error_message_func=get_error_message
+        session.post_request(
+            url=url,
+            data=file,
+            error_message_func=_validate_parameter_set_definition_error_message_func(
+                session
+            ),
         )
