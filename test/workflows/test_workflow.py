@@ -1,3 +1,4 @@
+import copy
 from datetime import datetime
 from unittest import TestCase
 from unittest.mock import call, patch
@@ -220,8 +221,11 @@ class TestWorkflow(TestCase):
         # SETUP
         workflow: Workflow = parse_workflow(TEST_WORKFLOW)
 
-        # Two identical parameter sets
-        workflow.parameter_sets.append(workflow.parameter_sets[0])
+        # Two (almost) identical parameter sets
+        workflow.parameter_sets.append(copy.deepcopy(workflow.parameter_sets[0]))
+
+        workflow.parameter_sets[0].publication_date = datetime(2023, 4, 4)
+        workflow.parameter_sets[1].publication_date = datetime(2023, 2, 4)
 
         # CALL
         result = workflow.format_parameter_sets()
@@ -235,14 +239,20 @@ class TestWorkflow(TestCase):
                 TABLE_PUBLISHED_DATE_HEADER,
             ],
             rows=[
+                # Should have oldest first
+                [
+                    "0a0a0a0a-0a00-0a00-a000-0a0a0000000a",
+                    "First parameter set",
+                    "Joel Davies",
+                    "2023-02-04",
+                ],
                 [
                     "0a0a0a0a-0a00-0a00-a000-0a0a0000000a",
                     "First parameter set",
                     "Joel Davies",
                     "2023-04-04",
                 ],
-            ]
-            * 2,
+            ],
         )
         self.assertEqual(result, mock_format_table.return_value)
 

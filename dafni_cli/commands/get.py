@@ -572,7 +572,12 @@ def workflow_instances(
                     TABLE_FINISHED_HEADER,
                     TABLE_STATUS_HEADER,
                 ],
-                rows=[instance.get_brief_details() for instance in filtered_instances],
+                rows=[
+                    instance.get_brief_details()
+                    for instance in sorted(
+                        filtered_instances, key=lambda inst: inst.finished_time
+                    )
+                ],
             )
         )
 

@@ -201,7 +201,10 @@ class Workflow(ParserBaseObject):
                     parameter_set.metadata.publisher,
                     format_datetime(parameter_set.publication_date, include_time=False),
                 ]
-                for parameter_set in self.parameter_sets
+                for parameter_set in sorted(
+                    self.parameter_sets,
+                    key=lambda param_set: param_set.publication_date,
+                )
             ],
         )
 
@@ -220,7 +223,13 @@ class Workflow(ParserBaseObject):
                 TABLE_FINISHED_HEADER,
                 TABLE_STATUS_HEADER,
             ],
-            rows=[instance.get_brief_details() for instance in self.instances],
+            rows=[
+                instance.get_brief_details()
+                for instance in sorted(
+                    self.instances,
+                    key=lambda inst: inst.finished_time,
+                )
+            ],
         )
 
     def output_details(self):
