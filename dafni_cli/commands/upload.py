@@ -9,7 +9,10 @@ from click import Context
 from dafni_cli.api.session import DAFNISession
 from dafni_cli.api.workflows_api import upload_workflow
 from dafni_cli.commands.helpers import cli_get_latest_dataset_metadata
-from dafni_cli.commands.options import dataset_metadata_common_options
+from dafni_cli.commands.options import (
+    confirmation_skip_option,
+    dataset_metadata_common_options,
+)
 from dafni_cli.datasets.dataset_metadata import parse_dataset_metadata
 from dafni_cli.datasets.dataset_upload import (
     modify_dataset_metadata_for_upload,
@@ -59,6 +62,7 @@ def upload(ctx: Context):
     help="Parent ID of the parent model if this is an updated version of an existing model",
     default=None,
 )
+@confirmation_skip_option
 @click.pass_context
 def model(
     ctx: Context,
@@ -66,6 +70,7 @@ def model(
     image: Path,
     version_message: str,
     parent_id: Optional[str],
+    yes: bool,
 ):
     """Uploads model to DAFNI from metadata and image files
 
@@ -75,6 +80,7 @@ def model(
         image (Path): File path to the image file
         version_message (str): Version message to be included with this model version
         parent_id (str): ID of the parent model that this is an update of
+        yes (bool): Used to skip confirmations before they are displayed
     """
     arguments = [
         ("Model definition file path", definition),
@@ -87,7 +93,7 @@ def model(
         additional_message = None
     else:
         additional_message = ["No parent model: New model to be created"]
-    argument_confirmation(arguments, confirmation_message, additional_message)
+    argument_confirmation(arguments, confirmation_message, additional_message, yes=yes)
 
     upload_model(
         ctx.obj["session"],
@@ -114,21 +120,28 @@ def model(
     required=True,
     type=click.Path(exists=True, path_type=Path),
 )
+@confirmation_skip_option
 @click.pass_context
-def dataset(ctx: Context, metadata_path: Path, files: List[Path]):
+def dataset(
+    ctx: Context,
+    metadata_path: Path,
+    files: List[Path],
+    yes: bool,
+):
     """Uploads a new Dataset to DAFNI from metadata and dataset files.
 
     Args:
         ctx (Context): contains user session for authentication
         metadata_path (Path): Dataset metadata file path
         files (List[Path]): Dataset data files
+        yes (bool): Used to skip confirmations before they are displayed
     """
     # Confirm upload details
     arguments = [("Dataset metadata file path", metadata_path)] + [
         ("Dataset file path", file) for file in files
     ]
     confirmation_message = "Confirm dataset upload?"
-    argument_confirmation(arguments, confirmation_message)
+    argument_confirmation(arguments, confirmation_message, yes=yes)
 
     # Obtain the metadata
     with open(metadata_path, "r", encoding="utf-8") as metadata_file:
@@ -161,6 +174,7 @@ def dataset(ctx: Context, metadata_path: Path, files: List[Path]):
     help="When given will only save the existing metadata to the specified file allowing it to be modified.",
 )
 @dataset_metadata_common_options(all_optional=True)
+@confirmation_skip_option
 @click.pass_context
 def dataset_version(
     ctx: Context,
@@ -187,6 +201,7 @@ def dataset_version(
     license: Optional[str],
     rights: Optional[str],
     version_message: Optional[str],
+    yes: bool,
 ):
     """Uploads a new version of a Dataset to DAFNI from dataset files
 
@@ -197,6 +212,7 @@ def dataset_version(
         files (List[Path]): Dataset data files
         metadata (Optional[Path]): Dataset metadata file
         save (Optional[Path]): Path to save existing metadata in for editing
+        yes (bool): Used to skip confirmations before they are displayed
 
         For the rest see dataset_metadata_common_options in options.py
     """
@@ -252,7 +268,7 @@ def dataset_version(
             arguments.append(("Dataset metadata file path", metadata))
 
         confirmation_message = "Confirm dataset upload?"
-        argument_confirmation(arguments, confirmation_message)
+        argument_confirmation(arguments, confirmation_message, yes=yes)
 
         # Upload all files
         upload_dataset(
@@ -280,6 +296,7 @@ def dataset_version(
     help="When given will only save the existing metadata to the specified file allowing it to be modified.",
 )
 @dataset_metadata_common_options(all_optional=True)
+@confirmation_skip_option
 @click.pass_context
 def dataset_metadata(
     ctx: Context,
@@ -305,6 +322,7 @@ def dataset_metadata(
     license: Optional[str],
     rights: Optional[str],
     version_message: Optional[str],
+    yes: bool,
 ):
     """Uploads a new version of a Dataset's metadata to DAFNI
 
@@ -314,6 +332,7 @@ def dataset_metadata(
                                    new version to
         metadata (Optional[Path]): Dataset metadata file
         save (Optional[Path]): Path to save existing metadata in for editing
+        yes (bool): Used to skip confirmations before they are displayed
 
         For the rest see dataset_metadata_common_options in options.py
     """
@@ -369,7 +388,7 @@ def dataset_metadata(
             arguments.append(("Dataset metadata file path", metadata))
 
         confirmation_message = "Confirm metadata upload?"
-        argument_confirmation(arguments, confirmation_message)
+        argument_confirmation(arguments, confirmation_message, yes=yes)
 
         # Upload
         upload_dataset_metadata_version(
@@ -404,12 +423,14 @@ def dataset_metadata(
     default=None,
     help="Parent workflow ID if this is an updated version of an existing workflow",
 )
+@confirmation_skip_option
 @click.pass_context
 def workflow(
     ctx: Context,
     definition: Path,
     version_message: str,
     parent_id: str,
+    yes: bool,
 ):
     """
     Uploads a workflow in JSON form to DAFNI.
@@ -419,6 +440,7 @@ def workflow(
         definition (Path): File path to the workflow definition file
         version_message (str): Version message to be included with this workflow version
         parent_id (str): ID of the parent workflow that this is an update of
+        yes (bool): Used to skip confirmations before they are displayed
     """
     arguments = [
         ("Workflow definition file path", definition),
@@ -430,7 +452,7 @@ def workflow(
         additional_message = None
     else:
         additional_message = ["No parent workflow: new workflow to be created"]
-    argument_confirmation(arguments, confirmation_message, additional_message)
+    argument_confirmation(arguments, confirmation_message, additional_message, yes=yes)
 
     # TODO: Validate workflow definition using workflows/validate?
 
