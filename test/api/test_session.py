@@ -1,10 +1,11 @@
 import json
+import os
 from pathlib import Path
 from unittest import TestCase
 from unittest.mock import MagicMock, call, mock_open, patch
 
-from requests import HTTPError
 import requests
+from requests import HTTPError
 
 from dafni_cli.api.exceptions import DAFNIError, EndpointNotFoundError
 from dafni_cli.api.session import DAFNISession, LoginError, SessionData
@@ -249,6 +250,73 @@ class TestDAFNISession(TestCase):
         mock_file.write.assert_called_once_with(
             json.dumps(session._session_data.__dict__)
         )
+
+    @patch.dict(
+        os.environ,
+        {"DAFNI_USERNAME": "test_username", "DAFNI_PASSWORD": "test_password"},
+    )
+    def test_load_from_environment(
+        self,
+        mock_requests,
+    ):
+        """Tests loading of a new session from environment variables"""
+
+        # Setup
+        mock_requests.post.return_value = self.create_mock_access_token_response()
+
+        session, mock_file = self.create_mock_session(False, return_mock_file=True)
+
+        # Expect post to be called, and appropriate session data to have
+        # been loaded from the obtained JWT
+        mock_requests.post.assert_called_once_with(
+            LOGIN_API_ENDPOINT,
+            data={
+                "username": "test_username",
+                "password": "test_password",
+                "client_id": "dafni-main",
+                "grant_type": "password",
+                "scope": "openid",
+            },
+            timeout=REQUESTS_TIMEOUT,
+        )
+
+        self.assertEqual(session._session_data.__dict__, TEST_SESSION_DATA.__dict__)
+
+        # Ensure session file is written
+        mock_file.write.assert_called_once_with(
+            json.dumps(session._session_data.__dict__)
+        )
+
+    @patch.dict(
+        os.environ,
+        {"DAFNI_USERNAME": "test_username", "DAFNI_PASSWORD": "test_password"},
+    )
+    def test_load_from_environment_when_login_fails(
+        self,
+        mock_requests,
+    ):
+        """Tests loading of a new session from environment variables exits
+        when unsuccessful"""
+
+        # Setup
+        mock_requests.post.return_value = self.create_mock_invalid_password_response()
+
+        with self.assertRaises(SystemExit) as err:
+            self.create_mock_session(False, return_mock_file=True)
+
+        mock_requests.post.assert_called_once_with(
+            LOGIN_API_ENDPOINT,
+            data={
+                "username": "test_username",
+                "password": "test_password",
+                "client_id": "dafni-main",
+                "grant_type": "password",
+                "scope": "openid",
+            },
+            timeout=REQUESTS_TIMEOUT,
+        )
+
+        self.assertEqual(err.exception.code, 1)
 
     @patch("click.prompt")
     def test_load_from_user_repeated(
