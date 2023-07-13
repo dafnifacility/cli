@@ -1,5 +1,6 @@
 import json
 from dataclasses import dataclass
+import os
 from pathlib import Path
 from typing import BinaryIO, Literal, Optional, Union
 
@@ -109,6 +110,13 @@ class DAFNISession:
         with open(DAFNISession._get_login_save_path(), "w", encoding="utf-8") as file:
             file.write(json.dumps(self._session_data.__dict__))
 
+    def _assign_session_data(self, username: str, login_response: LoginResponse):
+        """Assigns and if _use_session_data_file is True, saves session data
+        obtained from a successful login response"""
+        self._session_data = SessionData.from_login_response(username, login_response)
+        if self._use_session_data_file:
+            self._save_session_data()
+
     def _load_session_data(self) -> bool:
         """Attempts to load a SessionData instance from the storage file
 
@@ -133,7 +141,7 @@ class DAFNISession:
         # Attempt to get from a file first
         if not self._load_session_data():
             # Couldn't so request a login
-            self._request_user_login()
+            self.attempt_login()
 
     def _refresh_tokens(self):
         """Obtains a new access token and stores it
@@ -155,7 +163,7 @@ class DAFNISession:
 
         if response.status_code == 400 and response.json()["error"] == "invalid_grant":
             # This means the refresh token has expired, so login again
-            self._request_user_login()
+            self.attempt_login()
         else:
             response.raise_for_status()
 
@@ -239,11 +247,40 @@ class DAFNISession:
             )
         return DAFNISession(SessionData.from_login_response(username, login_response))
 
-    def _request_user_login(self):
+    def _attempt_login_from_env(self) -> bool:
+        """Attempts to login using environment variables (if found)
+
+        If environment variables are found but login fails will cause
+        the program to exit.
+
+        Returns:
+            bool: True if a username and password were found in the
+                  environment, False otherwise
         """
-        Prompts the user for their username and password. If login is successful,
-        notifies the user that login has been completed and displays the username
-        and UUID.
+
+        username = os.getenv("DAFNI_USERNAME")
+        password = os.getenv("DAFNI_PASSWORD")
+
+        if username is not None and password is not None:
+            # Attempt login
+            login_response = self._login(username, password)
+
+            if not login_response.was_successful():
+                click.echo(
+                    "Failed to login from environment variables. Please check your username and password and try again."
+                )
+                raise SystemExit(1)
+
+            self._assign_session_data(username, login_response)
+
+            return True
+
+        return False
+
+    def _request_user_login(self) -> SessionData:
+        """Prompts the user for their username and password. If login is
+        successful, notifies the user that login has been completed and displays
+        their username
         """
 
         # Continue requesting the username and password for as long as the
@@ -260,11 +297,17 @@ class DAFNISession:
                     "Failed to login. Please check your username and password and try again."
                 )
 
-        self._session_data = SessionData.from_login_response(username, login_response)
-        if self._use_session_data_file:
-            self._save_session_data()
+        self._assign_session_data(username, login_response)
 
         click.echo(f"Logged in as {self.username}")
+
+    def attempt_login(self):
+        """First attempts to find login credentials from environment variables
+        and if that fails prompt's the user to enter a username and password
+        until login is successful"""
+
+        if not self._attempt_login_from_env():
+            self._request_user_login()
 
     # Listed below this point are various methods for performing specific HTTP
     # requests using the session data
