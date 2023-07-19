@@ -1441,3 +1441,85 @@ class TestGetWorkflowInstance(TestCase):
         workflow_instance.output_details.assert_not_called()
 
         self.assertEqual(result.exit_code, 0)
+
+
+@patch("dafni_cli.commands.get.DAFNISession")
+@patch("dafni_cli.commands.get.cli_get_workflow_parameter_set")
+@patch("dafni_cli.commands.get.print_json")
+class TestGetWorkflowParameterSet(TestCase):
+    """Test class to test the get workflow-parameter-set command"""
+
+    def test_get_workflow_parameter_set(
+        self,
+        mock_print_json,
+        mock_cli_get_workflow_parameter_set,
+        mock_DAFNISession,
+    ):
+        """Tests that the 'get workflow-parameter-set' command works correctly"""
+
+        # SETUP
+        session = MagicMock()
+        mock_DAFNISession.return_value = session
+        runner = CliRunner()
+        workflow_inst = MagicMock()
+        parameter_set = MagicMock()
+        mock_cli_get_workflow_parameter_set.return_value = (
+            workflow_inst,
+            parameter_set,
+        )
+
+        # CALL
+        result = runner.invoke(
+            get.get,
+            ["workflow-parameter-set", "workflow-version-id", "parameter-set-id"],
+        )
+
+        # ASSERT
+        mock_DAFNISession.assert_called_once()
+        mock_cli_get_workflow_parameter_set.assert_called_with(
+            session, "workflow-version-id", "parameter-set-id"
+        )
+        mock_print_json.assert_not_called()
+        parameter_set.output_details.assert_called_once_with(workflow_inst.spec)
+
+        self.assertEqual(result.exit_code, 0)
+
+    def test_get_workflow_parameter_set_json(
+        self,
+        mock_print_json,
+        mock_cli_get_workflow_parameter_set,
+        mock_DAFNISession,
+    ):
+        """Tests that the 'get workflow-parameter-set' command works correctly (with --json)"""
+
+        # SETUP
+        session = MagicMock()
+        mock_DAFNISession.return_value = session
+        runner = CliRunner()
+        workflow_inst = MagicMock()
+        parameter_set = MagicMock()
+        mock_cli_get_workflow_parameter_set.return_value = (
+            workflow_inst,
+            parameter_set,
+        )
+
+        # CALL
+        result = runner.invoke(
+            get.get,
+            [
+                "workflow-parameter-set",
+                "workflow-version-id",
+                "parameter-set-id",
+                "--json",
+            ],
+        )
+
+        # ASSERT
+        mock_DAFNISession.assert_called_once()
+        mock_cli_get_workflow_parameter_set.assert_called_with(
+            session, "workflow-version-id", "parameter-set-id"
+        )
+        mock_print_json.assert_called_once_with(parameter_set.dictionary)
+        parameter_set.output_details.assert_not_called()
+
+        self.assertEqual(result.exit_code, 0)

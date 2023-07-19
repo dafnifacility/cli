@@ -5,6 +5,7 @@ from unittest.mock import call, patch
 from dateutil.tz import tzutc
 
 from dafni_cli.api.auth import Auth
+from dafni_cli.api.exceptions import ResourceNotFoundError
 from dafni_cli.api.parser import ParserBaseObject
 from dafni_cli.consts import (
     CONSOLE_WIDTH,
@@ -32,6 +33,7 @@ from dafni_cli.workflows.workflow import (
     parse_workflow,
     parse_workflows,
 )
+from test.fixtures.workflow_parameter_set import TEST_WORKFLOW_PARAMETER_SET
 
 from test.fixtures.workflows import (
     TEST_WORKFLOW,
@@ -447,3 +449,31 @@ class TestWorkflow(TestCase):
             ],
         )
         mock_click.echo.assert_called_once_with(mock_format_table.return_value)
+
+    def test_get_parameter_set(self):
+        """Tests get_parameter_set works correctly"""
+
+        # SETUP
+        workflow = parse_workflow(TEST_WORKFLOW)
+
+        # CALL
+        result = workflow.get_parameter_set(TEST_WORKFLOW_PARAMETER_SET["id"])
+
+        # ASSERT
+        self.assertEqual(result, workflow.parameter_sets[0])
+
+    def test_get_parameter_set_when_not_found(self):
+        """Tests get_parameter_set raises an error when the parameter set
+        isn't found in the workflow"""
+
+        # SETUP
+        workflow = parse_workflow(TEST_WORKFLOW)
+        parameter_set_id = "invalid_id"
+
+        # CALL & ASSERT
+        with self.assertRaises(ResourceNotFoundError) as err:
+            workflow.get_parameter_set(parameter_set_id)
+        self.assertEqual(
+            str(err.exception),
+            f"Unable to find a parameter set with id '{parameter_set_id}'",
+        )

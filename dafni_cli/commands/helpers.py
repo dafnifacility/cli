@@ -1,3 +1,5 @@
+from typing import Tuple
+
 import click
 
 from dafni_cli.api.datasets_api import get_latest_dataset_metadata
@@ -5,6 +7,8 @@ from dafni_cli.api.exceptions import ResourceNotFoundError
 from dafni_cli.api.models_api import get_model
 from dafni_cli.api.session import DAFNISession
 from dafni_cli.api.workflows_api import get_workflow, get_workflow_instance
+from dafni_cli.workflows.parameter_set import WorkflowParameterSet
+from dafni_cli.workflows.workflow import Workflow, parse_workflow
 
 
 def cli_get_model(session: DAFNISession, version_id: str) -> dict:
@@ -66,6 +70,34 @@ def cli_get_workflow_instance(session: DAFNISession, instance_id: str) -> dict:
 
     try:
         return get_workflow_instance(session, instance_id)
+    except ResourceNotFoundError as err:
+        click.echo(err)
+        raise SystemExit(1) from err
+
+
+def cli_get_workflow_parameter_set(
+    session: DAFNISession, workflow_version_id: str, parameter_set_id: str
+) -> Tuple[Workflow, WorkflowParameterSet]:
+    """Attempts to get a workflow's parameter set with a nice CLI error
+    message if it's not found
+
+    Args:
+        session (DAFNISession): DAFNISession
+        workflow_version_id (str): Version ID of the workflow the parameter
+                                   set is found in
+        parameter_set_id (str): ID of the parameter set
+
+    Returns:
+        Workflow: Workflow with the given version id
+        WorkflowParameterSet: Parameter set with the id obtained from the
+                              workflow
+    """
+
+    workflow_dict = cli_get_workflow(session, workflow_version_id)
+    workflow_inst = parse_workflow(workflow_dict)
+
+    try:
+        return workflow_inst, workflow_inst.get_parameter_set(parameter_set_id)
     except ResourceNotFoundError as err:
         click.echo(err)
         raise SystemExit(1) from err
