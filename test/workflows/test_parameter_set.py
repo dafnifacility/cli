@@ -463,7 +463,7 @@ class TestWorkflowParameterSet(TestCase):
                 call(),
                 call(workflow_step1.format_parameters()),
                 call(),
-                call("Steps data included from: No steps data included"),
+                call("Steps data included from: No data included from previous steps"),
                 call(workflow_step1.format_dataslots()),
                 call(),
                 # Third step
