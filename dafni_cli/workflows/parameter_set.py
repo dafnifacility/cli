@@ -336,7 +336,7 @@ class WorkflowParameterSet(ParserBaseObject):
                         included_from.append(dependency.name)
 
                 click.echo(
-                    f"Steps data included from: {', '.join(included_from) if included_from else 'No steps data included'}"
+                    f"Steps data included from: {', '.join(included_from) if included_from else 'No data included from previous steps'}"
                 )
                 click.echo(step.format_dataslots())
                 click.echo()

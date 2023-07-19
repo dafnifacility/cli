@@ -1455,7 +1455,7 @@ class TestGetWorkflowParameterSet(TestCase):
         mock_cli_get_workflow_parameter_set,
         mock_DAFNISession,
     ):
-        """Tests that the 'get workflow-instance' command works correctly"""
+        """Tests that the 'get workflow-parameter-set' command works correctly"""
 
         # SETUP
         session = MagicMock()
@@ -1490,7 +1490,7 @@ class TestGetWorkflowParameterSet(TestCase):
         mock_cli_get_workflow_parameter_set,
         mock_DAFNISession,
     ):
-        """Tests that the 'get workflow-instance' command works correctly (with --json)"""
+        """Tests that the 'get workflow-parameter-set' command works correctly (with --json)"""
 
         # SETUP
         session = MagicMock()
