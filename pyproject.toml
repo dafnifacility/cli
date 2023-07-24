@@ -1,10 +1,12 @@
 [build-system]
-requires = ["setuptools>=68.0.0", "wheel"]
+requires = ["setuptools>=68.0.0", "wheel", "setuptools-git-versioning<2"]
 build-backend = "setuptools.build_meta"
+
+[tool.setuptools-git-versioning]
+enabled = true
 
 [project]
 name = "dafni-cli"
-version = "0.0.1"
 description = "A CLI to access the DAFNI APIs from the command line"
 readme = "README.md"
 authors = [{ name = "DAFNI Facility", email = "support@dafni.ac.uk" }]
@@ -20,6 +22,8 @@ classifiers = [
     "License :: OSI Approved :: MIT License",
     "Operating System :: OS Independent",
 ]
+# Dynamic versioning using setuptools-git-versioning
+dynamic = ["version"]
 
 [project.urls]
 Source = "https://github.com/dafnifacility/cli"
