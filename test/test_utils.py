@@ -368,7 +368,7 @@ class TestFormatTable(TestCase):
                 ["Row 2 Header 1", "Row 2\nHeader 2"],
             ],
             headers,
-            **TABULATE_ARGS
+            **TABULATE_ARGS,
         )
         self.assertEqual(mock_tabulate.return_value, result)
 
@@ -411,7 +411,7 @@ class TestFormatTable(TestCase):
                 ["Row 2\nHeader 1", "Row 2\nHeader 2"],
             ],
             headers,
-            **TABULATE_ARGS
+            **TABULATE_ARGS,
         )
         self.assertEqual(mock_tabulate.return_value, result)
 
