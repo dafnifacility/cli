@@ -49,9 +49,14 @@ class ModelOutputs(ParserBaseObject):
     def format_outputs(self) -> str:
         """Formats output files into a string which prints as a table
 
+        If there aren't any outputs will return a string stating that
+
         Returns:
             str: Formatted string that will appear as a table when printed
         """
+
+        if not self.datasets:
+            return "No outputs"
 
         # The dataset outputs fields are not mandatory and any or all of them might not
         # exist. Unset fields will be reported as "Unknown" in the formatted output.
@@ -67,7 +72,7 @@ class ModelOutputs(ParserBaseObject):
                     dataset.type or "Unknown",
                     dataset.description,
                 ]
-                for dataset in self.datasets
+                for dataset in sorted(self.datasets, key=lambda dset: dset.name)
             ],
             max_column_widths=[None, None, TABLE_SUMMARY_MAX_COLUMN_WIDTH],
         )

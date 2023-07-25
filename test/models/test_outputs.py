@@ -1,3 +1,4 @@
+import copy
 from unittest import TestCase
 from unittest.mock import patch
 
@@ -59,7 +60,10 @@ class TestModelOutputs(TestCase):
             ModelOutputs, TEST_MODEL_OUTPUTS
         )
         # Repeat the first one twice
-        model_outputs.datasets.append(model_outputs.datasets[0])
+        model_outputs.datasets.append(copy.deepcopy(model_outputs.datasets[0]))
+
+        model_outputs.datasets[0].name = "example_dataset.csv"
+        model_outputs.datasets[1].name = "another_dataset.csv"
 
         # CALL
         result = model_outputs.format_outputs()
@@ -72,7 +76,8 @@ class TestModelOutputs(TestCase):
                 TABLE_SUMMARY_HEADER,
             ],
             rows=[
-                ["example_dataset.csv", "CSV", ""],
+                # Should be in alphabetical order of names
+                ["another_dataset.csv", "CSV", ""],
                 ["example_dataset.csv", "CSV", ""],
             ],
             max_column_widths=[
@@ -117,3 +122,17 @@ class TestModelOutputs(TestCase):
             ],
         )
         self.assertEqual(result, mock_format_table.return_value)
+
+    def test_format_outputs_if_there_are_no_outputs(self):
+        """Tests format_outputs works correctly when there are no parameters"""
+        # SETUP
+        model_outputs: ModelOutputs = ParserBaseObject.parse_from_dict(
+            ModelOutputs, TEST_MODEL_OUTPUTS
+        )
+        model_outputs.datasets = []
+
+        # CALL
+        result = model_outputs.format_outputs()
+
+        # ASSERT
+        self.assertEqual(result, "No outputs")
