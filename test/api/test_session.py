@@ -246,25 +246,40 @@ class TestDAFNISession(TestCase):
 
     def test_get_error_message_with_no_error(self, mock_requests):
         """Tests get_error_message when there is no error message"""
+
+        # SETUP
         session = self.create_mock_session(True)
 
+        # CALL
         error_message = session.get_error_message(create_mock_response(200, {}))
+
+        # ASSERT
         self.assertEqual(error_message, None)
 
     def test_get_error_message_simple(self, mock_requests):
         """Tests get_error_message when there is a simple error message"""
-        session = self.create_mock_session(True)
 
+        # SETUP
+        session = self.create_mock_session(True)
         mock_response = create_mock_error_response()
+
+        # CALL
         error_message = session.get_error_message(mock_response)
+
+        # ASSERT
         self.assertEqual(error_message, f"Error: {mock_response.json()['error']}")
 
     def test_get_error_message(self, mock_requests):
         """Tests get_error_message when there is a specific error message"""
-        session = self.create_mock_session(True)
 
+        # SETUP
+        session = self.create_mock_session(True)
         mock_response = create_mock_error_message_response()
+
+        # CALL
         error_message = session.get_error_message(mock_response)
+
+        # ASSERT
         self.assertEqual(
             error_message,
             f"Error: {mock_response.json()['error']}, {mock_response.json()['error_message']}",
@@ -272,11 +287,16 @@ class TestDAFNISession(TestCase):
 
     def test_get_error_message_with_multiple_errors(self, mock_requests):
         """Tests get_error_message when there are multiple errors"""
-        session = self.create_mock_session(True)
 
+        # SETUP
+        session = self.create_mock_session(True)
         mock_response = create_mock_errors_response()
-        error_message = session.get_error_message(mock_response)
         expected_errors = mock_response.json()["errors"]
+
+        # CALL
+        error_message = session.get_error_message(mock_response)
+
+        # ASSERT
         self.assertEqual(
             error_message,
             "The following errors were returned:\n"
@@ -285,19 +305,27 @@ class TestDAFNISession(TestCase):
 
     def test_get_error_message_handles_decode_error(self, mock_requests):
         """Tests get_error_message when JSON decoding fails"""
-        session = self.create_mock_session(True)
 
+        # SETUP
+        session = self.create_mock_session(True)
         mock_response = create_mock_error_response()
         # Unpatch this to avoid TypeError in except block
         mock_requests.JSONDecodeError = requests.JSONDecodeError
         mock_response.json.side_effect = requests.JSONDecodeError("", "", 0)
+
+        # CALL
         error_message = session.get_error_message(mock_response)
+
+        # ASSERT
         self.assertEqual(error_message, None)
 
     def test_check_response_raises_endpoint_not_found(self, mock_requests):
         """Tests _check_response raises an EndpointNotFoundError when necessary"""
+
+        # SETUP
         session = self.create_mock_session(True)
 
+        # CALL & ASSERT
         with self.assertRaises(EndpointNotFoundError) as err:
             session._check_response("test_url", create_mock_response(404))
         self.assertEqual(str(err.exception), "Could not find test_url")
@@ -305,10 +333,13 @@ class TestDAFNISession(TestCase):
     def test_check_response_raises_dafni_error(self, mock_requests):
         """Tests _check_response raises a DAFNIError when a specific error is
         given in a failed response"""
+
+        # SETUP
         session = self.create_mock_session(True)
         session.get_error_message = MagicMock()
         session.get_error_message.return_value = "Some error message"
 
+        # CALL & ASSERT
         with self.assertRaises(DAFNIError) as err:
             session._check_response("test_url", create_mock_response(400))
         self.assertEqual(str(err.exception), "Some error message")
@@ -316,10 +347,13 @@ class TestDAFNISession(TestCase):
     def test_check_response_raises_http_error(self, mock_requests):
         """Tests _check_response raises a HTTPError when no specific error
         message is found"""
+
+        # SETUP
         session = self.create_mock_session(True)
         session.get_error_message = MagicMock()
         session.get_error_message.return_value = None
 
+        # CALL & ASSERT
         with self.assertRaises(HTTPError) as err:
             session._check_response("test_url", create_mock_response(400))
         self.assertEqual(str(err.exception), "Test error 400")
@@ -327,10 +361,13 @@ class TestDAFNISession(TestCase):
     def test_check_response_calls_error_message_func(self, mock_requests):
         """Tests _check_response calls the given error message function and uses
         its returned value for the error message when given"""
+
+        # SETUP
         session = self.create_mock_session(True)
         mock_response = create_mock_response(400)
         error_message_func = MagicMock()
 
+        # CALL & ASSERT
         with self.assertRaises(DAFNIError) as err:
             session._check_response(
                 "test_url", mock_response, error_message_func=error_message_func
@@ -342,8 +379,10 @@ class TestDAFNISession(TestCase):
         """Tests sending a request via the DAFNISession uses header based
         authentication"""
 
+        # SETUP
         session = self.create_mock_session(True)
 
+        # CALL
         session._authenticated_request(
             "get",
             url="test_url",
@@ -353,6 +392,7 @@ class TestDAFNISession(TestCase):
             allow_redirect=False,
         )
 
+        # ASSERT
         mock_requests.request.assert_called_once_with(
             "get",
             url="test_url",

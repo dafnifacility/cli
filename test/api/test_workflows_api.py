@@ -1,4 +1,3 @@
-import json
 from pathlib import Path
 from unittest import TestCase
 from unittest.mock import MagicMock, mock_open, patch
@@ -283,7 +282,7 @@ class TestWorkflowsAPI(TestCase):
     def test_validate_parameter_set_definition(
         self, mock_error_message_func, open_mock
     ):
-        """Tests that test_validate_parameter_set_definition works as expected
+        """Tests that validate_parameter_set_definition works as expected
         when the definition is found to be valid"""
 
         # SETUP
@@ -311,7 +310,7 @@ class TestWorkflowsAPI(TestCase):
     def test_validate_parameter_set_definition_when_def_invalid(
         self, mock_error_message_func, open_mock
     ):
-        """Tests that test_validate_parameter_set_definition works as expected
+        """Tests that validate_parameter_set_definition works as expected
         when the definition is found to be invalid"""
 
         # SETUP
@@ -349,7 +348,6 @@ class TestWorkflowsAPI(TestCase):
         # SETUP
         session = MagicMock()
         parameter_set_definition_path = Path("path/to/file")
-        session.put_request.return_value = create_mock_response(200)
 
         # CALL
         workflows_api.upload_parameter_set(
