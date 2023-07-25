@@ -466,7 +466,7 @@ class TestWorkflowInstance(TestCase):
             [
                 call(workflow_instance.workflow_version.metadata.display_name),
                 call(),
-                call("Retrieving full Workflow failed. Messages:"),
+                call("Retrieving full Workflow failed:"),
                 call("ERROR: Error message 1"),
                 call("ERROR: Error message 2"),
                 call(),
