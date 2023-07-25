@@ -81,15 +81,11 @@ class TestWorkflowSpecification(TestCase):
     """Tests the WorkflowSpecification dataclass"""
 
     def test_parse(self):
-        """Tests parsing of WorkflowSpecificationStep"""
+        """Tests parsing of WorkflowSpecification"""
         workflow_specification: WorkflowSpecification = (
             ParserBaseObject.parse_from_dict(
                 WorkflowSpecification, TEST_WORKFLOW_SPECIFICATION
             )
-        )
-
-        self.assertEqual(
-            workflow_specification.errors, TEST_WORKFLOW_SPECIFICATION["errors"]
         )
 
         # WorkflowSpecificationStep (contents tested in TestWorkflowSpecificationStep)
@@ -99,3 +95,24 @@ class TestWorkflowSpecification(TestCase):
         )
         for step in workflow_specification.steps.values():
             self.assertEqual(type(step), WorkflowSpecificationStep)
+
+        self.assertEqual(workflow_specification.errors, None)
+
+    def test_parse_with_errors(self):
+        """Tests parsing of WorkflowSpecification when errors are defined"""
+        test_dict = TEST_WORKFLOW_SPECIFICATION.copy()
+        test_dict.update({"errors": ["Some test error"]})
+
+        workflow_specification: WorkflowSpecification = (
+            ParserBaseObject.parse_from_dict(WorkflowSpecification, test_dict)
+        )
+
+        # WorkflowSpecificationStep (contents tested in TestWorkflowSpecificationStep)
+        self.assertEqual(
+            workflow_specification.steps.keys(),
+            TEST_WORKFLOW_SPECIFICATION["steps"].keys(),
+        )
+        for step in workflow_specification.steps.values():
+            self.assertEqual(type(step), WorkflowSpecificationStep)
+
+        self.assertEqual(workflow_specification.errors, test_dict["errors"])

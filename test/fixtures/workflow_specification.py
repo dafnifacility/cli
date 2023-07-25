@@ -18,7 +18,6 @@ TEST_WORKFLOW_SPECIFICATION_DEFAULT = {
 }
 
 TEST_WORKFLOW_SPECIFICATION = {
-    "errors": ["Some error message"],
     "steps": {
         "0a0a0a0a-0a00-0a00-a000-0a0a0000000a": {
             "dependencies": ["0a0a0a0a-0a00-0a00-a000-0a0a0000000b"],

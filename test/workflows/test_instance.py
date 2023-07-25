@@ -440,3 +440,59 @@ class TestWorkflowInstance(TestCase):
             ],
             tablefmt="plain",
         )
+
+    @patch("dafni_cli.workflows.instance.tabulate")
+    @patch("dafni_cli.workflows.instance.click")
+    @patch.object(WorkflowInstance, "format_steps")
+    def test_output_details_with_error_messages(
+        self, mock_format_steps, mock_click, mock_tabulate
+    ):
+        """Tests output_details works correctly when there are error messages to display"""
+
+        # SETUP
+        workflow_instance = parse_workflow_instance(TEST_WORKFLOW_INSTANCE)
+        workflow_instance.workflow_version.spec.errors = [
+            "Error message 1",
+            "Error message 2",
+        ]
+
+        # CALL
+        workflow_instance.output_details()
+
+        # ASSERT
+        mock_format_steps.assert_called_once()
+        self.assertEqual(
+            mock_click.echo.mock_calls,
+            [
+                call(workflow_instance.workflow_version.metadata.display_name),
+                call(),
+                call("Retrieving full Workflow failed. Messages:"),
+                call("ERROR: Error message 1"),
+                call("ERROR: Error message 2"),
+                call(),
+                call(mock_tabulate.return_value),
+                call(),
+                call(mock_format_steps.return_value),
+            ],
+        )
+        mock_tabulate.assert_called_once_with(
+            [
+                [
+                    "Workflow version ID:",
+                    workflow_instance.workflow_version.workflow_id,
+                ],
+                ["Parameter set ID:", workflow_instance.parameter_set.parameter_set_id],
+                [
+                    "Started:",
+                    format_datetime(
+                        workflow_instance.submission_time, include_time=True
+                    ),
+                ],
+                [
+                    "Finished:",
+                    format_datetime(workflow_instance.finished_time, include_time=True),
+                ],
+                ["Overall status:", workflow_instance.overall_status],
+            ],
+            tablefmt="plain",
+        )
