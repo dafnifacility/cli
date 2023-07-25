@@ -6,6 +6,7 @@ from unittest.mock import MagicMock, patch
 
 from click.testing import CliRunner
 
+from dafni_cli.api.exceptions import ValidationError
 from dafni_cli.commands import upload
 from dafni_cli.datasets.dataset_metadata import parse_dataset_metadata
 
@@ -1216,6 +1217,148 @@ class TestUploadWorkflow(TestCase):
             f"Version message: {version_message}\n"
             "No parent workflow: new workflow to be created\n"
             "Confirm workflow upload? [y/N]: n\n"
+            "Aborted!\n",
+        )
+        self.assertEqual(result.exit_code, 1)
+
+
+@patch("dafni_cli.commands.upload.DAFNISession")
+@patch("dafni_cli.commands.upload.validate_parameter_set_definition")
+@patch("dafni_cli.commands.upload.upload_parameter_set")
+class TestUploadWorkflowParameterSet(TestCase):
+    """Test class to test the upload workflow-parameter-set commands"""
+
+    def test_upload_workflow_parameter_set(
+        self,
+        mock_upload_parameter_set,
+        mock_validate_parameter_set_definition,
+        mock_DAFNISession,
+    ):
+        """Tests that the 'upload workflow-parameter-set' command works
+        correctly"""
+
+        # SETUP
+        session = MagicMock()
+        mock_DAFNISession.return_value = session
+        runner = CliRunner()
+        parameter_set_id = "parameter-set-id"
+        mock_upload_parameter_set.return_value = {"id": parameter_set_id}
+
+        # CALL
+        with runner.isolated_filesystem():
+            with open("test_definition.json", "w", encoding="utf-8") as file:
+                file.write("test definition file")
+            result = runner.invoke(
+                upload.upload,
+                [
+                    "workflow-parameter-set",
+                    "test_definition.json",
+                ],
+                input="y",
+            )
+
+        # ASSERT
+        mock_DAFNISession.assert_called_once()
+        mock_validate_parameter_set_definition.assert_called_once_with(
+            session, Path("test_definition.json")
+        )
+        mock_upload_parameter_set.assert_called_once_with(
+            session, Path("test_definition.json")
+        )
+
+        self.assertEqual(
+            result.output,
+            "Parameter set definition file path: test_definition.json\n"
+            "Confirm parameter set upload? [y/N]: y\n"
+            "Validating parameter set definition\n"
+            "Uploading parameter set\n"
+            "\nUpload successful\n"
+            f"Parameter set ID: {parameter_set_id}\n",
+        )
+        self.assertEqual(result.exit_code, 0)
+
+    def test_upload_workflow_parameter_set_validation_error(
+        self,
+        mock_upload_parameter_set,
+        mock_validate_parameter_set_definition,
+        mock_DAFNISession,
+    ):
+        """Tests that the 'upload workflow-parameter-set' command works
+        correctly when a ValidationError occurs"""
+
+        # SETUP
+        session = MagicMock()
+        mock_DAFNISession.return_value = session
+        runner = CliRunner()
+        error = ValidationError("Some error message")
+        mock_validate_parameter_set_definition.side_effect = error
+
+        # CALL
+        with runner.isolated_filesystem():
+            with open("test_definition.json", "w", encoding="utf-8") as file:
+                file.write("test definition file")
+            result = runner.invoke(
+                upload.upload,
+                [
+                    "workflow-parameter-set",
+                    "test_definition.json",
+                ],
+                input="y",
+            )
+
+        # ASSERT
+        mock_DAFNISession.assert_called_once()
+        mock_validate_parameter_set_definition.assert_called_once_with(
+            session, Path("test_definition.json")
+        )
+        mock_upload_parameter_set.assert_not_called()
+
+        self.assertEqual(
+            result.output,
+            "Parameter set definition file path: test_definition.json\n"
+            "Confirm parameter set upload? [y/N]: y\n"
+            "Validating parameter set definition\n"
+            f"{str(error)}\n",
+        )
+        self.assertEqual(result.exit_code, 1)
+
+    def test_upload_workflow_parameter_set_cancel(
+        self,
+        mock_upload_parameter_set,
+        mock_validate_parameter_set_definition,
+        mock_DAFNISession,
+    ):
+        """Tests that the 'upload workflow-parameter-set' command can be canceled"""
+
+        # SETUP
+        session = MagicMock()
+        mock_DAFNISession.return_value = session
+        runner = CliRunner()
+        parameter_set_id = "parameter-set-id"
+        mock_upload_parameter_set.return_value = {"id": parameter_set_id}
+
+        # CALL
+        with runner.isolated_filesystem():
+            with open("test_definition.json", "w", encoding="utf-8") as file:
+                file.write("test definition file")
+            result = runner.invoke(
+                upload.upload,
+                [
+                    "workflow-parameter-set",
+                    "test_definition.json",
+                ],
+                input="n",
+            )
+
+        # ASSERT
+        mock_DAFNISession.assert_called_once()
+        mock_validate_parameter_set_definition.assert_not_called()
+        mock_upload_parameter_set.assert_not_called()
+
+        self.assertEqual(
+            result.output,
+            "Parameter set definition file path: test_definition.json\n"
+            "Confirm parameter set upload? [y/N]: n\n"
             "Aborted!\n",
         )
         self.assertEqual(result.exit_code, 1)
