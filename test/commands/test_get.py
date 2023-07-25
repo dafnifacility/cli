@@ -1086,8 +1086,13 @@ class TestGetWorkflowInstances(TestCase):
         self.mock_DAFNISession.return_value = session
         runner = CliRunner()
         version_id = "version_id"
-        workflow_instance_dicts = [MagicMock(), MagicMock()]
-        workflow_instances = [MagicMock(), MagicMock()]
+        workflow_instance_dicts = [MagicMock(), MagicMock(), MagicMock(), MagicMock()]
+        workflow_instances = [
+            MagicMock(finished_time=datetime(2023, 7, 12, 11, 11, 42)),
+            MagicMock(finished_time=datetime(2021, 7, 12, 11, 11, 42)),
+            MagicMock(finished_time=datetime(2022, 7, 12, 11, 11, 42)),
+            MagicMock(finished_time=datetime(2023, 7, 12, 11, 11, 42)),
+        ]
         workflow_dict = {"instances": workflow_instance_dicts}
         workflow = MagicMock(instances=workflow_instances)
         self.mock_cli_get_workflow.return_value = workflow_dict
@@ -1095,8 +1100,8 @@ class TestGetWorkflowInstances(TestCase):
 
         # Make the first workflow instance filter but the second not
         self.mock_filter_multiple.return_value = (
-            [workflow_instances[0]],
-            [workflow_instance_dicts[0]],
+            workflow_instances[:3],
+            workflow_instance_dicts[:3],
         )
 
         # CALL
@@ -1121,7 +1126,9 @@ class TestGetWorkflowInstances(TestCase):
 
         # Different outputs depending on json flag
         if json:
-            self.mock_print_json.assert_called_once_with([workflow_instance_dicts[0]])
+            self.mock_print_json.assert_called_once_with(
+                workflow_instance_dicts[:3],
+            )
             for workflow_instance in workflow_instances:
                 workflow_instance.get_brief_details.assert_not_called()
             self.mock_format_table.assert_not_called()
@@ -1130,7 +1137,9 @@ class TestGetWorkflowInstances(TestCase):
             self.mock_print_json.assert_not_called()
 
             workflow_instances[0].get_brief_details.assert_called_once()
-            workflow_instances[1].get_brief_details.assert_not_called()
+            workflow_instances[1].get_brief_details.assert_called_once()
+            workflow_instances[2].get_brief_details.assert_called_once()
+            workflow_instances[3].get_brief_details.assert_not_called()
 
             self.mock_format_table.assert_called_once_with(
                 headers=[
@@ -1141,7 +1150,12 @@ class TestGetWorkflowInstances(TestCase):
                     TABLE_FINISHED_HEADER,
                     TABLE_STATUS_HEADER,
                 ],
-                rows=[workflow_instances[0].get_brief_details.return_value],
+                rows=[
+                    # Should have been sorted
+                    workflow_instances[1].get_brief_details.return_value,
+                    workflow_instances[2].get_brief_details.return_value,
+                    workflow_instances[0].get_brief_details.return_value,
+                ],
             )
             self.mock_click.echo.assert_called_once_with(
                 self.mock_format_table.return_value

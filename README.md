@@ -45,6 +45,8 @@ Workflows:
 * Filter list of available workflow instances - DONE
 * View specific workflow instance metadata - DONE
 * Create workflow (using workflow definition file) - DONE
+* View a specific workflow parameter set - DONE
+* Upload a new workflow parameter set - DONE
 * Edit workflow env params and create new workflow
 * Edit workflow data slots and create new workflow
 
