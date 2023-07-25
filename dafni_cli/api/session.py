@@ -1,7 +1,8 @@
+from io import BufferedReader
 import json
 from dataclasses import dataclass
 from pathlib import Path
-from typing import BinaryIO, Literal, Optional, Union
+from typing import BinaryIO, Callable, Literal, Optional, Union
 
 import click
 import requests
@@ -339,13 +340,22 @@ class DAFNISession:
                 raise RuntimeError(f"Could not authenticate request: {message}")
             else:
                 self._refresh_tokens()
+
+                # It seems in the event the token needs a refresh requests still
+                # reads at least a small part of any file being uploaded - this
+                # for example can result in  the validation of some metadata
+                # files to fail citing that they are missing all parameters when
+                # in fact they are defined. Resetting any file reader here
+                # solves the issue.
+                if isinstance(data, BufferedReader):
+                    data.seek(0)
                 response = self._authenticated_request(
                     method,
-                    url,
-                    headers,
-                    data,
-                    json,
-                    allow_redirect,
+                    url=url,
+                    headers=headers,
+                    data=data,
+                    json=json,
+                    allow_redirect=allow_redirect,
                     recursion_level=recursion_level + 1,
                 )
 
@@ -376,26 +386,29 @@ class DAFNISession:
                 error_message = "The following errors were returned:"
                 for error in decoded_response["errors"]:
                     error_message += f"\nError: {error}"
-            # Special case when uploading dataset metadata that's invalid
-            # TODO: This is a bug, remove once fixed
-            elif "metadata" in decoded_response:
-                # This returns a list of errors, add them all to the
-                # message
-                error_message = "Found errors in metadata:"
-                for error in decoded_response["metadata"]:
-                    error_message += f"\n{error}"
 
             return error_message
         except requests.JSONDecodeError:
             return None
 
-    def _check_response(self, url: str, response: requests.Response):
+    def _check_response(
+        self,
+        url: str,
+        response: requests.Response,
+        error_message_func: Callable[[requests.Response], Optional[str]] = None,
+    ):
         """Checks a requests response for any errors and raises them as
         required
 
         Args:
             url (str): URL endpoint that was being queried
             response (requests.Response): Response from requests
+            error_message_func (Optional[Callable[[requests.Response], Optional[str]]]):
+                                Function called on a response after an error to
+                                obtain an error message. If it returns None, a
+                                HTTPError will be returned, otherwise it will be
+                                a DAFNIError. By default this will be
+                                get_error_message.
 
         Raises:
             EndpointNotFoundError: If the response returns a 404 status code
@@ -403,6 +416,9 @@ class DAFNISession:
             HTTPError: If any other error occurs without an error message from
                        DAFNI
         """
+
+        if error_message_func is None:
+            error_message_func = self.get_error_message
 
         error_message = None
 
@@ -414,7 +430,7 @@ class DAFNISession:
                 raise EndpointNotFoundError(f"Could not find {url}")
 
             # Attempt to find an error message from the API itself
-            error_message = self.get_error_message(response)
+            error_message = error_message_func(response)
 
         # If there is an error from DAFNI raise a DAFNI exception as well
         # with more details, otherwise leave as any errors are HTTPError's
@@ -431,6 +447,9 @@ class DAFNISession:
         content_type: str = "application/json",
         allow_redirect: bool = False,
         content: bool = False,
+        error_message_func: Optional[
+            Callable[[requests.Response], Optional[str]]
+        ] = None,
     ):
         """Performs a GET request from the DAFNI API
 
@@ -447,6 +466,12 @@ class DAFNISession:
                         returned (e.g. /models/).
             dict: For an endpoint returning one object, this will be a
                   dictionary (e.g. /models/<version_id>).
+            error_message_func (Optional[Callable[[requests.Response], Optional[str]]]):
+                                Function called on a response after an error to
+                                obtain an error message. If it returns None, a
+                                HTTPError will be returned, otherwise it will be
+                                a DAFNIError. By default this will be
+                                get_error_message.
 
         Raises:
             EndpointNotFoundError: If the response returns a 404 status code
@@ -462,7 +487,7 @@ class DAFNISession:
             json=None,
             allow_redirect=allow_redirect,
         )
-        self._check_response(url, response)
+        self._check_response(url, response, error_message_func=error_message_func)
 
         if content:
             return response.content
@@ -476,6 +501,9 @@ class DAFNISession:
         json=None,
         allow_redirect: bool = False,
         content: bool = False,
+        error_message_func: Optional[
+            Callable[[requests.Response], Optional[str]]
+        ] = None,
     ):
         """Performs a POST request to the DAFNI API
 
@@ -488,6 +516,12 @@ class DAFNISession:
                                    Defaults to False.
             content (bool): Flag to define if the response content is
                             returned. default is the response json
+            error_message_func (Optional[Callable[[requests.Response], Optional[str]]]):
+                                Function called on a response after an error to
+                                obtain an error message. If it returns None, a
+                                HTTPError will be returned, otherwise it will be
+                                a DAFNIError. By default this will be
+                                get_error_message.
 
         Returns:
             List[dict]: For an endpoint returning several objects, a list is
@@ -510,7 +544,7 @@ class DAFNISession:
             allow_redirect=allow_redirect,
         )
 
-        self._check_response(url, response)
+        self._check_response(url, response, error_message_func=error_message_func)
 
         if content:
             return response.content
@@ -524,6 +558,9 @@ class DAFNISession:
         json=None,
         allow_redirect: bool = False,
         content: bool = False,
+        error_message_func: Optional[
+            Callable[[requests.Response], Optional[str]]
+        ] = None,
     ):
         """Performs a PUT request to the DAFNI API
 
@@ -536,6 +573,12 @@ class DAFNISession:
                                    Defaults to False.
             content (bool): Flag to define if the response content is
                             returned. default is the response json
+            error_message_func (Optional[Callable[[requests.Response], Optional[str]]]):
+                                Function called on a response after an error to
+                                obtain an error message. If it returns None, a
+                                HTTPError will be returned, otherwise it will be
+                                a DAFNIError. By default this will be
+                                get_error_message.
 
         Returns:
             List[dict]: For an endpoint returning several objects, a list is
@@ -558,7 +601,7 @@ class DAFNISession:
             allow_redirect=allow_redirect,
         )
 
-        self._check_response(url, response)
+        self._check_response(url, response, error_message_func=error_message_func)
 
         if content:
             return response.content
@@ -572,6 +615,9 @@ class DAFNISession:
         json=None,
         allow_redirect: bool = False,
         content: bool = False,
+        error_message_func: Optional[
+            Callable[[requests.Response], Optional[str]]
+        ] = None,
     ):
         """Performs a PATCH request to the DAFNI API
 
@@ -584,6 +630,12 @@ class DAFNISession:
                                    Defaults to False.
             content (bool): Flag to define if the response content is
                             returned. default is the response json
+            error_message_func (Optional[Callable[[requests.Response], Optional[str]]]):
+                                Function called on a response after an error to
+                                obtain an error message. If it returns None, a
+                                HTTPError will be returned, otherwise it will be
+                                a DAFNIError. By default this will be
+                                get_error_message.
 
         Returns:
             List[dict]: For an endpoint returning several objects, a list is
@@ -606,14 +658,20 @@ class DAFNISession:
             allow_redirect=allow_redirect,
         )
 
-        self._check_response(url, response)
+        self._check_response(url, response, error_message_func=error_message_func)
 
         if content:
             return response.content
         return response.json()
 
     def delete_request(
-        self, url: str, allow_redirect: bool = False, content: bool = False
+        self,
+        url: str,
+        allow_redirect: bool = False,
+        content: bool = False,
+        error_message_func: Optional[
+            Callable[[requests.Response], Optional[str]]
+        ] = None,
     ):
         """Performs a DELETE request to the DAFNI API
 
@@ -623,6 +681,12 @@ class DAFNISession:
                                    Defaults to False.
             content (bool): Flag to define if the response content is
                             returned. default is the response json
+            error_message_func (Optional[Callable[[requests.Response], Optional[str]]]):
+                                Function called on a response after an error to
+                                obtain an error message. If it returns None, a
+                                HTTPError will be returned, otherwise it will be
+                                a DAFNIError. By default this will be
+                                get_error_message.
 
         Returns:
             List[dict]: For an endpoint returning several objects, a list is
@@ -645,7 +709,7 @@ class DAFNISession:
             allow_redirect=allow_redirect,
         )
 
-        self._check_response(url, response)
+        self._check_response(url, response, error_message_func=error_message_func)
 
         if content:
             return response.content
