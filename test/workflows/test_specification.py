@@ -88,6 +88,10 @@ class TestWorkflowSpecification(TestCase):
             )
         )
 
+        self.assertEqual(
+            workflow_specification.errors, TEST_WORKFLOW_SPECIFICATION["errors"]
+        )
+
         # WorkflowSpecificationStep (contents tested in TestWorkflowSpecificationStep)
         self.assertEqual(
             workflow_specification.steps.keys(),

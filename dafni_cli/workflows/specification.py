@@ -68,13 +68,19 @@ class WorkflowSpecification(ParserBaseObject):
     """Dataclass representing Workflows's specification
 
     Attributes:
+        errors (List[str]): List of any errors that occurred when fetching
+                            the data e.g. if a model doesn't have read
+                            permissions for the current user but is needed
+                            for a step
         steps (Dict[str, WorkflowSpecificationStep]): Dictionary of step
                                                       ID's and definitions
     """
 
+    errors: List[str]
     steps: Dict[str, WorkflowSpecificationStep]
 
     _parser_params: ClassVar[List[ParserParam]] = [
+        ParserParam("errors", "errors"),
         ParserParam(
             "steps",
             "steps",
