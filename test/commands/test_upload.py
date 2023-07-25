@@ -1576,6 +1576,49 @@ class TestUploadWorkflowParameterSet(TestCase):
         )
         self.assertEqual(result.exit_code, 1)
 
+    def test_upload_workflow_parameter_set_skipping_confirmation(
+        self,
+        mock_upload_parameter_set,
+        mock_validate_parameter_set_definition,
+        mock_DAFNISession,
+    ):
+        """Tests that the 'upload workflow-parameter-set' command works
+        correctly when given a -y flag to skip the confirmation"""
+
+        # SETUP
+        session = MagicMock()
+        mock_DAFNISession.return_value = session
+        runner = CliRunner()
+        parameter_set_id = "parameter-set-id"
+        mock_upload_parameter_set.return_value = {"id": parameter_set_id}
+
+        # CALL
+        with runner.isolated_filesystem():
+            with open("test_definition.json", "w", encoding="utf-8") as file:
+                file.write("test definition file")
+            result = runner.invoke(
+                upload.upload,
+                ["workflow-parameter-set", "test_definition.json", "-y"],
+            )
+
+        # ASSERT
+        mock_DAFNISession.assert_called_once()
+        mock_validate_parameter_set_definition.assert_called_once_with(
+            session, Path("test_definition.json")
+        )
+        mock_upload_parameter_set.assert_called_once_with(
+            session, Path("test_definition.json")
+        )
+
+        self.assertEqual(
+            result.output,
+            "Validating parameter set definition\n"
+            "Uploading parameter set\n"
+            "\nUpload successful\n"
+            f"Parameter set ID: {parameter_set_id}\n",
+        )
+        self.assertEqual(result.exit_code, 0)
+
     def test_upload_workflow_parameter_set_cancel(
         self,
         mock_upload_parameter_set,

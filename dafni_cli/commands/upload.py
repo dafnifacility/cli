@@ -477,22 +477,25 @@ def workflow(
 @click.argument(
     "definition", nargs=1, required=True, type=click.Path(exists=True, path_type=Path)
 )
+@confirmation_skip_option
 @click.pass_context
 def workflow_parameter_set(
     ctx: Context,
     definition: Path,
+    yes: bool,
 ):
     """Uploads workflow parameter set to DAFNI
 
     Args:
         ctx (Context): contains user session for authentication
         definition (Path): File path to the parameter set definition file
+        yes (bool): Used to skip confirmations before they are displayed
     """
     arguments = [
         ("Parameter set definition file path", definition),
     ]
     confirmation_message = "Confirm parameter set upload?"
-    argument_confirmation(arguments, confirmation_message)
+    argument_confirmation(arguments, confirmation_message, yes=yes)
 
     click.echo("Validating parameter set definition")
     try:
