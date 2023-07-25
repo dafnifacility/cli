@@ -36,6 +36,10 @@ class TestWorkflowSpecificationStep(TestCase):
             workflow_specification_step.name,
             TEST_WORKFLOW_SPECIFICATION_STEP["name"],
         )
+        self.assertEqual(
+            workflow_specification_step.inputs,
+            TEST_WORKFLOW_SPECIFICATION_STEP["inputs"],
+        )
 
         self.assertEqual(
             workflow_specification_step.metadata,
@@ -44,6 +48,11 @@ class TestWorkflowSpecificationStep(TestCase):
         self.assertEqual(
             workflow_specification_step.model_version,
             TEST_WORKFLOW_SPECIFICATION_STEP["model_version"],
+        )
+
+        self.assertEqual(
+            workflow_specification_step.iteration_mode,
+            TEST_WORKFLOW_SPECIFICATION_STEP["iteration_mode"],
         )
         self.assertEqual(
             workflow_specification_step.workflow_version,
@@ -61,8 +70,10 @@ class TestWorkflowSpecificationStep(TestCase):
 
         # Only test the parameters that are supposed to be missing as the
         # rest are tested above anyway
+        self.assertEqual(workflow_specification_step.inputs, [])
         self.assertEqual(workflow_specification_step.metadata, None)
         self.assertEqual(workflow_specification_step.model_version, None)
+        self.assertEqual(workflow_specification_step.iteration_mode, None)
         self.assertEqual(workflow_specification_step.workflow_version, None)
 
 

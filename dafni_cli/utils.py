@@ -219,3 +219,36 @@ def format_data_format(value: Optional[str]):
     if value is None:
         return OUTPUT_UNKNOWN_FORMAT
     return DATA_FORMATS.get(value, OUTPUT_UNKNOWN_FORMAT)
+
+
+def construct_validation_errors_from_dict(dictionary: dict, prefix="") -> List[str]:
+    """Convert a validation error dictionary into a list of errors
+
+    e.g.
+    {
+        "metadata": {
+            "description": [
+                "This field is required."
+            ]
+        }
+    }
+
+    becomes
+
+    [ "Error: ( metadata -> description ) - This field is required" ]
+    """
+    errors = []
+    for key, value in dictionary.items():
+        new_prefix = key
+        if prefix != "":
+            new_prefix = f"{prefix} -> {key}"
+
+        if isinstance(value, dict):
+            errors.extend(
+                construct_validation_errors_from_dict(value, prefix=new_prefix)
+            )
+        elif isinstance(value, list):
+            errors.append(f"Error: ( {new_prefix} ) - {value[0]}")
+        else:
+            errors.append(f"Error: ( {new_prefix} ) - {value}")
+    return errors

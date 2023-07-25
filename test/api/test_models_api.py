@@ -119,14 +119,6 @@ class TestModelsAPI(TestCase):
             models_api.validate_model_definition(
                 session, model_definition_path=model_definition_path
             )
-        self.assertEqual(
-            str(err.exception),
-            "Model definition validation failed with the following "
-            f"message:\n\n{session.get_error_message(session.put_request.return_value)}\n\n"
-            "See "
-            "https://docs.secure.dafni.rl.ac.uk/docs/how-to/models/how-to-write-a-model-definition-file/ "
-            "for guidance on writing a model definition file",
-        )
 
         # ASSERT
         open_mock.assert_called_once_with(model_definition_path, "rb")
@@ -134,6 +126,14 @@ class TestModelsAPI(TestCase):
             url=f"{NIMS_API_URL}/models/validate/",
             content_type=VALIDATE_MODEL_CT,
             data=open(model_definition_path, "rb"),
+        )
+        self.assertEqual(
+            str(err.exception),
+            "Model definition validation failed with the following "
+            f"message:\n\n{session.get_error_message(session.put_request.return_value)}\n\n"
+            "See "
+            "https://docs.secure.dafni.rl.ac.uk/docs/how-to/models/how-to-write-a-model-definition-file/ "
+            "for guidance on writing a model definition file",
         )
 
     def test_get_model_upload_urls(self):

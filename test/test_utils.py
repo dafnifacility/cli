@@ -536,3 +536,29 @@ class TestFormatDataFormat(TestCase):
     def test_formats_none_correctly(self):
         """Tests that passing None returns the correct value"""
         self.assertEqual(utils.format_data_format(None), OUTPUT_UNKNOWN_FORMAT)
+
+
+class TestConstructValidationErrorsFromDict(TestCase):
+    """Test class to test the construct_validation_errors_from_dict function"""
+
+    def test_formats_correctly(self):
+        """Tests construct_validation_errors_from_dict works correctly"""
+
+        dictionary = {
+            "metadata": {
+                "description": ["This field is required"],
+                "nested": {"error": "test"},
+            },
+            "more_errors": {"hello": "world"},
+        }
+
+        result = utils.construct_validation_errors_from_dict(dictionary)
+
+        self.assertEqual(
+            result,
+            [
+                "Error: ( metadata -> description ) - This field is required",
+                "Error: ( metadata -> nested -> error ) - test",
+                "Error: ( more_errors -> hello ) - world",
+            ],
+        )

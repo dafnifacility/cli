@@ -51,6 +51,8 @@ class ParserBaseObject:
     dataclass.
 
     Attributes:
+        _dict: Dictionary representation used to construct this object (useful
+               for outputs with --json options)
         _parser_params (List[ParserParam]): List of ParserParam structures -
                                 Each describes how to parse a dictionary to
                                 the subclass inheriting from this. This is
@@ -59,6 +61,7 @@ class ParserBaseObject:
                                 See ParserParams for more information/
     """
 
+    _dict: dict = {}
     _parser_params: ClassVar[List[ParserParam]] = []
 
     @staticmethod
@@ -139,7 +142,9 @@ class ParserBaseObject:
 
         # Convert to the dataclass type
         try:
-            return dataclass_type(**parsed_params)
+            parsed_obj = dataclass_type(**parsed_params)
+            parsed_obj._dict = dictionary
+            return parsed_obj
         except TypeError as err:
             # Slightly more descriptive error message
             raise TypeError(
@@ -162,6 +167,11 @@ class ParserBaseObject:
             ParserBaseObject.parse_from_dict(dataclass_type, dictionary)
             for dictionary in dictionaries
         ]
+
+    @property
+    def dictionary(self):
+        """Returns the dictionary used to assign the parameters in this object"""
+        return self._dict
 
 
 # Below follows some utility functions for parsing types

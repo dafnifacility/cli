@@ -1,3 +1,4 @@
+import copy
 from datetime import datetime
 from unittest import TestCase
 from unittest.mock import call, patch
@@ -5,6 +6,7 @@ from unittest.mock import call, patch
 from dateutil.tz import tzutc
 
 from dafni_cli.api.auth import Auth
+from dafni_cli.api.exceptions import ResourceNotFoundError
 from dafni_cli.api.parser import ParserBaseObject
 from dafni_cli.consts import (
     CONSOLE_WIDTH,
@@ -32,6 +34,7 @@ from dafni_cli.workflows.workflow import (
     parse_workflow,
     parse_workflows,
 )
+from test.fixtures.workflow_parameter_set import TEST_WORKFLOW_PARAMETER_SET
 
 from test.fixtures.workflows import (
     TEST_WORKFLOW,
@@ -220,8 +223,11 @@ class TestWorkflow(TestCase):
         # SETUP
         workflow: Workflow = parse_workflow(TEST_WORKFLOW)
 
-        # Two identical parameter sets
-        workflow.parameter_sets.append(workflow.parameter_sets[0])
+        # Two (almost) identical parameter sets
+        workflow.parameter_sets.append(copy.deepcopy(workflow.parameter_sets[0]))
+
+        workflow.parameter_sets[0].publication_date = datetime(2023, 4, 4)
+        workflow.parameter_sets[1].publication_date = datetime(2023, 2, 4)
 
         # CALL
         result = workflow.format_parameter_sets()
@@ -235,14 +241,20 @@ class TestWorkflow(TestCase):
                 TABLE_PUBLISHED_DATE_HEADER,
             ],
             rows=[
+                # Should have oldest first
+                [
+                    "0a0a0a0a-0a00-0a00-a000-0a0a0000000a",
+                    "First parameter set",
+                    "Joel Davies",
+                    "2023-02-04",
+                ],
                 [
                     "0a0a0a0a-0a00-0a00-a000-0a0a0000000a",
                     "First parameter set",
                     "Joel Davies",
                     "2023-04-04",
                 ],
-            ]
-            * 2,
+            ],
         )
         self.assertEqual(result, mock_format_table.return_value)
 
@@ -447,3 +459,31 @@ class TestWorkflow(TestCase):
             ],
         )
         mock_click.echo.assert_called_once_with(mock_format_table.return_value)
+
+    def test_get_parameter_set(self):
+        """Tests get_parameter_set works correctly"""
+
+        # SETUP
+        workflow = parse_workflow(TEST_WORKFLOW)
+
+        # CALL
+        result = workflow.get_parameter_set(TEST_WORKFLOW_PARAMETER_SET["id"])
+
+        # ASSERT
+        self.assertEqual(result, workflow.parameter_sets[0])
+
+    def test_get_parameter_set_when_not_found(self):
+        """Tests get_parameter_set raises an error when the parameter set
+        isn't found in the workflow"""
+
+        # SETUP
+        workflow = parse_workflow(TEST_WORKFLOW)
+        parameter_set_id = "invalid_id"
+
+        # CALL & ASSERT
+        with self.assertRaises(ResourceNotFoundError) as err:
+            workflow.get_parameter_set(parameter_set_id)
+        self.assertEqual(
+            str(err.exception),
+            f"Unable to find a parameter set with id '{parameter_set_id}'",
+        )

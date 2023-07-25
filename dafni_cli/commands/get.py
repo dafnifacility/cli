@@ -13,6 +13,7 @@ from dafni_cli.commands.helpers import (
     cli_get_model,
     cli_get_workflow,
     cli_get_workflow_instance,
+    cli_get_workflow_parameter_set,
 )
 from dafni_cli.commands.options import filter_flag_option
 from dafni_cli.consts import (
@@ -572,7 +573,12 @@ def workflow_instances(
                     TABLE_FINISHED_HEADER,
                     TABLE_STATUS_HEADER,
                 ],
-                rows=[instance.get_brief_details() for instance in filtered_instances],
+                rows=[
+                    instance.get_brief_details()
+                    for instance in sorted(
+                        filtered_instances, key=lambda inst: inst.finished_time
+                    )
+                ],
             )
         )
 
@@ -606,5 +612,42 @@ def workflow_instance(
     if json:
         print_json(workflow_instance_dict)
     else:
-        workflow_instance = parse_workflow_instance(workflow_instance_dict)
-        workflow_instance.output_details()
+        workflow_instance_obj = parse_workflow_instance(workflow_instance_dict)
+        workflow_instance_obj.output_details()
+
+
+@get.command(help="Display information about a workflow's parameter set")
+@click.argument("workflow-version-id", required=True)
+@click.argument("parameter-set-id", required=True)
+@click.option(
+    "--json/--pretty",
+    "-j/-p",
+    default=False,
+    help="Prints raw json returned from API. Default: -p",
+    type=bool,
+)
+@click.pass_context
+def workflow_parameter_set(
+    ctx: Context,
+    workflow_version_id: str,
+    parameter_set_id: str,
+    json: bool,
+):
+    """Display details of a parameter set found in a particular workflow
+
+    Args:
+        ctx (context): Contains user session for authentication
+        workflow_version_id (str): Version ID of the workflow the parameter
+                                   set is found in
+        parameter_set_id (str): ID of the parameter set
+        json (bool): Whether to print the raw json returned by the DAFNI API
+    """
+    workflow_inst, parameter_set = cli_get_workflow_parameter_set(
+        ctx.obj["session"], workflow_version_id, parameter_set_id
+    )
+
+    # Output
+    if json:
+        print_json(parameter_set.dictionary)
+    else:
+        parameter_set.output_details(workflow_inst.spec)

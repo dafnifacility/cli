@@ -1,11 +1,12 @@
 from dataclasses import dataclass
 from datetime import datetime
-from typing import ClassVar, List, Optional
+from typing import ClassVar, List, Optional, Tuple
 
 import click
 from tabulate import tabulate
 
 from dafni_cli.api.auth import Auth
+from dafni_cli.api.exceptions import ResourceNotFoundError
 from dafni_cli.api.parser import ParserBaseObject, ParserParam, parse_datetime
 from dafni_cli.consts import (
     CONSOLE_WIDTH,
@@ -201,7 +202,10 @@ class Workflow(ParserBaseObject):
                     parameter_set.metadata.publisher,
                     format_datetime(parameter_set.publication_date, include_time=False),
                 ]
-                for parameter_set in self.parameter_sets
+                for parameter_set in sorted(
+                    self.parameter_sets,
+                    key=lambda param_set: param_set.publication_date,
+                )
             ],
         )
 
@@ -220,11 +224,17 @@ class Workflow(ParserBaseObject):
                 TABLE_FINISHED_HEADER,
                 TABLE_STATUS_HEADER,
             ],
-            rows=[instance.get_brief_details() for instance in self.instances],
+            rows=[
+                instance.get_brief_details()
+                for instance in sorted(
+                    self.instances,
+                    key=lambda inst: inst.finished_time,
+                )
+            ],
         )
 
     def output_details(self):
-        """Prints information about the workflow to command line (used for get
+        """Prints information about this workflow to command line (used for get
         workflow)"""
 
         click.echo(
@@ -295,6 +305,23 @@ class Workflow(ParserBaseObject):
                 ],
                 rows=table_rows,
             )
+        )
+
+    def get_parameter_set(self, parameter_set_id: str) -> WorkflowParameterSet:
+        """Returns a parameter set with a given ID
+
+        Args:
+            parameters_set_id (str): ID of the parameter set to obtain
+
+        Raises:
+            ResourceNotFoundError: If a parameter set with the given id wasn't found
+        """
+
+        for parameter_set in self.parameter_sets:
+            if parameter_set.parameter_set_id == parameter_set_id:
+                return parameter_set
+        raise ResourceNotFoundError(
+            f"Unable to find a parameter set with id '{parameter_set_id}'"
         )
 
 

@@ -97,7 +97,7 @@ TEST_DICT_DATA2: dict = {
     ],
 }
 
-TEST_DICT_DATA_list: List[dict] = [TEST_DICT_DATA, TEST_DICT_DATA2]
+TEST_DICT_DATA_LIST: List[dict] = [TEST_DICT_DATA, TEST_DICT_DATA2]
 
 
 class TestParser(TestCase):
@@ -109,7 +109,7 @@ class TestParser(TestCase):
         parsed_obj = ParserBaseObject.parse_from_dict(
             TestDataclassEmpty, TEST_DICT_DATA
         )
-        self.assertEqual(parsed_obj.__dict__, {})
+        self.assertEqual(parsed_obj.__dict__, {"_dict": TEST_DICT_DATA})
 
     def test_parse_from_dict(self):
         """Tests that parse_from_dict parses basic data"""
@@ -117,6 +117,7 @@ class TestParser(TestCase):
             TestDataclass1,
             TEST_DICT_DATA,
         )
+        self.assertEqual(parsed_obj.dictionary, TEST_DICT_DATA)
         self.assertEqual(
             parsed_obj,
             TestDataclass1(
@@ -134,6 +135,7 @@ class TestParser(TestCase):
             TestDataclass2,
             TEST_DICT_DATA,
         )
+        self.assertEqual(parsed_obj.dictionary, TEST_DICT_DATA)
         self.assertEqual(
             parsed_obj,
             TestDataclass2(
@@ -154,9 +156,10 @@ class TestParser(TestCase):
         correctly"""
         parsed_obj_list = ParserBaseObject.parse_from_dict_list(
             TestDataclass1,
-            TEST_DICT_DATA_list,
+            TEST_DICT_DATA_LIST,
         )
         self.assertEqual(len(parsed_obj_list), 2)
+        self.assertEqual(parsed_obj_list[0].dictionary, TEST_DICT_DATA_LIST[0])
         self.assertEqual(
             parsed_obj_list[0],
             TestDataclass1(
@@ -166,6 +169,7 @@ class TestParser(TestCase):
                 value4=TEST_DICT_DATA["value4"],
             ),
         )
+        self.assertEqual(parsed_obj_list[1].dictionary, TEST_DICT_DATA_LIST[1])
         self.assertEqual(
             parsed_obj_list[1],
             TestDataclass1(
@@ -181,9 +185,10 @@ class TestParser(TestCase):
         correctly when nested"""
         parsed_obj_list = ParserBaseObject.parse_from_dict_list(
             TestDataclass2,
-            TEST_DICT_DATA_list,
+            TEST_DICT_DATA_LIST,
         )
         self.assertEqual(len(parsed_obj_list), 2)
+        self.assertEqual(parsed_obj_list[0].dictionary, TEST_DICT_DATA_LIST[0])
         self.assertEqual(
             parsed_obj_list[0],
             TestDataclass2(
@@ -198,6 +203,7 @@ class TestParser(TestCase):
                 ),
             ),
         )
+        self.assertEqual(parsed_obj_list[1].dictionary, TEST_DICT_DATA_LIST[1])
         self.assertEqual(
             parsed_obj_list[1],
             TestDataclass2(

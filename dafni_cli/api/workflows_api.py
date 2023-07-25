@@ -11,11 +11,18 @@ import json
 from pathlib import Path
 from typing import List, Optional, Tuple
 
+import requests
 from requests import Response
 
-from dafni_cli.api.exceptions import EndpointNotFoundError, ResourceNotFoundError
+from dafni_cli.api.exceptions import (
+    DAFNIError,
+    EndpointNotFoundError,
+    ResourceNotFoundError,
+    ValidationError,
+)
 from dafni_cli.api.session import DAFNISession
 from dafni_cli.consts import NIMS_API_URL
+from dafni_cli.utils import construct_validation_errors_from_dict
 
 
 def get_all_workflows(session: DAFNISession) -> List[dict]:
@@ -120,3 +127,99 @@ def delete_workflow_version(session: DAFNISession, version_id: str) -> Response:
     """
     url = f"{NIMS_API_URL}/workflows/{version_id}/"
     return session.delete_request(url)
+
+
+def _validate_parameter_set_definition_error_message_func(session: DAFNISession):
+    """Custom error message parser used here only because the endpoint may
+    also return a dictionary with errors e.g.
+
+    {
+        "api_version": [
+            "This field is required."
+        ],
+        "kind": [
+            "This field is required."
+        ],
+        "metadata": [
+            "This field is required."
+        ]
+    }
+
+    In such a case, we first check for any regular errors, and then use
+    this dictionary to form the error string if there aren't any
+    """
+
+    def error_message_func(response: requests.Response):
+        try:
+            error_message = session.get_error_message(response)
+
+            if error_message is None:
+                decoded_response = response.json()
+                error_message = "Found the following errors in the definition:\n"
+                error_message += "\n".join(
+                    construct_validation_errors_from_dict(decoded_response)
+                )
+
+            return error_message
+        except requests.JSONDecodeError:
+            return None
+
+    return error_message_func
+
+
+def validate_parameter_set_definition(
+    session: DAFNISession, parameter_set_definition_path: Path
+):
+    """Validates a parameter set definition file
+
+    Args:
+        session (DAFNISession): User session
+        parameter_set_definition_path (Path): Path to the parameter set
+                                              definition file
+
+    Raises:
+        ValidationError: If the validation fails
+    """
+
+    url = f"{NIMS_API_URL}/workflows/parameter-set/validate/"
+    with open(parameter_set_definition_path, "rb") as file:
+        # For this endpoint we assume any error with a message is a validation
+        # error
+        try:
+            session.post_request(
+                url=url,
+                data=file,
+                error_message_func=_validate_parameter_set_definition_error_message_func(
+                    session
+                ),
+            )
+        except DAFNIError as err:
+            raise ValidationError(
+                "Parameter set definition validation failed with the following "
+                f"message:\n\n{str(err)}"
+            ) from err
+
+
+def upload_parameter_set(
+    session: DAFNISession, parameter_set_definition_path: Path
+) -> dict:
+    """Uploads a parameter set
+
+    Args:
+        session (DAFNISession): User session
+        parameter_set_definition_path (Path): Path to the parameter set
+                                              definition file
+
+    Returns:
+        dict: JSON from response returned in post request (Forms a
+              WorkflowParameterSet)
+    """
+    url = f"{NIMS_API_URL}/workflows/parameter-set/upload/"
+    with open(parameter_set_definition_path, "rb") as file:
+        return session.post_request(
+            url=url,
+            data=file,
+            error_message_func=_validate_parameter_set_definition_error_message_func(
+                session
+            ),
+        )
