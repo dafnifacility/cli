@@ -167,3 +167,64 @@ class TestCliGetWorkflowInstance(TestCase):
         mock_get_workflow_instance.assert_called_once_with(mock_session, version_id)
         mock_click.echo.assert_called_once_with(error)
         self.assertEqual(err.exception.code, 1)
+
+
+@patch("dafni_cli.commands.helpers.parse_workflow")
+@patch("dafni_cli.commands.helpers.cli_get_workflow")
+@patch("dafni_cli.commands.helpers.click")
+class TestCliGetWorkflowParameterSet(TestCase):
+    """Test class to test cli_get_workflow_parameter_set"""
+
+    def test_returns_correctly(
+        self, mock_click, mock_cli_get_workflow, mock_parse_workflow
+    ):
+        """Tests the function returns the workflow parameter set when found"""
+        # SETUP
+        mock_session = MagicMock()
+        workflow_version_id = MagicMock()
+        parameter_set_id = MagicMock()
+        workflow_dict = MagicMock()
+        workflow = MagicMock()
+        mock_cli_get_workflow.return_value = workflow_dict
+        mock_parse_workflow.return_value = workflow
+
+        # CALL
+        result = helpers.cli_get_workflow_parameter_set(
+            mock_session, workflow_version_id, parameter_set_id
+        )
+
+        # ASSERT
+        mock_cli_get_workflow.assert_called_once_with(mock_session, workflow_version_id)
+        mock_parse_workflow.assert_called_once_with(workflow_dict)
+        workflow.get_parameter_set.assert_called_once_with(parameter_set_id)
+        self.assertEqual(result, (workflow, workflow.get_parameter_set.return_value))
+        mock_click.echo.assert_not_called()
+
+    def test_resource_not_found(
+        self, mock_click, mock_cli_get_workflow, mock_parse_workflow
+    ):
+        """Tests the function prints an error message if the workflow parameter
+        set is not found"""
+        # SETUP
+        mock_session = MagicMock()
+        workflow_version_id = MagicMock()
+        parameter_set_id = MagicMock()
+        workflow_dict = MagicMock()
+        workflow = MagicMock()
+        error = ResourceNotFoundError("Some error message")
+        workflow.get_parameter_set.side_effect = error
+        mock_cli_get_workflow.return_value = workflow_dict
+        mock_parse_workflow.return_value = workflow
+
+        # CALL
+        with self.assertRaises(SystemExit) as err:
+            helpers.cli_get_workflow_parameter_set(
+                mock_session, workflow_version_id, parameter_set_id
+            )
+
+        # ASSERT
+        mock_cli_get_workflow.assert_called_once_with(mock_session, workflow_version_id)
+        mock_parse_workflow.assert_called_once_with(workflow_dict)
+        workflow.get_parameter_set.assert_called_once_with(parameter_set_id)
+        mock_click.echo.assert_called_once_with(error)
+        self.assertEqual(err.exception.code, 1)

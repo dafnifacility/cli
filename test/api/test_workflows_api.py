@@ -2,9 +2,19 @@ from pathlib import Path
 from unittest import TestCase
 from unittest.mock import MagicMock, mock_open, patch
 
+import requests
+
 from dafni_cli.api import workflows_api
-from dafni_cli.api.exceptions import EndpointNotFoundError, ResourceNotFoundError
+from dafni_cli.api.exceptions import (
+    DAFNIError,
+    EndpointNotFoundError,
+    ResourceNotFoundError,
+    ValidationError,
+)
 from dafni_cli.consts import NIMS_API_URL
+from dafni_cli.utils import construct_validation_errors_from_dict
+
+from test.fixtures.session import create_mock_error_response, create_mock_response
 
 
 class TestWorkflowsAPI(TestCase):
@@ -190,3 +200,164 @@ class TestWorkflowsAPI(TestCase):
             f"{NIMS_API_URL}/workflows/{version_id}/",
         )
         self.assertEqual(result, session.delete_request.return_value)
+
+    def test_validate_parameter_set_definition_error_message_func_when_error_found(
+        self,
+    ):
+        """Tests that _validate_parameter_set_definition_error_message_func
+        functions as expected when the session object returns an error message"""
+
+        # SETUP
+        session = MagicMock()
+        session.get_error_message = MagicMock()
+        error_message_func = (
+            workflows_api._validate_parameter_set_definition_error_message_func(session)
+        )
+        mock_response = create_mock_error_response()
+
+        # CALL
+        error_message = error_message_func(mock_response)
+
+        # ASSERT
+        self.assertEqual(error_message, session.get_error_message.return_value)
+
+    def test_validate_parameter_set_definition_error_message_func_validation_error(
+        self,
+    ):
+        """Tests that _validate_parameter_set_definition_error_message_func
+        functions as expected when validation errors are returned under a
+        dictionary similar to the definition that would have been uploaded
+        """
+
+        # SETUP
+        session = MagicMock()
+        session.get_error_message = MagicMock(return_value=None)
+        error_message_func = (
+            workflows_api._validate_parameter_set_definition_error_message_func(session)
+        )
+        mock_response = create_mock_response(
+            400,
+            {
+                "api_version": ["This field is required."],
+                "kind": ["This field is required."],
+                "metadata": ["This field is required."],
+            },
+        )
+
+        # CALL
+        error_message = error_message_func(mock_response)
+
+        # ASSERT
+        self.assertEqual(
+            error_message,
+            "Found the following errors in the definition:\n"
+            + "\n".join(construct_validation_errors_from_dict(mock_response.json())),
+        )
+
+    def test_validate_parameter_set_definition_error_message_func_handles_decode_error(
+        self,
+    ):
+        """Tests _validate_parameter_set_definition_error_message_func when
+        JSON decoding fails"""
+
+        # SETUP
+        session = MagicMock()
+        session.get_error_message = MagicMock(return_value=None)
+        error_message_func = (
+            workflows_api._validate_parameter_set_definition_error_message_func(session)
+        )
+        mock_response = create_mock_error_response()
+        mock_response.json.side_effect = requests.JSONDecodeError("", "", 0)
+
+        # CALL
+        error_message = error_message_func(mock_response)
+
+        # ASSERT
+        self.assertEqual(error_message, None)
+
+    @patch("builtins.open", new_callable=mock_open, read_data="definition file")
+    @patch(
+        "dafni_cli.api.workflows_api._validate_parameter_set_definition_error_message_func"
+    )
+    def test_validate_parameter_set_definition(
+        self, mock_error_message_func, open_mock
+    ):
+        """Tests that validate_parameter_set_definition works as expected
+        when the definition is found to be valid"""
+
+        # SETUP
+        session = MagicMock()
+        parameter_set_definition_path = Path("path/to/file")
+        session.post_request.return_value = create_mock_response(200)
+
+        # CALL
+        workflows_api.validate_parameter_set_definition(
+            session, parameter_set_definition_path=parameter_set_definition_path
+        )
+
+        # ASSERT
+        open_mock.assert_called_once_with(parameter_set_definition_path, "rb")
+        session.post_request.assert_called_once_with(
+            url=f"{NIMS_API_URL}/workflows/parameter-set/validate/",
+            data=open(parameter_set_definition_path, "rb"),
+            error_message_func=mock_error_message_func.return_value,
+        )
+
+    @patch("builtins.open", new_callable=mock_open, read_data="definition file")
+    @patch(
+        "dafni_cli.api.workflows_api._validate_parameter_set_definition_error_message_func"
+    )
+    def test_validate_parameter_set_definition_when_def_invalid(
+        self, mock_error_message_func, open_mock
+    ):
+        """Tests that validate_parameter_set_definition works as expected
+        when the definition is found to be invalid"""
+
+        # SETUP
+        session = MagicMock()
+        parameter_set_definition_path = Path("path/to/file")
+        error = DAFNIError("Some error message")
+        session.post_request.side_effect = error
+
+        # CALL
+        with self.assertRaises(ValidationError) as err:
+            workflows_api.validate_parameter_set_definition(
+                session, parameter_set_definition_path=parameter_set_definition_path
+            )
+
+        # ASSERT
+        open_mock.assert_called_once_with(parameter_set_definition_path, "rb")
+        session.post_request.assert_called_once_with(
+            url=f"{NIMS_API_URL}/workflows/parameter-set/validate/",
+            data=open(parameter_set_definition_path, "rb"),
+            error_message_func=mock_error_message_func.return_value,
+        )
+        self.assertEqual(
+            str(err.exception),
+            "Parameter set definition validation failed with the following "
+            f"message:\n\n{str(error)}",
+        )
+
+    @patch("builtins.open", new_callable=mock_open, read_data="definition file")
+    @patch(
+        "dafni_cli.api.workflows_api._validate_parameter_set_definition_error_message_func"
+    )
+    def test_upload_parameter_set(self, mock_error_message_func, open_mock):
+        """Tests that upload_parameter_set works as expected"""
+
+        # SETUP
+        session = MagicMock()
+        parameter_set_definition_path = Path("path/to/file")
+
+        # CALL
+        workflows_api.upload_parameter_set(
+            session, parameter_set_definition_path=parameter_set_definition_path
+        )
+
+        # ASSERT
+        open_mock.assert_called_once_with(parameter_set_definition_path, "rb")
+        session.post_request.assert_called_once_with(
+            url=f"{NIMS_API_URL}/workflows/parameter-set/upload/",
+            data=open(parameter_set_definition_path, "rb"),
+            error_message_func=mock_error_message_func.return_value,
+        )

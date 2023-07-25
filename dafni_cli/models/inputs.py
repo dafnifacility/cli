@@ -103,9 +103,14 @@ class ModelInputs(ParserBaseObject):
         """Formats input parameters for a model into a string which prints as
            a table
 
+        If there aren't any parameters will return a string stating that
+
         Returns:
             str: Formatted string that will appear as a table when printed
         """
+        if not self.parameters:
+            return "No parameters"
+
         return format_table(
             headers=[
                 TABLE_TITLE_HEADER,
@@ -128,7 +133,7 @@ class ModelInputs(ParserBaseObject):
                     parameter.default,
                     "Yes" if parameter.required else "No",
                 ]
-                for parameter in self.parameters
+                for parameter in sorted(self.parameters, key=lambda param: param.name)
             ],
             max_column_widths=[
                 None,
@@ -146,36 +151,39 @@ class ModelInputs(ParserBaseObject):
         """Formats input data slots for a model into a string which prints as
            a table
 
+        If there aren't any dataslots will return a string stating that
+
         Returns:
-            Optional[str]: str: Formatted string that will appear as a table
-                                when printed
+            Optional[str]: Formatted string that will appear as a table when
+                           printed
         """
 
-        if self.dataslots:
-            return format_table(
-                headers=[
-                    TABLE_TITLE_HEADER,
-                    TABLE_DESCRIPTION_HEADER,
-                    TABLE_PATH_IN_CONTAINER_HEADER,
-                    TABLE_DEFAULT_DATASETS_HEADER,
-                    TABLE_REQUIRED_HEADER,
-                ],
-                rows=[
-                    [
-                        dataslot.name,
-                        dataslot.description,
-                        dataslot.path,
-                        "\n".join(dataslot.defaults),
-                        "Yes" if dataslot.required else "No",
-                    ]
-                    for dataslot in self.dataslots
-                ],
-                max_column_widths=[
-                    None,
-                    TABLE_DESCRIPTION_MAX_COLUMN_WIDTH,
-                    None,
-                    None,
-                    None,
-                ],
-            )
-        return None
+        if not self.dataslots:
+            return "No dataslots"
+
+        return format_table(
+            headers=[
+                TABLE_TITLE_HEADER,
+                TABLE_DESCRIPTION_HEADER,
+                TABLE_PATH_IN_CONTAINER_HEADER,
+                TABLE_DEFAULT_DATASETS_HEADER,
+                TABLE_REQUIRED_HEADER,
+            ],
+            rows=[
+                [
+                    dataslot.name,
+                    dataslot.description,
+                    dataslot.path,
+                    "\n".join(dataslot.defaults),
+                    "Yes" if dataslot.required else "No",
+                ]
+                for dataslot in sorted(self.dataslots, key=lambda dslot: dslot.name)
+            ],
+            max_column_widths=[
+                None,
+                TABLE_DESCRIPTION_MAX_COLUMN_WIDTH,
+                None,
+                None,
+                None,
+            ],
+        )

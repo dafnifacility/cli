@@ -1,10 +1,12 @@
 TEST_WORKFLOW_SPECIFICATION_STEP = {
     "dependencies": ["0a0a0a0a-0a00-0a00-a000-0a0a0000000b"],
+    "inputs": ["0a0a0a0a-0a00-0a00-a000-0a0a0000000e"],
     "kind": "publisher",
     "name": "some-name",
     "position": {"x": 700, "y": 50},
     "metadata": {"some": "dict"},
     "model_version": "0a0a0a0a-0a00-0a00-a000-0a0a0000000c",
+    "iteration_mode": "parallel",
     "workflow_version": "0a0a0a0a-0a00-0a00-a000-0a0a0000000d",
 }
 
@@ -107,6 +109,14 @@ TEST_WORKFLOW_SPECIFICATION = {
             "position": {"x": 450, "y": 50},
         },
         "0a0a0a0a-0a00-0a00-a000-0a0a0000000d": {
+            "dependencies": [],
+            "iteration_mode": "parallel",
+            "kind": "loop",
+            "name": "test_loop",
+            "position": {"x": 192, "y": 58},
+            "workflow_version": "0a0a0a0a-0a00-0a00-a000-0a0a0000000e",
+        },
+        "0a0a0a0a-0a00-0a00-a000-0a0a0000000e": {
             "dependencies": [],
             "iteration_mode": "parallel",
             "kind": "loop",

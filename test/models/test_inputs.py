@@ -140,7 +140,9 @@ class TestInputs(TestCase):
             copy.deepcopy(model_inputs.parameters[0]),
         ]
         model_inputs.parameters[0].required = True
+        model_inputs.parameters[0].name = "YEAR"
         model_inputs.parameters[1].required = False
+        model_inputs.parameters[1].name = "ANOTHER_YEAR"
 
         # CALL
         result = model_inputs.format_parameters()
@@ -158,15 +160,16 @@ class TestInputs(TestCase):
                 TABLE_REQUIRED_HEADER,
             ],
             rows=[
+                # Should be in alphabetical order of names
                 [
                     "Year input",
                     "Year input description",
-                    "YEAR",
+                    "ANOTHER_YEAR",
                     "integer",
                     2016,
                     2025,
                     2018,
-                    "Yes",
+                    "No",
                 ],
                 [
                     "Year input",
@@ -176,7 +179,7 @@ class TestInputs(TestCase):
                     2016,
                     2025,
                     2018,
-                    "No",
+                    "Yes",
                 ],
             ],
             max_column_widths=[
@@ -192,6 +195,20 @@ class TestInputs(TestCase):
         )
         self.assertEqual(result, mock_format_table.return_value)
 
+    def test_format_parameters_if_there_are_no_parameters(self):
+        """Tests format_parameters works correctly when there are no parameters"""
+        # SETUP
+        model_inputs: ModelInputs = ParserBaseObject.parse_from_dict(
+            ModelInputs, TEST_MODEL_INPUTS_DEFAULT
+        )
+        model_inputs.parameters = []
+
+        # CALL
+        result = model_inputs.format_parameters()
+
+        # ASSERT
+        self.assertEqual(result, "No parameters")
+
     @patch("dafni_cli.models.inputs.format_table")
     def test_format_dataslots_if_it_exists(self, mock_format_table):
         """Tests format_dataslots works correctly"""
@@ -206,7 +223,9 @@ class TestInputs(TestCase):
             copy.deepcopy(model_inputs.dataslots[0]),
         ]
         model_inputs.dataslots[0].required = True
+        model_inputs.dataslots[0].name = "Inputs"
         model_inputs.dataslots[1].required = False
+        model_inputs.dataslots[1].name = "Another input"
 
         # CALL
         result = model_inputs.format_dataslots()
@@ -221,19 +240,20 @@ class TestInputs(TestCase):
                 TABLE_REQUIRED_HEADER,
             ],
             rows=[
+                # Should be in alphabetical order of names
                 [
-                    "Inputs",
+                    "Another input",
                     "Dataslot description",
                     "inputs/",
                     "0a0a0a0a-0a00-0a00-a000-0a0a0000000f",
-                    "Yes",
+                    "No",
                 ],
                 [
                     "Inputs",
                     "Dataslot description",
                     "inputs/",
                     "0a0a0a0a-0a00-0a00-a000-0a0a0000000f",
-                    "No",
+                    "Yes",
                 ],
             ],
             max_column_widths=[
@@ -293,7 +313,7 @@ class TestInputs(TestCase):
         )
         self.assertEqual(result, mock_format_table.return_value)
 
-    def test_none_returned_if_there_are_no_dataslots(self):
+    def test_format_dataslots_if_there_are_no_dataslots(self):
         """Tests format_dataslots works correctly when there are no dataslots"""
         # SETUP
         model_inputs: ModelInputs = ParserBaseObject.parse_from_dict(
@@ -301,7 +321,7 @@ class TestInputs(TestCase):
         )
 
         # CALL
-        dataslot_string = model_inputs.format_dataslots()
+        result = model_inputs.format_dataslots()
 
         # ASSERT
-        self.assertEqual(dataslot_string, None)
+        self.assertEqual(result, "No dataslots")
