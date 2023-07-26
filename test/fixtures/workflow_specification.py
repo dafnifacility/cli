@@ -150,5 +150,5 @@ TEST_WORKFLOW_SPECIFICATION = {
             "visualisation_description": "Test visualisation",
             "visualisation_title": "test-vis",
         },
-    }
+    },
 }
