@@ -251,3 +251,20 @@ def filter_flag_option(*param_decls: str, help: str):
         return function
 
     return decorator
+
+
+def json_option(function):
+    """Decorator function for adding a --json click option for printing
+    json output
+
+    Flag will be named --json/--pretty and will be True or False
+    """
+    function = click.option(
+        "--json/--pretty",
+        "-j/-p",
+        default=False,
+        help="Prints raw json returned from API. Default: -p",
+        type=bool,
+    )(function)
+
+    return function
