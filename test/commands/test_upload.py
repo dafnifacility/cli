@@ -250,7 +250,7 @@ class TestUploadDataset(TestCase):
         # ASSERT
         mock_DAFNISession.assert_called_once()
         mock_upload_dataset.assert_called_once_with(
-            session, {}, (Path("test_dataset.txt"),)
+            session, {}, (Path("test_dataset.txt"),), json=False
         )
 
         self.assertEqual(
@@ -299,6 +299,7 @@ class TestUploadDataset(TestCase):
             session,
             {},
             (Path("test_dataset1.txt"), Path("test_dataset2.txt")),
+            json=False,
         )
 
         self.assertEqual(
@@ -424,6 +425,7 @@ class TestUploadDatasetVersion(TestCase):
             dataset_id=metadata.dataset_id,
             metadata=mock_modify_dataset_metadata_for_upload.return_value,
             file_paths=(Path(file_path),),
+            json=False,
         )
 
         self.assertEqual(
@@ -500,6 +502,7 @@ class TestUploadDatasetVersion(TestCase):
             dataset_id=metadata.dataset_id,
             metadata=mock_modify_dataset_metadata_for_upload.return_value,
             file_paths=(Path(file_paths[0]), Path(file_paths[1])),
+            json=False,
         )
 
         self.assertEqual(
@@ -747,6 +750,7 @@ class TestUploadDatasetVersion(TestCase):
             dataset_id=metadata.dataset_id,
             metadata=mock_modify_dataset_metadata_for_upload.return_value,
             file_paths=(Path(file_path),),
+            json=False,
         )
 
         self.assertEqual(
@@ -829,6 +833,7 @@ class TestUploadDatasetMetadata(TestCase):
             dataset_id=metadata.dataset_id,
             version_id=dataset_version_id,
             metadata=mock_modify_dataset_metadata_for_upload.return_value,
+            json=False,
         )
 
         self.assertEqual(
@@ -993,6 +998,7 @@ class TestUploadDatasetMetadata(TestCase):
             dataset_id=metadata.dataset_id,
             version_id=dataset_version_id,
             metadata=mock_modify_dataset_metadata_for_upload.return_value,
+            json=False,
         )
 
         self.assertEqual(

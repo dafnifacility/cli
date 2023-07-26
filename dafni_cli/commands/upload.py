@@ -1,4 +1,4 @@
-import json
+import json as json_lib
 from datetime import datetime
 from pathlib import Path
 from typing import List, Optional, Tuple
@@ -125,28 +125,37 @@ def model(
     required=True,
     type=click.Path(exists=True, path_type=Path),
 )
+@json_option
 @click.pass_context
-def dataset(ctx: Context, metadata_path: Path, files: List[Path]):
+def dataset(
+    ctx: Context,
+    metadata_path: Path,
+    files: List[Path],
+    json: bool,
+):
     """Uploads a new Dataset to DAFNI from metadata and dataset files.
 
     Args:
         ctx (Context): contains user session for authentication
         metadata_path (Path): Dataset metadata file path
         files (List[Path]): Dataset data files
+        json (bool): Whether to print the raw json returned by the DAFNI API
     """
-    # Confirm upload details
-    arguments = [("Dataset metadata file path", metadata_path)] + [
-        ("Dataset file path", file) for file in files
-    ]
-    confirmation_message = "Confirm dataset upload?"
-    argument_confirmation(arguments, confirmation_message)
+    # TODO: Modify once -y option added
+    if not json:
+        # Confirm upload details
+        arguments = [("Dataset metadata file path", metadata_path)] + [
+            ("Dataset file path", file) for file in files
+        ]
+        confirmation_message = "Confirm dataset upload?"
+        argument_confirmation(arguments, confirmation_message)
 
     # Obtain the metadata
     with open(metadata_path, "r", encoding="utf-8") as metadata_file:
-        metadata = json.load(metadata_file)
+        metadata = json_lib.load(metadata_file)
 
     # Upload the dataset
-    upload_dataset(ctx.obj["session"], metadata, files)
+    upload_dataset(ctx.obj["session"], metadata, files, json=json)
 
 
 ###############################################################################
@@ -172,6 +181,7 @@ def dataset(ctx: Context, metadata_path: Path, files: List[Path]):
     help="When given will only save the existing metadata to the specified file allowing it to be modified.",
 )
 @dataset_metadata_common_options(all_optional=True)
+@json_option
 @click.pass_context
 def dataset_version(
     ctx: Context,
@@ -198,6 +208,7 @@ def dataset_version(
     license: Optional[str],
     rights: Optional[str],
     version_message: Optional[str],
+    json: bool,
 ):
     """Uploads a new version of a Dataset to DAFNI from dataset files
 
@@ -208,6 +219,7 @@ def dataset_version(
         files (List[Path]): Dataset data files
         metadata (Optional[Path]): Dataset metadata file
         save (Optional[Path]): Path to save existing metadata in for editing
+        json (bool): Whether to print the raw json returned by the DAFNI API
 
         For the rest see dataset_metadata_common_options in options.py
     """
@@ -248,22 +260,24 @@ def dataset_version(
 
     if save:
         with open(save, "w", encoding="utf-8") as file:
-            file.write(json.dumps(dataset_metadata_dict, indent=4, sort_keys=True))
+            file.write(json_lib.dumps(dataset_metadata_dict, indent=4, sort_keys=True))
 
         click.echo(f"Saved existing dataset metadata to {save}")
     else:
-        # Confirm upload details
-        arguments = [
-            ("Dataset Title", dataset_metadata_obj.title),
-            ("Dataset ID", dataset_metadata_obj.dataset_id),
-            ("Dataset Version ID", dataset_metadata_obj.version_id),
-        ] + [("Dataset file path", file) for file in files]
+        # TODO: Modify once -y option added
+        if not json:
+            # Confirm upload details
+            arguments = [
+                ("Dataset Title", dataset_metadata_obj.title),
+                ("Dataset ID", dataset_metadata_obj.dataset_id),
+                ("Dataset Version ID", dataset_metadata_obj.version_id),
+            ] + [("Dataset file path", file) for file in files]
 
-        if metadata:
-            arguments.append(("Dataset metadata file path", metadata))
+            if metadata:
+                arguments.append(("Dataset metadata file path", metadata))
 
-        confirmation_message = "Confirm dataset upload?"
-        argument_confirmation(arguments, confirmation_message)
+            confirmation_message = "Confirm dataset upload?"
+            argument_confirmation(arguments, confirmation_message)
 
         # Upload all files
         upload_dataset(
@@ -271,6 +285,7 @@ def dataset_version(
             dataset_id=dataset_metadata_obj.dataset_id,
             metadata=dataset_metadata_dict,
             file_paths=files,
+            json=json,
         )
 
 
@@ -291,6 +306,7 @@ def dataset_version(
     help="When given will only save the existing metadata to the specified file allowing it to be modified.",
 )
 @dataset_metadata_common_options(all_optional=True)
+@json_option
 @click.pass_context
 def dataset_metadata(
     ctx: Context,
@@ -316,6 +332,7 @@ def dataset_metadata(
     license: Optional[str],
     rights: Optional[str],
     version_message: Optional[str],
+    json: bool,
 ):
     """Uploads a new version of a Dataset's metadata to DAFNI
 
@@ -325,6 +342,7 @@ def dataset_metadata(
                                    new version to
         metadata (Optional[Path]): Dataset metadata file
         save (Optional[Path]): Path to save existing metadata in for editing
+        json (bool): Whether to print the raw json returned by the DAFNI API
 
         For the rest see dataset_metadata_common_options in options.py
     """
@@ -365,22 +383,24 @@ def dataset_metadata(
 
     if save:
         with open(save, "w", encoding="utf-8") as file:
-            file.write(json.dumps(dataset_metadata_dict, indent=4, sort_keys=True))
+            file.write(json_lib.dumps(dataset_metadata_dict, indent=4, sort_keys=True))
 
         click.echo(f"Saved existing dataset metadata to {save}")
     else:
-        # Confirm upload details
-        arguments = [
-            ("Dataset Title", dataset_metadata_obj.title),
-            ("Dataset ID", dataset_metadata_obj.dataset_id),
-            ("Dataset Version ID", dataset_metadata_obj.version_id),
-        ]
+        # TODO: Modify once -y option added
+        if not json:
+            # Confirm upload details
+            arguments = [
+                ("Dataset Title", dataset_metadata_obj.title),
+                ("Dataset ID", dataset_metadata_obj.dataset_id),
+                ("Dataset Version ID", dataset_metadata_obj.version_id),
+            ]
 
-        if metadata:
-            arguments.append(("Dataset metadata file path", metadata))
+            if metadata:
+                arguments.append(("Dataset metadata file path", metadata))
 
-        confirmation_message = "Confirm metadata upload?"
-        argument_confirmation(arguments, confirmation_message)
+            confirmation_message = "Confirm metadata upload?"
+            argument_confirmation(arguments, confirmation_message)
 
         # Upload
         upload_dataset_metadata_version(
@@ -388,6 +408,7 @@ def dataset_metadata(
             dataset_id=dataset_metadata_obj.dataset_id,
             version_id=existing_version_id,
             metadata=dataset_metadata_dict,
+            json=json,
         )
 
 
