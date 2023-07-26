@@ -5,8 +5,8 @@ from typing import List, Optional, Tuple
 
 import click
 from click import Context
-from dafni_cli.api.exceptions import ValidationError
 
+from dafni_cli.api.exceptions import ValidationError
 from dafni_cli.api.session import DAFNISession
 from dafni_cli.api.workflows_api import (
     upload_parameter_set,
@@ -14,7 +14,7 @@ from dafni_cli.api.workflows_api import (
     validate_parameter_set_definition,
 )
 from dafni_cli.commands.helpers import cli_get_latest_dataset_metadata
-from dafni_cli.commands.options import dataset_metadata_common_options
+from dafni_cli.commands.options import dataset_metadata_common_options, json_option
 from dafni_cli.datasets.dataset_metadata import parse_dataset_metadata
 from dafni_cli.datasets.dataset_upload import (
     modify_dataset_metadata_for_upload,
@@ -64,6 +64,7 @@ def upload(ctx: Context):
     help="Parent ID of the parent model if this is an updated version of an existing model",
     default=None,
 )
+@json_option
 @click.pass_context
 def model(
     ctx: Context,
@@ -71,6 +72,7 @@ def model(
     image: Path,
     version_message: str,
     parent_id: Optional[str],
+    json: bool,
 ):
     """Uploads model to DAFNI from metadata and image files
 
@@ -80,19 +82,22 @@ def model(
         image (Path): File path to the image file
         version_message (str): Version message to be included with this model version
         parent_id (str): ID of the parent model that this is an update of
+        json (bool): Whether to print the raw json returned by the DAFNI API
     """
-    arguments = [
-        ("Model definition file path", definition),
-        ("Image file path", image),
-        ("Version message", version_message),
-    ]
-    confirmation_message = "Confirm model upload?"
-    if parent_id:
-        arguments.append(("Parent model ID", parent_id))
-        additional_message = None
-    else:
-        additional_message = ["No parent model: New model to be created"]
-    argument_confirmation(arguments, confirmation_message, additional_message)
+    # TODO: Modify once -y option added
+    if not json:
+        arguments = [
+            ("Model definition file path", definition),
+            ("Image file path", image),
+            ("Version message", version_message),
+        ]
+        confirmation_message = "Confirm model upload?"
+        if parent_id:
+            arguments.append(("Parent model ID", parent_id))
+            additional_message = None
+        else:
+            additional_message = ["No parent model: New model to be created"]
+        argument_confirmation(arguments, confirmation_message, additional_message)
 
     upload_model(
         ctx.obj["session"],
@@ -100,6 +105,7 @@ def model(
         image_path=image,
         version_message=version_message,
         parent_id=parent_id,
+        json=json,
     )
 
 

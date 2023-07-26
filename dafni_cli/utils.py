@@ -246,3 +246,10 @@ def construct_validation_errors_from_dict(dictionary: dict, prefix="") -> List[s
         else:
             errors.append(f"Error: ( {new_prefix} ) - {value}")
     return errors
+
+
+def optional_echo(string: str, should_not_print: bool):
+    """Uses click.echo to output a string only when should_not_print is False
+    (Used for optional printing for json flags)"""
+    if not should_not_print:
+        click.echo(string)

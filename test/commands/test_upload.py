@@ -94,6 +94,7 @@ class TestUploadModel(TestCase):
             image_path=Path(image_path),
             version_message=version_message,
             parent_id=None,
+            json=False,
         )
 
         self.assertEqual(
@@ -151,6 +152,7 @@ class TestUploadModel(TestCase):
             image_path=Path(image_path),
             version_message=version_message,
             parent_id=parent_id,
+            json=False,
         )
 
         self.assertEqual(
