@@ -69,6 +69,7 @@ def argument_confirmation(
     arguments: List[Tuple[str, str]],
     confirmation_message: str,
     additional_messages: Optional[List[str]] = None,
+    yes: bool = False,
 ):
     """Function to display the arguments and options chosen by the user
     and ask for confirmation
@@ -80,13 +81,18 @@ def argument_confirmation(
                                     prompts the user to confirm or reject
         additional_messages (Optional[List[str]]): Other messages to be added
                                     after options are listed
+        yes (bool): Meant to correspond to the --yes command line option from
+                    confirmation_skip_option. A value of True skips the entire
+                    confirmation, whereas False will request input from the user
+                    after printing out any given messages.
     """
-    for name, value in arguments:
-        click.echo(f"{name}: {value}")
-    if additional_messages:
-        for message in additional_messages:
-            click.echo(message)
-    click.confirm(confirmation_message, abort=True)
+    if not yes:
+        for name, value in arguments:
+            click.echo(f"{name}: {value}")
+        if additional_messages:
+            for message in additional_messages:
+                click.echo(message)
+        click.confirm(confirmation_message, abort=True)
 
 
 def write_files_to_zip(
