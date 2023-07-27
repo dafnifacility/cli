@@ -201,6 +201,24 @@ class TestArgumentConfirmation(TestCase):
         )
         mock_click.confirm.assert_called_once_with(confirmation_message, abort=True)
 
+    def test_nothing_happens_when_yes_is_true(self, mock_click):
+        """Tests that nothing is done when 'yes' is True"""
+        # CALL
+        utils.argument_confirmation(
+            [
+                ("arg 1", "string option"),
+                ("arg 2", "12"),
+                ("arg 3", "{'key': 'value'}"),
+            ],
+            "confirmation message",
+            ["additional message 1", "additional message 2"],
+            yes=True,
+        )
+
+        # ASSERT
+        mock_click.echo.assert_not_called()
+        mock_click.confirm.assert_not_called()
+
 
 class TestWriteFilesToZip(TestCase):
     """Test class to test the write_files_to_zip function"""

@@ -64,8 +64,8 @@ COMMAND_PARAMS_PRODUCTION = {
         },
         # Used for download test
         {
-            "id": "b71f0880-ff95-4b68-82a1-aafa2e949825",
-            "version_id": "c052d9b8-dbca-42b0-85b5-135016a2fbb1",
+            "id": "ff6790db-1602-437f-bd6c-d355ed8f04e2",
+            "version_id": "74d40b2a-030f-4181-ba2c-63c8901df512",
         },
     ],
     "workflows": [

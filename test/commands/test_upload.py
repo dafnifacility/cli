@@ -6,7 +6,6 @@ from unittest.mock import MagicMock, patch
 
 from click.testing import CliRunner
 
-from dafni_cli.api.exceptions import ValidationError
 from dafni_cli.commands import upload
 from dafni_cli.datasets.dataset_metadata import parse_dataset_metadata
 
@@ -165,6 +164,54 @@ class TestUploadModel(TestCase):
         )
         self.assertEqual(result.exit_code, 0)
 
+    def test_upload_model_skipping_confirmation(
+        self,
+        mock_upload_model,
+        mock_DAFNISession,
+    ):
+        """Tests that the 'upload model' command works correctly when
+        given a -y flag to skip the confirmation"""
+
+        # SETUP
+        session = MagicMock()
+        mock_DAFNISession.return_value = session
+        runner = CliRunner()
+        definition_path = "test_definition.yaml"
+        image_path = "test_image.txt"
+        version_message = "version_message"
+
+        # CALL
+        with runner.isolated_filesystem():
+            with open(definition_path, "w", encoding="utf-8") as file:
+                file.write("test definition file")
+            with open(image_path, "w", encoding="utf-8") as file:
+                file.write("test image file")
+            result = runner.invoke(
+                upload.upload,
+                [
+                    "model",
+                    definition_path,
+                    image_path,
+                    "--version-message",
+                    version_message,
+                    "-y",
+                ],
+            )
+
+        # ASSERT
+        mock_DAFNISession.assert_called_once()
+        mock_upload_model.assert_called_with(
+            session,
+            definition_path=Path(definition_path),
+            image_path=Path(image_path),
+            version_message=version_message,
+            parent_id=None,
+            json=False,
+        )
+
+        self.assertEqual(result.output, "")
+        self.assertEqual(result.exit_code, 0)
+
     def test_upload_model_cancel(
         self,
         mock_model_upload,
@@ -309,6 +356,39 @@ class TestUploadDataset(TestCase):
             "Dataset file path: test_dataset2.txt\n"
             "Confirm dataset upload? [y/N]: y\n",
         )
+        self.assertEqual(result.exit_code, 0)
+
+    def test_upload_dataset_skipping_confirmation(
+        self,
+        mock_upload_dataset,
+        mock_DAFNISession,
+    ):
+        """Tests that the 'upload dataset' command works correctly when
+        given a -y flag to skip the confirmation"""
+
+        # SETUP
+        session = MagicMock()
+        mock_DAFNISession.return_value = session
+        runner = CliRunner()
+
+        # CALL
+        with runner.isolated_filesystem():
+            with open("test_metadata.json", "w", encoding="utf-8") as file:
+                file.write("{}")
+            with open("test_dataset.txt", "w", encoding="utf-8") as file:
+                file.write("test dataset file")
+            result = runner.invoke(
+                upload.upload,
+                ["dataset", "test_metadata.json", "test_dataset.txt", "-y"],
+            )
+
+        # ASSERT
+        mock_DAFNISession.assert_called_once()
+        mock_upload_dataset.assert_called_once_with(
+            session, {}, (Path("test_dataset.txt"),), json=False
+        )
+
+        self.assertEqual(result.output, "")
         self.assertEqual(result.exit_code, 0)
 
     def test_upload_dataset_cancel(
@@ -590,6 +670,73 @@ class TestUploadDatasetVersion(TestCase):
         self.assertEqual(
             result.output, f"Saved existing dataset metadata to {metadata_save_path}\n"
         )
+        self.assertEqual(result.exit_code, 0)
+
+    def test_upload_dataset_version_skipping_confirmation(
+        self,
+        mock_modify_dataset_metadata_for_upload,
+        mock_cli_get_latest_dataset_metadata,
+        mock_upload_dataset,
+        mock_DAFNISession,
+    ):
+        """Tests that the 'upload dataset-version' command works correctly when
+        given a -y flag to skip the confirmation"""
+
+        # SETUP
+        session = MagicMock()
+        mock_DAFNISession.return_value = session
+        runner = CliRunner()
+        dataset_version_id = "some-existing-version-id"
+        file_path = "test_dataset.txt"
+        mock_cli_get_latest_dataset_metadata.return_value = TEST_DATASET_METADATA
+        metadata = parse_dataset_metadata(TEST_DATASET_METADATA)
+
+        # CALL
+        with runner.isolated_filesystem():
+            with open("test_dataset.txt", "w", encoding="utf-8") as file:
+                file.write("test dataset file")
+            result = runner.invoke(
+                upload.upload,
+                ["dataset-version", dataset_version_id, file_path, "-y"],
+            )
+
+        # ASSERT
+        mock_DAFNISession.assert_called_once()
+        mock_cli_get_latest_dataset_metadata.assert_called_once_with(
+            session, dataset_version_id
+        )
+        mock_modify_dataset_metadata_for_upload.assert_called_once_with(
+            existing_metadata=TEST_DATASET_METADATA,
+            metadata_path=None,
+            title=None,
+            description=None,
+            subject=None,
+            identifiers=None,
+            themes=None,
+            language=None,
+            keywords=None,
+            standard=None,
+            start_date=None,
+            end_date=None,
+            organisation=None,
+            people=None,
+            created_date=None,
+            update_frequency=None,
+            publisher=None,
+            contact=None,
+            license=None,
+            rights=None,
+            version_message=None,
+        )
+        mock_upload_dataset.assert_called_once_with(
+            session,
+            dataset_id=metadata.dataset_id,
+            metadata=mock_modify_dataset_metadata_for_upload.return_value,
+            file_paths=(Path(file_path),),
+            json=False,
+        )
+
+        self.assertEqual(result.output, "")
         self.assertEqual(result.exit_code, 0)
 
     def test_upload_dataset_version_cancel(
@@ -1011,6 +1158,70 @@ class TestUploadDatasetMetadata(TestCase):
         )
         self.assertEqual(result.exit_code, 0)
 
+    def test_upload_dataset_metadata_skipping_confirmation(
+        self,
+        mock_modify_dataset_metadata_for_upload,
+        mock_cli_get_latest_dataset_metadata,
+        mock_upload_dataset_metadata_version,
+        mock_DAFNISession,
+    ):
+        """Tests that the 'upload dataset-metadata' command works correctly when
+        given a -y flag to skip the confirmation"""
+
+        # SETUP
+        session = MagicMock()
+        mock_DAFNISession.return_value = session
+        runner = CliRunner()
+        dataset_version_id = "some-existing-version-id"
+        mock_cli_get_latest_dataset_metadata.return_value = TEST_DATASET_METADATA
+        metadata = parse_dataset_metadata(TEST_DATASET_METADATA)
+
+        # CALL
+        with runner.isolated_filesystem():
+            result = runner.invoke(
+                upload.upload,
+                ["dataset-metadata", dataset_version_id, "-y"],
+            )
+
+        # ASSERT
+        mock_DAFNISession.assert_called_once()
+        mock_cli_get_latest_dataset_metadata.assert_called_once_with(
+            session, dataset_version_id
+        )
+        mock_modify_dataset_metadata_for_upload.assert_called_once_with(
+            existing_metadata=TEST_DATASET_METADATA,
+            metadata_path=None,
+            title=None,
+            description=None,
+            subject=None,
+            identifiers=None,
+            themes=None,
+            language=None,
+            keywords=None,
+            standard=None,
+            start_date=None,
+            end_date=None,
+            organisation=None,
+            people=None,
+            created_date=None,
+            update_frequency=None,
+            publisher=None,
+            contact=None,
+            license=None,
+            rights=None,
+            version_message=None,
+        )
+        mock_upload_dataset_metadata_version.assert_called_once_with(
+            session,
+            dataset_id=metadata.dataset_id,
+            version_id=dataset_version_id,
+            metadata=mock_modify_dataset_metadata_for_upload.return_value,
+            json=False,
+        )
+
+        self.assertEqual(result.output, "")
+        self.assertEqual(result.exit_code, 0)
+
     def test_upload_metadata_cancel(
         self,
         mock_modify_dataset_metadata_for_upload,
@@ -1179,6 +1390,44 @@ class TestUploadWorkflow(TestCase):
         )
         self.assertEqual(result.exit_code, 0)
 
+    def test_upload_workflow_skipping_confirmation(
+        self,
+        mock_upload_workflow,
+        mock_DAFNISession,
+    ):
+        """Tests that the 'upload workflow' command works correctly when
+        given a -y flag to skip the confirmation"""
+
+        # SETUP
+        session = MagicMock()
+        mock_DAFNISession.return_value = session
+        runner = CliRunner()
+        version_message = "Initial version"
+
+        # CALL
+        with runner.isolated_filesystem():
+            with open("test_definition.json", "w", encoding="utf-8") as file:
+                file.write("test definition file")
+            result = runner.invoke(
+                upload.upload,
+                [
+                    "workflow",
+                    "test_definition.json",
+                    "--version-message",
+                    version_message,
+                    "-y",
+                ],
+            )
+
+        # ASSERT
+        mock_DAFNISession.assert_called_once()
+        mock_upload_workflow.assert_called_once_with(
+            session, Path("test_definition.json"), version_message, None, json=False
+        )
+
+        self.assertEqual(result.output, "")
+        self.assertEqual(result.exit_code, 0)
+
     def test_upload_workflow_cancel(
         self,
         mock_upload_workflow,
@@ -1264,8 +1513,39 @@ class TestUploadWorkflowParameterSet(TestCase):
         self.assertEqual(
             result.output,
             "Parameter set definition file path: test_definition.json\n"
-            "Confirm parameter set upload? [y/N]: y\n"
+            "Confirm parameter set upload? [y/N]: y\n",
         )
+        self.assertEqual(result.exit_code, 0)
+
+    def test_upload_workflow_parameter_set_skipping_confirmation(
+        self,
+        mock_upload_parameter_set,
+        mock_DAFNISession,
+    ):
+        """Tests that the 'upload workflow-parameter-set' command works
+        correctly when given a -y flag to skip the confirmation"""
+
+        # SETUP
+        session = MagicMock()
+        mock_DAFNISession.return_value = session
+        runner = CliRunner()
+
+        # CALL
+        with runner.isolated_filesystem():
+            with open("test_definition.json", "w", encoding="utf-8") as file:
+                file.write("test definition file")
+            result = runner.invoke(
+                upload.upload,
+                ["workflow-parameter-set", "test_definition.json", "-y"],
+            )
+
+        # ASSERT
+        mock_DAFNISession.assert_called_once()
+        mock_upload_parameter_set.assert_called_once_with(
+            session, Path("test_definition.json"), json=False
+        )
+
+        self.assertEqual(result.output, "")
         self.assertEqual(result.exit_code, 0)
 
     def test_upload_workflow_parameter_set_cancel(
