@@ -6,13 +6,7 @@ from typing import List, Optional, Tuple
 import click
 from click import Context
 
-from dafni_cli.api.exceptions import ValidationError
 from dafni_cli.api.session import DAFNISession
-from dafni_cli.api.workflows_api import (
-    upload_parameter_set,
-    upload_workflow,
-    validate_parameter_set_definition,
-)
 from dafni_cli.commands.helpers import cli_get_latest_dataset_metadata
 from dafni_cli.commands.options import dataset_metadata_common_options, json_option
 from dafni_cli.datasets.dataset_metadata import parse_dataset_metadata
@@ -23,6 +17,7 @@ from dafni_cli.datasets.dataset_upload import (
 )
 from dafni_cli.models.upload import upload_model
 from dafni_cli.utils import argument_confirmation
+from dafni_cli.workflows.upload import upload_parameter_set, upload_workflow
 
 
 ###############################################################################
@@ -436,12 +431,14 @@ def dataset_metadata(
     default=None,
     help="Parent workflow ID if this is an updated version of an existing workflow",
 )
+@json_option
 @click.pass_context
 def workflow(
     ctx: Context,
     definition: Path,
     version_message: str,
     parent_id: str,
+    json: bool,
 ):
     """
     Uploads a workflow in JSON form to DAFNI.
@@ -451,28 +448,26 @@ def workflow(
         definition (Path): File path to the workflow definition file
         version_message (str): Version message to be included with this workflow version
         parent_id (str): ID of the parent workflow that this is an update of
+        json (bool): Whether to print the raw json returned by the DAFNI API
     """
-    arguments = [
-        ("Workflow definition file path", definition),
-        ("Version message", version_message),
-    ]
-    confirmation_message = "Confirm workflow upload?"
-    if parent_id:
-        arguments.append(("Parent workflow ID", parent_id))
-        additional_message = None
-    else:
-        additional_message = ["No parent workflow: new workflow to be created"]
-    argument_confirmation(arguments, confirmation_message, additional_message)
 
-    # TODO: Validate workflow definition using workflows/validate?
+    # TODO: Modify once -y option added
+    if not json:
+        arguments = [
+            ("Workflow definition file path", definition),
+            ("Version message", version_message),
+        ]
+        confirmation_message = "Confirm workflow upload?"
+        if parent_id:
+            arguments.append(("Parent workflow ID", parent_id))
+            additional_message = None
+        else:
+            additional_message = ["No parent workflow: new workflow to be created"]
+        argument_confirmation(arguments, confirmation_message, additional_message)
 
-    click.echo("Uploading workflow")
-    details = upload_workflow(
-        ctx.obj["session"], definition, version_message, parent_id
+    upload_workflow(
+        ctx.obj["session"], definition, version_message, parent_id, json=json
     )
-
-    click.echo("\nUpload successful")
-    click.echo(f"Version ID: {details['id']}")
 
 
 ###############################################################################
@@ -482,34 +477,27 @@ def workflow(
 @click.argument(
     "definition", nargs=1, required=True, type=click.Path(exists=True, path_type=Path)
 )
+@json_option
 @click.pass_context
 def workflow_parameter_set(
     ctx: Context,
     definition: Path,
+    json: bool,
 ):
     """Uploads workflow parameter set to DAFNI
 
     Args:
         ctx (Context): contains user session for authentication
         definition (Path): File path to the parameter set definition file
+        json (bool): Whether to print the raw json returned by the DAFNI API
     """
-    arguments = [
-        ("Parameter set definition file path", definition),
-    ]
-    confirmation_message = "Confirm parameter set upload?"
-    argument_confirmation(arguments, confirmation_message)
 
-    click.echo("Validating parameter set definition")
-    try:
-        validate_parameter_set_definition(ctx.obj["session"], definition)
-    except ValidationError as err:
-        click.echo(err)
+    # TODO: Modify once -y option added
+    if not json:
+        arguments = [
+            ("Parameter set definition file path", definition),
+        ]
+        confirmation_message = "Confirm parameter set upload?"
+        argument_confirmation(arguments, confirmation_message)
 
-        raise SystemExit(1) from err
-
-    click.echo("Uploading parameter set")
-    details = upload_parameter_set(ctx.obj["session"], definition)
-
-    # Output details
-    click.echo("\nUpload successful")
-    click.echo(f"Parameter set ID: {details['id']}")
+    upload_parameter_set(ctx.obj["session"], definition, json=json)
