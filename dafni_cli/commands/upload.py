@@ -86,22 +86,20 @@ def model(
         yes (bool): Used to skip confirmations before they are displayed
         json (bool): Whether to print the raw json returned by the DAFNI API
     """
-    # TODO: Modify once -y option added
-    if not json:
-        arguments = [
-            ("Model definition file path", definition),
-            ("Image file path", image),
-            ("Version message", version_message),
-        ]
-        confirmation_message = "Confirm model upload?"
-        if parent_id:
-            arguments.append(("Parent model ID", parent_id))
-            additional_message = None
-        else:
-            additional_message = ["No parent model: New model to be created"]
-        argument_confirmation(
-            arguments, confirmation_message, additional_message, yes=yes
-        )
+    arguments = [
+        ("Model definition file path", definition),
+        ("Image file path", image),
+        ("Version message", version_message),
+    ]
+    confirmation_message = "Confirm model upload?"
+    if parent_id:
+        arguments.append(("Parent model ID", parent_id))
+        additional_message = None
+    else:
+        additional_message = ["No parent model: New model to be created"]
+    argument_confirmation(
+        arguments, confirmation_message, additional_message, skip=yes or json
+    )
 
     upload_model(
         ctx.obj["session"],
@@ -148,14 +146,12 @@ def dataset(
         yes (bool): Used to skip confirmations before they are displayed
         json (bool): Whether to print the raw json returned by the DAFNI API
     """
-    # TODO: Modify once -y option added
-    if not json:
-        # Confirm upload details
-        arguments = [("Dataset metadata file path", metadata_path)] + [
-            ("Dataset file path", file) for file in files
-        ]
-        confirmation_message = "Confirm dataset upload?"
-        argument_confirmation(arguments, confirmation_message, yes=yes)
+    # Confirm upload details
+    arguments = [("Dataset metadata file path", metadata_path)] + [
+        ("Dataset file path", file) for file in files
+    ]
+    confirmation_message = "Confirm dataset upload?"
+    argument_confirmation(arguments, confirmation_message, skip=yes or json)
 
     # Obtain the metadata
     with open(metadata_path, "r", encoding="utf-8") as metadata_file:
@@ -274,20 +270,18 @@ def dataset_version(
 
         click.echo(f"Saved existing dataset metadata to {save}")
     else:
-        # TODO: Modify once -y option added
-        if not json:
-            # Confirm upload details
-            arguments = [
-                ("Dataset Title", dataset_metadata_obj.title),
-                ("Dataset ID", dataset_metadata_obj.dataset_id),
-                ("Dataset Version ID", dataset_metadata_obj.version_id),
-            ] + [("Dataset file path", file) for file in files]
+        # Confirm upload details
+        arguments = [
+            ("Dataset Title", dataset_metadata_obj.title),
+            ("Dataset ID", dataset_metadata_obj.dataset_id),
+            ("Dataset Version ID", dataset_metadata_obj.version_id),
+        ] + [("Dataset file path", file) for file in files]
 
-            if metadata:
-                arguments.append(("Dataset metadata file path", metadata))
+        if metadata:
+            arguments.append(("Dataset metadata file path", metadata))
 
-            confirmation_message = "Confirm dataset upload?"
-            argument_confirmation(arguments, confirmation_message, yes=yes)
+        confirmation_message = "Confirm dataset upload?"
+        argument_confirmation(arguments, confirmation_message, skip=yes or json)
 
         # Upload all files
         upload_dataset(
@@ -400,20 +394,18 @@ def dataset_metadata(
 
         click.echo(f"Saved existing dataset metadata to {save}")
     else:
-        # TODO: Modify once -y option added
-        if not json:
-            # Confirm upload details
-            arguments = [
-                ("Dataset Title", dataset_metadata_obj.title),
-                ("Dataset ID", dataset_metadata_obj.dataset_id),
-                ("Dataset Version ID", dataset_metadata_obj.version_id),
-            ]
+        # Confirm upload details
+        arguments = [
+            ("Dataset Title", dataset_metadata_obj.title),
+            ("Dataset ID", dataset_metadata_obj.dataset_id),
+            ("Dataset Version ID", dataset_metadata_obj.version_id),
+        ]
 
-            if metadata:
-                arguments.append(("Dataset metadata file path", metadata))
+        if metadata:
+            arguments.append(("Dataset metadata file path", metadata))
 
-            confirmation_message = "Confirm metadata upload?"
-            argument_confirmation(arguments, confirmation_message, yes=yes)
+        confirmation_message = "Confirm metadata upload?"
+        argument_confirmation(arguments, confirmation_message, skip=yes or json)
 
         # Upload
         upload_dataset_metadata_version(
@@ -472,21 +464,19 @@ def workflow(
         json (bool): Whether to print the raw json returned by the DAFNI API
     """
 
-    # TODO: Modify once -y option added
-    if not json:
-        arguments = [
-            ("Workflow definition file path", definition),
-            ("Version message", version_message),
-        ]
-        confirmation_message = "Confirm workflow upload?"
-        if parent_id:
-            arguments.append(("Parent workflow ID", parent_id))
-            additional_message = None
-        else:
-            additional_message = ["No parent workflow: new workflow to be created"]
-        argument_confirmation(
-            arguments, confirmation_message, additional_message, yes=yes
-        )
+    arguments = [
+        ("Workflow definition file path", definition),
+        ("Version message", version_message),
+    ]
+    confirmation_message = "Confirm workflow upload?"
+    if parent_id:
+        arguments.append(("Parent workflow ID", parent_id))
+        additional_message = None
+    else:
+        additional_message = ["No parent workflow: new workflow to be created"]
+    argument_confirmation(
+        arguments, confirmation_message, additional_message, skip=yes or json
+    )
 
     upload_workflow(
         ctx.obj["session"], definition, version_message, parent_id, json=json
@@ -518,12 +508,10 @@ def workflow_parameter_set(
         json (bool): Whether to print the raw json returned by the DAFNI API
     """
 
-    # TODO: Modify once -y option added
-    if not json:
-        arguments = [
-            ("Parameter set definition file path", definition),
-        ]
-        confirmation_message = "Confirm parameter set upload?"
-        argument_confirmation(arguments, confirmation_message, yes=yes)
+    arguments = [
+        ("Parameter set definition file path", definition),
+    ]
+    confirmation_message = "Confirm parameter set upload?"
+    argument_confirmation(arguments, confirmation_message, skip=yes or json)
 
     upload_parameter_set(ctx.obj["session"], definition, json=json)

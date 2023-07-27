@@ -201,8 +201,8 @@ class TestArgumentConfirmation(TestCase):
         )
         mock_click.confirm.assert_called_once_with(confirmation_message, abort=True)
 
-    def test_nothing_happens_when_yes_is_true(self, mock_click):
-        """Tests that nothing is done when 'yes' is True"""
+    def test_nothing_happens_when_skip_is_true(self, mock_click):
+        """Tests that nothing is done when 'skip' is True"""
         # CALL
         utils.argument_confirmation(
             [
@@ -212,7 +212,7 @@ class TestArgumentConfirmation(TestCase):
             ],
             "confirmation message",
             ["additional message 1", "additional message 2"],
-            yes=True,
+            skip=True,
         )
 
         # ASSERT
