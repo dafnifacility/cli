@@ -1,10 +1,11 @@
 import json
 from datetime import datetime
 from pathlib import Path
+from typing import List, Optional
 from unittest import TestCase
 from unittest.mock import MagicMock, patch
 
-from click.testing import CliRunner
+from click.testing import CliRunner, Result
 
 from dafni_cli.commands import upload
 from dafni_cli.datasets.dataset_metadata import parse_dataset_metadata
@@ -46,61 +47,84 @@ class TestUpload(TestCase):
         self.assertEqual(result.exit_code, 0)
 
 
-@patch("dafni_cli.commands.upload.DAFNISession")
-@patch("dafni_cli.commands.upload.upload_model")
 class TestUploadModel(TestCase):
     """Test class to test the upload model commands"""
 
-    def test_upload_model(
+    def setUp(self) -> None:
+        super().setUp()
+
+        self.definition_path = "test_definition.yaml"
+        self.image_path = "test_image.txt"
+        self.version_message = "version_message"
+        self.parent_id = "parent-id"
+
+        self.mock_DAFNISession = patch("dafni_cli.commands.upload.DAFNISession").start()
+        self.mock_session = MagicMock()
+        self.mock_DAFNISession.return_value = self.mock_session
+
+        self.mock_upload_model = patch("dafni_cli.commands.upload.upload_model").start()
+
+        self.addCleanup(patch.stopall)
+
+    def invoke_command(
         self,
-        mock_upload_model,
-        mock_DAFNISession,
-    ):
-        """Tests that the 'upload model' command works correctly when
-        no parent id is given"""
+        additional_params: List[str] = None,
+        input: Optional[str] = None,
+    ) -> Result:
+        """Invokes the upload model command with required arguments provided,
+        any 'additional_params' are added, and input is passed through to the
+        CliRunner.invoke call"""
+        if additional_params is None:
+            additional_params = []
 
-        # SETUP
-        session = MagicMock()
-        mock_DAFNISession.return_value = session
         runner = CliRunner()
-        definition_path = "test_definition.yaml"
-        image_path = "test_image.txt"
-        version_message = "version_message"
 
-        # CALL
         with runner.isolated_filesystem():
-            with open(definition_path, "w", encoding="utf-8") as file:
+            with open(self.definition_path, "w", encoding="utf-8") as file:
                 file.write("test definition file")
-            with open(image_path, "w", encoding="utf-8") as file:
+            with open(self.image_path, "w", encoding="utf-8") as file:
                 file.write("test image file")
             result = runner.invoke(
                 upload.upload,
                 [
                     "model",
-                    definition_path,
-                    image_path,
+                    self.definition_path,
+                    self.image_path,
                     "--version-message",
-                    version_message,
-                ],
-                input="y",
+                    self.version_message,
+                ]
+                + additional_params,
+                input=input,
             )
+        return result
+
+    def test_upload_model(
+        self,
+    ):
+        """Tests that the 'upload model' command works correctly when
+        no parent id is given"""
+
+        # CALL
+        result = self.invoke_command(
+            input="y",
+        )
 
         # ASSERT
-        mock_DAFNISession.assert_called_once()
-        mock_upload_model.assert_called_with(
-            session,
-            definition_path=Path(definition_path),
-            image_path=Path(image_path),
-            version_message=version_message,
+        self.mock_DAFNISession.assert_called_once()
+        self.mock_upload_model.assert_called_with(
+            self.mock_session,
+            definition_path=Path(self.definition_path),
+            image_path=Path(self.image_path),
+            version_message=self.version_message,
             parent_id=None,
             json=False,
         )
 
         self.assertEqual(
             result.output,
-            "Model definition file path: test_definition.yaml\n"
-            "Image file path: test_image.txt\n"
-            "Version message: version_message\n"
+            f"Model definition file path: {self.definition_path}\n"
+            f"Image file path: {self.image_path}\n"
+            f"Version message: {self.version_message}\n"
             "No parent model: New model to be created\n"
             "Confirm model upload? [y/N]: y\n",
         )
@@ -108,103 +132,55 @@ class TestUploadModel(TestCase):
 
     def test_upload_model_with_parent(
         self,
-        mock_upload_model,
-        mock_DAFNISession,
     ):
         """Tests that the 'upload model' command works correctly when
         a parent is given"""
 
-        # SETUP
-        session = MagicMock()
-        mock_DAFNISession.return_value = session
-        runner = CliRunner()
-        definition_path = "test_definition.yaml"
-        image_path = "test_image.txt"
-        version_message = "version_message"
-        parent_id = "parent-id"
-
         # CALL
-        with runner.isolated_filesystem():
-            with open(definition_path, "w", encoding="utf-8") as file:
-                file.write("test definition file")
-            with open(image_path, "w", encoding="utf-8") as file:
-                file.write("test image file")
-            result = runner.invoke(
-                upload.upload,
-                [
-                    "model",
-                    definition_path,
-                    image_path,
-                    "--version-message",
-                    version_message,
-                    "--parent-id",
-                    parent_id,
-                ],
-                input="y",
-            )
+        result = self.invoke_command(
+            additional_params=["--parent-id", self.parent_id],
+            input="y",
+        )
 
         # ASSERT
-        mock_DAFNISession.assert_called_once()
-        mock_upload_model.assert_called_with(
-            session,
-            definition_path=Path(definition_path),
-            image_path=Path(image_path),
-            version_message=version_message,
-            parent_id=parent_id,
+        self.mock_DAFNISession.assert_called_once()
+        self.mock_upload_model.assert_called_with(
+            self.mock_session,
+            definition_path=Path(self.definition_path),
+            image_path=Path(self.image_path),
+            version_message=self.version_message,
+            parent_id=self.parent_id,
             json=False,
         )
 
         self.assertEqual(
             result.output,
-            "Model definition file path: test_definition.yaml\n"
-            "Image file path: test_image.txt\n"
-            "Version message: version_message\n"
-            "Parent model ID: parent-id\n"
+            f"Model definition file path: {self.definition_path}\n"
+            f"Image file path: {self.image_path}\n"
+            f"Version message: {self.version_message}\n"
+            f"Parent model ID: {self.parent_id}\n"
             "Confirm model upload? [y/N]: y\n",
         )
         self.assertEqual(result.exit_code, 0)
 
     def test_upload_model_skipping_confirmation(
         self,
-        mock_upload_model,
-        mock_DAFNISession,
     ):
         """Tests that the 'upload model' command works correctly when
         given a -y flag to skip the confirmation"""
 
-        # SETUP
-        session = MagicMock()
-        mock_DAFNISession.return_value = session
-        runner = CliRunner()
-        definition_path = "test_definition.yaml"
-        image_path = "test_image.txt"
-        version_message = "version_message"
-
         # CALL
-        with runner.isolated_filesystem():
-            with open(definition_path, "w", encoding="utf-8") as file:
-                file.write("test definition file")
-            with open(image_path, "w", encoding="utf-8") as file:
-                file.write("test image file")
-            result = runner.invoke(
-                upload.upload,
-                [
-                    "model",
-                    definition_path,
-                    image_path,
-                    "--version-message",
-                    version_message,
-                    "-y",
-                ],
-            )
+        result = self.invoke_command(
+            additional_params=["-y"],
+        )
 
         # ASSERT
-        mock_DAFNISession.assert_called_once()
-        mock_upload_model.assert_called_with(
-            session,
-            definition_path=Path(definition_path),
-            image_path=Path(image_path),
-            version_message=version_message,
+        self.mock_DAFNISession.assert_called_once()
+        self.mock_upload_model.assert_called_with(
+            self.mock_session,
+            definition_path=Path(self.definition_path),
+            image_path=Path(self.image_path),
+            version_message=self.version_message,
             parent_id=None,
             json=False,
         )
@@ -212,48 +188,50 @@ class TestUploadModel(TestCase):
         self.assertEqual(result.output, "")
         self.assertEqual(result.exit_code, 0)
 
+    def test_upload_model_json(
+        self,
+    ):
+        """Tests that the 'upload model' command works correctly when
+        given a --json flag"""
+
+        # CALL
+        result = self.invoke_command(
+            additional_params=["--json"],
+        )
+
+        # ASSERT
+        self.mock_DAFNISession.assert_called_once()
+        self.mock_upload_model.assert_called_with(
+            self.mock_session,
+            definition_path=Path(self.definition_path),
+            image_path=Path(self.image_path),
+            version_message=self.version_message,
+            parent_id=None,
+            json=True,
+        )
+
+        self.assertEqual(result.output, "")
+        self.assertEqual(result.exit_code, 0)
+
     def test_upload_model_cancel(
         self,
-        mock_model_upload,
-        mock_DAFNISession,
     ):
         """Tests that the 'upload model' command can be canceled"""
 
-        # SETUP
-        session = MagicMock()
-        mock_DAFNISession.return_value = session
-        runner = CliRunner()
-        definition_path = "test_definition.yaml"
-        image_path = "test_image.txt"
-        version_message = "version_message"
-
         # CALL
-        with runner.isolated_filesystem():
-            with open(definition_path, "w", encoding="utf-8") as file:
-                file.write("test definition file")
-            with open(image_path, "w", encoding="utf-8") as file:
-                file.write("test image file")
-            result = runner.invoke(
-                upload.upload,
-                [
-                    "model",
-                    definition_path,
-                    image_path,
-                    "--version-message",
-                    version_message,
-                ],
-                input="n",
-            )
+        result = self.invoke_command(
+            input="n",
+        )
 
         # ASSERT
-        mock_DAFNISession.assert_called_once()
-        mock_model_upload.assert_not_called()
+        self.mock_DAFNISession.assert_called_once()
+        self.mock_upload_model.assert_not_called()
 
         self.assertEqual(
             result.output,
-            "Model definition file path: test_definition.yaml\n"
-            "Image file path: test_image.txt\n"
-            "Version message: version_message\n"
+            f"Model definition file path: {self.definition_path}\n"
+            f"Image file path: {self.image_path}\n"
+            f"Version message: {self.version_message}\n"
             "No parent model: New model to be created\n"
             "Confirm model upload? [y/N]: n\n"
             "Aborted!\n",
