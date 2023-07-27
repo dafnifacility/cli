@@ -1,7 +1,7 @@
 import json
 from datetime import datetime
 from pathlib import Path
-from typing import List, Optional
+from typing import List, Optional, Tuple
 from unittest import TestCase
 from unittest.mock import MagicMock, patch
 
@@ -68,14 +68,16 @@ class TestUploadModel(TestCase):
 
     def invoke_command(
         self,
-        additional_params: List[str] = None,
+        additional_args: Optional[List[str]] = None,
         input: Optional[str] = None,
     ) -> Result:
-        """Invokes the upload model command with required arguments provided,
-        any 'additional_params' are added, and input is passed through to the
-        CliRunner.invoke call"""
-        if additional_params is None:
-            additional_params = []
+        """Invokes the upload model command with required arguments provided
+        Args:
+            additional_args (Optional[List[str]]): Any additional parameters to add
+            input (Optional[str]): 'input' to pass to CliRunner's invoke function
+        """
+        if additional_args is None:
+            additional_args = []
 
         runner = CliRunner()
 
@@ -93,7 +95,7 @@ class TestUploadModel(TestCase):
                     "--version-message",
                     self.version_message,
                 ]
-                + additional_params,
+                + additional_args,
                 input=input,
             )
         return result
@@ -138,7 +140,7 @@ class TestUploadModel(TestCase):
 
         # CALL
         result = self.invoke_command(
-            additional_params=["--parent-id", self.parent_id],
+            additional_args=["--parent-id", self.parent_id],
             input="y",
         )
 
@@ -171,7 +173,7 @@ class TestUploadModel(TestCase):
 
         # CALL
         result = self.invoke_command(
-            additional_params=["-y"],
+            additional_args=["-y"],
         )
 
         # ASSERT
@@ -196,7 +198,7 @@ class TestUploadModel(TestCase):
 
         # CALL
         result = self.invoke_command(
-            additional_params=["--json"],
+            additional_args=["--json"],
         )
 
         # ASSERT
@@ -239,131 +241,159 @@ class TestUploadModel(TestCase):
         self.assertEqual(result.exit_code, 1)
 
 
-@patch("dafni_cli.commands.upload.DAFNISession")
-@patch("dafni_cli.commands.upload.upload_dataset")
 class TestUploadDataset(TestCase):
     """Test class to test the upload dataset commands"""
 
-    def test_upload_dataset(
-        self,
-        mock_upload_dataset,
-        mock_DAFNISession,
-    ):
-        """Tests that the 'upload dataset' command works correctly"""
+    def setUp(self) -> None:
+        super().setUp()
 
-        # SETUP
-        session = MagicMock()
-        mock_DAFNISession.return_value = session
+        self.metadata_path = "test_metadata.json"
+
+        self.mock_DAFNISession = patch("dafni_cli.commands.upload.DAFNISession").start()
+        self.mock_session = MagicMock()
+        self.mock_DAFNISession.return_value = self.mock_session
+
+        self.mock_upload_dataset = patch(
+            "dafni_cli.commands.upload.upload_dataset"
+        ).start()
+
+        self.addCleanup(patch.stopall)
+
+    def invoke_command(
+        self,
+        file_paths: List[str],
+        additional_args: Optional[List[str]] = None,
+        input: Optional[str] = None,
+    ) -> Result:
+        """Invokes the upload dataset command with most required arguments provided
+
+        Args:
+            file_paths (Optional[List]): List of file paths of the dataset files
+                                         to upload (Added automatically to command
+                                         parameters)
+            additional_args (Optional[List[str]]): Any additional parameters to
+                                                   add
+            input (Optional[str]): 'input' to pass to CliRunner's invoke function
+        """
+        if additional_args is None:
+            additional_args = []
+
         runner = CliRunner()
 
-        # CALL
         with runner.isolated_filesystem():
-            with open("test_metadata.json", "w", encoding="utf-8") as file:
+            with open(self.metadata_path, "w", encoding="utf-8") as file:
                 file.write("{}")
-            with open("test_dataset.txt", "w", encoding="utf-8") as file:
-                file.write("test dataset file")
+            for file_path in file_paths:
+                with open(file_path, "w", encoding="utf-8") as file:
+                    file.write("test dataset file")
             result = runner.invoke(
                 upload.upload,
                 [
                     "dataset",
-                    "test_metadata.json",
-                    "test_dataset.txt",
-                ],
-                input="y",
+                    self.metadata_path,
+                ]
+                + file_paths
+                + additional_args,
+                input=input,
             )
+        return result
+
+    def test_upload_dataset(
+        self,
+    ):
+        """Tests that the 'upload dataset' command works correctly"""
+
+        # SETUP
+        dataset_file_path = "test_dataset.txt"
+
+        # CALL
+        result = self.invoke_command(file_paths=[dataset_file_path], input="y")
 
         # ASSERT
-        mock_DAFNISession.assert_called_once()
-        mock_upload_dataset.assert_called_once_with(
-            session, {}, (Path("test_dataset.txt"),), json=False
+        self.mock_DAFNISession.assert_called_once()
+        self.mock_upload_dataset.assert_called_once_with(
+            self.mock_session, {}, (Path(dataset_file_path),), json=False
         )
 
         self.assertEqual(
             result.output,
-            "Dataset metadata file path: test_metadata.json\n"
-            "Dataset file path: test_dataset.txt\n"
+            f"Dataset metadata file path: {self.metadata_path}\n"
+            f"Dataset file path: {dataset_file_path}\n"
             "Confirm dataset upload? [y/N]: y\n",
         )
         self.assertEqual(result.exit_code, 0)
 
     def test_upload_dataset_with_multiple_files(
         self,
-        mock_upload_dataset,
-        mock_DAFNISession,
     ):
         """Tests that the 'upload dataset' command works correctly when
         multiple files are given"""
 
         # SETUP
-        session = MagicMock()
-        mock_DAFNISession.return_value = session
-        runner = CliRunner()
+        dataset_file_paths = ["test_dataset1.txt", "test_dataset2.txt"]
 
         # CALL
-        with runner.isolated_filesystem():
-            with open("test_metadata.json", "w", encoding="utf-8") as file:
-                file.write("{}")
-            with open("test_dataset1.txt", "w", encoding="utf-8") as file:
-                file.write("test dataset file1")
-            with open("test_dataset2.txt", "w", encoding="utf-8") as file:
-                file.write("test dataset file2")
-            result = runner.invoke(
-                upload.upload,
-                [
-                    "dataset",
-                    "test_metadata.json",
-                    "test_dataset1.txt",
-                    "test_dataset2.txt",
-                ],
-                input="y",
-            )
+        result = self.invoke_command(file_paths=dataset_file_paths, input="y")
 
         # ASSERT
-        mock_DAFNISession.assert_called_once()
-        mock_upload_dataset.assert_called_once_with(
-            session,
+        self.mock_DAFNISession.assert_called_once()
+        self.mock_upload_dataset.assert_called_once_with(
+            self.mock_session,
             {},
-            (Path("test_dataset1.txt"), Path("test_dataset2.txt")),
+            (Path(dataset_file_paths[0]), Path(dataset_file_paths[1])),
             json=False,
         )
 
         self.assertEqual(
             result.output,
-            "Dataset metadata file path: test_metadata.json\n"
-            "Dataset file path: test_dataset1.txt\n"
-            "Dataset file path: test_dataset2.txt\n"
+            f"Dataset metadata file path: {self.metadata_path}\n"
+            f"Dataset file path: {dataset_file_paths[0]}\n"
+            f"Dataset file path: {dataset_file_paths[1]}\n"
             "Confirm dataset upload? [y/N]: y\n",
         )
         self.assertEqual(result.exit_code, 0)
 
     def test_upload_dataset_skipping_confirmation(
         self,
-        mock_upload_dataset,
-        mock_DAFNISession,
     ):
         """Tests that the 'upload dataset' command works correctly when
         given a -y flag to skip the confirmation"""
 
         # SETUP
-        session = MagicMock()
-        mock_DAFNISession.return_value = session
-        runner = CliRunner()
+        dataset_file_path = "test_dataset.txt"
 
         # CALL
-        with runner.isolated_filesystem():
-            with open("test_metadata.json", "w", encoding="utf-8") as file:
-                file.write("{}")
-            with open("test_dataset.txt", "w", encoding="utf-8") as file:
-                file.write("test dataset file")
-            result = runner.invoke(
-                upload.upload,
-                ["dataset", "test_metadata.json", "test_dataset.txt", "-y"],
-            )
+        result = self.invoke_command(
+            file_paths=[dataset_file_path], additional_args=["-y"], input="y"
+        )
 
         # ASSERT
-        mock_DAFNISession.assert_called_once()
-        mock_upload_dataset.assert_called_once_with(
-            session, {}, (Path("test_dataset.txt"),), json=False
+        self.mock_DAFNISession.assert_called_once()
+        self.mock_upload_dataset.assert_called_once_with(
+            self.mock_session, {}, (Path(dataset_file_path),), json=False
+        )
+
+        self.assertEqual(result.output, "")
+        self.assertEqual(result.exit_code, 0)
+
+    def test_upload_dataset_json(
+        self,
+    ):
+        """Tests that the 'upload dataset' command works correctly when given
+        a --json flag"""
+
+        # SETUP
+        dataset_file_path = "test_dataset.txt"
+
+        # CALL
+        result = self.invoke_command(
+            file_paths=[dataset_file_path], additional_args=["--json"]
+        )
+
+        # ASSERT
+        self.mock_DAFNISession.assert_called_once()
+        self.mock_upload_dataset.assert_called_once_with(
+            self.mock_session, {}, (Path(dataset_file_path),), json=True
         )
 
         self.assertEqual(result.output, "")
@@ -371,91 +401,124 @@ class TestUploadDataset(TestCase):
 
     def test_upload_dataset_cancel(
         self,
-        mock_upload_dataset,
-        mock_DAFNISession,
     ):
         """Tests that the 'upload dataset' command can be canceled"""
 
         # SETUP
-        session = MagicMock()
-        mock_DAFNISession.return_value = session
-        runner = CliRunner()
+        dataset_file_path = "test_dataset.txt"
 
         # CALL
-        with runner.isolated_filesystem():
-            with open("test_metadata.json", "w", encoding="utf-8") as file:
-                file.write("{}")
-            with open("test_dataset.txt", "w", encoding="utf-8") as file:
-                file.write("test dataset file")
-            result = runner.invoke(
-                upload.upload,
-                [
-                    "dataset",
-                    "test_metadata.json",
-                    "test_dataset.txt",
-                ],
-                input="n",
-            )
+        result = self.invoke_command(file_paths=[dataset_file_path], input="n")
 
         # ASSERT
-        mock_DAFNISession.assert_called_once()
-        mock_upload_dataset.assert_not_called()
+        self.mock_DAFNISession.assert_called_once()
+        self.mock_upload_dataset.assert_not_called()
 
         self.assertEqual(
             result.output,
-            "Dataset metadata file path: test_metadata.json\n"
-            "Dataset file path: test_dataset.txt\n"
+            f"Dataset metadata file path: {self.metadata_path}\n"
+            f"Dataset file path: {dataset_file_path}\n"
             "Confirm dataset upload? [y/N]: n\n"
             "Aborted!\n",
         )
         self.assertEqual(result.exit_code, 1)
 
 
-@patch("dafni_cli.commands.upload.DAFNISession")
-@patch("dafni_cli.commands.upload.upload_dataset")
-@patch("dafni_cli.commands.upload.cli_get_latest_dataset_metadata")
-@patch("dafni_cli.commands.upload.modify_dataset_metadata_for_upload")
 class TestUploadDatasetVersion(TestCase):
     """Test class to test the upload dataset-version commands"""
 
-    def test_upload_dataset_version(
+    def setUp(self) -> None:
+        super().setUp()
+
+        self.dataset_version_id = "some-existing-version-id"
+
+        self.mock_DAFNISession = patch("dafni_cli.commands.upload.DAFNISession").start()
+        self.mock_session = MagicMock()
+        self.mock_DAFNISession.return_value = self.mock_session
+
+        self.mock_cli_get_latest_dataset_metadata = patch(
+            "dafni_cli.commands.upload.cli_get_latest_dataset_metadata"
+        ).start()
+        self.mock_modify_dataset_metadata_for_upload = patch(
+            "dafni_cli.commands.upload.modify_dataset_metadata_for_upload"
+        ).start()
+        self.mock_upload_dataset = patch(
+            "dafni_cli.commands.upload.upload_dataset"
+        ).start()
+
+        self.addCleanup(patch.stopall)
+
+    def invoke_command(
         self,
-        mock_modify_dataset_metadata_for_upload,
-        mock_cli_get_latest_dataset_metadata,
-        mock_upload_dataset,
-        mock_DAFNISession,
-    ):
-        """Tests that the 'upload dataset-version' command works correctly"""
+        file_paths: List[str],
+        additional_args: Optional[List[str]] = None,
+        input: Optional[str] = None,
+        file_paths_to_read: Optional[List[str]] = None,
+    ) -> Tuple[Result, List[str]]:
+        """Invokes the upload dataset-version  command with most required arguments
+        provided
 
-        # SETUP
-        session = MagicMock()
-        mock_DAFNISession.return_value = session
+        Args:
+            file_paths (Optional[List]): List of file paths of files to create prior
+                                         to invoking the command
+            additional_args (Optional[List[str]]): Any additional parameters to
+                                                     add
+            input (Optional[str]): 'input' to pass to CliRunner's invoke function
+            file_paths_to_read (Optional[List[str]]): Paths to files to read (will
+                                                    return the contents in a list)
+        """
+        if additional_args is None:
+            additional_args = []
+
         runner = CliRunner()
-        dataset_version_id = "some-existing-version-id"
-        file_path = "test_dataset.txt"
-        mock_cli_get_latest_dataset_metadata.return_value = TEST_DATASET_METADATA
-        metadata = parse_dataset_metadata(TEST_DATASET_METADATA)
 
-        # CALL
+        saved_file_data = []
+
         with runner.isolated_filesystem():
-            with open("test_dataset.txt", "w", encoding="utf-8") as file:
-                file.write("test dataset file")
+            for file_path in file_paths:
+                with open(file_path, "w", encoding="utf-8") as file:
+                    file.write("test dataset file")
             result = runner.invoke(
                 upload.upload,
                 [
                     "dataset-version",
-                    dataset_version_id,
-                    file_path,
-                ],
-                input="y",
+                    self.dataset_version_id,
+                ]
+                + additional_args,
+                input=input,
             )
+            # Store the contents of any files created so they may be checked
+            # later
+            if file_paths_to_read:
+                for file_path in file_paths_to_read:
+                    with open(file_path, "r", encoding="utf-8") as file:
+                        saved_file_data.append(file.read())
+
+        return result, saved_file_data
+
+    def test_upload_dataset_version(
+        self,
+    ):
+        """Tests that the 'upload dataset-version' command works correctly"""
+
+        # SETUP
+        dataset_file_path = "test_dataset.txt"
+        self.mock_cli_get_latest_dataset_metadata.return_value = TEST_DATASET_METADATA
+        metadata = parse_dataset_metadata(TEST_DATASET_METADATA)
+
+        # CALL
+        result, _ = self.invoke_command(
+            file_paths=[dataset_file_path],
+            additional_args=[dataset_file_path],
+            input="y",
+        )
 
         # ASSERT
-        mock_DAFNISession.assert_called_once()
-        mock_cli_get_latest_dataset_metadata.assert_called_once_with(
-            session, dataset_version_id
+        self.mock_DAFNISession.assert_called_once()
+        self.mock_cli_get_latest_dataset_metadata.assert_called_once_with(
+            self.mock_session, self.dataset_version_id
         )
-        mock_modify_dataset_metadata_for_upload.assert_called_once_with(
+        self.mock_modify_dataset_metadata_for_upload.assert_called_once_with(
             existing_metadata=TEST_DATASET_METADATA,
             metadata_path=None,
             title=None,
@@ -478,11 +541,11 @@ class TestUploadDatasetVersion(TestCase):
             rights=None,
             version_message=None,
         )
-        mock_upload_dataset.assert_called_once_with(
-            session,
+        self.mock_upload_dataset.assert_called_once_with(
+            self.mock_session,
             dataset_id=metadata.dataset_id,
-            metadata=mock_modify_dataset_metadata_for_upload.return_value,
-            file_paths=(Path(file_path),),
+            metadata=self.mock_modify_dataset_metadata_for_upload.return_value,
+            file_paths=(Path(dataset_file_path),),
             json=False,
         )
 
@@ -491,48 +554,35 @@ class TestUploadDatasetVersion(TestCase):
             f"Dataset Title: {metadata.title}\n"
             f"Dataset ID: {metadata.dataset_id}\n"
             f"Dataset Version ID: {metadata.version_id}\n"
-            f"Dataset file path: {file_path}\n"
+            f"Dataset file path: {dataset_file_path}\n"
             "Confirm dataset upload? [y/N]: y\n",
         )
         self.assertEqual(result.exit_code, 0)
 
     def test_upload_dataset_version_with_multiple_files(
         self,
-        mock_modify_dataset_metadata_for_upload,
-        mock_cli_get_latest_dataset_metadata,
-        mock_upload_dataset,
-        mock_DAFNISession,
     ):
         """Tests that the 'upload dataset-version' command works correctly
         when multiple files are given"""
 
         # SETUP
-        session = MagicMock()
-        mock_DAFNISession.return_value = session
-        runner = CliRunner()
-        dataset_version_id = "some-existing-version-id"
-        file_paths = ["test_dataset1.txt", "test_dataset2.txt"]
-        mock_cli_get_latest_dataset_metadata.return_value = TEST_DATASET_METADATA
+        dataset_file_paths = ["test_dataset1.txt", "test_dataset2.txt"]
+        self.mock_cli_get_latest_dataset_metadata.return_value = TEST_DATASET_METADATA
         metadata = parse_dataset_metadata(TEST_DATASET_METADATA)
 
         # CALL
-        with runner.isolated_filesystem():
-            with open(file_paths[0], "w", encoding="utf-8") as file:
-                file.write("test dataset file")
-            with open(file_paths[1], "w", encoding="utf-8") as file:
-                file.write("test dataset file")
-            result = runner.invoke(
-                upload.upload,
-                ["dataset-version", dataset_version_id, file_paths[0], file_paths[1]],
-                input="y",
-            )
+        result, _ = self.invoke_command(
+            file_paths=dataset_file_paths,
+            additional_args=dataset_file_paths,
+            input="y",
+        )
 
         # ASSERT
-        mock_DAFNISession.assert_called_once()
-        mock_cli_get_latest_dataset_metadata.assert_called_once_with(
-            session, dataset_version_id
+        self.mock_DAFNISession.assert_called_once()
+        self.mock_cli_get_latest_dataset_metadata.assert_called_once_with(
+            self.mock_session, self.dataset_version_id
         )
-        mock_modify_dataset_metadata_for_upload.assert_called_once_with(
+        self.mock_modify_dataset_metadata_for_upload.assert_called_once_with(
             existing_metadata=TEST_DATASET_METADATA,
             metadata_path=None,
             title=None,
@@ -555,11 +605,11 @@ class TestUploadDatasetVersion(TestCase):
             rights=None,
             version_message=None,
         )
-        mock_upload_dataset.assert_called_once_with(
-            session,
+        self.mock_upload_dataset.assert_called_once_with(
+            self.mock_session,
             dataset_id=metadata.dataset_id,
-            metadata=mock_modify_dataset_metadata_for_upload.return_value,
-            file_paths=(Path(file_paths[0]), Path(file_paths[1])),
+            metadata=self.mock_modify_dataset_metadata_for_upload.return_value,
+            file_paths=(Path(dataset_file_paths[0]), Path(dataset_file_paths[1])),
             json=False,
         )
 
@@ -568,56 +618,40 @@ class TestUploadDatasetVersion(TestCase):
             f"Dataset Title: {metadata.title}\n"
             f"Dataset ID: {metadata.dataset_id}\n"
             f"Dataset Version ID: {metadata.version_id}\n"
-            f"Dataset file path: {file_paths[0]}\n"
-            f"Dataset file path: {file_paths[1]}\n"
+            f"Dataset file path: {dataset_file_paths[0]}\n"
+            f"Dataset file path: {dataset_file_paths[1]}\n"
             "Confirm dataset upload? [y/N]: y\n",
         )
         self.assertEqual(result.exit_code, 0)
 
     def test_upload_dataset_version_saving_existing_metadata(
         self,
-        mock_modify_dataset_metadata_for_upload,
-        mock_cli_get_latest_dataset_metadata,
-        mock_upload_dataset,
-        mock_DAFNISession,
     ):
         """Tests that the 'upload dataset-version' command works correctly
         with the --save option"""
 
         # SETUP
-        session = MagicMock()
-        mock_DAFNISession.return_value = session
-        runner = CliRunner()
-        dataset_version_id = "some-existing-version-id"
-        file_path = "test_dataset.txt"
-        mock_cli_get_latest_dataset_metadata.return_value = TEST_DATASET_METADATA
-        mock_modify_dataset_metadata_for_upload.return_value = TEST_DATASET_METADATA
+        dataset_file_path = "test_dataset.txt"
+        self.mock_cli_get_latest_dataset_metadata.return_value = TEST_DATASET_METADATA
+        self.mock_modify_dataset_metadata_for_upload.return_value = (
+            TEST_DATASET_METADATA
+        )
         metadata_save_path = "metadata_save_file.json"
 
         # CALL
-        with runner.isolated_filesystem():
-            with open(file_path, "w", encoding="utf-8") as file:
-                file.write("test dataset file")
-            result = runner.invoke(
-                upload.upload,
-                [
-                    "dataset-version",
-                    dataset_version_id,
-                    file_path,
-                    "--save",
-                    metadata_save_path,
-                ],
-            )
-
-            with open(metadata_save_path, "r", encoding="utf-8") as file:
-                saved_metadata = file.read()
+        result, saved_file_data = self.invoke_command(
+            file_paths=[dataset_file_path],
+            additional_args=[dataset_file_path, "--save", metadata_save_path],
+            input="y",
+            file_paths_to_read=[metadata_save_path],
+        )
 
         # ASSERT
-        mock_DAFNISession.assert_called_once()
-        mock_cli_get_latest_dataset_metadata.assert_called_once_with(
-            session, dataset_version_id
+        self.mock_DAFNISession.assert_called_once()
+        self.mock_cli_get_latest_dataset_metadata.assert_called_once_with(
+            self.mock_session, self.dataset_version_id
         )
-        mock_modify_dataset_metadata_for_upload.assert_called_once_with(
+        self.mock_modify_dataset_metadata_for_upload.assert_called_once_with(
             existing_metadata=TEST_DATASET_METADATA,
             metadata_path=None,
             title=None,
@@ -641,9 +675,10 @@ class TestUploadDatasetVersion(TestCase):
             version_message=None,
         )
         self.assertEqual(
-            saved_metadata, json.dumps(TEST_DATASET_METADATA, indent=4, sort_keys=True)
+            saved_file_data[0],
+            json.dumps(TEST_DATASET_METADATA, indent=4, sort_keys=True),
         )
-        mock_upload_dataset.assert_not_called()
+        self.mock_upload_dataset.assert_not_called()
 
         self.assertEqual(
             result.output, f"Saved existing dataset metadata to {metadata_save_path}\n"
@@ -652,38 +687,26 @@ class TestUploadDatasetVersion(TestCase):
 
     def test_upload_dataset_version_skipping_confirmation(
         self,
-        mock_modify_dataset_metadata_for_upload,
-        mock_cli_get_latest_dataset_metadata,
-        mock_upload_dataset,
-        mock_DAFNISession,
     ):
         """Tests that the 'upload dataset-version' command works correctly when
         given a -y flag to skip the confirmation"""
 
         # SETUP
-        session = MagicMock()
-        mock_DAFNISession.return_value = session
-        runner = CliRunner()
-        dataset_version_id = "some-existing-version-id"
-        file_path = "test_dataset.txt"
-        mock_cli_get_latest_dataset_metadata.return_value = TEST_DATASET_METADATA
+        dataset_file_path = "test_dataset.txt"
+        self.mock_cli_get_latest_dataset_metadata.return_value = TEST_DATASET_METADATA
         metadata = parse_dataset_metadata(TEST_DATASET_METADATA)
 
         # CALL
-        with runner.isolated_filesystem():
-            with open("test_dataset.txt", "w", encoding="utf-8") as file:
-                file.write("test dataset file")
-            result = runner.invoke(
-                upload.upload,
-                ["dataset-version", dataset_version_id, file_path, "-y"],
-            )
+        result, _ = self.invoke_command(
+            file_paths=[dataset_file_path], additional_args=[dataset_file_path, "-y"]
+        )
 
         # ASSERT
-        mock_DAFNISession.assert_called_once()
-        mock_cli_get_latest_dataset_metadata.assert_called_once_with(
-            session, dataset_version_id
+        self.mock_DAFNISession.assert_called_once()
+        self.mock_cli_get_latest_dataset_metadata.assert_called_once_with(
+            self.mock_session, self.dataset_version_id
         )
-        mock_modify_dataset_metadata_for_upload.assert_called_once_with(
+        self.mock_modify_dataset_metadata_for_upload.assert_called_once_with(
             existing_metadata=TEST_DATASET_METADATA,
             metadata_path=None,
             title=None,
@@ -706,12 +729,68 @@ class TestUploadDatasetVersion(TestCase):
             rights=None,
             version_message=None,
         )
-        mock_upload_dataset.assert_called_once_with(
-            session,
+        self.mock_upload_dataset.assert_called_once_with(
+            self.mock_session,
             dataset_id=metadata.dataset_id,
-            metadata=mock_modify_dataset_metadata_for_upload.return_value,
-            file_paths=(Path(file_path),),
+            metadata=self.mock_modify_dataset_metadata_for_upload.return_value,
+            file_paths=(Path(dataset_file_path),),
             json=False,
+        )
+
+        self.assertEqual(result.output, "")
+        self.assertEqual(result.exit_code, 0)
+
+    def test_upload_dataset_version_json(
+        self,
+    ):
+        """Tests that the 'upload dataset-version' command works correctly
+        when given a --json flag"""
+
+        # SETUP
+        dataset_file_path = "test_dataset.txt"
+        self.mock_cli_get_latest_dataset_metadata.return_value = TEST_DATASET_METADATA
+        metadata = parse_dataset_metadata(TEST_DATASET_METADATA)
+
+        # CALL
+        result, _ = self.invoke_command(
+            file_paths=[dataset_file_path],
+            additional_args=[dataset_file_path, "--json"],
+        )
+
+        # ASSERT
+        self.mock_DAFNISession.assert_called_once()
+        self.mock_cli_get_latest_dataset_metadata.assert_called_once_with(
+            self.mock_session, self.dataset_version_id
+        )
+        self.mock_modify_dataset_metadata_for_upload.assert_called_once_with(
+            existing_metadata=TEST_DATASET_METADATA,
+            metadata_path=None,
+            title=None,
+            description=None,
+            subject=None,
+            identifiers=None,
+            themes=None,
+            language=None,
+            keywords=None,
+            standard=None,
+            start_date=None,
+            end_date=None,
+            organisation=None,
+            people=None,
+            created_date=None,
+            update_frequency=None,
+            publisher=None,
+            contact=None,
+            license=None,
+            rights=None,
+            version_message=None,
+        )
+        self.mock_upload_dataset.assert_called_once_with(
+            self.mock_session,
+            dataset_id=metadata.dataset_id,
+            metadata=self.mock_modify_dataset_metadata_for_upload.return_value,
+            file_paths=(Path(dataset_file_path),),
+            json=True,
         )
 
         self.assertEqual(result.output, "")
@@ -719,42 +798,27 @@ class TestUploadDatasetVersion(TestCase):
 
     def test_upload_dataset_version_cancel(
         self,
-        mock_modify_dataset_metadata_for_upload,
-        mock_cli_get_latest_dataset_metadata,
-        mock_upload_dataset,
-        mock_DAFNISession,
     ):
         """Tests that the 'upload dataset-version' command can be canceled"""
 
         # SETUP
-        session = MagicMock()
-        mock_DAFNISession.return_value = session
-        runner = CliRunner()
-        dataset_version_id = "some-existing-version-id"
-        file_path = "test_dataset.txt"
-        mock_cli_get_latest_dataset_metadata.return_value = TEST_DATASET_METADATA
+        dataset_file_path = "test_dataset.txt"
+        self.mock_cli_get_latest_dataset_metadata.return_value = TEST_DATASET_METADATA
         metadata = parse_dataset_metadata(TEST_DATASET_METADATA)
 
         # CALL
-        with runner.isolated_filesystem():
-            with open(file_path, "w", encoding="utf-8") as file:
-                file.write("test dataset file")
-            result = runner.invoke(
-                upload.upload,
-                [
-                    "dataset-version",
-                    dataset_version_id,
-                    file_path,
-                ],
-                input="n",
-            )
+        result, _ = self.invoke_command(
+            file_paths=[dataset_file_path],
+            additional_args=[dataset_file_path],
+            input="n",
+        )
 
         # ASSERT
-        mock_DAFNISession.assert_called_once()
-        mock_cli_get_latest_dataset_metadata.assert_called_once_with(
-            session, dataset_version_id
+        self.mock_DAFNISession.assert_called_once()
+        self.mock_cli_get_latest_dataset_metadata.assert_called_once_with(
+            self.mock_session, self.dataset_version_id
         )
-        mock_modify_dataset_metadata_for_upload.assert_called_once_with(
+        self.mock_modify_dataset_metadata_for_upload.assert_called_once_with(
             existing_metadata=TEST_DATASET_METADATA,
             metadata_path=None,
             title=None,
@@ -777,14 +841,14 @@ class TestUploadDatasetVersion(TestCase):
             rights=None,
             version_message=None,
         )
-        mock_upload_dataset.assert_not_called()
+        self.mock_upload_dataset.assert_not_called()
 
         self.assertEqual(
             result.output,
             f"Dataset Title: {metadata.title}\n"
             f"Dataset ID: {metadata.dataset_id}\n"
             f"Dataset Version ID: {metadata.version_id}\n"
-            f"Dataset file path: {file_path}\n"
+            f"Dataset file path: {dataset_file_path}\n"
             "Confirm dataset upload? [y/N]: n\n"
             "Aborted!\n",
         )
@@ -792,22 +856,14 @@ class TestUploadDatasetVersion(TestCase):
 
     def test_upload_dataset_version_with_metadata_and_all_optional_modifications(
         self,
-        mock_modify_dataset_metadata_for_upload,
-        mock_cli_get_latest_dataset_metadata,
-        mock_upload_dataset,
-        mock_DAFNISession,
     ):
         """Tests that the 'upload dataset-version' command works correctly
         when a path to metadata and a version message is given"""
 
         # SETUP
-        session = MagicMock()
-        mock_DAFNISession.return_value = session
-        runner = CliRunner()
-        dataset_version_id = "some-existing-version-id"
-        file_path = "test_dataset.txt"
+        dataset_file_path = "test_dataset.txt"
         metadata_path = "definition.json"
-        mock_cli_get_latest_dataset_metadata.return_value = TEST_DATASET_METADATA
+        self.mock_cli_get_latest_dataset_metadata.return_value = TEST_DATASET_METADATA
         metadata = parse_dataset_metadata(TEST_DATASET_METADATA)
 
         options = {
@@ -835,11 +891,9 @@ class TestUploadDatasetVersion(TestCase):
             "version_message": "Some version message",
         }
 
-        args = add_dataset_metadata_common_options(
+        additional_args = add_dataset_metadata_common_options(
             args=[
-                "dataset-version",
-                dataset_version_id,
-                file_path,
+                dataset_file_path,
                 "--metadata",
                 metadata_path,
             ],
@@ -849,32 +903,27 @@ class TestUploadDatasetVersion(TestCase):
         )
 
         # CALL
-        with runner.isolated_filesystem():
-            with open(file_path, "w", encoding="utf-8") as file:
-                file.write("test dataset file")
-            with open(metadata_path, "w", encoding="utf-8") as file:
-                file.write("test metadata file")
-            result = runner.invoke(
-                upload.upload,
-                args,
-                input="y",
-            )
+        result, _ = self.invoke_command(
+            file_paths=[dataset_file_path, metadata_path],
+            additional_args=additional_args,
+            input="y",
+        )
 
         # ASSERT
-        mock_DAFNISession.assert_called_once()
-        mock_cli_get_latest_dataset_metadata.assert_called_once_with(
-            session, dataset_version_id
+        self.mock_DAFNISession.assert_called_once()
+        self.mock_cli_get_latest_dataset_metadata.assert_called_once_with(
+            self.mock_session, self.dataset_version_id
         )
-        mock_modify_dataset_metadata_for_upload.assert_called_once_with(
+        self.mock_modify_dataset_metadata_for_upload.assert_called_once_with(
             existing_metadata=TEST_DATASET_METADATA,
             metadata_path=Path(metadata_path),
             **options,
         )
-        mock_upload_dataset.assert_called_once_with(
-            session,
+        self.mock_upload_dataset.assert_called_once_with(
+            self.mock_session,
             dataset_id=metadata.dataset_id,
-            metadata=mock_modify_dataset_metadata_for_upload.return_value,
-            file_paths=(Path(file_path),),
+            metadata=self.mock_modify_dataset_metadata_for_upload.return_value,
+            file_paths=(Path(dataset_file_path),),
             json=False,
         )
 
@@ -883,54 +932,103 @@ class TestUploadDatasetVersion(TestCase):
             f"Dataset Title: {metadata.title}\n"
             f"Dataset ID: {metadata.dataset_id}\n"
             f"Dataset Version ID: {metadata.version_id}\n"
-            f"Dataset file path: {file_path}\n"
+            f"Dataset file path: {dataset_file_path}\n"
             f"Dataset metadata file path: {metadata_path}\n"
             "Confirm dataset upload? [y/N]: y\n",
         )
         self.assertEqual(result.exit_code, 0)
 
 
-@patch("dafni_cli.commands.upload.DAFNISession")
-@patch("dafni_cli.commands.upload.upload_dataset_metadata_version")
-@patch("dafni_cli.commands.upload.cli_get_latest_dataset_metadata")
-@patch("dafni_cli.commands.upload.modify_dataset_metadata_for_upload")
 class TestUploadDatasetMetadata(TestCase):
     """Test class to test the upload dataset-metadata commands"""
 
-    def test_upload_dataset_metadata(
+    def setUp(self) -> None:
+        super().setUp()
+
+        self.dataset_version_id = "some-existing-version-id"
+
+        self.mock_DAFNISession = patch("dafni_cli.commands.upload.DAFNISession").start()
+        self.mock_session = MagicMock()
+        self.mock_DAFNISession.return_value = self.mock_session
+
+        self.mock_cli_get_latest_dataset_metadata = patch(
+            "dafni_cli.commands.upload.cli_get_latest_dataset_metadata"
+        ).start()
+        self.mock_modify_dataset_metadata_for_upload = patch(
+            "dafni_cli.commands.upload.modify_dataset_metadata_for_upload"
+        ).start()
+        self.mock_upload_dataset_metadata_version = patch(
+            "dafni_cli.commands.upload.upload_dataset_metadata_version"
+        ).start()
+
+    def invoke_command(
         self,
-        mock_modify_dataset_metadata_for_upload,
-        mock_cli_get_latest_dataset_metadata,
-        mock_upload_dataset_metadata_version,
-        mock_DAFNISession,
-    ):
-        """Tests that the 'upload dataset-metadata' command works correctly"""
+        file_paths: Optional[List[str]] = None,
+        additional_args: Optional[List[str]] = None,
+        input: Optional[str] = None,
+        file_paths_to_read: Optional[List[str]] = None,
+    ) -> Tuple[Result, List[str]]:
+        """Invokes the upload dataset-metadata command with the required arguments
+        provided
 
-        # SETUP
-        session = MagicMock()
-        mock_DAFNISession.return_value = session
+        Args:
+            file_paths (Optional[List]): List of file paths of files to create prior
+                                         to invoking the command
+            additional_args (Optional[List[str]]): Any additional parameters to
+                                                     add
+            input (Optional[str]): 'input' to pass to CliRunner's invoke function
+            file_paths_to_read (Optional[List[str]]): Paths to files to read (will
+                                                    return the contents in a list)
+        """
+        if file_paths is None:
+            file_paths = []
+        if additional_args is None:
+            additional_args = []
+
         runner = CliRunner()
-        dataset_version_id = "some-existing-version-id"
-        mock_cli_get_latest_dataset_metadata.return_value = TEST_DATASET_METADATA
-        metadata = parse_dataset_metadata(TEST_DATASET_METADATA)
 
-        # CALL
+        saved_file_data = []
+
         with runner.isolated_filesystem():
+            for file_path in file_paths:
+                with open(file_path, "w", encoding="utf-8") as file:
+                    file.write("test dataset file")
             result = runner.invoke(
                 upload.upload,
                 [
                     "dataset-metadata",
-                    dataset_version_id,
-                ],
-                input="y",
+                    self.dataset_version_id,
+                ]
+                + additional_args,
+                input=input,
             )
+            # Store the contents of any files created so they may be checked
+            # later
+            if file_paths_to_read:
+                for file_path in file_paths_to_read:
+                    with open(file_path, "r", encoding="utf-8") as file:
+                        saved_file_data.append(file.read())
+
+        return result, saved_file_data
+
+    def test_upload_dataset_metadata(
+        self,
+    ):
+        """Tests that the 'upload dataset-metadata' command works correctly"""
+
+        # SETUP
+        self.mock_cli_get_latest_dataset_metadata.return_value = TEST_DATASET_METADATA
+        metadata = parse_dataset_metadata(TEST_DATASET_METADATA)
+
+        # CALL
+        result, _ = self.invoke_command(input="y")
 
         # ASSERT
-        mock_DAFNISession.assert_called_once()
-        mock_cli_get_latest_dataset_metadata.assert_called_once_with(
-            session, dataset_version_id
+        self.mock_DAFNISession.assert_called_once()
+        self.mock_cli_get_latest_dataset_metadata.assert_called_once_with(
+            self.mock_session, self.dataset_version_id
         )
-        mock_modify_dataset_metadata_for_upload.assert_called_once_with(
+        self.mock_modify_dataset_metadata_for_upload.assert_called_once_with(
             existing_metadata=TEST_DATASET_METADATA,
             metadata_path=None,
             title=None,
@@ -953,11 +1051,11 @@ class TestUploadDatasetMetadata(TestCase):
             rights=None,
             version_message=None,
         )
-        mock_upload_dataset_metadata_version.assert_called_once_with(
-            session,
+        self.mock_upload_dataset_metadata_version.assert_called_once_with(
+            self.mock_session,
             dataset_id=metadata.dataset_id,
-            version_id=dataset_version_id,
-            metadata=mock_modify_dataset_metadata_for_upload.return_value,
+            version_id=self.dataset_version_id,
+            metadata=self.mock_modify_dataset_metadata_for_upload.return_value,
             json=False,
         )
 
@@ -972,44 +1070,29 @@ class TestUploadDatasetMetadata(TestCase):
 
     def test_upload_dataset_metadata_saving_existing_metadata(
         self,
-        mock_modify_dataset_metadata_for_upload,
-        mock_cli_get_latest_dataset_metadata,
-        mock_upload_dataset_metadata_version,
-        mock_DAFNISession,
     ):
         """Tests that the 'upload dataset-metadata' command works correctly
         with the --save option"""
 
         # SETUP
-        session = MagicMock()
-        mock_DAFNISession.return_value = session
-        runner = CliRunner()
-        dataset_version_id = "some-existing-version-id"
-        mock_cli_get_latest_dataset_metadata.return_value = TEST_DATASET_METADATA
-        mock_modify_dataset_metadata_for_upload.return_value = TEST_DATASET_METADATA
+        self.mock_cli_get_latest_dataset_metadata.return_value = TEST_DATASET_METADATA
+        self.mock_modify_dataset_metadata_for_upload.return_value = (
+            TEST_DATASET_METADATA
+        )
         metadata_save_path = "metadata_save_file.json"
 
         # CALL
-        with runner.isolated_filesystem():
-            result = runner.invoke(
-                upload.upload,
-                [
-                    "dataset-metadata",
-                    dataset_version_id,
-                    "--save",
-                    metadata_save_path,
-                ],
-            )
-
-            with open(metadata_save_path, "r", encoding="utf-8") as file:
-                saved_metadata = file.read()
+        result, saved_file_data = self.invoke_command(
+            additional_args=["--save", metadata_save_path],
+            file_paths_to_read=[metadata_save_path],
+        )
 
         # ASSERT
-        mock_DAFNISession.assert_called_once()
-        mock_cli_get_latest_dataset_metadata.assert_called_once_with(
-            session, dataset_version_id
+        self.mock_DAFNISession.assert_called_once()
+        self.mock_cli_get_latest_dataset_metadata.assert_called_once_with(
+            self.mock_session, self.dataset_version_id
         )
-        mock_modify_dataset_metadata_for_upload.assert_called_once_with(
+        self.mock_modify_dataset_metadata_for_upload.assert_called_once_with(
             existing_metadata=TEST_DATASET_METADATA,
             metadata_path=None,
             title=None,
@@ -1033,9 +1116,10 @@ class TestUploadDatasetMetadata(TestCase):
             version_message=None,
         )
         self.assertEqual(
-            saved_metadata, json.dumps(TEST_DATASET_METADATA, indent=4, sort_keys=True)
+            saved_file_data[0],
+            json.dumps(TEST_DATASET_METADATA, indent=4, sort_keys=True),
         )
-        mock_upload_dataset_metadata_version.assert_not_called()
+        self.mock_upload_dataset_metadata_version.assert_not_called()
 
         self.assertEqual(
             result.output, f"Saved existing dataset metadata to {metadata_save_path}\n"
@@ -1044,21 +1128,13 @@ class TestUploadDatasetMetadata(TestCase):
 
     def test_upload_dataset_metadata_with_metadata_and_all_optional_modifications(
         self,
-        mock_modify_dataset_metadata_for_upload,
-        mock_cli_get_latest_dataset_metadata,
-        mock_upload_dataset_metadata_version,
-        mock_DAFNISession,
     ):
         """Tests that the 'upload dataset-metadata' command works correctly
         when a path to metadata and a version message is given"""
 
         # SETUP
-        session = MagicMock()
-        mock_DAFNISession.return_value = session
-        runner = CliRunner()
-        dataset_version_id = "some-existing-version-id"
         metadata_path = "metadata.json"
-        mock_cli_get_latest_dataset_metadata.return_value = TEST_DATASET_METADATA
+        self.mock_cli_get_latest_dataset_metadata.return_value = TEST_DATASET_METADATA
         metadata = parse_dataset_metadata(TEST_DATASET_METADATA)
 
         options = {
@@ -1086,10 +1162,8 @@ class TestUploadDatasetMetadata(TestCase):
             "version_message": "Some version message",
         }
 
-        args = add_dataset_metadata_common_options(
+        additional_args = add_dataset_metadata_common_options(
             args=[
-                "dataset-metadata",
-                dataset_version_id,
                 "--metadata",
                 metadata_path,
             ],
@@ -1099,30 +1173,25 @@ class TestUploadDatasetMetadata(TestCase):
         )
 
         # CALL
-        with runner.isolated_filesystem():
-            with open(metadata_path, "w", encoding="utf-8") as file:
-                file.write("test metadata file")
-            result = runner.invoke(
-                upload.upload,
-                args,
-                input="y",
-            )
+        result, _ = self.invoke_command(
+            file_paths=[metadata_path], additional_args=additional_args, input="y"
+        )
 
         # ASSERT
-        mock_DAFNISession.assert_called_once()
-        mock_cli_get_latest_dataset_metadata.assert_called_once_with(
-            session, dataset_version_id
+        self.mock_DAFNISession.assert_called_once()
+        self.mock_cli_get_latest_dataset_metadata.assert_called_once_with(
+            self.mock_session, self.dataset_version_id
         )
-        mock_modify_dataset_metadata_for_upload.assert_called_once_with(
+        self.mock_modify_dataset_metadata_for_upload.assert_called_once_with(
             existing_metadata=TEST_DATASET_METADATA,
             metadata_path=Path(metadata_path),
             **options,
         )
-        mock_upload_dataset_metadata_version.assert_called_once_with(
-            session,
+        self.mock_upload_dataset_metadata_version.assert_called_once_with(
+            self.mock_session,
             dataset_id=metadata.dataset_id,
-            version_id=dataset_version_id,
-            metadata=mock_modify_dataset_metadata_for_upload.return_value,
+            version_id=self.dataset_version_id,
+            metadata=self.mock_modify_dataset_metadata_for_upload.return_value,
             json=False,
         )
 
@@ -1138,35 +1207,23 @@ class TestUploadDatasetMetadata(TestCase):
 
     def test_upload_dataset_metadata_skipping_confirmation(
         self,
-        mock_modify_dataset_metadata_for_upload,
-        mock_cli_get_latest_dataset_metadata,
-        mock_upload_dataset_metadata_version,
-        mock_DAFNISession,
     ):
         """Tests that the 'upload dataset-metadata' command works correctly when
         given a -y flag to skip the confirmation"""
 
         # SETUP
-        session = MagicMock()
-        mock_DAFNISession.return_value = session
-        runner = CliRunner()
-        dataset_version_id = "some-existing-version-id"
-        mock_cli_get_latest_dataset_metadata.return_value = TEST_DATASET_METADATA
+        self.mock_cli_get_latest_dataset_metadata.return_value = TEST_DATASET_METADATA
         metadata = parse_dataset_metadata(TEST_DATASET_METADATA)
 
         # CALL
-        with runner.isolated_filesystem():
-            result = runner.invoke(
-                upload.upload,
-                ["dataset-metadata", dataset_version_id, "-y"],
-            )
+        result, _ = self.invoke_command(additional_args=["-y"])
 
         # ASSERT
-        mock_DAFNISession.assert_called_once()
-        mock_cli_get_latest_dataset_metadata.assert_called_once_with(
-            session, dataset_version_id
+        self.mock_DAFNISession.assert_called_once()
+        self.mock_cli_get_latest_dataset_metadata.assert_called_once_with(
+            self.mock_session, self.dataset_version_id
         )
-        mock_modify_dataset_metadata_for_upload.assert_called_once_with(
+        self.mock_modify_dataset_metadata_for_upload.assert_called_once_with(
             existing_metadata=TEST_DATASET_METADATA,
             metadata_path=None,
             title=None,
@@ -1189,12 +1246,64 @@ class TestUploadDatasetMetadata(TestCase):
             rights=None,
             version_message=None,
         )
-        mock_upload_dataset_metadata_version.assert_called_once_with(
-            session,
+        self.mock_upload_dataset_metadata_version.assert_called_once_with(
+            self.mock_session,
             dataset_id=metadata.dataset_id,
-            version_id=dataset_version_id,
-            metadata=mock_modify_dataset_metadata_for_upload.return_value,
+            version_id=self.dataset_version_id,
+            metadata=self.mock_modify_dataset_metadata_for_upload.return_value,
             json=False,
+        )
+
+        self.assertEqual(result.output, "")
+        self.assertEqual(result.exit_code, 0)
+
+    def test_upload_dataset_metadata_json(
+        self,
+    ):
+        """Tests that the 'upload dataset-metadata' command works correctly
+        when given a --json flag"""
+
+        # SETUP
+        self.mock_cli_get_latest_dataset_metadata.return_value = TEST_DATASET_METADATA
+        metadata = parse_dataset_metadata(TEST_DATASET_METADATA)
+
+        # CALL
+        result, _ = self.invoke_command(additional_args=["--json"])
+
+        # ASSERT
+        self.mock_DAFNISession.assert_called_once()
+        self.mock_cli_get_latest_dataset_metadata.assert_called_once_with(
+            self.mock_session, self.dataset_version_id
+        )
+        self.mock_modify_dataset_metadata_for_upload.assert_called_once_with(
+            existing_metadata=TEST_DATASET_METADATA,
+            metadata_path=None,
+            title=None,
+            description=None,
+            subject=None,
+            identifiers=None,
+            themes=None,
+            language=None,
+            keywords=None,
+            standard=None,
+            start_date=None,
+            end_date=None,
+            organisation=None,
+            people=None,
+            created_date=None,
+            update_frequency=None,
+            publisher=None,
+            contact=None,
+            license=None,
+            rights=None,
+            version_message=None,
+        )
+        self.mock_upload_dataset_metadata_version.assert_called_once_with(
+            self.mock_session,
+            dataset_id=metadata.dataset_id,
+            version_id=self.dataset_version_id,
+            metadata=self.mock_modify_dataset_metadata_for_upload.return_value,
+            json=True,
         )
 
         self.assertEqual(result.output, "")
@@ -1202,38 +1311,22 @@ class TestUploadDatasetMetadata(TestCase):
 
     def test_upload_metadata_cancel(
         self,
-        mock_modify_dataset_metadata_for_upload,
-        mock_cli_get_latest_dataset_metadata,
-        mock_upload_dataset_metadata_version,
-        mock_DAFNISession,
     ):
         """Tests that the 'upload dataset-metadata' command can be canceled"""
 
         # SETUP
-        session = MagicMock()
-        mock_DAFNISession.return_value = session
-        runner = CliRunner()
-        dataset_version_id = "some-existing-version-id"
-        mock_cli_get_latest_dataset_metadata.return_value = TEST_DATASET_METADATA
+        self.mock_cli_get_latest_dataset_metadata.return_value = TEST_DATASET_METADATA
         metadata = parse_dataset_metadata(TEST_DATASET_METADATA)
 
         # CALL
-        with runner.isolated_filesystem():
-            result = runner.invoke(
-                upload.upload,
-                [
-                    "dataset-metadata",
-                    dataset_version_id,
-                ],
-                input="n",
-            )
+        result, _ = self.invoke_command(input="n")
 
         # ASSERT
-        mock_DAFNISession.assert_called_once()
-        mock_cli_get_latest_dataset_metadata.assert_called_once_with(
-            session, dataset_version_id
+        self.mock_DAFNISession.assert_called_once()
+        self.mock_cli_get_latest_dataset_metadata.assert_called_once_with(
+            self.mock_session, self.dataset_version_id
         )
-        mock_modify_dataset_metadata_for_upload.assert_called_once_with(
+        self.mock_modify_dataset_metadata_for_upload.assert_called_once_with(
             existing_metadata=TEST_DATASET_METADATA,
             metadata_path=None,
             title=None,
@@ -1256,7 +1349,7 @@ class TestUploadDatasetMetadata(TestCase):
             rights=None,
             version_message=None,
         )
-        mock_upload_dataset_metadata_version.assert_not_called()
+        self.mock_upload_dataset_metadata_version.assert_not_called()
 
         self.assertEqual(
             result.output,
@@ -1269,50 +1362,79 @@ class TestUploadDatasetMetadata(TestCase):
         self.assertEqual(result.exit_code, 1)
 
 
-@patch("dafni_cli.commands.upload.DAFNISession")
-@patch("dafni_cli.commands.upload.upload_workflow")
 class TestUploadWorkflow(TestCase):
     """Test class to test the upload workflow commands"""
 
-    def test_upload_workflow(
+    def setUp(self) -> None:
+        super().setUp()
+
+        self.definition_path = "test_definition.json"
+        self.version_message = "Initial version"
+
+        self.mock_DAFNISession = patch("dafni_cli.commands.upload.DAFNISession").start()
+        self.mock_session = MagicMock()
+        self.mock_DAFNISession.return_value = self.mock_session
+
+        self.mock_upload_workflow = patch(
+            "dafni_cli.commands.upload.upload_workflow"
+        ).start()
+
+    def invoke_command(
         self,
-        mock_upload_workflow,
-        mock_DAFNISession,
-    ):
-        """Tests that the 'upload workflow' command works correctly when
-        no parent is given"""
+        additional_args: Optional[List[str]] = None,
+        input: Optional[str] = None,
+    ) -> Result:
+        """Invokes the upload dataset command with all required arguments provided
 
-        # SETUP
-        session = MagicMock()
-        mock_DAFNISession.return_value = session
+        Args:
+            additional_args (Optional[List[str]]): Any additional parameters to
+                                                     add
+            input (Optional[str]): 'input' to pass to CliRunner's invoke function
+        """
+        if additional_args is None:
+            additional_args = []
+
         runner = CliRunner()
-        version_message = "Initial version"
 
-        # CALL
         with runner.isolated_filesystem():
-            with open("test_definition.json", "w", encoding="utf-8") as file:
-                file.write("test definition file")
+            with open(self.definition_path, "w", encoding="utf-8") as file:
+                file.write("{}")
             result = runner.invoke(
                 upload.upload,
                 [
                     "workflow",
-                    "test_definition.json",
+                    self.definition_path,
                     "--version-message",
-                    version_message,
-                ],
-                input="y",
+                    self.version_message,
+                ]
+                + additional_args,
+                input=input,
             )
+        return result
+
+    def test_upload_workflow(
+        self,
+    ):
+        """Tests that the 'upload workflow' command works correctly when
+        no parent is given"""
+
+        # CALL
+        result = self.invoke_command(input="y")
 
         # ASSERT
-        mock_DAFNISession.assert_called_once()
-        mock_upload_workflow.assert_called_once_with(
-            session, Path("test_definition.json"), version_message, None, json=False
+        self.mock_DAFNISession.assert_called_once()
+        self.mock_upload_workflow.assert_called_once_with(
+            self.mock_session,
+            Path(self.definition_path),
+            self.version_message,
+            None,
+            json=False,
         )
 
         self.assertEqual(
             result.output,
-            "Workflow definition file path: test_definition.json\n"
-            f"Version message: {version_message}\n"
+            f"Workflow definition file path: {self.definition_path}\n"
+            f"Version message: {self.version_message}\n"
             "No parent workflow: new workflow to be created\n"
             "Confirm workflow upload? [y/N]: y\n",
         )
@@ -1320,87 +1442,76 @@ class TestUploadWorkflow(TestCase):
 
     def test_upload_workflow_with_parent(
         self,
-        mock_upload_workflow,
-        mock_DAFNISession,
     ):
         """Tests that the 'upload workflow' command works correctly when
         a parent is given"""
 
         # SETUP
-        session = MagicMock()
-        mock_DAFNISession.return_value = session
-        runner = CliRunner()
-        version_message = "Initial version"
+        parent_id = "parent-id"
 
         # CALL
-        with runner.isolated_filesystem():
-            with open("test_definition.json", "w", encoding="utf-8") as file:
-                file.write("test definition file")
-            result = runner.invoke(
-                upload.upload,
-                [
-                    "workflow",
-                    "test_definition.json",
-                    "--version-message",
-                    version_message,
-                    "--parent-id",
-                    "parent-id",
-                ],
-                input="y",
-            )
+        result = self.invoke_command(
+            additional_args=["--parent-id", parent_id], input="y"
+        )
 
         # ASSERT
-        mock_DAFNISession.assert_called_once()
-        mock_upload_workflow.assert_called_once_with(
-            session,
+        self.mock_DAFNISession.assert_called_once()
+        self.mock_upload_workflow.assert_called_once_with(
+            self.mock_session,
             Path("test_definition.json"),
-            version_message,
-            "parent-id",
+            self.version_message,
+            parent_id,
             json=False,
         )
 
         self.assertEqual(
             result.output,
-            "Workflow definition file path: test_definition.json\n"
-            f"Version message: {version_message}\n"
-            "Parent workflow ID: parent-id\n"
+            f"Workflow definition file path: {self.definition_path}\n"
+            f"Version message: {self.version_message}\n"
+            f"Parent workflow ID: {parent_id}\n"
             "Confirm workflow upload? [y/N]: y\n",
         )
         self.assertEqual(result.exit_code, 0)
 
     def test_upload_workflow_skipping_confirmation(
         self,
-        mock_upload_workflow,
-        mock_DAFNISession,
     ):
         """Tests that the 'upload workflow' command works correctly when
         given a -y flag to skip the confirmation"""
 
-        # SETUP
-        session = MagicMock()
-        mock_DAFNISession.return_value = session
-        runner = CliRunner()
-        version_message = "Initial version"
-
         # CALL
-        with runner.isolated_filesystem():
-            with open("test_definition.json", "w", encoding="utf-8") as file:
-                file.write("test definition file")
-            result = runner.invoke(
-                upload.upload,
-                [
-                    "workflow",
-                    "test_definition.json",
-                    "--version-message",
-                    version_message,
-                    "-y",
-                ],
-            )
+        result = self.invoke_command(additional_args=["-y"])
 
         # ASSERT
-        mock_DAFNISession.assert_called_once()
-        mock_upload_workflow.assert_called_once_with(
-            session, Path("test_definition.json"), version_message, None, json=False
+        self.mock_DAFNISession.assert_called_once()
+        self.mock_upload_workflow.assert_called_once_with(
+            self.mock_session,
+            Path(self.definition_path),
+            self.version_message,
+            None,
+            json=False,
+        )
+
+        self.assertEqual(result.output, "")
+        self.assertEqual(result.exit_code, 0)
+
+    def test_upload_workflow_json(
+        self,
+    ):
+        """Tests that the 'upload workflow' command works correctly when
+        given a --json flag"""
+
+        # CALL
+        result = self.invoke_command(additional_args=["--json"])
+
+        # ASSERT
+        self.mock_DAFNISession.assert_called_once()
+        self.mock_upload_workflow.assert_called_once_with(
+            self.mock_session,
+            Path(self.definition_path),
+            self.version_message,
+            None,
+            json=True,
         )
 
         self.assertEqual(result.output, "")
@@ -1408,40 +1519,20 @@ class TestUploadWorkflow(TestCase):
 
     def test_upload_workflow_cancel(
         self,
-        mock_upload_workflow,
-        mock_DAFNISession,
     ):
         """Tests that the 'upload workflow' command can be canceled"""
 
-        # SETUP
-        session = MagicMock()
-        mock_DAFNISession.return_value = session
-        runner = CliRunner()
-        version_message = "Initial version"
-
         # CALL
-        with runner.isolated_filesystem():
-            with open("test_definition.json", "w", encoding="utf-8") as file:
-                file.write("test definition file")
-            result = runner.invoke(
-                upload.upload,
-                [
-                    "workflow",
-                    "test_definition.json",
-                    "--version-message",
-                    version_message,
-                ],
-                input="n",
-            )
+        result = self.invoke_command(input="n")
 
         # ASSERT
-        mock_DAFNISession.assert_called_once()
-        mock_upload_workflow.assert_not_called()
+        self.mock_DAFNISession.assert_called_once()
+        self.mock_upload_workflow.assert_not_called()
 
         self.assertEqual(
             result.output,
-            "Workflow definition file path: test_definition.json\n"
-            f"Version message: {version_message}\n"
+            f"Workflow definition file path: {self.definition_path}\n"
+            f"Version message: {self.version_message}\n"
             "No parent workflow: new workflow to be created\n"
             "Confirm workflow upload? [y/N]: n\n"
             "Aborted!\n",
@@ -1449,78 +1540,117 @@ class TestUploadWorkflow(TestCase):
         self.assertEqual(result.exit_code, 1)
 
 
-@patch("dafni_cli.commands.upload.DAFNISession")
-@patch("dafni_cli.commands.upload.upload_parameter_set")
 class TestUploadWorkflowParameterSet(TestCase):
     """Test class to test the upload workflow-parameter-set commands"""
 
+    def setUp(self) -> None:
+        super().setUp()
+
+        self.definition_path = "test_definition.json"
+
+        self.mock_DAFNISession = patch("dafni_cli.commands.upload.DAFNISession").start()
+        self.mock_session = MagicMock()
+        self.mock_DAFNISession.return_value = self.mock_session
+
+        self.mock_upload_parameter_set = patch(
+            "dafni_cli.commands.upload.upload_parameter_set"
+        ).start()
+
+        self.addCleanup(patch.stopall)
+
+    def invoke_command(
+        self,
+        additional_args: Optional[List[str]] = None,
+        input: Optional[str] = None,
+    ) -> Result:
+        """Invokes the upload workflow-parameter-srt command with all required
+        arguments provided
+
+        Args:
+            additional_args (Optional[List[str]]): Any additional parameters to
+                                                   add
+            input (Optional[str]): 'input' to pass to CliRunner's invoke function
+        """
+        if additional_args is None:
+            additional_args = []
+
+        runner = CliRunner()
+
+        with runner.isolated_filesystem():
+            with open(self.definition_path, "w", encoding="utf-8") as file:
+                file.write("{}")
+            result = runner.invoke(
+                upload.upload,
+                [
+                    "workflow-parameter-set",
+                    self.definition_path,
+                ]
+                + additional_args,
+                input=input,
+            )
+        return result
+
     def test_upload_workflow_parameter_set(
         self,
-        mock_upload_parameter_set,
-        mock_DAFNISession,
     ):
         """Tests that the 'upload workflow-parameter-set' command works
         correctly"""
 
         # SETUP
-        session = MagicMock()
-        mock_DAFNISession.return_value = session
-        runner = CliRunner()
         parameter_set_id = "parameter-set-id"
-        mock_upload_parameter_set.return_value = {"id": parameter_set_id}
+        self.mock_upload_parameter_set.return_value = {"id": parameter_set_id}
 
         # CALL
-        with runner.isolated_filesystem():
-            with open("test_definition.json", "w", encoding="utf-8") as file:
-                file.write("test definition file")
-            result = runner.invoke(
-                upload.upload,
-                [
-                    "workflow-parameter-set",
-                    "test_definition.json",
-                ],
-                input="y",
-            )
+        result = self.invoke_command(input="y")
 
         # ASSERT
-        mock_DAFNISession.assert_called_once()
-        mock_upload_parameter_set.assert_called_once_with(
-            session, Path("test_definition.json"), json=False
+        self.mock_DAFNISession.assert_called_once()
+        self.mock_upload_parameter_set.assert_called_once_with(
+            self.mock_session, Path(self.definition_path), json=False
         )
 
         self.assertEqual(
             result.output,
-            "Parameter set definition file path: test_definition.json\n"
+            f"Parameter set definition file path: {self.definition_path}\n"
             "Confirm parameter set upload? [y/N]: y\n",
         )
         self.assertEqual(result.exit_code, 0)
 
     def test_upload_workflow_parameter_set_skipping_confirmation(
         self,
-        mock_upload_parameter_set,
-        mock_DAFNISession,
     ):
         """Tests that the 'upload workflow-parameter-set' command works
         correctly when given a -y flag to skip the confirmation"""
 
-        # SETUP
-        session = MagicMock()
-        mock_DAFNISession.return_value = session
-        runner = CliRunner()
-
         # CALL
-        with runner.isolated_filesystem():
-            with open("test_definition.json", "w", encoding="utf-8") as file:
-                file.write("test definition file")
-            result = runner.invoke(
-                upload.upload,
-                ["workflow-parameter-set", "test_definition.json", "-y"],
-            )
+        result = self.invoke_command(additional_args=["-y"])
 
         # ASSERT
-        mock_DAFNISession.assert_called_once()
-        mock_upload_parameter_set.assert_called_once_with(
-            session, Path("test_definition.json"), json=False
+        self.mock_DAFNISession.assert_called_once()
+        self.mock_upload_parameter_set.assert_called_once_with(
+            self.mock_session, Path(self.definition_path), json=False
+        )
+
+        self.assertEqual(result.output, "")
+        self.assertEqual(result.exit_code, 0)
+
+    def test_upload_workflow_parameter_set_json(
+        self,
+    ):
+        """Tests that the 'upload workflow-parameter-set' command works
+        correctly when given a --json flag"""
+
+        # SETUP
+        parameter_set_id = "parameter-set-id"
+        self.mock_upload_parameter_set.return_value = {"id": parameter_set_id}
+
+        # CALL
+        result = self.invoke_command(additional_args=["--json"])
+
+        # ASSERT
+        self.mock_DAFNISession.assert_called_once()
+        self.mock_upload_parameter_set.assert_called_once_with(
+            self.mock_session, Path(self.definition_path), json=True
         )
 
         self.assertEqual(result.output, "")
@@ -1528,36 +1658,19 @@ class TestUploadWorkflowParameterSet(TestCase):
 
     def test_upload_workflow_parameter_set_cancel(
         self,
-        mock_upload_parameter_set,
-        mock_DAFNISession,
     ):
         """Tests that the 'upload workflow-parameter-set' command can be canceled"""
 
-        # SETUP
-        session = MagicMock()
-        mock_DAFNISession.return_value = session
-        runner = CliRunner()
-
         # CALL
-        with runner.isolated_filesystem():
-            with open("test_definition.json", "w", encoding="utf-8") as file:
-                file.write("test definition file")
-            result = runner.invoke(
-                upload.upload,
-                [
-                    "workflow-parameter-set",
-                    "test_definition.json",
-                ],
-                input="n",
-            )
+        result = self.invoke_command(input="n")
 
         # ASSERT
-        mock_DAFNISession.assert_called_once()
-        mock_upload_parameter_set.assert_not_called()
+        self.mock_DAFNISession.assert_called_once()
+        self.mock_upload_parameter_set.assert_not_called()
 
         self.assertEqual(
             result.output,
-            "Parameter set definition file path: test_definition.json\n"
+            f"Parameter set definition file path: {self.definition_path}\n"
             "Confirm parameter set upload? [y/N]: n\n"
             "Aborted!\n",
         )
