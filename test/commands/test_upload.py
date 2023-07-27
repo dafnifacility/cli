@@ -451,7 +451,7 @@ class TestUploadDatasetVersion(TestCase):
     def invoke_command(
         self,
         file_paths: List[str],
-        additional_args: Optional[List[str]] = None,
+        additional_args: List[str],
         input: Optional[str] = None,
         file_paths_to_read: Optional[List[str]] = None,
     ) -> Tuple[Result, List[str]]:
@@ -461,15 +461,11 @@ class TestUploadDatasetVersion(TestCase):
         Args:
             file_paths (Optional[List]): List of file paths of files to create prior
                                          to invoking the command
-            additional_args (Optional[List[str]]): Any additional parameters to
-                                                     add
+            additional_args (List[str]): Any additional parameters to add
             input (Optional[str]): 'input' to pass to CliRunner's invoke function
             file_paths_to_read (Optional[List[str]]): Paths to files to read (will
                                                     return the contents in a list)
         """
-        if additional_args is None:
-            additional_args = []
-
         runner = CliRunner()
 
         saved_file_data = []
