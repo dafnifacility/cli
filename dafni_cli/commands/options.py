@@ -251,3 +251,20 @@ def filter_flag_option(*param_decls: str, help: str):
         return function
 
     return decorator
+
+
+def confirmation_skip_option(function):
+    """Decorator function for adding a -y click option for skipping
+    any confirmation prompts
+
+    Flag will be named 'yes' and will be True or False
+    """
+    function = click.option(
+        "--yes",
+        "-y",
+        is_flag=True,
+        default=False,
+        help="Flag for skipping any confirmation prompts",
+    )(function)
+
+    return function

@@ -339,6 +339,12 @@ class WorkflowInstance(ParserBaseObject):
         click.echo(self.workflow_version.metadata.display_name)
         click.echo()
 
+        if self.workflow_version.spec.errors:
+            click.echo("Retrieving full Workflow failed:")
+            for error_msg in self.workflow_version.spec.errors:
+                click.echo(f"ERROR: {error_msg}")
+            click.echo()
+
         click.echo(
             tabulate(
                 [
