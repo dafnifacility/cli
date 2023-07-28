@@ -22,7 +22,6 @@ from dafni_cli.consts import (
     TABLE_VERSION_ID_HEADER,
     TABLE_WORKFLOW_VERSION_ID_HEADER,
 )
-
 from dafni_cli.tests.fixtures.dataset_metadata import TEST_DATASET_METADATA
 
 

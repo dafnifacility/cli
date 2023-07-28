@@ -2,9 +2,6 @@
 requires = ["setuptools>=68.0.0", "wheel", "setuptools-git-versioning<2"]
 build-backend = "setuptools.build_meta"
 
-[tool.setuptools-git-versioning]
-enabled = true
-
 [project]
 name = "dafni-cli"
 description = "A CLI to access the DAFNI APIs from the command line"
@@ -24,6 +21,12 @@ classifiers = [
 ]
 # Dynamic versioning using setuptools-git-versioning
 dynamic = ["version"]
+
+[tool.setuptools-git-versioning]
+enabled = true
+
+# To override the versioning above, comment out and replace with
+# version = "0.0.1"
 
 [project.urls]
 Source = "https://github.com/dafnifacility/cli"

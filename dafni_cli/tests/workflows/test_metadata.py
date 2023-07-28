@@ -1,9 +1,8 @@
 from unittest import TestCase
 
 from dafni_cli.api.parser import ParserBaseObject
-from dafni_cli.workflows.metadata import WorkflowMetadata
-
 from dafni_cli.tests.fixtures.workflow_metadata import TEST_WORKFLOW_METADATA
+from dafni_cli.workflows.metadata import WorkflowMetadata
 
 
 class TestWorkflowMetadata(TestCase):

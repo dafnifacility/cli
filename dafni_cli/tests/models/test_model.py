@@ -8,7 +8,6 @@ from dafni_cli.api.auth import Auth
 from dafni_cli.api.parser import ParserBaseObject
 from dafni_cli.consts import (
     CONSOLE_WIDTH,
-    TAB_SPACE,
     TABLE_PUBLICATION_DATE_HEADER,
     TABLE_VERSION_ID_HEADER,
     TABLE_VERSION_MESSAGE_HEADER,
@@ -17,8 +16,6 @@ from dafni_cli.consts import (
 from dafni_cli.models.inputs import ModelInputs
 from dafni_cli.models.model import ModelMetadata, ModelSpec, parse_model, parse_models
 from dafni_cli.models.outputs import ModelOutputs
-from dafni_cli.utils import format_datetime
-
 from dafni_cli.tests.fixtures.models import (
     TEST_MODEL,
     TEST_MODEL_DATA_MODELS_ENDPOINT,
@@ -27,6 +24,7 @@ from dafni_cli.tests.fixtures.models import (
     TEST_MODEL_SPEC_DEFAULT,
     TEST_MODELS,
 )
+from dafni_cli.utils import format_datetime
 
 
 class TestModelMetadata(TestCase):

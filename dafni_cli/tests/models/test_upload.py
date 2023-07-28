@@ -4,7 +4,6 @@ from unittest.mock import MagicMock, call, patch
 
 from dafni_cli.api.exceptions import ValidationError
 from dafni_cli.models import upload
-
 from dafni_cli.tests.api.test_models_api import TEST_MODELS_UPLOAD_RESPONSE
 
 

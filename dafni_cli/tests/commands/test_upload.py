@@ -9,7 +9,6 @@ from click.testing import CliRunner
 from dafni_cli.api.exceptions import ValidationError
 from dafni_cli.commands import upload
 from dafni_cli.datasets.dataset_metadata import parse_dataset_metadata
-
 from dafni_cli.tests.commands.test_options import add_dataset_metadata_common_options
 from dafni_cli.tests.fixtures.dataset_metadata import TEST_DATASET_METADATA
 

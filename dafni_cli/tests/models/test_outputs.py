@@ -10,7 +10,6 @@ from dafni_cli.consts import (
     TABLE_SUMMARY_MAX_COLUMN_WIDTH,
 )
 from dafni_cli.models.outputs import ModelOutputDataset, ModelOutputs
-
 from dafni_cli.tests.fixtures.model_outputs import TEST_MODEL_OUTPUTS
 
 

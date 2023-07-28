@@ -17,15 +17,6 @@ from dafni_cli.consts import (
     TABLE_VALUE_HEADER,
     TABLE_VALUES_HEADER,
 )
-from dafni_cli.workflows.parameter_set import (
-    WorkflowParameterSet,
-    WorkflowParameterSetMetadata,
-    WorkflowParameterSetSpecDataslot,
-    WorkflowParameterSetSpecParameter,
-    WorkflowParameterSetSpecStep,
-)
-from dafni_cli.workflows.specification import WorkflowSpecification
-
 from dafni_cli.tests.fixtures.workflow_parameter_set import (
     TEST_WORKFLOW_PARAMETER_SET,
     TEST_WORKFLOW_PARAMETER_SET_METADATA,
@@ -38,6 +29,14 @@ from dafni_cli.tests.fixtures.workflow_parameter_set import (
     TEST_WORKFLOW_PARAMETER_SET_SPEC_STEP_MODEL,
 )
 from dafni_cli.tests.fixtures.workflow_specification import TEST_WORKFLOW_SPECIFICATION
+from dafni_cli.workflows.parameter_set import (
+    WorkflowParameterSet,
+    WorkflowParameterSetMetadata,
+    WorkflowParameterSetSpecDataslot,
+    WorkflowParameterSetSpecParameter,
+    WorkflowParameterSetSpecStep,
+)
+from dafni_cli.workflows.specification import WorkflowSpecification
 
 
 class TestWorkflowParameterSetMetadata(TestCase):

@@ -24,6 +24,14 @@ from dafni_cli.consts import (
     TABLE_VERSION_TAGS_HEADER,
     TABLE_WORKFLOW_VERSION_ID_HEADER,
 )
+from dafni_cli.tests.fixtures.workflow_parameter_set import TEST_WORKFLOW_PARAMETER_SET
+from dafni_cli.tests.fixtures.workflows import (
+    TEST_WORKFLOW,
+    TEST_WORKFLOW_DATA_WORKFLOWS_ENDPOINT,
+    TEST_WORKFLOW_METADATA,
+    TEST_WORKFLOW_VERSION,
+    TEST_WORKFLOWS,
+)
 from dafni_cli.utils import format_datetime
 from dafni_cli.workflows.instance import WorkflowInstanceList
 from dafni_cli.workflows.parameter_set import WorkflowParameterSet
@@ -33,15 +41,6 @@ from dafni_cli.workflows.workflow import (
     WorkflowVersion,
     parse_workflow,
     parse_workflows,
-)
-from dafni_cli.tests.fixtures.workflow_parameter_set import TEST_WORKFLOW_PARAMETER_SET
-
-from dafni_cli.tests.fixtures.workflows import (
-    TEST_WORKFLOW,
-    TEST_WORKFLOW_DATA_WORKFLOWS_ENDPOINT,
-    TEST_WORKFLOW_METADATA,
-    TEST_WORKFLOW_VERSION,
-    TEST_WORKFLOWS,
 )
 
 

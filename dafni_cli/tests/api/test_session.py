@@ -2,6 +2,21 @@ import json
 import os
 from io import BufferedReader
 from pathlib import Path
+from unittest import TestCase
+from unittest.mock import MagicMock, call, mock_open, patch
+
+import requests
+from requests import HTTPError
+
+from dafni_cli.api.exceptions import DAFNIError, EndpointNotFoundError
+from dafni_cli.api.session import DAFNISession, LoginError
+from dafni_cli.consts import (
+    LOGIN_API_ENDPOINT,
+    LOGOUT_API_ENDPOINT,
+    REQUESTS_TIMEOUT,
+    SESSION_COOKIE,
+    URLS_REQUIRING_COOKIE_AUTHENTICATION,
+)
 from dafni_cli.tests.fixtures.session import (
     TEST_ACCESS_TOKEN,
     TEST_SESSION_DATA,
@@ -17,21 +32,6 @@ from dafni_cli.tests.fixtures.session import (
     create_mock_success_response,
     create_mock_token_expiry_redirect_response,
     create_mock_token_expiry_response,
-)
-from unittest import TestCase
-from unittest.mock import MagicMock, call, mock_open, patch
-
-import requests
-from requests import HTTPError
-
-from dafni_cli.api.exceptions import DAFNIError, EndpointNotFoundError
-from dafni_cli.api.session import DAFNISession, LoginError
-from dafni_cli.consts import (
-    LOGIN_API_ENDPOINT,
-    LOGOUT_API_ENDPOINT,
-    REQUESTS_TIMEOUT,
-    SESSION_COOKIE,
-    URLS_REQUIRING_COOKIE_AUTHENTICATION,
 )
 
 

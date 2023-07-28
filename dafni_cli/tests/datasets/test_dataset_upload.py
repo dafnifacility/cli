@@ -10,12 +10,11 @@ from requests import HTTPError
 from dafni_cli.api.exceptions import DAFNIError
 from dafni_cli.datasets import dataset_upload
 from dafni_cli.datasets.dataset_metadata import (
+    DATASET_METADATA_LANGUAGES,
     DATASET_METADATA_SUBJECTS,
     DATASET_METADATA_THEMES,
     DATASET_METADATA_UPDATE_FREQUENCIES,
-    DATASET_METADATA_LANGUAGES,
 )
-
 from dafni_cli.tests.fixtures.dataset_metadata import TEST_DATASET_METADATA
 
 

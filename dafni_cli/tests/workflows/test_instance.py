@@ -12,6 +12,17 @@ from dafni_cli.consts import (
     TABLE_STEP_NAME_HEADER,
     TABLE_STEP_TYPE_HEADER,
 )
+from dafni_cli.tests.fixtures.workflow_instance import (
+    TEST_WORKFLOW_INSTANCE,
+    TEST_WORKFLOW_INSTANCE_LIST,
+    TEST_WORKFLOW_INSTANCE_LIST_DEFAULT,
+    TEST_WORKFLOW_INSTANCE_LIST_PARAMETER_SET,
+    TEST_WORKFLOW_INSTANCE_LIST_WORKFLOW_VERSION,
+    TEST_WORKFLOW_INSTANCE_PRODUCED_ASSET,
+    TEST_WORKFLOW_INSTANCE_STEP_STATUS,
+    TEST_WORKFLOW_INSTANCE_STEP_STATUS_DEFAULT,
+    TEST_WORKFLOW_INSTANCE_WORKFLOW_VERSION,
+)
 from dafni_cli.utils import format_datetime
 from dafni_cli.workflows.instance import (
     WorkflowInstance,
@@ -26,18 +37,6 @@ from dafni_cli.workflows.instance import (
 from dafni_cli.workflows.metadata import WorkflowMetadata
 from dafni_cli.workflows.parameter_set import WorkflowParameterSet
 from dafni_cli.workflows.specification import WorkflowSpecification
-
-from dafni_cli.tests.fixtures.workflow_instance import (
-    TEST_WORKFLOW_INSTANCE,
-    TEST_WORKFLOW_INSTANCE_LIST,
-    TEST_WORKFLOW_INSTANCE_LIST_DEFAULT,
-    TEST_WORKFLOW_INSTANCE_LIST_PARAMETER_SET,
-    TEST_WORKFLOW_INSTANCE_LIST_WORKFLOW_VERSION,
-    TEST_WORKFLOW_INSTANCE_PRODUCED_ASSET,
-    TEST_WORKFLOW_INSTANCE_STEP_STATUS,
-    TEST_WORKFLOW_INSTANCE_STEP_STATUS_DEFAULT,
-    TEST_WORKFLOW_INSTANCE_WORKFLOW_VERSION,
-)
 
 
 class TestWorkflowInstanceListParameterSet(TestCase):

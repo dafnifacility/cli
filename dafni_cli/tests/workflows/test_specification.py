@@ -1,15 +1,14 @@
 from unittest import TestCase
 
 from dafni_cli.api.parser import ParserBaseObject
-from dafni_cli.workflows.specification import (
-    WorkflowSpecification,
-    WorkflowSpecificationStep,
-)
-
 from dafni_cli.tests.fixtures.workflow_specification import (
     TEST_WORKFLOW_SPECIFICATION,
     TEST_WORKFLOW_SPECIFICATION_DEFAULT,
     TEST_WORKFLOW_SPECIFICATION_STEP,
+)
+from dafni_cli.workflows.specification import (
+    WorkflowSpecification,
+    WorkflowSpecificationStep,
 )
 
 

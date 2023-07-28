@@ -9,9 +9,7 @@ from dafni_cli.api.exceptions import (
     ValidationError,
 )
 from dafni_cli.consts import NIMS_API_URL, VALIDATE_MODEL_CT
-
 from dafni_cli.tests.fixtures.session import create_mock_response
-
 
 TEST_MODELS_UPLOAD_RESPONSE = {
     "id": "upload_id",
