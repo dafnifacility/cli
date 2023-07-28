@@ -36,3 +36,15 @@ jobs:
         uses: actions/upload-artifact@v3
         with:
           path: ./dist/*
+  draft_release:
+    needs: ['build']
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v3
+      - name: Create draft release
+        run: >
+          gh release create --draft --repo ${{ github.repository }}
+          ${{ github.ref_name }}
+          artifact/*
+        env:
+          GH_TOKEN: ${{ github.token }}
