@@ -337,7 +337,7 @@ class TestDatasetUpload(TestCase):
 
     def test_upload_files_json(self):
         """Tests that upload_files works as expected with json = True"""
-        self._test_upload_files(False)
+        self._test_upload_files(True)
 
     def _test_commit_metadata(self, json: bool):
         """Tests that _commit_metadata works as expected without a dataset_id
