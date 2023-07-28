@@ -264,19 +264,43 @@ class TestModifyDatasetMetadataForUpload(TestCase):
         )
 
 
-@patch("dafni_cli.datasets.dataset_upload.click")
 class TestDatasetUpload(TestCase):
     """Test class to test the functions in dataset_upload.py"""
 
-    @patch("dafni_cli.datasets.dataset_upload.get_data_upload_urls")
-    @patch("dafni_cli.datasets.dataset_upload.upload_file_to_minio")
-    def test_upload_files(
-        self,
-        mock_upload_file_to_minio,
-        mock_get_data_upload_urls,
-        mock_click,
-    ):
-        """Tests that upload_files works as expected"""
+    def setUp(self) -> None:
+        super().setUp()
+
+        self.mock_upload_dataset_metadata = patch(
+            "dafni_cli.api.datasets_api.upload_dataset_metadata"
+        ).start()
+        self.mock_upload_file_to_minio = patch(
+            "dafni_cli.datasets.dataset_upload.upload_file_to_minio"
+        ).start()
+        self.mock_get_data_upload_urls = patch(
+            "dafni_cli.datasets.dataset_upload.get_data_upload_urls"
+        ).start()
+        self.mock_create_temp_bucket = patch(
+            "dafni_cli.datasets.dataset_upload.create_temp_bucket"
+        ).start()
+        self.mock_delete_temp_bucket = patch(
+            "dafni_cli.datasets.dataset_upload.delete_temp_bucket"
+        ).start()
+        self.mock_upload_dataset_metadata_version = patch(
+            "dafni_cli.datasets.dataset_upload.datasets_api.upload_dataset_metadata_version"
+        ).start()
+        self.mock_print_json = patch(
+            "dafni_cli.datasets.dataset_upload.print_json"
+        ).start()
+        self.mock_optional_echo = patch(
+            "dafni_cli.datasets.dataset_upload.optional_echo"
+        ).start()
+        self.mock_click = patch("dafni_cli.datasets.dataset_upload.click").start()
+
+        self.addCleanup(patch.stopall)
+
+    def _test_upload_files(self, json: bool):
+        """Tests that upload_files works as expected with a given value of
+        json"""
         # SETUP
         session = MagicMock()
         temp_bucket_id = "some-temp-bucket"
@@ -286,60 +310,69 @@ class TestDatasetUpload(TestCase):
             "urls": {file_paths[idx].name: url for idx, url in enumerate(urls)}
         }
 
-        mock_get_data_upload_urls.return_value = upload_urls
+        self.mock_get_data_upload_urls.return_value = upload_urls
 
         # CALL
-        dataset_upload.upload_files(session, temp_bucket_id, file_paths)
+        dataset_upload.upload_files(session, temp_bucket_id, file_paths, json=json)
 
         # ASSERT
-        mock_get_data_upload_urls.assert_called_once_with(
+        self.mock_get_data_upload_urls.assert_called_once_with(
             session, temp_bucket_id, [file_path.name for file_path in file_paths]
         )
-        mock_upload_file_to_minio.assert_has_calls(
+        self.mock_upload_file_to_minio.assert_has_calls(
             [call(session, url, file_paths[idx]) for idx, url in enumerate(urls)]
         )
 
-        mock_click.echo.assert_has_calls(
+        self.assertEqual(
+            self.mock_optional_echo.call_args_list,
             [
-                call("Retrieving file upload URls"),
-                call("Uploading files"),
-            ]
+                call("Retrieving file upload URls", json),
+                call("Uploading files", json),
+            ],
         )
 
-    @patch("dafni_cli.api.datasets_api.upload_dataset_metadata")
-    def test_commit_metadata(
-        self,
-        mock_upload_dataset_metadata,
-        mock_click,
-    ):
-        """Tests that _commit_metadata works as expected without a dataset_id"""
+    def test_upload_files(self):
+        """Tests that upload_files works as expected with json = False"""
+        self._test_upload_files(False)
+
+    def test_upload_files_json(self):
+        """Tests that upload_files works as expected with json = True"""
+        self._test_upload_files(True)
+
+    def _test_commit_metadata(self, json: bool):
+        """Tests that _commit_metadata works as expected without a dataset_id
+        and a given value of json"""
         # SETUP
         session = MagicMock()
         metadata = MOCK_DEFINITION_DATA
         temp_bucket_id = "some-temp-bucket"
 
         # CALL
-        result = dataset_upload._commit_metadata(session, metadata, temp_bucket_id)
+        result = dataset_upload._commit_metadata(
+            session, metadata, temp_bucket_id, json=json
+        )
 
         # ASSERT
-        mock_upload_dataset_metadata.assert_called_with(
+        self.mock_upload_dataset_metadata.assert_called_with(
             session, temp_bucket_id, metadata, dataset_id=None
         )
 
-        mock_click.echo.assert_has_calls(
-            [
-                call("Uploading metadata file"),
-            ]
-        )
-        self.assertEqual(result, mock_upload_dataset_metadata.return_value)
+        self.mock_optional_echo.assert_called_once_with("Uploading metadata file", json)
+        self.assertEqual(result, self.mock_upload_dataset_metadata.return_value)
 
-    @patch("dafni_cli.api.datasets_api.upload_dataset_metadata")
-    def test_commit_metadata_with_dataset_id(
-        self,
-        mock_upload_dataset_metadata,
-        mock_click,
-    ):
-        """Tests that _commit_metadata works as expected with a dataset_id"""
+    def test_commit_metadata(self):
+        """Tests that _commit_metadata works as expected without a dataset_id
+        and json = False"""
+        self._test_commit_metadata(False)
+
+    def test_commit_metadata_json(self):
+        """Tests that _commit_metadata works as expected without a dataset_id
+        and json = True"""
+        self._test_commit_metadata(True)
+
+    def _test_commit_metadata_with_dataset_id(self, json: bool):
+        """Tests that _commit_metadata works as expected with a dataset_id and
+        a given value of json"""
         # SETUP
         session = MagicMock()
         metadata = MOCK_DEFINITION_DATA
@@ -348,199 +381,231 @@ class TestDatasetUpload(TestCase):
 
         # CALL
         result = dataset_upload._commit_metadata(
-            session, metadata, temp_bucket_id, dataset_id=dataset_id
+            session, metadata, temp_bucket_id, dataset_id=dataset_id, json=json
         )
 
         # ASSERT
-        mock_upload_dataset_metadata.assert_called_with(
-            session, temp_bucket_id, metadata, dataset_id=dataset_id
+        self.mock_upload_dataset_metadata.assert_called_with(
+            session,
+            temp_bucket_id,
+            metadata,
+            dataset_id=dataset_id,
         )
 
-        mock_click.echo.assert_has_calls(
-            [
-                call("Uploading metadata file"),
-            ]
-        )
-        self.assertEqual(result, mock_upload_dataset_metadata.return_value)
+        self.mock_optional_echo.assert_called_once_with("Uploading metadata file", json)
+        self.assertEqual(result, self.mock_upload_dataset_metadata.return_value)
 
-    @patch("dafni_cli.api.datasets_api.upload_dataset_metadata")
-    def test_commit_metadata_exits_on_error(
-        self,
-        mock_upload_dataset_metadata,
-        mock_click,
-    ):
-        """Tests that _commit_metadata calls SystemExit(1) when an error occurs"""
+    def test_commit_metadata_with_dataset_id(self):
+        """Tests that _commit_metadata works as expected with a dataset_id with
+        json = False"""
+        self._test_commit_metadata_with_dataset_id(False)
+
+    def test_commit_metadata_with_dataset_id_json(self):
+        """Tests that _commit_metadata works as expected with a dataset_id with
+        json = True"""
+        self._test_commit_metadata_with_dataset_id(True)
+
+    def _test_commit_metadata_exits_on_error(self, json: bool):
+        """Tests that _commit_metadata calls SystemExit(1) when an error occurs
+        and using a given value of json"""
         # SETUP
         session = MagicMock()
         metadata = MOCK_DEFINITION_DATA
         temp_bucket_id = "some-temp-bucket"
 
         error = DAFNIError("Some error message")
-        mock_upload_dataset_metadata.side_effect = error
+        self.mock_upload_dataset_metadata.side_effect = error
 
         # CALL
         with self.assertRaises(SystemExit):
-            dataset_upload._commit_metadata(session, metadata, temp_bucket_id)
+            dataset_upload._commit_metadata(
+                session, metadata, temp_bucket_id, json=json
+            )
 
         # ASSERT
-        mock_click.echo.assert_has_calls(
-            [
-                call("Uploading metadata file"),
-                call(f"\nMetadata upload failed: {error}"),
-            ]
+        self.mock_optional_echo.assert_called_once_with("Uploading metadata file", json)
+        self.mock_click.echo.assert_called_once_with(
+            f"\nMetadata upload failed: {error}"
         )
 
-    @patch("dafni_cli.datasets.dataset_upload.upload_files")
-    @patch("dafni_cli.datasets.dataset_upload._commit_metadata")
-    @patch("dafni_cli.datasets.dataset_upload.create_temp_bucket")
-    def test_upload_dataset(
-        self,
-        mock_create_temp_bucket,
-        mock_commit_metadata,
-        mock_upload_files,
-        mock_click,
-    ):
-        """Tests that upload_dataset works as expected"""
-        # SETUP
-        session = MagicMock()
-        metadata = MagicMock()
-        file_paths = ["file_1.txt", "file_2.txt"]
-        temp_bucket_id = "some-temp-bucket"
-        dataset_id = MagicMock()
-        details = {
-            "datasetId": "dataset-id",
-            "versionId": "version-id",
-            "metadataId": "metadata-id",
-        }
+    def test_commit_metadata_exits_on_error(self):
+        """Tests that _commit_metadata calls SystemExit(1) when an error occurs
+        and json = False"""
+        self._test_commit_metadata_exits_on_error(False)
 
-        mock_create_temp_bucket.return_value = temp_bucket_id
-        mock_commit_metadata.return_value = details
+    def test_commit_metadata_exits_on_error_json(self):
+        """Tests that _commit_metadata calls SystemExit(1) when an error occurs
+        and json = True"""
+        self._test_commit_metadata_exits_on_error(True)
 
-        # CALL
-        dataset_upload.upload_dataset(session, metadata, file_paths, dataset_id)
+    def _test_upload_dataset(self, json: bool):
+        """Tests that upload_dataset works as expected with the given value
+        of json"""
 
-        # ASSERT
-        mock_create_temp_bucket.assert_called_once_with(session)
-        mock_upload_files.assert_called_once_with(
-            session,
-            temp_bucket_id,
-            file_paths,
-        )
-        mock_commit_metadata.assert_called_once_with(
-            session, metadata, temp_bucket_id, dataset_id=dataset_id
-        )
+        # Additionally patch these functions in the same file
+        with patch(
+            "dafni_cli.datasets.dataset_upload._commit_metadata"
+        ) as mock_commit_metadata, patch(
+            "dafni_cli.datasets.dataset_upload.upload_files"
+        ) as mock_upload_files:
+            # SETUP
+            session = MagicMock()
+            metadata = MagicMock()
+            file_paths = ["file_1.txt", "file_2.txt"]
+            temp_bucket_id = "some-temp-bucket"
+            dataset_id = MagicMock()
+            details = {
+                "datasetId": "dataset-id",
+                "versionId": "version-id",
+                "metadataId": "metadata-id",
+            }
 
-        mock_click.echo.assert_has_calls(
-            [
-                call("\nRetrieving temporary bucket ID"),
-                call("\nUpload successful"),
-                call(f"Dataset ID: {details['datasetId']}"),
-                call(f"Version ID: {details['versionId']}"),
-                call(f"Metadata ID: {details['metadataId']}"),
-            ]
-        )
+            self.mock_create_temp_bucket.return_value = temp_bucket_id
+            mock_commit_metadata.return_value = details
 
-    @patch("dafni_cli.datasets.dataset_upload.upload_files")
-    @patch("dafni_cli.datasets.dataset_upload._commit_metadata")
-    @patch("dafni_cli.datasets.dataset_upload.create_temp_bucket")
-    @patch("dafni_cli.datasets.dataset_upload.delete_temp_bucket")
-    def test_upload_dataset_deletes_bucket_on_error(
-        self,
-        mock_delete_temp_bucket,
-        mock_create_temp_bucket,
-        mock_commit_metadata,
-        mock_upload_files,
-        mock_click,
-    ):
+            # CALL
+            dataset_upload.upload_dataset(
+                session, metadata, file_paths, dataset_id, json=json
+            )
+
+            # ASSERT
+            self.mock_create_temp_bucket.assert_called_once_with(session)
+            mock_upload_files.assert_called_once_with(
+                session, temp_bucket_id, file_paths, json=json
+            )
+            mock_commit_metadata.assert_called_once_with(
+                session, metadata, temp_bucket_id, dataset_id=dataset_id, json=json
+            )
+
+            self.mock_optional_echo.assert_called_once_with(
+                "\nRetrieving temporary bucket ID", json
+            )
+
+            if json:
+                self.mock_print_json.assert_called_once_with(details)
+                self.mock_click.echo.assert_not_called()
+            else:
+                self.mock_print_json.assert_not_called()
+                self.mock_click.echo.assert_has_calls(
+                    [
+                        call("\nUpload successful"),
+                        call(f"Dataset ID: {details['datasetId']}"),
+                        call(f"Version ID: {details['versionId']}"),
+                        call(f"Metadata ID: {details['metadataId']}"),
+                    ]
+                )
+
+    def test_upload_dataset(self):
+        """Tests that upload_dataset works as expected with json = False"""
+        self._test_upload_dataset(False)
+
+    def test_upload_dataset_json(self):
+        """Tests that upload_dataset works as expected with json = True"""
+        self._test_upload_dataset(True)
+
+    def _test_upload_dataset_deletes_bucket_on_error(self, json: bool):
         """Tests that upload_dataset deletes the temporary bucket when an
-        error occurs"""
-        # SETUP
-        session = MagicMock()
-        metadata = MagicMock()
-        file_paths = ["file_1.txt", "file_2.txt"]
-        temp_bucket_id = "some-temp-bucket"
+        error occurs while using a specific value of json"""
 
-        mock_create_temp_bucket.return_value = temp_bucket_id
-        mock_commit_metadata.side_effect = HTTPError(400)
+        # Additionally patch these functions in the same file
+        with patch(
+            "dafni_cli.datasets.dataset_upload._commit_metadata"
+        ) as mock_commit_metadata, patch(
+            "dafni_cli.datasets.dataset_upload.upload_files"
+        ) as mock_upload_files:
+            # SETUP
+            session = MagicMock()
+            metadata = MagicMock()
+            file_paths = ["file_1.txt", "file_2.txt"]
+            temp_bucket_id = "some-temp-bucket"
 
-        # CALL
-        with self.assertRaises(HTTPError):
-            dataset_upload.upload_dataset(session, metadata, file_paths)
+            self.mock_create_temp_bucket.return_value = temp_bucket_id
+            mock_commit_metadata.side_effect = HTTPError(400)
 
-        # ASSERT
-        mock_create_temp_bucket.assert_called_once_with(session)
-        mock_upload_files.assert_called_once_with(
-            session,
-            temp_bucket_id,
-            file_paths,
-        )
-        mock_commit_metadata.assert_called_once_with(
-            session, metadata, temp_bucket_id, dataset_id=None
-        )
-        mock_delete_temp_bucket.assert_called_once_with(session, temp_bucket_id)
+            # CALL
+            with self.assertRaises(HTTPError):
+                dataset_upload.upload_dataset(session, metadata, file_paths, json=json)
 
-        mock_click.echo.assert_has_calls(
-            [
-                call("\nRetrieving temporary bucket ID"),
-                call("Deleting temporary bucket"),
-            ]
-        )
+            # ASSERT
+            self.mock_create_temp_bucket.assert_called_once_with(session)
+            mock_upload_files.assert_called_once_with(
+                session, temp_bucket_id, file_paths, json=json
+            )
+            mock_commit_metadata.assert_called_once_with(
+                session, metadata, temp_bucket_id, dataset_id=None, json=json
+            )
+            self.mock_delete_temp_bucket.assert_called_once_with(
+                session, temp_bucket_id
+            )
 
-    @patch("dafni_cli.datasets.dataset_upload.upload_files")
-    @patch("dafni_cli.datasets.dataset_upload._commit_metadata")
-    @patch("dafni_cli.datasets.dataset_upload.create_temp_bucket")
-    @patch("dafni_cli.datasets.dataset_upload.delete_temp_bucket")
+            self.assertEqual(
+                self.mock_optional_echo.call_args_list,
+                [
+                    call("\nRetrieving temporary bucket ID", json),
+                    call("Deleting temporary bucket", json),
+                ],
+            )
+
+    def test_upload_dataset_deletes_bucket_on_error(self):
+        """Tests that upload_dataset deletes the temporary bucket when an
+        error occurs and json = False"""
+        self._test_upload_dataset_deletes_bucket_on_error(False)
+
+    def test_upload_dataset_deletes_bucket_on_error_json(self):
+        """Tests that upload_dataset deletes the temporary bucket when an
+        error occurs and json = True"""
+        self._test_upload_dataset_deletes_bucket_on_error(True)
+
     def test_upload_dataset_deletes_bucket_on_system_exit(
         self,
-        mock_delete_temp_bucket,
-        mock_create_temp_bucket,
-        mock_commit_metadata,
-        mock_upload_files,
-        mock_click,
     ):
         """Tests that upload_dataset deletes the temporary bucket when a
-        SystemExit is triggered"""
-        # SETUP
-        session = MagicMock()
-        metadata = MagicMock()
-        file_paths = ["file_1.txt", "file_2.txt"]
-        temp_bucket_id = "some-temp-bucket"
+        SystemExit is triggered (json is ignored as uses same code as above
+        to do the check anyway)"""
 
-        mock_create_temp_bucket.return_value = temp_bucket_id
-        mock_commit_metadata.side_effect = SystemExit(1)
+        # Additionally patch these functions in the same file
+        with patch(
+            "dafni_cli.datasets.dataset_upload._commit_metadata"
+        ) as mock_commit_metadata, patch(
+            "dafni_cli.datasets.dataset_upload.upload_files"
+        ) as mock_upload_files:
+            # SETUP
+            session = MagicMock()
+            metadata = MagicMock()
+            file_paths = ["file_1.txt", "file_2.txt"]
+            temp_bucket_id = "some-temp-bucket"
 
-        # CALL
-        with self.assertRaises(SystemExit):
-            dataset_upload.upload_dataset(session, metadata, file_paths)
+            self.mock_create_temp_bucket.return_value = temp_bucket_id
+            mock_commit_metadata.side_effect = SystemExit(1)
 
-        # ASSERT
-        mock_create_temp_bucket.assert_called_once_with(session)
-        mock_upload_files.assert_called_once_with(
-            session,
-            temp_bucket_id,
-            file_paths,
-        )
-        mock_commit_metadata.assert_called_once_with(
-            session, metadata, temp_bucket_id, dataset_id=None
-        )
-        mock_delete_temp_bucket.assert_called_once_with(session, temp_bucket_id)
+            # CALL
+            with self.assertRaises(SystemExit):
+                dataset_upload.upload_dataset(session, metadata, file_paths)
 
-        mock_click.echo.assert_has_calls(
-            [
-                call("\nRetrieving temporary bucket ID"),
-                call("Deleting temporary bucket"),
-            ]
-        )
+            # ASSERT
+            self.mock_create_temp_bucket.assert_called_once_with(session)
+            mock_upload_files.assert_called_once_with(
+                session, temp_bucket_id, file_paths, json=False
+            )
+            mock_commit_metadata.assert_called_once_with(
+                session, metadata, temp_bucket_id, dataset_id=None, json=False
+            )
+            self.mock_delete_temp_bucket.assert_called_once_with(
+                session, temp_bucket_id
+            )
 
-    @patch(
-        "dafni_cli.datasets.dataset_upload.datasets_api.upload_dataset_metadata_version"
-    )
-    def test_upload_dataset_metadata_version(
-        self,
-        mock_upload_dataset_metadata,
-        mock_click,
-    ):
-        """Tests that upload_dataset_metadata_version works as expected"""
+            self.assertEqual(
+                self.mock_optional_echo.call_args_list,
+                [
+                    call("\nRetrieving temporary bucket ID", False),
+                    call("Deleting temporary bucket", False),
+                ],
+            )
+
+    def _test_upload_dataset_metadata_version(self, json: bool):
+        """Tests that upload_dataset_metadata_version works as expected with
+        the given value of json"""
+
         # SETUP
         session = MagicMock()
         dataset_id = MagicMock()
@@ -552,23 +617,38 @@ class TestDatasetUpload(TestCase):
             "metadataId": "metadata-id",
         }
 
-        mock_upload_dataset_metadata.return_value = details
+        self.mock_upload_dataset_metadata_version.return_value = details
 
         # CALL
         dataset_upload.upload_dataset_metadata_version(
-            session, dataset_id, version_id, metadata
+            session, dataset_id, version_id, metadata, json=json
         )
 
         # ASSERT
-        mock_upload_dataset_metadata.assert_called_once_with(
+        self.mock_upload_dataset_metadata_version.assert_called_once_with(
             session, dataset_id=dataset_id, version_id=version_id, metadata=metadata
         )
 
-        mock_click.echo.assert_has_calls(
-            [
-                call("\nUpload successful"),
-                call(f"Dataset ID: {details['datasetId']}"),
-                call(f"Version ID: {details['versionId']}"),
-                call(f"Metadata ID: {details['metadataId']}"),
-            ]
-        )
+        if json:
+            self.mock_print_json.assert_called_once_with(details)
+            self.mock_click.echo.assert_not_called()
+        else:
+            self.mock_print_json.assert_not_called()
+            self.mock_click.echo.assert_has_calls(
+                [
+                    call("\nUpload successful"),
+                    call(f"Dataset ID: {details['datasetId']}"),
+                    call(f"Version ID: {details['versionId']}"),
+                    call(f"Metadata ID: {details['metadataId']}"),
+                ]
+            )
+
+    def test_upload_dataset_metadata_version(self):
+        """Tests that upload_dataset_metadata_version works as expected when
+        json = False"""
+        self._test_upload_dataset_metadata_version(False)
+
+    def test_upload_dataset_metadata_version_json(self):
+        """Tests that upload_dataset_metadata_version works as expected when
+        json = True"""
+        self._test_upload_dataset_metadata_version(True)
