@@ -23,7 +23,7 @@ from dafni_cli.consts import (
     TABLE_WORKFLOW_VERSION_ID_HEADER,
 )
 
-from test.fixtures.dataset_metadata import TEST_DATASET_METADATA
+from dafni_cli.tests.fixtures.dataset_metadata import TEST_DATASET_METADATA
 
 
 @patch("dafni_cli.commands.get.DAFNISession")

@@ -2,7 +2,7 @@ import json
 import os
 from io import BufferedReader
 from pathlib import Path
-from test.fixtures.session import (
+from dafni_cli.tests.fixtures.session import (
     TEST_ACCESS_TOKEN,
     TEST_SESSION_DATA,
     TEST_SESSION_FILE,

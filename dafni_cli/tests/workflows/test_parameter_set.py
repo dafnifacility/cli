@@ -26,7 +26,7 @@ from dafni_cli.workflows.parameter_set import (
 )
 from dafni_cli.workflows.specification import WorkflowSpecification
 
-from test.fixtures.workflow_parameter_set import (
+from dafni_cli.tests.fixtures.workflow_parameter_set import (
     TEST_WORKFLOW_PARAMETER_SET,
     TEST_WORKFLOW_PARAMETER_SET_METADATA,
     TEST_WORKFLOW_PARAMETER_SET_SPEC_DATASLOT_LOOP,
@@ -37,7 +37,7 @@ from test.fixtures.workflow_parameter_set import (
     TEST_WORKFLOW_PARAMETER_SET_SPEC_STEP_LOOP,
     TEST_WORKFLOW_PARAMETER_SET_SPEC_STEP_MODEL,
 )
-from test.fixtures.workflow_specification import TEST_WORKFLOW_SPECIFICATION
+from dafni_cli.tests.fixtures.workflow_specification import TEST_WORKFLOW_SPECIFICATION
 
 
 class TestWorkflowParameterSetMetadata(TestCase):

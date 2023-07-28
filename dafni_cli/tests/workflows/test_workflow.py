@@ -34,9 +34,9 @@ from dafni_cli.workflows.workflow import (
     parse_workflow,
     parse_workflows,
 )
-from test.fixtures.workflow_parameter_set import TEST_WORKFLOW_PARAMETER_SET
+from dafni_cli.tests.fixtures.workflow_parameter_set import TEST_WORKFLOW_PARAMETER_SET
 
-from test.fixtures.workflows import (
+from dafni_cli.tests.fixtures.workflows import (
     TEST_WORKFLOW,
     TEST_WORKFLOW_DATA_WORKFLOWS_ENDPOINT,
     TEST_WORKFLOW_METADATA,

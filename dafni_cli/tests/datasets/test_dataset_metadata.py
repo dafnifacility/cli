@@ -26,7 +26,7 @@ from dafni_cli.datasets.dataset_metadata import (
 )
 from dafni_cli.utils import format_data_format, format_datetime, format_file_size
 
-from test.fixtures.dataset_metadata import (
+from dafni_cli.tests.fixtures.dataset_metadata import (
     TEST_DATASET_METADATA,
     TEST_DATASET_METADATA_CONTACT,
     TEST_DATASET_METADATA_CONTACT_DEFAULT,

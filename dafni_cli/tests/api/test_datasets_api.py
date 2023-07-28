@@ -6,7 +6,7 @@ import requests
 from dafni_cli.api import datasets_api
 from dafni_cli.api.exceptions import EndpointNotFoundError, ResourceNotFoundError
 from dafni_cli.consts import NID_API_URL, SEARCH_AND_DISCOVERY_API_URL
-from test.fixtures.session import create_mock_metadata_errors_response
+from dafni_cli.tests.fixtures.session import create_mock_metadata_errors_response
 
 
 class TestDatasetsAPI(TestCase):

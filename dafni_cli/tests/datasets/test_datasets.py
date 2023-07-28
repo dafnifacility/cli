@@ -8,7 +8,7 @@ from dafni_cli.consts import CONSOLE_WIDTH, TAB_SPACE
 from dafni_cli.datasets.dataset import parse_datasets
 from dafni_cli.utils import format_datetime
 
-from test.fixtures.datasets import TEST_DATASETS_DATA
+from dafni_cli.tests.fixtures.datasets import TEST_DATASETS_DATA
 
 
 class TestDataset(TestCase):

@@ -16,7 +16,7 @@ from dafni_cli.datasets.dataset_metadata import (
     DATASET_METADATA_LANGUAGES,
 )
 
-from test.fixtures.dataset_metadata import TEST_DATASET_METADATA
+from dafni_cli.tests.fixtures.dataset_metadata import TEST_DATASET_METADATA
 
 
 class TestRemoveDatasetMetadataInvalidForUpload(TestCase):

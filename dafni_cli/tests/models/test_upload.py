@@ -5,7 +5,7 @@ from unittest.mock import MagicMock, call, patch
 from dafni_cli.api.exceptions import ValidationError
 from dafni_cli.models import upload
 
-from test.api.test_models_api import TEST_MODELS_UPLOAD_RESPONSE
+from dafni_cli.tests.api.test_models_api import TEST_MODELS_UPLOAD_RESPONSE
 
 
 @patch("dafni_cli.models.upload.click")

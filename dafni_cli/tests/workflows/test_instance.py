@@ -27,7 +27,7 @@ from dafni_cli.workflows.metadata import WorkflowMetadata
 from dafni_cli.workflows.parameter_set import WorkflowParameterSet
 from dafni_cli.workflows.specification import WorkflowSpecification
 
-from test.fixtures.workflow_instance import (
+from dafni_cli.tests.fixtures.workflow_instance import (
     TEST_WORKFLOW_INSTANCE,
     TEST_WORKFLOW_INSTANCE_LIST,
     TEST_WORKFLOW_INSTANCE_LIST_DEFAULT,

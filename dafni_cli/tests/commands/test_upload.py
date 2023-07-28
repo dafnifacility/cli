@@ -10,8 +10,8 @@ from dafni_cli.api.exceptions import ValidationError
 from dafni_cli.commands import upload
 from dafni_cli.datasets.dataset_metadata import parse_dataset_metadata
 
-from test.commands.test_options import add_dataset_metadata_common_options
-from test.fixtures.dataset_metadata import TEST_DATASET_METADATA
+from dafni_cli.tests.commands.test_options import add_dataset_metadata_common_options
+from dafni_cli.tests.fixtures.dataset_metadata import TEST_DATASET_METADATA
 
 
 @patch("dafni_cli.commands.upload.DAFNISession")

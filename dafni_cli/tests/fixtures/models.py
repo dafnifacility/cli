@@ -1,8 +1,8 @@
 from typing import List
 
-from test.fixtures.auth import TEST_AUTH_DATA_OBJECT, TEST_AUTH_DATA_OBJECTS
-from test.fixtures.model_inputs import TEST_MODEL_INPUTS
-from test.fixtures.model_outputs import TEST_MODEL_OUTPUTS
+from dafni_cli.tests.fixtures.auth import TEST_AUTH_DATA_OBJECT, TEST_AUTH_DATA_OBJECTS
+from dafni_cli.tests.fixtures.model_inputs import TEST_MODEL_INPUTS
+from dafni_cli.tests.fixtures.model_outputs import TEST_MODEL_OUTPUTS
 
 # Below follows example response data from the API for getting a models
 # Values labelled with MODELS implies the responses are for the /models

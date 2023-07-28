@@ -1,9 +1,9 @@
 from typing import List
 
-from test.fixtures.auth import TEST_AUTH_DATA_OBJECT, TEST_AUTH_DATA_OBJECTS
-from test.fixtures.workflow_metadata import TEST_WORKFLOW_METADATA
-from test.workflows.test_instance import TEST_WORKFLOW_INSTANCE_LIST
-from test.workflows.test_parameter_set import TEST_WORKFLOW_PARAMETER_SET
+from dafni_cli.tests.fixtures.auth import TEST_AUTH_DATA_OBJECT, TEST_AUTH_DATA_OBJECTS
+from dafni_cli.tests.fixtures.workflow_metadata import TEST_WORKFLOW_METADATA
+from dafni_cli.tests.workflows.test_instance import TEST_WORKFLOW_INSTANCE_LIST
+from dafni_cli.tests.workflows.test_parameter_set import TEST_WORKFLOW_PARAMETER_SET
 
 TEST_WORKFLOW_VERSION: dict = {
     "id": "0a0a0a0a-0a00-0a00-a000-0a0a0000000b",

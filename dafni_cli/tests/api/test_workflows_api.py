@@ -14,7 +14,10 @@ from dafni_cli.api.exceptions import (
 from dafni_cli.consts import NIMS_API_URL
 from dafni_cli.utils import construct_validation_errors_from_dict
 
-from test.fixtures.session import create_mock_error_response, create_mock_response
+from dafni_cli.tests.fixtures.session import (
+    create_mock_error_response,
+    create_mock_response,
+)
 
 
 class TestWorkflowsAPI(TestCase):

@@ -6,7 +6,7 @@ from dafni_cli.workflows.specification import (
     WorkflowSpecificationStep,
 )
 
-from test.fixtures.workflow_specification import (
+from dafni_cli.tests.fixtures.workflow_specification import (
     TEST_WORKFLOW_SPECIFICATION,
     TEST_WORKFLOW_SPECIFICATION_DEFAULT,
     TEST_WORKFLOW_SPECIFICATION_STEP,

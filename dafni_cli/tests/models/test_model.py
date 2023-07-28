@@ -19,7 +19,7 @@ from dafni_cli.models.model import ModelMetadata, ModelSpec, parse_model, parse_
 from dafni_cli.models.outputs import ModelOutputs
 from dafni_cli.utils import format_datetime
 
-from test.fixtures.models import (
+from dafni_cli.tests.fixtures.models import (
     TEST_MODEL,
     TEST_MODEL_DATA_MODELS_ENDPOINT,
     TEST_MODEL_METADATA,

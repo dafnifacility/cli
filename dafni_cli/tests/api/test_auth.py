@@ -3,7 +3,7 @@ from unittest import TestCase
 from dafni_cli.api.auth import Auth
 from dafni_cli.api.parser import ParserBaseObject
 
-from test.fixtures.auth import TEST_AUTH_DATA_OBJECT, TEST_AUTH_DATA_OBJECTS
+from dafni_cli.tests.fixtures.auth import TEST_AUTH_DATA_OBJECT, TEST_AUTH_DATA_OBJECTS
 
 
 class TestAuth(TestCase):

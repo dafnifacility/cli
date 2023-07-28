@@ -10,7 +10,7 @@ from click.testing import CliRunner
 
 from dafni_cli.commands import create
 
-from test.commands.test_options import add_dataset_metadata_common_options
+from dafni_cli.tests.commands.test_options import add_dataset_metadata_common_options
 
 
 @patch("dafni_cli.commands.create.modify_dataset_metadata_for_upload")

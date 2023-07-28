@@ -11,7 +11,7 @@ from dafni_cli.consts import (
 )
 from dafni_cli.models.outputs import ModelOutputDataset, ModelOutputs
 
-from test.fixtures.model_outputs import TEST_MODEL_OUTPUTS
+from dafni_cli.tests.fixtures.model_outputs import TEST_MODEL_OUTPUTS
 
 
 class TestModelOutputDataset(TestCase):

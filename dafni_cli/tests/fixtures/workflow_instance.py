@@ -1,7 +1,7 @@
-from test.fixtures.auth import TEST_AUTH_DATA_OBJECT
-from test.fixtures.workflow_metadata import TEST_WORKFLOW_METADATA
-from test.fixtures.workflow_parameter_set import TEST_WORKFLOW_PARAMETER_SET
-from test.fixtures.workflow_specification import TEST_WORKFLOW_SPECIFICATION
+from dafni_cli.tests.fixtures.auth import TEST_AUTH_DATA_OBJECT
+from dafni_cli.tests.fixtures.workflow_metadata import TEST_WORKFLOW_METADATA
+from dafni_cli.tests.fixtures.workflow_parameter_set import TEST_WORKFLOW_PARAMETER_SET
+from dafni_cli.tests.fixtures.workflow_specification import TEST_WORKFLOW_SPECIFICATION
 
 TEST_WORKFLOW_INSTANCE_LIST_PARAMETER_SET = {
     "id": "0a0a0a0a-0a00-0a00-a000-0a0a0000000a",

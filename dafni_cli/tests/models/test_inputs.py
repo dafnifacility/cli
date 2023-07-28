@@ -18,7 +18,7 @@ from dafni_cli.consts import (
 )
 from dafni_cli.models.inputs import ModelDataslot, ModelInputs, ModelParameter
 
-from test.fixtures.model_inputs import (
+from dafni_cli.tests.fixtures.model_inputs import (
     TEST_MODEL_INPUT_DATASLOT,
     TEST_MODEL_INPUT_DATASLOT_DEFAULT,
     TEST_MODEL_INPUT_PARAMETER,
