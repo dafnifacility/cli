@@ -26,6 +26,12 @@ jobs:
       - name: Build wheel
         run: |
           python -m build
+      - name: Test wheel
+        # Remove local folder to ensure testing on installed package
+        run: |
+          rm -r dafni_cli
+          pip install ./dist/dafni_cli-*.whl
+          python -m unittest discover dafni_cli.tests
       - name: Upload artifact
         uses: actions/upload-artifact@v3
         with:
