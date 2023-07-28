@@ -22,6 +22,7 @@ from dafni_cli.datasets.dataset_metadata import (
     DATASET_METADATA_THEMES,
     DATASET_METADATA_UPDATE_FREQUENCIES,
 )
+from dafni_cli.utils import optional_echo, print_json
 
 # Keys inside dataset metadata returned from the API that are invalid for
 # uploading
@@ -227,7 +228,12 @@ def modify_dataset_metadata_for_upload(
     return metadata
 
 
-def upload_files(session: DAFNISession, temp_bucket_id: str, file_paths: List[Path]):
+def upload_files(
+    session: DAFNISession,
+    temp_bucket_id: str,
+    file_paths: List[Path],
+    json: bool = False,
+):
     """Function to upload all given files to a temporary bucket via the Minio
     API
 
@@ -235,12 +241,13 @@ def upload_files(session: DAFNISession, temp_bucket_id: str, file_paths: List[Pa
         session (DAFNISession): User session
         temp_bucket_id (str): Minio temporary bucket ID to upload files to
         file_paths (List[Path]): List of Paths to dataset data files
+        json (bool): Whether to print the raw json returned by the DAFNI API
     """
-    click.echo("Retrieving file upload URls")
+    optional_echo("Retrieving file upload URls", json)
     file_names = {file_path.name: file_path for file_path in file_paths}
     upload_urls = get_data_upload_urls(session, temp_bucket_id, list(file_names.keys()))
 
-    click.echo("Uploading files")
+    optional_echo("Uploading files", json)
     for key, value in upload_urls["urls"].items():
         upload_file_to_minio(session, value, file_names[key])
 
@@ -250,6 +257,7 @@ def _commit_metadata(
     metadata: dict,
     temp_bucket_id: str,
     dataset_id: Optional[str] = None,
+    json: bool = False,
 ) -> dict:
     """Function to upload the metadata to the NID API and
     commit the dataset
@@ -262,11 +270,12 @@ def _commit_metadata(
         metadata (dict): The metadata to upload
         temp_bucket_id (str): Minio Temporary Bucket ID
         dataset_id (str): ID of an existing dataset to upload the metadata to
+        json (bool): Whether to print the raw json returned by the DAFNI API
 
     Returns:
         dict: Upload response in json format
     """
-    click.echo("Uploading metadata file")
+    optional_echo("Uploading metadata file", json)
     try:
         response = datasets_api.upload_dataset_metadata(
             session, temp_bucket_id, metadata, dataset_id=dataset_id
@@ -284,6 +293,7 @@ def upload_dataset(
     metadata: dict,
     file_paths: List[Path],
     dataset_id: Optional[str] = None,
+    json: bool = False,
 ) -> None:
     """Function to upload a Dataset
 
@@ -293,29 +303,33 @@ def upload_dataset(
         file_paths (List[Path]): List of Paths to dataset data files
         dataset_id (Optional[str]): ID of an existing dataset to add a version
                                     to. Creates a new dataset if None.
+        json (bool): Whether to print the raw json returned by the DAFNI API
     """
 
-    click.echo("\nRetrieving temporary bucket ID")
+    optional_echo("\nRetrieving temporary bucket ID", json)
     temp_bucket_id = create_temp_bucket(session)
 
     # If any exception happens now, we want to make sure we delete the
     # temporary bucket to prevent a build up in the user's quota
     try:
         # Upload all files
-        upload_files(session, temp_bucket_id, file_paths)
+        upload_files(session, temp_bucket_id, file_paths, json=json)
         details = _commit_metadata(
-            session, metadata, temp_bucket_id, dataset_id=dataset_id
+            session, metadata, temp_bucket_id, dataset_id=dataset_id, json=json
         )
     except BaseException:
-        click.echo("Deleting temporary bucket")
+        optional_echo("Deleting temporary bucket", json)
         delete_temp_bucket(session, temp_bucket_id)
         raise
 
-    # Output Details
-    click.echo("\nUpload successful")
-    click.echo(f"Dataset ID: {details['datasetId']}")
-    click.echo(f"Version ID: {details['versionId']}")
-    click.echo(f"Metadata ID: {details['metadataId']}")
+    # Output details
+    if json:
+        print_json(details)
+    else:
+        click.echo("\nUpload successful")
+        click.echo(f"Dataset ID: {details['datasetId']}")
+        click.echo(f"Version ID: {details['versionId']}")
+        click.echo(f"Metadata ID: {details['metadataId']}")
 
 
 def upload_dataset_metadata_version(
@@ -323,6 +337,7 @@ def upload_dataset_metadata_version(
     dataset_id: str,
     version_id: str,
     metadata: dict,
+    json: bool = False,
 ) -> None:
     """Function to upload a new metadata version to an existing dataset
 
@@ -333,7 +348,7 @@ def upload_dataset_metadata_version(
         version_id (str): Version ID fo an existing dataset to add the new
                           metadata version to
         metadata (dict): Metadata to upload
-
+        json (bool): Whether to print the raw json returned by the DAFNI API
     """
 
     details = datasets_api.upload_dataset_metadata_version(
@@ -341,7 +356,10 @@ def upload_dataset_metadata_version(
     )
 
     # Output Details
-    click.echo("\nUpload successful")
-    click.echo(f"Dataset ID: {details['datasetId']}")
-    click.echo(f"Version ID: {details['versionId']}")
-    click.echo(f"Metadata ID: {details['metadataId']}")
+    if json:
+        print_json(details)
+    else:
+        click.echo("\nUpload successful")
+        click.echo(f"Dataset ID: {details['datasetId']}")
+        click.echo(f"Version ID: {details['versionId']}")
+        click.echo(f"Metadata ID: {details['metadataId']}")

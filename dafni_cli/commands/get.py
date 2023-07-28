@@ -15,7 +15,7 @@ from dafni_cli.commands.helpers import (
     cli_get_workflow_instance,
     cli_get_workflow_parameter_set,
 )
-from dafni_cli.commands.options import filter_flag_option
+from dafni_cli.commands.options import filter_flag_option, json_option
 from dafni_cli.consts import (
     DATE_INPUT_FORMAT,
     DATE_INPUT_FORMAT_VERBOSE,
@@ -88,13 +88,7 @@ def get(ctx: Context):
     help=f"Filter for models published since given date. Format: {DATE_INPUT_FORMAT_VERBOSE}",
     type=click.DateTime(formats=[DATE_INPUT_FORMAT]),
 )
-@click.option(
-    "--json/--pretty",
-    "-j/-p",
-    default=False,
-    help="Prints raw json returned from API. Default: -p",
-    type=bool,
-)
+@json_option
 @click.pass_context
 def models(
     ctx: Context,
@@ -170,13 +164,7 @@ def models(
     default=False,
     help="Whether to display the version history of a model instead of the metadata. Default -m",
 )
-@click.option(
-    "--json/--pretty",
-    "-j/-p",
-    default=False,
-    help="Prints raw json returned from API. Default: -p",
-    type=bool,
-)
+@json_option
 @click.pass_context
 def model(ctx: Context, version_id: List[str], version_history: bool, json: bool):
     """Displays the metadata for one or more model versions
@@ -228,13 +216,7 @@ def model(ctx: Context, version_id: List[str], version_history: bool, json: bool
     help=f"Filter for datasets with a end date up to given date. Format: {DATE_INPUT_FORMAT_VERBOSE}",
     type=click.DateTime(formats=[DATE_INPUT_FORMAT]),
 )
-@click.option(
-    "--json/--pretty",
-    "-j/-p",
-    default=False,
-    help="Prints raw json returned from API. Default: -p",
-    type=bool,
-)
+@json_option
 @click.pass_context
 def datasets(
     ctx: Context,
@@ -268,12 +250,7 @@ def datasets(
 
 
 @get.command(help="Display metadata or version history of a particular dataset version")
-@click.option(
-    "--version-history/--metadata",
-    "-v/-m",
-    default=False,
-    help="Whether to display the version history of a dataset instead of the metadata. Default: -m",
-)
+@click.argument("version-id", nargs=1, required=True, type=str)
 @click.option(
     "--long/--short",
     "-l/-s",
@@ -282,13 +259,12 @@ def datasets(
     type=bool,
 )
 @click.option(
-    "--json/--pretty",
-    "-j/-p",
+    "--version-history/--metadata",
+    "-v/-m",
     default=False,
-    help="Prints raw json returned from API. Default: -p",
-    type=bool,
+    help="Whether to display the version history of a dataset instead of the metadata. Default: -m",
 )
-@click.argument("version-id", nargs=1, required=True, type=str)
+@json_option
 @click.pass_context
 def dataset(
     ctx: Context,
@@ -346,13 +322,7 @@ def dataset(
     help=f"Filter for workflows published since given date. Format: {DATE_INPUT_FORMAT_VERBOSE}",
     type=click.DateTime(formats=[DATE_INPUT_FORMAT]),
 )
-@click.option(
-    "--json/--pretty",
-    "-j/-p",
-    default=False,
-    help="Prints raw json returned from API. Default: -p",
-    type=bool,
-)
+@json_option
 @click.pass_context
 def workflows(
     ctx: Context,
@@ -425,13 +395,7 @@ def workflows(
     default=False,
     help="Whether to display the version history of a workflow instead of the metadata. Default -m",
 )
-@click.option(
-    "--json/--pretty",
-    "-j/-p",
-    default=False,
-    help="Prints raw json returned from API. Default: -p",
-    type=bool,
-)
+@json_option
 @click.pass_context
 def workflow(ctx: Context, version_id: List[str], version_history: bool, json: bool):
     """
@@ -489,13 +453,7 @@ def workflow(ctx: Context, version_id: List[str], version_history: bool, json: b
 @filter_flag_option("--omitted", help="Filters instances with an 'Omitted' status.")
 @filter_flag_option("--pending", help="Filters instances with a 'Pending' status.")
 @filter_flag_option("--running", help="Filters instances with a 'Running' status.")
-@click.option(
-    "--json/--pretty",
-    "-j/-p",
-    default=False,
-    help="Prints raw json returned from API. Default: -p",
-    type=bool,
-)
+@json_option
 @click.pass_context
 def workflow_instances(
     ctx: Context,
@@ -585,13 +543,7 @@ def workflow_instances(
 
 @get.command(help="Display information about a workflow instance")
 @click.argument("instance-id", required=True)
-@click.option(
-    "--json/--pretty",
-    "-j/-p",
-    default=False,
-    help="Prints raw json returned from API. Default: -p",
-    type=bool,
-)
+@json_option
 @click.pass_context
 def workflow_instance(
     ctx: Context,
@@ -619,13 +571,7 @@ def workflow_instance(
 @get.command(help="Display information about a workflow's parameter set")
 @click.argument("workflow-version-id", required=True)
 @click.argument("parameter-set-id", required=True)
-@click.option(
-    "--json/--pretty",
-    "-j/-p",
-    default=False,
-    help="Prints raw json returned from API. Default: -p",
-    type=bool,
-)
+@json_option
 @click.pass_context
 def workflow_parameter_set(
     ctx: Context,

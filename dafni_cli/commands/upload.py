@@ -1,22 +1,17 @@
-import json
+import json as json_lib
 from datetime import datetime
 from pathlib import Path
 from typing import List, Optional, Tuple
 
 import click
 from click import Context
-from dafni_cli.api.exceptions import ValidationError
 
 from dafni_cli.api.session import DAFNISession
-from dafni_cli.api.workflows_api import (
-    upload_parameter_set,
-    upload_workflow,
-    validate_parameter_set_definition,
-)
 from dafni_cli.commands.helpers import cli_get_latest_dataset_metadata
 from dafni_cli.commands.options import (
     confirmation_skip_option,
     dataset_metadata_common_options,
+    json_option,
 )
 from dafni_cli.datasets.dataset_metadata import parse_dataset_metadata
 from dafni_cli.datasets.dataset_upload import (
@@ -26,6 +21,7 @@ from dafni_cli.datasets.dataset_upload import (
 )
 from dafni_cli.models.upload import upload_model
 from dafni_cli.utils import argument_confirmation
+from dafni_cli.workflows.upload import upload_parameter_set, upload_workflow
 
 
 ###############################################################################
@@ -68,6 +64,7 @@ def upload(ctx: Context):
     default=None,
 )
 @confirmation_skip_option
+@json_option
 @click.pass_context
 def model(
     ctx: Context,
@@ -76,6 +73,7 @@ def model(
     version_message: str,
     parent_id: Optional[str],
     yes: bool,
+    json: bool,
 ):
     """Uploads model to DAFNI from metadata and image files
 
@@ -86,6 +84,7 @@ def model(
         version_message (str): Version message to be included with this model version
         parent_id (str): ID of the parent model that this is an update of
         yes (bool): Used to skip confirmations before they are displayed
+        json (bool): Whether to print the raw json returned by the DAFNI API
     """
     arguments = [
         ("Model definition file path", definition),
@@ -98,7 +97,9 @@ def model(
         additional_message = None
     else:
         additional_message = ["No parent model: New model to be created"]
-    argument_confirmation(arguments, confirmation_message, additional_message, yes=yes)
+    argument_confirmation(
+        arguments, confirmation_message, additional_message, skip=yes or json
+    )
 
     upload_model(
         ctx.obj["session"],
@@ -106,6 +107,7 @@ def model(
         image_path=image,
         version_message=version_message,
         parent_id=parent_id,
+        json=json,
     )
 
 
@@ -126,12 +128,14 @@ def model(
     type=click.Path(exists=True, path_type=Path),
 )
 @confirmation_skip_option
+@json_option
 @click.pass_context
 def dataset(
     ctx: Context,
     metadata_path: Path,
     files: List[Path],
     yes: bool,
+    json: bool,
 ):
     """Uploads a new Dataset to DAFNI from metadata and dataset files.
 
@@ -140,20 +144,21 @@ def dataset(
         metadata_path (Path): Dataset metadata file path
         files (List[Path]): Dataset data files
         yes (bool): Used to skip confirmations before they are displayed
+        json (bool): Whether to print the raw json returned by the DAFNI API
     """
     # Confirm upload details
     arguments = [("Dataset metadata file path", metadata_path)] + [
         ("Dataset file path", file) for file in files
     ]
     confirmation_message = "Confirm dataset upload?"
-    argument_confirmation(arguments, confirmation_message, yes=yes)
+    argument_confirmation(arguments, confirmation_message, skip=yes or json)
 
     # Obtain the metadata
     with open(metadata_path, "r", encoding="utf-8") as metadata_file:
-        metadata = json.load(metadata_file)
+        metadata = json_lib.load(metadata_file)
 
     # Upload the dataset
-    upload_dataset(ctx.obj["session"], metadata, files)
+    upload_dataset(ctx.obj["session"], metadata, files, json=json)
 
 
 ###############################################################################
@@ -180,6 +185,7 @@ def dataset(
 )
 @dataset_metadata_common_options(all_optional=True)
 @confirmation_skip_option
+@json_option
 @click.pass_context
 def dataset_version(
     ctx: Context,
@@ -207,6 +213,7 @@ def dataset_version(
     rights: Optional[str],
     version_message: Optional[str],
     yes: bool,
+    json: bool,
 ):
     """Uploads a new version of a Dataset to DAFNI from dataset files
 
@@ -218,6 +225,7 @@ def dataset_version(
         metadata (Optional[Path]): Dataset metadata file
         save (Optional[Path]): Path to save existing metadata in for editing
         yes (bool): Used to skip confirmations before they are displayed
+        json (bool): Whether to print the raw json returned by the DAFNI API
 
         For the rest see dataset_metadata_common_options in options.py
     """
@@ -258,7 +266,7 @@ def dataset_version(
 
     if save:
         with open(save, "w", encoding="utf-8") as file:
-            file.write(json.dumps(dataset_metadata_dict, indent=4, sort_keys=True))
+            file.write(json_lib.dumps(dataset_metadata_dict, indent=4, sort_keys=True))
 
         click.echo(f"Saved existing dataset metadata to {save}")
     else:
@@ -273,7 +281,7 @@ def dataset_version(
             arguments.append(("Dataset metadata file path", metadata))
 
         confirmation_message = "Confirm dataset upload?"
-        argument_confirmation(arguments, confirmation_message, yes=yes)
+        argument_confirmation(arguments, confirmation_message, skip=yes or json)
 
         # Upload all files
         upload_dataset(
@@ -281,6 +289,7 @@ def dataset_version(
             dataset_id=dataset_metadata_obj.dataset_id,
             metadata=dataset_metadata_dict,
             file_paths=files,
+            json=json,
         )
 
 
@@ -302,6 +311,7 @@ def dataset_version(
 )
 @dataset_metadata_common_options(all_optional=True)
 @confirmation_skip_option
+@json_option
 @click.pass_context
 def dataset_metadata(
     ctx: Context,
@@ -328,6 +338,7 @@ def dataset_metadata(
     rights: Optional[str],
     version_message: Optional[str],
     yes: bool,
+    json: bool,
 ):
     """Uploads a new version of a Dataset's metadata to DAFNI
 
@@ -338,6 +349,7 @@ def dataset_metadata(
         metadata (Optional[Path]): Dataset metadata file
         save (Optional[Path]): Path to save existing metadata in for editing
         yes (bool): Used to skip confirmations before they are displayed
+        json (bool): Whether to print the raw json returned by the DAFNI API
 
         For the rest see dataset_metadata_common_options in options.py
     """
@@ -378,7 +390,7 @@ def dataset_metadata(
 
     if save:
         with open(save, "w", encoding="utf-8") as file:
-            file.write(json.dumps(dataset_metadata_dict, indent=4, sort_keys=True))
+            file.write(json_lib.dumps(dataset_metadata_dict, indent=4, sort_keys=True))
 
         click.echo(f"Saved existing dataset metadata to {save}")
     else:
@@ -393,7 +405,7 @@ def dataset_metadata(
             arguments.append(("Dataset metadata file path", metadata))
 
         confirmation_message = "Confirm metadata upload?"
-        argument_confirmation(arguments, confirmation_message, yes=yes)
+        argument_confirmation(arguments, confirmation_message, skip=yes or json)
 
         # Upload
         upload_dataset_metadata_version(
@@ -401,6 +413,7 @@ def dataset_metadata(
             dataset_id=dataset_metadata_obj.dataset_id,
             version_id=existing_version_id,
             metadata=dataset_metadata_dict,
+            json=json,
         )
 
 
@@ -429,6 +442,7 @@ def dataset_metadata(
     help="Parent workflow ID if this is an updated version of an existing workflow",
 )
 @confirmation_skip_option
+@json_option
 @click.pass_context
 def workflow(
     ctx: Context,
@@ -436,6 +450,7 @@ def workflow(
     version_message: str,
     parent_id: str,
     yes: bool,
+    json: bool,
 ):
     """
     Uploads a workflow in JSON form to DAFNI.
@@ -446,7 +461,9 @@ def workflow(
         version_message (str): Version message to be included with this workflow version
         parent_id (str): ID of the parent workflow that this is an update of
         yes (bool): Used to skip confirmations before they are displayed
+        json (bool): Whether to print the raw json returned by the DAFNI API
     """
+
     arguments = [
         ("Workflow definition file path", definition),
         ("Version message", version_message),
@@ -457,17 +474,13 @@ def workflow(
         additional_message = None
     else:
         additional_message = ["No parent workflow: new workflow to be created"]
-    argument_confirmation(arguments, confirmation_message, additional_message, yes=yes)
-
-    # TODO: Validate workflow definition using workflows/validate?
-
-    click.echo("Uploading workflow")
-    details = upload_workflow(
-        ctx.obj["session"], definition, version_message, parent_id
+    argument_confirmation(
+        arguments, confirmation_message, additional_message, skip=yes or json
     )
 
-    click.echo("\nUpload successful")
-    click.echo(f"Version ID: {details['id']}")
+    upload_workflow(
+        ctx.obj["session"], definition, version_message, parent_id, json=json
+    )
 
 
 ###############################################################################
@@ -478,11 +491,13 @@ def workflow(
     "definition", nargs=1, required=True, type=click.Path(exists=True, path_type=Path)
 )
 @confirmation_skip_option
+@json_option
 @click.pass_context
 def workflow_parameter_set(
     ctx: Context,
     definition: Path,
     yes: bool,
+    json: bool,
 ):
     """Uploads workflow parameter set to DAFNI
 
@@ -490,24 +505,13 @@ def workflow_parameter_set(
         ctx (Context): contains user session for authentication
         definition (Path): File path to the parameter set definition file
         yes (bool): Used to skip confirmations before they are displayed
+        json (bool): Whether to print the raw json returned by the DAFNI API
     """
+
     arguments = [
         ("Parameter set definition file path", definition),
     ]
     confirmation_message = "Confirm parameter set upload?"
-    argument_confirmation(arguments, confirmation_message, yes=yes)
+    argument_confirmation(arguments, confirmation_message, skip=yes or json)
 
-    click.echo("Validating parameter set definition")
-    try:
-        validate_parameter_set_definition(ctx.obj["session"], definition)
-    except ValidationError as err:
-        click.echo(err)
-
-        raise SystemExit(1) from err
-
-    click.echo("Uploading parameter set")
-    details = upload_parameter_set(ctx.obj["session"], definition)
-
-    # Output details
-    click.echo("\nUpload successful")
-    click.echo(f"Parameter set ID: {details['id']}")
+    upload_parameter_set(ctx.obj["session"], definition, json=json)

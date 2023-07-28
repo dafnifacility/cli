@@ -69,7 +69,7 @@ def argument_confirmation(
     arguments: List[Tuple[str, str]],
     confirmation_message: str,
     additional_messages: Optional[List[str]] = None,
-    yes: bool = False,
+    skip: bool = False,
 ):
     """Function to display the arguments and options chosen by the user
     and ask for confirmation
@@ -81,12 +81,11 @@ def argument_confirmation(
                                     prompts the user to confirm or reject
         additional_messages (Optional[List[str]]): Other messages to be added
                                     after options are listed
-        yes (bool): Meant to correspond to the --yes command line option from
-                    confirmation_skip_option. A value of True skips the entire
-                    confirmation, whereas False will request input from the user
-                    after printing out any given messages.
+        skip (bool): Whether to skip the confirmation or not. A value of True
+                     skips the entire confirmation, whereas False will request
+                     input from the user after printing out any given messages
     """
-    if not yes:
+    if not skip:
         for name, value in arguments:
             click.echo(f"{name}: {value}")
         if additional_messages:
@@ -252,3 +251,10 @@ def construct_validation_errors_from_dict(dictionary: dict, prefix="") -> List[s
         else:
             errors.append(f"Error: ( {new_prefix} ) - {value}")
     return errors
+
+
+def optional_echo(string: str, should_not_print: bool):
+    """Uses click.echo to output a string only when should_not_print is False
+    (Used for optional printing for json flags)"""
+    if not should_not_print:
+        click.echo(string)

@@ -5,7 +5,7 @@ from io import BytesIO
 from pathlib import Path
 from typing import List, Optional
 from unittest import TestCase
-from unittest.mock import call, patch
+from unittest.mock import MagicMock, call, patch
 from zipfile import ZipFile
 
 from dafni_cli import utils
@@ -201,8 +201,8 @@ class TestArgumentConfirmation(TestCase):
         )
         mock_click.confirm.assert_called_once_with(confirmation_message, abort=True)
 
-    def test_nothing_happens_when_yes_is_true(self, mock_click):
-        """Tests that nothing is done when 'yes' is True"""
+    def test_nothing_happens_when_skip_is_true(self, mock_click):
+        """Tests that nothing is done when 'skip' is True"""
         # CALL
         utils.argument_confirmation(
             [
@@ -212,7 +212,7 @@ class TestArgumentConfirmation(TestCase):
             ],
             "confirmation message",
             ["additional message 1", "additional message 2"],
-            yes=True,
+            skip=True,
         )
 
         # ASSERT
@@ -562,3 +562,30 @@ class TestConstructValidationErrorsFromDict(TestCase):
                 "Error: ( more_errors -> hello ) - world",
             ],
         )
+
+
+@patch("dafni_cli.utils.click")
+class TestOptionalEcho(TestCase):
+    """Test class to test the optional_echo function"""
+
+    def test_outputs_when_passed_false(self, mock_click):
+        """Tests optional_echo calls click.echo when passed a value of False"""
+        # SETUP
+        message = MagicMock()
+
+        # CALL
+        utils.optional_echo(message, False)
+
+        # ASSERT
+        mock_click.echo.assert_called_once_with(message)
+
+    def test_does_not_output_when_passed_true(self, mock_click):
+        """Tests optional_echo calls click.echo when passed a value of True"""
+        # SETUP
+        message = MagicMock()
+
+        # CALL
+        utils.optional_echo(message, True)
+
+        # ASSERT
+        mock_click.echo.assert_not_called()
