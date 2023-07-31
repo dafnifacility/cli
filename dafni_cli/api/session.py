@@ -3,7 +3,7 @@ import json
 import os
 from dataclasses import dataclass
 from pathlib import Path
-from typing import BinaryIO, Callable, Literal, Optional, Union
+from typing import BinaryIO, Callable, Dict, Literal, Optional, Union
 
 import click
 import requests
@@ -489,11 +489,11 @@ class DAFNISession:
         url: str,
         content_type: str = "application/json",
         allow_redirect: bool = False,
-        content: bool = False,
+        stream: bool = False,
         error_message_func: Optional[
             Callable[[requests.Response], Optional[str]]
         ] = None,
-    ):
+    ) -> Union[Dict, requests.Response]:
         """Performs a GET request from the DAFNI API
 
         Args:
@@ -501,20 +501,19 @@ class DAFNISession:
             content_type (str): Content type to put in request header
             allow_redirect (bool): Flag to allow redirects during API call.
                                    Defaults to False.
-            content (bool): Flag to define if the response content is
-                            returned. default is the response json
-
-        Returns:
-            List[dict]: For an endpoint returning several objects, a list is
-                        returned (e.g. /models/).
-            dict: For an endpoint returning one object, this will be a
-                  dictionary (e.g. /models/<version_id>).
+            stream (bool): Whether to stream the response. In this case will
+                           return the response object itself rather than the
+                           json.
             error_message_func (Optional[Callable[[requests.Response], Optional[str]]]):
                                 Function called on a response after an error to
                                 obtain an error message. If it returns None, a
                                 HTTPError will be returned, otherwise it will be
                                 a DAFNIError. By default this will be
                                 get_error_message.
+
+        Returns:
+            Dict: When 'stream' is False - The decoded json response
+            requests.Response: When 'stream' is True - The whole response object
 
         Raises:
             EndpointNotFoundError: If the response returns a 404 status code
@@ -532,8 +531,8 @@ class DAFNISession:
         )
         self._check_response(url, response, error_message_func=error_message_func)
 
-        if content:
-            return response.content
+        if stream:
+            return response
         return response.json()
 
     def post_request(
@@ -543,11 +542,10 @@ class DAFNISession:
         data: Optional[Union[dict, BinaryIO]] = None,
         json=None,
         allow_redirect: bool = False,
-        content: bool = False,
         error_message_func: Optional[
             Callable[[requests.Response], Optional[str]]
         ] = None,
-    ):
+    ) -> Dict:
         """Performs a POST request to the DAFNI API
 
         Args:
@@ -557,8 +555,6 @@ class DAFNISession:
             json: Any JSON serialisable object to include in the request
             allow_redirect (bool): Flag to allow redirects during API call.
                                    Defaults to False.
-            content (bool): Flag to define if the response content is
-                            returned. default is the response json
             error_message_func (Optional[Callable[[requests.Response], Optional[str]]]):
                                 Function called on a response after an error to
                                 obtain an error message. If it returns None, a
@@ -567,10 +563,7 @@ class DAFNISession:
                                 get_error_message.
 
         Returns:
-            List[dict]: For an endpoint returning several objects, a list is
-                        returned (e.g. /models/).
-            dict: For an endpoint returning one object, this will be a
-                  dictionary (e.g. /models/<version_id>).
+            Dict: The decoded json response
 
         Raises:
             EndpointNotFoundError: If the response returns a 404 status code
@@ -589,8 +582,6 @@ class DAFNISession:
 
         self._check_response(url, response, error_message_func=error_message_func)
 
-        if content:
-            return response.content
         return response.json()
 
     def put_request(
@@ -600,11 +591,10 @@ class DAFNISession:
         data: Optional[Union[dict, BinaryIO]] = None,
         json=None,
         allow_redirect: bool = False,
-        content: bool = False,
         error_message_func: Optional[
             Callable[[requests.Response], Optional[str]]
         ] = None,
-    ):
+    ) -> requests.Response:
         """Performs a PUT request to the DAFNI API
 
         Args:
@@ -614,8 +604,6 @@ class DAFNISession:
             json: Any JSON serialisable object to include in the request
             allow_redirect (bool): Flag to allow redirects during API call.
                                    Defaults to False.
-            content (bool): Flag to define if the response content is
-                            returned. default is the response json
             error_message_func (Optional[Callable[[requests.Response], Optional[str]]]):
                                 Function called on a response after an error to
                                 obtain an error message. If it returns None, a
@@ -624,10 +612,7 @@ class DAFNISession:
                                 get_error_message.
 
         Returns:
-            List[dict]: For an endpoint returning several objects, a list is
-                        returned (e.g. /models/).
-            dict: For an endpoint returning one object, this will be a
-                  dictionary (e.g. /models/<version_id>).
+            Dict: The response object
 
         Raises:
             EndpointNotFoundError: If the response returns a 404 status code
@@ -646,8 +631,6 @@ class DAFNISession:
 
         self._check_response(url, response, error_message_func=error_message_func)
 
-        if content:
-            return response.content
         return response
 
     def patch_request(
@@ -657,11 +640,10 @@ class DAFNISession:
         data: Optional[Union[dict, BinaryIO]] = None,
         json=None,
         allow_redirect: bool = False,
-        content: bool = False,
         error_message_func: Optional[
             Callable[[requests.Response], Optional[str]]
         ] = None,
-    ):
+    ) -> Dict:
         """Performs a PATCH request to the DAFNI API
 
         Args:
@@ -671,8 +653,6 @@ class DAFNISession:
             json: Any JSON serialisable object to include in the request
             allow_redirect (bool): Flag to allow redirects during API call.
                                    Defaults to False.
-            content (bool): Flag to define if the response content is
-                            returned. default is the response json
             error_message_func (Optional[Callable[[requests.Response], Optional[str]]]):
                                 Function called on a response after an error to
                                 obtain an error message. If it returns None, a
@@ -681,10 +661,7 @@ class DAFNISession:
                                 get_error_message.
 
         Returns:
-            List[dict]: For an endpoint returning several objects, a list is
-                        returned (e.g. /models/).
-            dict: For an endpoint returning one object, this will be a
-                  dictionary (e.g. /models/<version_id>).
+            Dict: The decoded json response
 
         Raises:
             EndpointNotFoundError: If the response returns a 404 status code
@@ -703,19 +680,16 @@ class DAFNISession:
 
         self._check_response(url, response, error_message_func=error_message_func)
 
-        if content:
-            return response.content
         return response.json()
 
     def delete_request(
         self,
         url: str,
         allow_redirect: bool = False,
-        content: bool = False,
         error_message_func: Optional[
             Callable[[requests.Response], Optional[str]]
         ] = None,
-    ):
+    ) -> requests.Response:
         """Performs a DELETE request to the DAFNI API
 
         Args:
@@ -732,10 +706,7 @@ class DAFNISession:
                                 get_error_message.
 
         Returns:
-            List[dict]: For an endpoint returning several objects, a list is
-                        returned (e.g. /models/).
-            dict: For an endpoint returning one object, this will be a
-                  dictionary (e.g. /models/<version_id>).
+            requests.Response: The response object
 
         Raises:
             EndpointNotFoundError: If the response returns a 404 status code
@@ -754,6 +725,4 @@ class DAFNISession:
 
         self._check_response(url, response, error_message_func=error_message_func)
 
-        if content:
-            return response.content
         return response

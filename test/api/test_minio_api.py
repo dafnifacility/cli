@@ -90,16 +90,16 @@ class TestMinioAPI(TestCase):
         # SETUP
         session = MagicMock()
         url = f"{MINIO_API_URL}/example_file.zip"
-        content = MagicMock()
+        stream = MagicMock()
 
         # CALL
-        result = minio_api.minio_get_request(session, url, content)
+        result = minio_api.minio_get_request(session, url, stream)
 
         # ASSERT
         session.get_request.assert_called_once_with(
             url=f"{MINIO_DOWNLOAD_REDIRECT_API_URL}/example_file.zip",
             content_type="application/json",
             allow_redirect=False,
-            content=content,
+            stream=stream,
         )
         self.assertEqual(result, session.get_request.return_value)

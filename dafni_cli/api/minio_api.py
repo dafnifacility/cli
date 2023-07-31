@@ -87,15 +87,16 @@ def get_data_upload_urls(
 
 
 def minio_get_request(
-    session: DAFNISession, url: str, content: bool = False
+    session: DAFNISession, url: str, stream: bool = False
 ) -> Union[List[dict], dict, bytes]:
     """Get a data file from Minio
 
     Args:
         session (DAFNISession): User session
         url (str): The url endpoint that is being queried
-        content (bool): Flag to define if the response content is returned. default is the response json
-
+        stream (bool): Whether to stream the request. In this case will
+                       return the response object itself rather than the
+                       json.
     Returns:
         dict: For an endpoint returning one object, this will be a dictionary.
     """
@@ -105,5 +106,5 @@ def minio_get_request(
         url=file_url,
         content_type="application/json",
         allow_redirect=False,
-        content=content,
+        stream=stream,
     )

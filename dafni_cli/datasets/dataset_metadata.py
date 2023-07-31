@@ -339,7 +339,7 @@ class DataFile(ParserBaseObject):
             session (DAFNISession): User session
         """
         self.contents = BytesIO(
-            minio_get_request(session, self.download_url, content=True)
+            minio_get_request(session, self.download_url, stream=True)
         )
 
 
