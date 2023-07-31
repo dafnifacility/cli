@@ -321,6 +321,7 @@ class DAFNISession:
         data: Union[dict, BinaryIO],
         json,
         allow_redirect: bool,
+        stream: Optional[bool] = None,
         recursion_level: int = 0,
     ) -> requests.Response:
         """Performs an authenticated request from the DAFNI API
@@ -332,6 +333,7 @@ class DAFNISession:
             data (dict or BinaryIO): Data to be include in the request
             json: Any JSON serialisable object to include in the request
             allow_redirect (bool): Flag to allow redirects during API call.
+            stream (Optional[bool]): Whether to stream the request
             recursion_level (int): Used by this method to avoid infinite loop
                                    while attempting to refresh the access token
 
@@ -351,6 +353,7 @@ class DAFNISession:
                 data=data,
                 json=json,
                 allow_redirects=allow_redirect,
+                stream=stream,
                 timeout=REQUESTS_TIMEOUT,
                 cookies={SESSION_COOKIE: self._session_data.access_token},
             )
@@ -365,6 +368,7 @@ class DAFNISession:
                 data=data,
                 json=json,
                 allow_redirects=allow_redirect,
+                stream=stream,
                 timeout=REQUESTS_TIMEOUT,
             )
 
@@ -398,6 +402,7 @@ class DAFNISession:
                     headers=headers,
                     data=data,
                     json=json,
+                    stream=stream,
                     allow_redirect=allow_redirect,
                     recursion_level=recursion_level + 1,
                 )
@@ -531,6 +536,7 @@ class DAFNISession:
             data=None,
             json=None,
             allow_redirect=allow_redirect,
+            stream=stream,
         )
         self._check_response(url, response, error_message_func=error_message_func)
 

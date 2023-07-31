@@ -304,14 +304,14 @@ class DataFile(ParserBaseObject):
 
     Attributes:
         name (str): File name
-        size (str): File size
+        size (int): File size
         format (str): File format (Defaults to OUTPUT_UNKNOWN_FORMAT if not
                       known)
         download_url (str): File download url
     """
 
     name: str
-    size: str
+    size: int
     format: str = None
     download_url: str = None
 

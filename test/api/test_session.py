@@ -457,6 +457,7 @@ class TestDAFNISession(TestCase):
             data=None,
             json=None,
             allow_redirect=False,
+            stream=None,
         )
 
         # ASSERT
@@ -467,6 +468,7 @@ class TestDAFNISession(TestCase):
             data=None,
             json=None,
             allow_redirects=False,
+            stream=None,
             timeout=REQUESTS_TIMEOUT,
         )
 
@@ -483,6 +485,7 @@ class TestDAFNISession(TestCase):
             data=None,
             json=None,
             allow_redirect=False,
+            stream=None,
         )
 
         mock_requests.request.assert_called_once_with(
@@ -492,6 +495,7 @@ class TestDAFNISession(TestCase):
             data=None,
             json=None,
             allow_redirects=False,
+            stream=None,
             timeout=REQUESTS_TIMEOUT,
             cookies={SESSION_COOKIE: TEST_ACCESS_TOKEN},
         )
@@ -526,6 +530,7 @@ class TestDAFNISession(TestCase):
             data=None,
             json=None,
             allow_redirects=False,
+            stream=False,
             timeout=REQUESTS_TIMEOUT,
         )
         session._check_response.assert_called_once_with(
@@ -563,6 +568,7 @@ class TestDAFNISession(TestCase):
             data=None,
             json=None,
             allow_redirects=False,
+            stream=True,
             timeout=REQUESTS_TIMEOUT,
         )
         session._check_response.assert_called_once_with(
@@ -593,6 +599,7 @@ class TestDAFNISession(TestCase):
             data=None,
             json=None,
             allow_redirects=False,
+            stream=None,
             timeout=REQUESTS_TIMEOUT,
         )
         session._check_response.assert_called_once_with(
@@ -627,6 +634,7 @@ class TestDAFNISession(TestCase):
             data=None,
             json=None,
             allow_redirects=False,
+            stream=None,
             timeout=REQUESTS_TIMEOUT,
         )
         session._check_response.assert_called_once_with(
@@ -657,6 +665,7 @@ class TestDAFNISession(TestCase):
             data=None,
             json=None,
             allow_redirects=False,
+            stream=None,
             timeout=REQUESTS_TIMEOUT,
         )
         session._check_response.assert_called_once_with(
@@ -691,6 +700,7 @@ class TestDAFNISession(TestCase):
             data=None,
             json=None,
             allow_redirects=False,
+            stream=None,
             timeout=REQUESTS_TIMEOUT,
         )
         session._check_response.assert_called_once_with(
@@ -721,6 +731,7 @@ class TestDAFNISession(TestCase):
             data=None,
             json=None,
             allow_redirects=False,
+            stream=None,
             timeout=REQUESTS_TIMEOUT,
         )
         session._check_response.assert_called_once_with(
@@ -755,6 +766,7 @@ class TestDAFNISession(TestCase):
             data=None,
             json=None,
             allow_redirects=False,
+            stream=None,
             timeout=REQUESTS_TIMEOUT,
         )
         session._check_response.assert_called_once_with(
@@ -784,6 +796,7 @@ class TestDAFNISession(TestCase):
             data=None,
             json=None,
             allow_redirects=False,
+            stream=None,
             timeout=REQUESTS_TIMEOUT,
         )
         session._check_response.assert_called_once_with(
@@ -815,6 +828,7 @@ class TestDAFNISession(TestCase):
             data=None,
             json=None,
             allow_redirects=False,
+            stream=None,
             timeout=REQUESTS_TIMEOUT,
         )
         session._check_response.assert_called_once_with(

@@ -26,6 +26,7 @@ setup(
         "requests>=2.28.2",
         "python-dateutil>=2.8.2",
         "tabulate>=0.9.0",
+        "tqdm>=4.65.0",
     ],
     python_requires=">=3.9",
     classifiers=[

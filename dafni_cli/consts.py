@@ -2,7 +2,7 @@
 REQUESTS_TIMEOUT = 100
 
 # Environment - Either 'production' or 'staging' for development purposes
-ENVIRONMENT = "production"
+ENVIRONMENT = "staging"
 ENVIRONMENT_DOMAIN = "secure" if ENVIRONMENT == "production" else "staging"
 
 # URLs
