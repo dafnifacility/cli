@@ -33,13 +33,13 @@ class TestDownload(TestCase):
 @patch("dafni_cli.commands.download.DAFNISession")
 @patch("dafni_cli.commands.download.cli_get_latest_dataset_metadata")
 @patch("dafni_cli.commands.download.parse_dataset_metadata")
-@patch("dafni_cli.commands.download.write_files_to_zip")
+@patch("dafni_cli.commands.download.download_dataset")
 class TestDownloadDataset(TestCase):
     """Test class to test the download dataset command"""
 
     def test_download_dataset(
         self,
-        mock_write_files_to_zip,
+        mock_download_dataset,
         mock_parse_dataset_metadata,
         mock_cli_get_latest_dataset_metadata,
         mock_DAFNISession,
@@ -62,9 +62,6 @@ class TestDownloadDataset(TestCase):
             file_names,
             file_contents,
         )
-        expected_download_path = (
-            Path.cwd() / f"Dataset_{metadata.dataset_id}_{version_id}.zip"
-        )
         mock_parse_dataset_metadata.return_value = metadata
 
         # CALL
@@ -79,24 +76,17 @@ class TestDownloadDataset(TestCase):
             mock_cli_get_latest_dataset_metadata.return_value
         )
 
-        metadata.download_dataset_files.assert_called_once_with(session)
-        mock_write_files_to_zip.assert_called_once_with(
-            expected_download_path,
-            file_names,
-            file_contents,
-        )
-        metadata.output_datafiles_table.assert_called_once()
-
-        self.assertEqual(
-            result.output,
-            f"The dataset files have been downloaded to:\n{expected_download_path}\n",
+        mock_download_dataset.assert_called_once_with(
+            session,
+            metadata.files,
+            None,
         )
 
         self.assertEqual(result.exit_code, 0)
 
     def test_download_dataset_with_specific_directory(
         self,
-        mock_write_files_to_zip,
+        mock_download_dataset,
         mock_parse_dataset_metadata,
         mock_cli_get_latest_dataset_metadata,
         mock_DAFNISession,
@@ -120,9 +110,6 @@ class TestDownloadDataset(TestCase):
             file_names,
             file_contents,
         )
-        expected_download_path = (
-            Path(directory) / f"Dataset_{metadata.dataset_id}_{version_id}.zip"
-        )
         mock_parse_dataset_metadata.return_value = metadata
 
         # CALL
@@ -143,24 +130,17 @@ class TestDownloadDataset(TestCase):
             mock_cli_get_latest_dataset_metadata.return_value
         )
 
-        metadata.download_dataset_files.assert_called_once_with(session)
-        mock_write_files_to_zip.assert_called_once_with(
-            expected_download_path,
-            file_names,
-            file_contents,
-        )
-        metadata.output_datafiles_table.assert_called_once()
-
-        self.assertEqual(
-            result.output,
-            f"The dataset files have been downloaded to:\n{expected_download_path}\n",
+        mock_download_dataset.assert_called_once_with(
+            session,
+            metadata.files,
+            Path(directory),
         )
 
         self.assertEqual(result.exit_code, 0)
 
     def test_download_dataset_with_no_files(
         self,
-        mock_write_files_to_zip,
+        mock_download_dataset,
         mock_parse_dataset_metadata,
         mock_cli_get_latest_dataset_metadata,
         mock_DAFNISession,
@@ -187,7 +167,7 @@ class TestDownloadDataset(TestCase):
         mock_parse_dataset_metadata.assert_called_once_with(
             mock_cli_get_latest_dataset_metadata.return_value
         )
-        mock_write_files_to_zip.assert_not_called()
+        mock_download_dataset.assert_not_called()
 
         self.assertEqual(
             result.output,

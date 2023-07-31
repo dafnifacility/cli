@@ -8,7 +8,6 @@ from dafni_cli.api.session import DAFNISession
 from dafni_cli.commands.helpers import cli_get_latest_dataset_metadata
 from dafni_cli.datasets.dataset_download import download_dataset
 from dafni_cli.datasets.dataset_metadata import parse_dataset_metadata
-from dafni_cli.utils import write_files_to_zip
 
 
 @click.group(help="Download entity from DAFNI")
