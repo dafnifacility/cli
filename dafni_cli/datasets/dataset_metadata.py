@@ -308,17 +308,12 @@ class DataFile(ParserBaseObject):
         format (str): File format (Defaults to OUTPUT_UNKNOWN_FORMAT if not
                       known)
         download_url (str): File download url
-        contents (BytesIO): Downloaded file contents (only assigned after
-                            download_contents called)
     """
 
     name: str
     size: str
     format: str = None
     download_url: str = None
-
-    # Separate - only used when actually downloading
-    contents: Optional[BytesIO] = None
 
     _parser_params: ClassVar[List[ParserParam]] = [
         ParserParam("name", "spdx:fileName", str),
@@ -330,17 +325,6 @@ class DataFile(ParserBaseObject):
         ),
         ParserParam("download_url", "dcat:downloadURL", str),
     ]
-
-    def download_contents(self, session: DAFNISession):
-        """Downloads the file using the download_url and saves the contents as
-        a BytesIO object to self.contents
-
-        Args:
-            session (DAFNISession): User session
-        """
-        self.contents = BytesIO(
-            minio_get_request(session, self.download_url, stream=True)
-        )
 
 
 @dataclass
@@ -780,27 +764,6 @@ class DatasetMetadata(ParserBaseObject):
             f"Created: {format_datetime(self.created, include_time=True)}\n"
             f"Publisher: {self.publisher.name}\n"
         )
-
-    def download_dataset_files(
-        self, session: DAFNISession
-    ) -> Tuple[List[str], List[BytesIO]]:
-        """Function downloads all associated Files, and returns a tuple with
-        containing a list of all file names, and a list of all file contents
-
-        Args:
-            session (str): User session
-
-        Returns:
-            Tuple[List[str], List[BytesIO]]: Tuple of all File names and File contents
-        """
-        file_names = []
-        file_contents = []
-        for data_file in self.files:
-            data_file.download_contents(session)
-            file_names.append(data_file.name)
-            file_contents.append(data_file.contents)
-
-        return file_names, file_contents
 
 
 # The following methods mostly exists to get round current python limitations

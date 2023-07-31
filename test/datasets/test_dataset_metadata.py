@@ -8,7 +8,6 @@ from dafni_cli.api.auth import Auth
 from dafni_cli.api.parser import ParserBaseObject
 from dafni_cli.consts import (
     CONSOLE_WIDTH,
-    TAB_SPACE,
     TABLE_MODIFIED_HEADER,
     TABLE_VERSION_ID_HEADER,
     TABLE_VERSION_MESSAGE_HEADER,
@@ -86,28 +85,6 @@ class TestDataFile(TestCase):
             None,
         )
         self.assertEqual(datafile.download_url, None)
-
-    @patch("dafni_cli.datasets.dataset_metadata.minio_get_request")
-    def test_contents_set_to_returned_file_contents(self, mock_minio_get_request):
-        """Tests downloading of a data file"""
-        # SETUP
-        contents = b"Test data"
-        mock_minio_get_request.return_value = contents
-        session = MagicMock()
-
-        datafile: DataFile = ParserBaseObject.parse_from_dict(
-            DataFile, TEST_DATASET_METADATA_DATAFILE
-        )
-
-        # CALL
-        datafile.download_contents(session)
-
-        # ASSERT
-        mock_minio_get_request.assert_called_once_with(
-            session, TEST_DATASET_METADATA_DATAFILE["dcat:downloadURL"], stream=True
-        )
-
-        self.assertEqual(contents, datafile.contents.getvalue())
 
 
 class TestCreator(TestCase):
@@ -826,43 +803,3 @@ class TestDatasetMetadataTestCase(TestCase):
             f"Created: {format_datetime(dataset_metadata.created, include_time=True)}\n"
             f"Publisher: {dataset_metadata.publisher.name}\n",
         )
-
-    @patch.object(DataFile, "download_contents")
-    def test_download_dataset_files_returns_empty_arrays_when_no_files(
-        self, mock_download
-    ):
-        """Tests download_dataset_files functions as expected when there are
-        no files to download"""
-        # SETUP
-        dataset_metadata: DatasetMetadata = parse_dataset_metadata(
-            TEST_DATASET_METADATA
-        )
-        dataset_metadata.files = []
-        session = MagicMock()
-
-        # CALL
-        file_names, file_contents = dataset_metadata.download_dataset_files(session)
-
-        # ASSERT
-        mock_download.assert_not_called()
-
-        self.assertEqual(file_names, [])
-        self.assertEqual(file_contents, [])
-
-    @patch.object(DataFile, "download_contents")
-    def test_download_dataset_files(self, mock_download):
-        """Tests download_dataset_files functions as expected"""
-        # SETUP
-        dataset_metadata: DatasetMetadata = parse_dataset_metadata(
-            TEST_DATASET_METADATA
-        )
-        session = MagicMock()
-
-        # CALL
-        file_names, file_contents = dataset_metadata.download_dataset_files(session)
-
-        # ASSERT
-        mock_download.assert_has_calls([call(session)])
-
-        self.assertEqual(file_names, [dataset_metadata.files[0].name])
-        self.assertEqual(file_contents, [dataset_metadata.files[0].contents])

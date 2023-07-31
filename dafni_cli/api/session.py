@@ -1,9 +1,9 @@
-from io import BufferedReader
 import json
 import os
 from dataclasses import dataclass
+from io import BufferedReader
 from pathlib import Path
-from typing import BinaryIO, Callable, Dict, Literal, Optional, Union
+from typing import BinaryIO, Callable, Dict, List, Literal, Optional, Union
 
 import click
 import requests
@@ -493,7 +493,7 @@ class DAFNISession:
         error_message_func: Optional[
             Callable[[requests.Response], Optional[str]]
         ] = None,
-    ) -> Union[Dict, requests.Response]:
+    ) -> Union[Dict, List[Dict], requests.Response]:
         """Performs a GET request from the DAFNI API
 
         Args:
@@ -501,7 +501,7 @@ class DAFNISession:
             content_type (str): Content type to put in request header
             allow_redirect (bool): Flag to allow redirects during API call.
                                    Defaults to False.
-            stream (bool): Whether to stream the response. In this case will
+            stream (bool): Whether to stream the request. In this case will
                            return the response object itself rather than the
                            json.
             error_message_func (Optional[Callable[[requests.Response], Optional[str]]]):
@@ -512,7 +512,10 @@ class DAFNISession:
                                 get_error_message.
 
         Returns:
-            Dict: When 'stream' is False - The decoded json response
+            Dict: When 'stream' is False for endpoints returning one object
+                  e.g. /models/<version_id>
+            List[Dict]: When 'stream' is False for endpoints returning multiple
+                        objects e.g. /models/
             requests.Response: When 'stream' is True - The whole response object
 
         Raises:

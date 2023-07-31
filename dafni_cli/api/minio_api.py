@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import List, Union
+from typing import Dict, List, Union
 
 import requests
 
@@ -88,7 +88,7 @@ def get_data_upload_urls(
 
 def minio_get_request(
     session: DAFNISession, url: str, stream: bool = False
-) -> Union[List[dict], dict, bytes]:
+) -> Union[Dict, List[Dict], requests.Response]:
     """Get a data file from Minio
 
     Args:
@@ -98,7 +98,11 @@ def minio_get_request(
                        return the response object itself rather than the
                        json.
     Returns:
-        dict: For an endpoint returning one object, this will be a dictionary.
+        Dict: When 'stream' is False for endpoints returning one object
+              e.g. /models/<version_id>
+        List[Dict]: When 'stream' is False for endpoints returning multiple
+                    objects e.g. /models/
+        requests.Response: When 'stream' is True - The whole response object
     """
     # Substitute the Minio URL returned in the request string with a redirect
     file_url = url.replace(MINIO_API_URL, MINIO_DOWNLOAD_REDIRECT_API_URL)

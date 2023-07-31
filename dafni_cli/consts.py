@@ -105,6 +105,11 @@ OUTPUT_UNKNOWN_FORMAT = "Unknown"
 
 TAB_SPACE = "    "
 
+# Chunk size for downloading and uploading (in bytes)
+# Want it to be large enough to avoid unnecessary reading and writing but
+# small enough to fit in memory and give a reasonable loading bar scale
+CHUNK_SIZE = 1024 * 1024  # 1 MB
+
 # Data formats for datasets (See mimeTypes.js in front end)
 DATA_FORMATS = {
     "audio/3gpp": "3GPP Audio",
