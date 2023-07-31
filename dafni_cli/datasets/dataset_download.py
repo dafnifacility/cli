@@ -15,7 +15,7 @@ def download_dataset(
     files: List[DataFile],
     directory: Optional[Path],
 ):
-    """Function to download files in a dataset
+    """Function to download a list of files found within a dataset
 
     Args:
         session (DAFNISession): User session
@@ -34,31 +34,47 @@ def download_dataset(
         total_file_data_to_download += file.size
 
     # Download each file separately (not zipped on backend)
+    click.echo("Downloading files...")
+    click.echo()
+
+    # Gives a string description for the overall status progress bar
+    overall_description = lambda file_number: f"Overall progress 0/{len(files)}"
+
+    # Progress bar keeping track of all files being downloaded
     with tqdm(
-        desc="Overall progress",
+        desc=overall_description(0),
+        miniters=1,
         total=total_file_data_to_download,
         unit="B",
         unit_scale=True,
         unit_divisor=1024,
     ) as overall_progress_bar:
-        for file in files:
-            # Open the save file
+        # Each file downloaded individually with its own progress bar
+        for index, file in enumerate(files):
             file_save_path = directory / file.name
 
-            # Stream the file
+            # Stream the file download
             with minio_get_request(
                 session, file.download_url, stream=True
             ) as download_response:
+                # Full file size
                 file_size = int(download_response.headers.get("content-length", 0))
-                click.echo(f"Downloading '{file.name}'...")
+
+                # Allow tqdm to handle the progress bar based on the data saved
                 with tqdm.wrapattr(
                     open(file_save_path, "wb"),
                     "write",
+                    desc=file.name,
                     miniters=1,
                     total=file_size,
                 ) as save_file:
-                    # Save the file while downloading in chunks
+                    # Download and save file in chunks
                     for chunk in download_response.iter_content(chunk_size=CHUNK_SIZE):
                         save_file.write(chunk)
+
+            # Completed a file download, update the overall status to reflect
+            overall_progress_bar.set_description(overall_description(index + 1))
             overall_progress_bar.update(file.size)
+
+    click.echo()
     click.echo(f"Downloaded files to '{directory}'")
