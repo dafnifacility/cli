@@ -322,6 +322,7 @@ class DAFNISession:
         json,
         allow_redirect: bool,
         stream: Optional[bool] = None,
+        refresh_callback: Optional[Callable] = None,
         recursion_level: int = 0,
     ) -> requests.Response:
         """Performs an authenticated request from the DAFNI API
@@ -334,6 +335,9 @@ class DAFNISession:
             json: Any JSON serialisable object to include in the request
             allow_redirect (bool): Flag to allow redirects during API call.
             stream (Optional[bool]): Whether to stream the request
+            refresh_callback (Optional[Callable]): Function called when the
+                             token is refreshed. Particularly useful for file
+                             uploads that may need to be reset.
             recursion_level (int): Used by this method to avoid infinite loop
                                    while attempting to refresh the access token
 
@@ -396,6 +400,13 @@ class DAFNISession:
                 # solves the issue.
                 if isinstance(data, BufferedReader):
                     data.seek(0)
+
+                # When tqdm is also involved we cannot quite apply the same
+                # solution so allow a callback function that can be used to
+                # reset the original file and any progress bars
+                if refresh_callback is not None:
+                    refresh_callback()
+
                 response = self._authenticated_request(
                     method,
                     url=url,
@@ -404,6 +415,7 @@ class DAFNISession:
                     json=json,
                     stream=stream,
                     allow_redirect=allow_redirect,
+                    refresh_callback=refresh_callback,
                     recursion_level=recursion_level + 1,
                 )
 
@@ -498,6 +510,7 @@ class DAFNISession:
         error_message_func: Optional[
             Callable[[requests.Response], Optional[str]]
         ] = None,
+        refresh_callback: Optional[Callable] = None,
     ) -> Union[Dict, List[Dict], requests.Response]:
         """Performs a GET request from the DAFNI API
 
@@ -515,6 +528,9 @@ class DAFNISession:
                                 HTTPError will be returned, otherwise it will be
                                 a DAFNIError. By default this will be
                                 get_error_message.
+            refresh_callback (Optional[Callable]): Function called when the
+                             token is refreshed. Particularly useful for file
+                             uploads that may need to be reset.
 
         Returns:
             Dict: When 'stream' is False for endpoints returning one object
@@ -537,6 +553,7 @@ class DAFNISession:
             json=None,
             allow_redirect=allow_redirect,
             stream=stream,
+            refresh_callback=refresh_callback,
         )
         self._check_response(url, response, error_message_func=error_message_func)
 
@@ -554,6 +571,7 @@ class DAFNISession:
         error_message_func: Optional[
             Callable[[requests.Response], Optional[str]]
         ] = None,
+        refresh_callback: Optional[Callable] = None,
     ) -> Dict:
         """Performs a POST request to the DAFNI API
 
@@ -563,13 +581,16 @@ class DAFNISession:
             data (dict or BinaryIO): Data to be include in the request
             json: Any JSON serialisable object to include in the request
             allow_redirect (bool): Flag to allow redirects during API call.
-                                   Defaults to False.
+                                    Defaults to False.
             error_message_func (Optional[Callable[[requests.Response], Optional[str]]]):
                                 Function called on a response after an error to
                                 obtain an error message. If it returns None, a
                                 HTTPError will be returned, otherwise it will be
                                 a DAFNIError. By default this will be
                                 get_error_message.
+            refresh_callback (Optional[Callable]): Function called when the
+                                token is refreshed. Particularly useful for file
+                                uploads that may need to be reset.
 
         Returns:
             Dict: The decoded json response
@@ -578,7 +599,7 @@ class DAFNISession:
             EndpointNotFoundError: If the response returns a 404 status code
             DAFNIError: If an error occurs with an error message from DAFNI
             HTTPError: If any other error occurs without an error message from
-                       DAFNI
+                        DAFNI
         """
         response = self._authenticated_request(
             method="post",
@@ -587,6 +608,7 @@ class DAFNISession:
             data=data,
             json=json,
             allow_redirect=allow_redirect,
+            refresh_callback=refresh_callback,
         )
 
         self._check_response(url, response, error_message_func=error_message_func)
@@ -603,6 +625,7 @@ class DAFNISession:
         error_message_func: Optional[
             Callable[[requests.Response], Optional[str]]
         ] = None,
+        refresh_callback: Optional[Callable] = None,
     ) -> requests.Response:
         """Performs a PUT request to the DAFNI API
 
@@ -619,6 +642,9 @@ class DAFNISession:
                                 HTTPError will be returned, otherwise it will be
                                 a DAFNIError. By default this will be
                                 get_error_message.
+            refresh_callback (Optional[Callable]): Function called when the
+                             token is refreshed. Particularly useful for file
+                             uploads that may need to be reset.
 
         Returns:
             Dict: The response object
@@ -636,6 +662,7 @@ class DAFNISession:
             data=data,
             json=json,
             allow_redirect=allow_redirect,
+            refresh_callback=refresh_callback,
         )
 
         self._check_response(url, response, error_message_func=error_message_func)
@@ -652,6 +679,7 @@ class DAFNISession:
         error_message_func: Optional[
             Callable[[requests.Response], Optional[str]]
         ] = None,
+        refresh_callback: Optional[Callable] = None,
     ) -> Dict:
         """Performs a PATCH request to the DAFNI API
 
@@ -668,6 +696,9 @@ class DAFNISession:
                                 HTTPError will be returned, otherwise it will be
                                 a DAFNIError. By default this will be
                                 get_error_message.
+            refresh_callback (Optional[Callable]): Function called when the
+                             token is refreshed. Particularly useful for file
+                             uploads that may need to be reset.
 
         Returns:
             Dict: The decoded json response
@@ -685,6 +716,7 @@ class DAFNISession:
             data=data,
             json=json,
             allow_redirect=allow_redirect,
+            refresh_callback=refresh_callback,
         )
 
         self._check_response(url, response, error_message_func=error_message_func)
@@ -698,6 +730,7 @@ class DAFNISession:
         error_message_func: Optional[
             Callable[[requests.Response], Optional[str]]
         ] = None,
+        refresh_callback: Optional[Callable] = None,
     ) -> requests.Response:
         """Performs a DELETE request to the DAFNI API
 
@@ -713,6 +746,9 @@ class DAFNISession:
                                 HTTPError will be returned, otherwise it will be
                                 a DAFNIError. By default this will be
                                 get_error_message.
+            refresh_callback (Optional[Callable]): Function called when the
+                             token is refreshed. Particularly useful for file
+                             uploads that may need to be reset.
 
         Returns:
             requests.Response: The response object
@@ -730,6 +766,7 @@ class DAFNISession:
             data=None,
             json=None,
             allow_redirect=allow_redirect,
+            refresh_callback=refresh_callback,
         )
 
         self._check_response(url, response, error_message_func=error_message_func)

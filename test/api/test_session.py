@@ -888,6 +888,8 @@ class TestDAFNISession(TestCase):
 
         session = self.create_mock_session(True)
 
+        refresh_callback = MagicMock()
+
         # Here will test only on the get request as the logic is handled by
         # the base function called by all requests anyway
 
@@ -906,7 +908,11 @@ class TestDAFNISession(TestCase):
         with patch(
             "builtins.open", new_callable=mock_open, read_data=TEST_SESSION_FILE
         ) as mock_file:
-            session.post_request(url="some_test_url", data=mock_file_to_upload)
+            session.post_request(
+                url="some_test_url",
+                data=mock_file_to_upload,
+                refresh_callback=refresh_callback,
+            )
 
             # Should save new token
             mock_file = mock_file()
@@ -916,6 +922,9 @@ class TestDAFNISession(TestCase):
 
         # Should have reset the file
         mock_file_to_upload.seek.assert_called_with(0)
+
+        # Should have called the refresh callback
+        refresh_callback.assert_called_once()
 
         # Expect a request to obtain a new token
         mock_requests.post.assert_called_once_with(

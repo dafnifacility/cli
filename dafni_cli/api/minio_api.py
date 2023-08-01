@@ -3,6 +3,7 @@ from typing import Dict, List, Union
 
 import requests
 from tqdm import tqdm
+from tqdm.utils import CallbackIOWrapper
 
 from dafni_cli.api.session import DAFNISession
 from dafni_cli.consts import (
@@ -30,19 +31,30 @@ def upload_file_to_minio(
         Response: Response returned from the put request
     """
 
-    with tqdm.wrapattr(
-        open(file_path, "rb"),
-        "read",
-        desc=file_path.name,
-        miniters=1,
-        total=file_path.stat().st_size,
-        disable=not progress_bar,
-    ) as file_data:
-        return session.put_request(
-            url=url,
-            content_type=MINIO_UPLOAD_CT,
-            data=file_data,
-        )
+    with open(file_path, "rb") as file:
+        with tqdm(
+            desc=file_path.name,
+            miniters=1,
+            total=file_path.stat().st_size,
+            unit="B",
+            unit_scale=True,
+            unit_divisor=1024,
+            disable=not progress_bar,
+        ) as prog_bar:
+            file_data = CallbackIOWrapper(prog_bar.update, file, "read")
+
+            # In event of a refresh, need to ensure file gets reset to start
+            # as never actually uploaded anything
+            def refresh_callback():
+                file.seek(0)
+                prog_bar.reset()
+
+            return session.put_request(
+                url=url,
+                content_type=MINIO_UPLOAD_CT,
+                data=file_data,
+                refresh_callback=refresh_callback,
+            )
 
 
 def create_temp_bucket(session: DAFNISession) -> str:

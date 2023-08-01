@@ -60,17 +60,20 @@ def download_dataset(
                 # Full file size
                 file_size = int(download_response.headers.get("content-length", 0))
 
-                # Allow tqdm to handle the progress bar based on the data saved
-                with tqdm.wrapattr(
-                    open(file_save_path, "wb"),
-                    "write",
-                    desc=file.name,
-                    miniters=1,
-                    total=file_size,
-                ) as save_file:
-                    # Download and save file in chunks
-                    for chunk in download_response.iter_content(chunk_size=CHUNK_SIZE):
-                        save_file.write(chunk)
+                with open(file_save_path, "wb") as original_file:
+                    # Allow tqdm to handle the progress bar based on the data saved
+                    with tqdm.wrapattr(
+                        original_file,
+                        "write",
+                        desc=file.name,
+                        miniters=1,
+                        total=file_size,
+                    ) as save_file:
+                        # Download and save file in chunks
+                        for chunk in download_response.iter_content(
+                            chunk_size=CHUNK_SIZE
+                        ):
+                            save_file.write(chunk)
 
             # Completed a file download, update the overall status to reflect
             overall_progress_bar.set_description(overall_description(index + 1))
