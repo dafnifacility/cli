@@ -36,7 +36,7 @@ class TestModelUpload(TestCase):
         """Tests that upload_model works as expected with a given json value"""
         # SETUP
         session = MagicMock()
-        definition_path = Path("path/to/definition")
+        definition_path = Path("path/to/definition.yml")
         image_path = Path("path/to/image")
         version_message = MagicMock()
         parent_id = MagicMock()
@@ -116,7 +116,7 @@ class TestModelUpload(TestCase):
 
         # SETUP
         session = MagicMock()
-        definition_path = Path("path/to/definition")
+        definition_path = Path("path/to/definition.yml")
         image_path = Path("path/to/image")
         version_message = "version_message"
         parent_id = MagicMock()
