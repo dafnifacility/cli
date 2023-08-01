@@ -258,3 +258,21 @@ def optional_echo(string: str, should_not_print: bool):
     (Used for optional printing for json flags)"""
     if not should_not_print:
         click.echo(string)
+
+
+def is_valid_definition_file (file_name: str):
+    """Takes file name and gets the file type.
+    Returns true if file type is in list of '.json', '.yml' or '.yaml'.
+
+    Args:
+        file_name (str): the full name of the file including the file type.
+
+    Returns:
+        bool: Whether or not the file type is valid.
+
+    """
+    valid_file_types = ('yml', 'yaml', 'json')
+    file_type = file_name.split(".")[1]
+    if file_type in valid_file_types:
+        return True
+    return False
