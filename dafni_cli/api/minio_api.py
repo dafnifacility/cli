@@ -2,7 +2,6 @@ from pathlib import Path
 from typing import Dict, List, Union
 
 import requests
-from tqdm import tqdm
 from tqdm.utils import CallbackIOWrapper
 
 from dafni_cli.api.session import DAFNISession
@@ -13,6 +12,7 @@ from dafni_cli.consts import (
     MINIO_UPLOAD_CT,
     NID_API_URL,
 )
+from dafni_cli.utils import create_file_progress_bar
 
 
 def upload_file_to_minio(
@@ -32,19 +32,15 @@ def upload_file_to_minio(
     """
 
     with open(file_path, "rb") as file:
-        with tqdm(
+        with create_file_progress_bar(
             desc=file_path.name,
-            miniters=1,
             total=file_path.stat().st_size,
-            unit="B",
-            unit_scale=True,
-            unit_divisor=1024,
             disable=not progress_bar,
         ) as prog_bar:
             file_data = CallbackIOWrapper(prog_bar.update, file, "read")
 
-            # In event of a refresh, need to ensure file gets reset to start
-            # as never actually uploaded anything
+            # In event of a refresh need to ensure file gets reset to start
+            # as wont have uploaded anything
             def refresh_callback():
                 file.seek(0)
                 prog_bar.reset()

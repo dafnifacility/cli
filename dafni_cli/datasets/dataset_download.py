@@ -8,6 +8,7 @@ from dafni_cli.api.minio_api import minio_get_request
 from dafni_cli.api.session import DAFNISession
 from dafni_cli.consts import CHUNK_SIZE
 from dafni_cli.datasets.dataset_metadata import DataFile
+from dafni_cli.utils import OverallFileProgressBar
 
 
 def download_dataset(
@@ -35,22 +36,10 @@ def download_dataset(
     click.echo("Downloading files...")
     click.echo()
 
-    # Gives a string description for the overall status progress bar
-    overall_description = (
-        lambda file_number: f"Overall progress {file_number}/{len(files)}"
-    )
-
     # Progress bar keeping track of all files being downloaded
-    with tqdm(
-        desc=overall_description(0),
-        miniters=1,
-        total=total_file_size,
-        unit="B",
-        unit_scale=True,
-        unit_divisor=1024,
-    ) as overall_progress_bar:
+    with OverallFileProgressBar(len(files), total_file_size) as overall_progress_bar:
         # Each file downloaded individually with its own progress bar
-        for index, file in enumerate(files):
+        for file in files:
             file_save_path = directory / file.name
 
             # Stream the file download
@@ -76,7 +65,6 @@ def download_dataset(
                             save_file.write(chunk)
 
             # Completed a file download, update the overall status to reflect
-            overall_progress_bar.set_description(overall_description(index + 1))
             overall_progress_bar.update(file.size)
 
     click.echo()

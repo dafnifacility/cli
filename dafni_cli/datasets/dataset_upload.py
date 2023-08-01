@@ -6,7 +6,6 @@ from typing import List, Optional, Tuple
 
 import click
 from requests.exceptions import HTTPError
-from tqdm import tqdm
 
 import dafni_cli.api.datasets_api as datasets_api
 from dafni_cli.api.exceptions import DAFNIError, EndpointNotFoundError
@@ -23,7 +22,7 @@ from dafni_cli.datasets.dataset_metadata import (
     DATASET_METADATA_THEMES,
     DATASET_METADATA_UPDATE_FREQUENCIES,
 )
-from dafni_cli.utils import optional_echo, print_json
+from dafni_cli.utils import OverallFileProgressBar, optional_echo, print_json
 
 # Keys inside dataset metadata returned from the API that are invalid for
 # uploading
@@ -253,27 +252,15 @@ def upload_files(
     # For an indication of the overall download progress
     total_file_size = sum(file_path.stat().st_size for file_path in file_paths)
 
-    # Gives a string description for the overall status progress bar
-    overall_description = (
-        lambda file_number: f"Overall progress {file_number}/{len(file_paths)}"
-    )
-
     # Progress bar keeping track of all files being uploaded
-    with tqdm(
-        desc=overall_description(0),
-        miniters=1,
-        total=total_file_size,
-        unit="B",
-        unit_scale=True,
-        unit_divisor=1024,
-        disable=json,
+    with OverallFileProgressBar(
+        len(file_paths), total_file_size
     ) as overall_progress_bar:
-        for index, (key, value) in enumerate(upload_urls["urls"].items()):
+        for key, value in upload_urls["urls"].items():
             upload_file_to_minio(session, value, file_names[key], progress_bar=not json)
 
             # Completed a file download, update the overall status to reflect
             overall_progress_bar.update(file_names[key].stat().st_size)
-            overall_progress_bar.set_description(overall_description(index + 1))
 
 
 def _commit_metadata(
