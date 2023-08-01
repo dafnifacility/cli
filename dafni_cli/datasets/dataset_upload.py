@@ -258,25 +258,22 @@ def upload_files(
         lambda file_number: f"Overall progress {file_number}/{len(file_paths)}"
     )
 
-    if json:
-        for key, value in upload_urls["urls"].items():
-            upload_file_to_minio(session, value, file_names[key])
-    else:
-        # Progress bar keeping track of all files being uploaded
-        with tqdm(
-            desc=overall_description(0),
-            miniters=1,
-            total=total_file_size,
-            unit="B",
-            unit_scale=True,
-            unit_divisor=1024,
-        ) as overall_progress_bar:
-            for index, (key, value) in enumerate(upload_urls["urls"].items()):
-                upload_file_to_minio(session, value, file_names[key], progress_bar=True)
+    # Progress bar keeping track of all files being uploaded
+    with tqdm(
+        desc=overall_description(0),
+        miniters=1,
+        total=total_file_size,
+        unit="B",
+        unit_scale=True,
+        unit_divisor=1024,
+        disable=json,
+    ) as overall_progress_bar:
+        for index, (key, value) in enumerate(upload_urls["urls"].items()):
+            upload_file_to_minio(session, value, file_names[key], progress_bar=not json)
 
-                # Completed a file download, update the overall status to reflect
-                overall_progress_bar.update(file_names[key].stat().st_size)
-                overall_progress_bar.set_description(overall_description(index + 1))
+            # Completed a file download, update the overall status to reflect
+            overall_progress_bar.update(file_names[key].stat().st_size)
+            overall_progress_bar.set_description(overall_description(index + 1))
 
 
 def _commit_metadata(
