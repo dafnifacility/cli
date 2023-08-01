@@ -29,22 +29,22 @@ def download_dataset(
 
     # For an indication of the overall download progress - need approximate
     # file size for all files
-    total_file_data_to_download = 0
-    for file in files:
-        total_file_data_to_download += file.size
+    total_file_size = sum(file.size for file in files)
 
     # Download each file separately (not zipped on backend)
     click.echo("Downloading files...")
     click.echo()
 
     # Gives a string description for the overall status progress bar
-    overall_description = lambda file_number: f"Overall progress 0/{len(files)}"
+    overall_description = (
+        lambda file_number: f"Overall progress {file_number}/{len(files)}"
+    )
 
     # Progress bar keeping track of all files being downloaded
     with tqdm(
         desc=overall_description(0),
         miniters=1,
-        total=total_file_data_to_download,
+        total=total_file_size,
         unit="B",
         unit_scale=True,
         unit_divisor=1024,

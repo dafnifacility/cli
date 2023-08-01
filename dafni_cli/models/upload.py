@@ -50,7 +50,7 @@ def upload_model(
 
     optional_echo("Uploading model definition and image", json)
     upload_file_to_minio(session, definition_url, definition_path)
-    upload_file_to_minio(session, image_url, image_path)
+    upload_file_to_minio(session, image_url, image_path, progress_bar=not json)
 
     optional_echo("Ingesting model", json)
     details = model_version_ingest(session, upload_id, version_message, parent_id)

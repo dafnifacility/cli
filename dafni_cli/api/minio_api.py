@@ -2,6 +2,8 @@ from pathlib import Path
 from typing import Dict, List, Union
 
 import requests
+from requests_toolbelt import MultipartEncoder, MultipartEncoderMonitor
+from tqdm import tqdm
 
 from dafni_cli.api.session import DAFNISession
 from dafni_cli.consts import (
@@ -14,7 +16,7 @@ from dafni_cli.consts import (
 
 
 def upload_file_to_minio(
-    session: DAFNISession, url: str, file_path: Path
+    session: DAFNISession, url: str, file_path: Path, progress_bar=False
 ) -> requests.Response:
     """Function to upload definition or image files to DAFNI
 
@@ -22,16 +24,43 @@ def upload_file_to_minio(
         session (DAFNISession): User session
         url (str): URL to upload the file to
         file_path (Path): Path to the file
+        progress_bar (bool): Whether to display a progress bar for the file
+                             using tqdm
 
     Returns:
         Response: Response returned from the put request
     """
-    with open(file_path, "rb") as file_data:
-        return session.put_request(
-            url=url,
-            content_type=MINIO_UPLOAD_CT,
-            data=file_data,
-        )
+
+    if not progress_bar:
+        # No monitoring required
+        with open(file_path, "rb") as file_data:
+            return session.put_request(
+                url=url,
+                content_type=MINIO_UPLOAD_CT,
+                data=file_data,
+            )
+    else:
+        with open(file_path, "rb") as file_data:
+            encoder = MultipartEncoder(fields={"file": (file_path.name, file_data)})
+            # Use requests-toolbelt to monitor the request and use in a tqdm
+            # progress bar
+            with tqdm(
+                desc=file_path.name,
+                miniters=1,
+                total=encoder.len,
+                unit="B",
+                unit_scale=True,
+                unit_divisor=1024,
+            ) as progress_bar:
+                monitor = MultipartEncoderMonitor(
+                    encoder,
+                    lambda monitor: progress_bar.update(
+                        monitor.bytes_read - progress_bar.n
+                    ),
+                )
+                session.put_request(
+                    url=url, content_type=monitor.content_type, data=monitor
+                )
 
 
 def create_temp_bucket(session: DAFNISession) -> str:
