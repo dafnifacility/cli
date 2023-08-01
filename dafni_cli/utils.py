@@ -259,16 +259,20 @@ def optional_echo(string: str, should_not_print: bool):
     if not should_not_print:
         click.echo(string)
 
-def is_valid_image_file(file_name: str):
+
+def is_valid_image_file(file_name: Path):
     """Returns whether a file name contains the valid file type for docker image
 
     Args:
-        file_name (str): name of file to be checked
+        file_name (Path): name of file to be checked
 
     Returns:
         bool: Whether the file type is valid
     """
-    acceptable_file_types = ["tar"]
-    file_type = file_name.split(".")[1]
-
-    return file_type in acceptable_file_types
+    try:
+        acceptable_file_types = ["tar"]
+        file_name = str(file_name)
+        file_type = file_name.split(".")[1]
+        return file_type in acceptable_file_types
+    except:
+        return False

@@ -37,7 +37,7 @@ class TestModelUpload(TestCase):
         # SETUP
         session = MagicMock()
         definition_path = Path("path/to/definition")
-        image_path = Path("path/to/image")
+        image_path = Path("path/to/image.tar")
         version_message = MagicMock()
         parent_id = MagicMock()
         details = {
@@ -117,7 +117,7 @@ class TestModelUpload(TestCase):
         # SETUP
         session = MagicMock()
         definition_path = Path("path/to/definition")
-        image_path = Path("path/to/image")
+        image_path = Path("path/to/image.tar")
         version_message = "version_message"
         parent_id = MagicMock()
         self.mock_get_model_upload_urls.return_value = (

@@ -11,7 +11,7 @@ from dafni_cli.api.models_api import (
     validate_model_definition,
 )
 from dafni_cli.api.session import DAFNISession
-from dafni_cli.utils import optional_echo, print_json
+from dafni_cli.utils import optional_echo, print_json, is_valid_image_file
 
 
 def upload_model(
@@ -34,6 +34,8 @@ def upload_model(
                                    upload a new model.
         json (bool): Whether to print the raw json returned by the DAFNI API
     """
+    if not is_valid_image_file(image_path):
+        click.echo("Invalid image file format")
 
     optional_echo("Validating model definition", json)
     try:
