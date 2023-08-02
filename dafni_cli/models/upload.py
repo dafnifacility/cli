@@ -37,6 +37,8 @@ def upload_model(
     if not is_valid_image_file(image_path):
         click.echo("Invalid image file format")
 
+        raise SystemExit(1)
+
     optional_echo("Validating model definition", json)
     try:
         validate_model_definition(session, definition_path)

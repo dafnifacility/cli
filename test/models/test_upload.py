@@ -165,3 +165,30 @@ class TestModelUpload(TestCase):
         validation error with json = True"""
 
         self._test_model_upload_exits_for_validation_error(json=True)
+
+    def test_model_upload_exits_for_incorrect_image_file(self):
+        """Tests that upload_model works as expected when an incorrect image file is added"""
+
+        # SETUP
+        session = MagicMock()
+        definition_path = Path("path/to/definition")
+        image_path = Path("path/to/image")
+        version_message = "version_message"
+
+        # CALL & ASSERT
+        with self.assertRaises(SystemExit) as err:
+            upload.upload_model(
+                session,
+                definition_path,
+                image_path,
+                version_message,
+            )
+
+        self.assertEqual(err.exception.code, 1)
+        self.mock_optional_echo.assert_not_called()
+        self.mock_validate_model_definition.assert_not_called()
+        self.mock_get_model_upload_urls.assert_not_called()
+        self.mock_upload_file_to_minio.assert_not_called()
+        self.mock_model_version_ingest.assert_not_called()
+
+        self.mock_click.echo.assert_called_once_with("Invalid image file format")
