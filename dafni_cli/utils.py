@@ -274,8 +274,6 @@ def is_valid_definition_file(file_name: Path):
     try:
         valid_file_types = ("yml", "yaml", "json")
         file_type = str(file_name).split(".")[1]
-        if file_type in valid_file_types:
-            return True
-        return False
+        return file_type in valid_file_types
     except:
         return False
