@@ -185,7 +185,6 @@ class TestModelUpload(TestCase):
                 image_path,
                 version_message,
                 parent_id,
-                json=False,
             )
 
         self.mock_click.echo.assert_called_once_with("Wrong definition file type.")
