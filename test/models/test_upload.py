@@ -166,7 +166,7 @@ class TestModelUpload(TestCase):
 
         self._test_model_upload_exits_for_validation_error(json=True)
 
-    def test_model_upload_exits_for_incorrect_image_file(self):
+    def test_model_upload_exits_for_incorrect_image_file_type(self):
         """Tests that upload_model works as expected when an incorrect image file is added"""
 
         # SETUP
