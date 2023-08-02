@@ -35,10 +35,10 @@ def upload_model(
         json (bool): Whether to print the raw json returned by the DAFNI API
     """
 
-    if not is_valid_definition_file(definition_path) :
+    if not is_valid_definition_file(definition_path):
         click.echo("Wrong definition file type.")
         raise SystemExit(1)
-    
+
     optional_echo("Validating model definition", json)
     try:
         validate_model_definition(session, definition_path)

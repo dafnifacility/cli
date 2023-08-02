@@ -593,14 +593,16 @@ class TestOptionalEcho(TestCase):
 
 class TestIsValidDefinitionFile(TestCase):
     def test_true_returned_if_correct_definition_file_type(self):
-        file_name = Path("path/to/definition.yml" ) #only tests for .yml
+        file_name = Path("path/to/definition.yml")  # only tests for .yml
         result = utils.is_valid_definition_file(file_name)
         self.assertTrue(result)
+
     def test_false_returned_if_incorrect_definition_file_type(self):
-        file_name= Path("path/to/definition.txt")
+        file_name = Path("path/to/definition.txt")
         result = utils.is_valid_definition_file(file_name)
         self.assertFalse(result)
+
     def test_none_returned_if_no_definition_file_type_given(self):
-        file_name = Path("path/to/defintion") 
+        file_name = Path("path/to/defintion")
         result = utils.is_valid_definition_file(file_name)
         self.assertFalse(result)
