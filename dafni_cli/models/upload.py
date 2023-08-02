@@ -36,7 +36,9 @@ def upload_model(
     """
 
     if not is_valid_definition_file(definition_path):
-        click.echo("Your model definition file type is incorrect. Please check you've entered the correct file and try again")
+        click.echo(
+            "Your model definition file type is incorrect. Please check you've entered the correct file and try again"
+        )
         raise SystemExit(1)
 
     optional_echo("Validating model definition", json)

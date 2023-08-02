@@ -187,7 +187,9 @@ class TestModelUpload(TestCase):
                 parent_id,
             )
 
-        self.mock_click.echo.assert_called_once_with("Wrong definition file type.")
+        self.mock_click.echo.assert_called_once_with(
+            "Your model definition file type is incorrect. Please check you've entered the correct file and try again"
+        )
         self.assertEqual(err.exception.code, 1)
 
         self.mock_optional_echo.assert_not_called()
