@@ -594,9 +594,9 @@ class TestOptionalEcho(TestCase):
 class TestIsValidDefinitionFile(TestCase):
     def test_true_returned_if_correct_definition_file_type(self):
         valid_file_types = ("yml", "yaml", "json")
-        for n in valid_file_types:
+        for file_type in valid_file_types:
             # SETUP
-            file_name = Path("path/to/definition." + n)
+            file_name = Path("path/to/definition." + file_type)
             # CALL
             result = utils.is_valid_definition_file(file_name)
             # ASSERT
