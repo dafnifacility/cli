@@ -6,7 +6,7 @@ from tqdm import tqdm
 
 from dafni_cli.api.minio_api import minio_get_request
 from dafni_cli.api.session import DAFNISession
-from dafni_cli.consts import CHUNK_SIZE
+from dafni_cli.consts import DOWNLOAD_CHUNK_SIZE
 from dafni_cli.datasets.dataset_metadata import DataFile
 from dafni_cli.utils import OverallFileProgressBar
 
@@ -60,7 +60,7 @@ def download_dataset(
                     ) as save_file:
                         # Download and save file in chunks
                         for chunk in download_response.iter_content(
-                            chunk_size=CHUNK_SIZE
+                            chunk_size=DOWNLOAD_CHUNK_SIZE
                         ):
                             save_file.write(chunk)
 

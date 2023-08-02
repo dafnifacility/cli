@@ -1,6 +1,6 @@
 from datetime import datetime
 from unittest import TestCase
-from unittest.mock import MagicMock, call, patch
+from unittest.mock import call, patch
 
 from dateutil.tz import tzutc
 
