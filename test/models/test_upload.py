@@ -165,3 +165,34 @@ class TestModelUpload(TestCase):
         validation error with json = True"""
 
         self._test_model_upload_exits_for_validation_error(json=True)
+
+    def test_model_upload_exits_for_incorrect_model_definition_file_type(self):
+        """Tests that upload_dataset works as expected when there is an
+        invalid model definition file type."""
+
+        # SETUP
+        session = MagicMock()
+        definition_path = Path("path/to/definition")
+        image_path = Path("path/to/image")
+        version_message = "version_message"
+        parent_id = MagicMock()
+
+        # CALL & ASSERT
+        with self.assertRaises(SystemExit) as err:
+            upload.upload_model(
+                session,
+                definition_path,
+                image_path,
+                version_message,
+                parent_id,
+                json=False,
+            )
+
+        self.mock_click.echo.assert_called_once_with("Wrong definition file type.")
+        self.assertEqual(err.exception.code, 1)
+
+        self.mock_optional_echo.assert_not_called()
+        self.mock_validate_model_definition.assert_not_called()
+        self.mock_get_model_upload_urls.assert_not_called()
+        self.mock_upload_file_to_minio.assert_not_called()
+        self.mock_model_version_ingest.assert_not_called()
