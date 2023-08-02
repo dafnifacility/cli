@@ -597,13 +597,14 @@ class TestIsValidImageFile(TestCase):
     def test_true_returned_if_correct_file_type_is_given(self):
         """Tests is_valid_image_file returns true when passed a correct file type"""
         # SETUP
-        file_name = Path("path/to/image.tar")
+        file_names = [Path("path/to/image.tar"),Path("path/to/image.tar.gz")]
 
-        # CALL
-        result = utils.is_valid_image_file(file_name)
+        for file_name in file_names:
+            # CALL
+            result = utils.is_valid_image_file(file_name)
 
-        # ASSERT
-        self.assertTrue(result)
+            # ASSERT
+            self.assertTrue(result)
 
     def test_false_returned_if_incorrect_file_type_is_given(self):
         """Tests is_valid_image_file returns false when passed an incorrect file type"""
