@@ -224,6 +224,7 @@ class TestModelUpload(TestCase):
         self.mock_click.echo.assert_called_once_with(
             "Your model image file type is incorrect. Please check you've enetered the correct file and try again. Valid file types are '.tar', '.tar.gz'"
         )
+        self.assertEqual(err.exception.code, 1)
 
         self.mock_optional_echo.assert_not_called()
         self.mock_validate_model_definition.assert_not_called()
