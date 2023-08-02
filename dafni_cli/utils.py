@@ -260,7 +260,6 @@ def optional_echo(string: str, should_not_print: bool):
         click.echo(string)
 
 
-
 def is_valid_definition_file(file_name: Path):
     """Takes file name and gets the file type.
     Returns true if file type is in list of '.json', '.yml' or '.yaml'.
@@ -279,7 +278,7 @@ def is_valid_definition_file(file_name: Path):
     except:
         return False
 
-      
+
 def is_valid_image_file(file_name: Path):
     """Returns whether a file name contains the valid file type for docker image
 

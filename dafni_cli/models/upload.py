@@ -11,8 +11,12 @@ from dafni_cli.api.models_api import (
     validate_model_definition,
 )
 from dafni_cli.api.session import DAFNISession
-from dafni_cli.utils import optional_echo, print_json, is_valid_image_file, is_valid_definition_file
-
+from dafni_cli.utils import (
+    optional_echo,
+    print_json,
+    is_valid_image_file,
+    is_valid_definition_file,
+)
 
 
 def upload_model(

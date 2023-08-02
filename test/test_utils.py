@@ -589,7 +589,8 @@ class TestOptionalEcho(TestCase):
 
         # ASSERT
         mock_click.echo.assert_not_called()
-        
+
+
 class TestIsValidDefinitionFile(TestCase):
     def test_true_returned_if_correct_definition_file_type(self):
         valid_file_types = ("yml", "yaml", "json")
@@ -607,20 +608,21 @@ class TestIsValidDefinitionFile(TestCase):
 
         # CALL
         result = utils.is_valid_definition_file(file_name)
-        
+
         # ASSERT
         self.assertFalse(result)
-        
+
     def test_none_returned_if_no_definition_file_type_given(self):
         # SETUP
         file_name = Path("path/to/defintion")
 
         # CALL
         result = utils.is_valid_definition_file(file_name)
-        
+
         # ASSERT
         self.assertFalse(result)
-        
+
+
 class TestIsValidImageFile(TestCase):
     """Test class to test the is_valid_image_file function"""
 
@@ -646,7 +648,6 @@ class TestIsValidImageFile(TestCase):
 
         # ASSERT
         self.assertFalse(result)
-
 
     def test_false_returned_if_path_given_without_file_type(self):
         """Tests is_valid_image_file returns false when passed a file path without a file type"""
