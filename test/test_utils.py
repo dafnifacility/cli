@@ -612,7 +612,7 @@ class TestIsValidDefinitionFile(TestCase):
         # ASSERT
         self.assertFalse(result)
 
-    def test_none_returned_if_no_definition_file_type_given(self):
+    def test_false_returned_if_no_definition_file_type_given(self):
         # SETUP
         file_name = Path("path/to/defintion")
 
