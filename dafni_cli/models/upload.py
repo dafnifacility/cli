@@ -35,7 +35,9 @@ def upload_model(
         json (bool): Whether to print the raw json returned by the DAFNI API
     """
     if not is_valid_image_file(image_path):
-        click.echo("Invalid image file format")
+        click.echo(
+            "Your model image file type is incorrect. Please check you've enetered the correct file and try again. Valid file types are '.tar', '.tar.gz'"
+        )
 
         raise SystemExit(1)
 

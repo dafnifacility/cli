@@ -270,9 +270,9 @@ def is_valid_image_file(file_name: Path):
         bool: Whether the file type is valid
     """
     try:
-        acceptable_file_types = ["tar"]
+        acceptable_file_types = ["tar", "tar.gz"]
         file_name = str(file_name)
-        file_type = file_name.split(".")[1]
+        file_type = file_name.split(".", 1)[1]
         return file_type in acceptable_file_types
     except:
         return False
