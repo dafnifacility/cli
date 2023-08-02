@@ -191,7 +191,7 @@ class TestModelUpload(TestCase):
             )
 
         self.mock_click.echo.assert_called_once_with(
-            "Your model definition file type is incorrect. Please check you've entered the correct file and try again"
+            "Your model definition file type is incorrect. Please check you've entered the correct file and try again. Valid file types are '.yml', '.yaml', '.json'"
         )
         self.assertEqual(err.exception.code, 1)
 
