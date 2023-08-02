@@ -48,7 +48,7 @@ def upload_model(
 
     if not is_valid_definition_file(definition_path):
         click.echo(
-            "Your model definition file type is incorrect. Please check you've entered the correct file and try again"
+            "Your model definition file type is incorrect. Please check you've entered the correct file and try again. Valid file types are '.yml', '.yaml', '.json'"
         )
         raise SystemExit(1)
 
