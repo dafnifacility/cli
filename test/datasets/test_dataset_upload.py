@@ -294,6 +294,9 @@ class TestDatasetUpload(TestCase):
         self.mock_optional_echo = patch(
             "dafni_cli.datasets.dataset_upload.optional_echo"
         ).start()
+        self.mock_OverallFileProgressBar = patch(
+            "dafni_cli.datasets.dataset_upload.OverallFileProgressBar"
+        ).start()
         self.mock_click = patch("dafni_cli.datasets.dataset_upload.click").start()
 
         self.addCleanup(patch.stopall)
@@ -304,13 +307,21 @@ class TestDatasetUpload(TestCase):
         # SETUP
         session = MagicMock()
         temp_bucket_id = "some-temp-bucket"
-        file_paths = [Path("file_1.txt"), Path("file_2.txt")]
+        file_size = 1000
+        file_paths = [
+            MagicMock(name="file_1.txt", stat=lambda: MagicMock(st_size=file_size)),
+            MagicMock(name="file_2.txt", stat=lambda: MagicMock(st_size=file_size)),
+        ]
         urls = [f"upload/url/{file_path.name}" for file_path in file_paths]
         upload_urls = {
             "urls": {file_paths[idx].name: url for idx, url in enumerate(urls)}
         }
 
         self.mock_get_data_upload_urls.return_value = upload_urls
+        mock_overall_progress_bar = MagicMock()
+        self.mock_OverallFileProgressBar.return_value.__enter__.return_value = (
+            mock_overall_progress_bar
+        )
 
         # CALL
         dataset_upload.upload_files(session, temp_bucket_id, file_paths, json=json)
@@ -319,8 +330,18 @@ class TestDatasetUpload(TestCase):
         self.mock_get_data_upload_urls.assert_called_once_with(
             session, temp_bucket_id, [file_path.name for file_path in file_paths]
         )
+        self.mock_OverallFileProgressBar.assert_called_once_with(
+            len(file_paths), file_size * len(file_paths)
+        )
+        self.assertEqual(
+            mock_overall_progress_bar.update.call_args_list,
+            [call(file_size) for file_path in file_paths],
+        )
         self.mock_upload_file_to_minio.assert_has_calls(
-            [call(session, url, file_paths[idx]) for idx, url in enumerate(urls)]
+            [
+                call(session, url, file_paths[idx], progress_bar=not json)
+                for idx, url in enumerate(urls)
+            ]
         )
 
         self.assertEqual(
