@@ -258,3 +258,40 @@ def optional_echo(string: str, should_not_print: bool):
     (Used for optional printing for json flags)"""
     if not should_not_print:
         click.echo(string)
+
+
+def is_valid_definition_file(file_name: Path):
+    """Takes file name and gets the file type.
+    Returns true if file type is in list of '.json', '.yml' or '.yaml'.
+
+    Args:
+        file_name (Path): the full name of the file including the file type.
+
+    Returns:
+        bool: Whether or not the file type is valid.
+
+    """
+    try:
+        valid_file_types = ("yml", "yaml", "json")
+        file_type = str(file_name).split(".")[1]
+        return file_type in valid_file_types
+    except:
+        return False
+
+
+def is_valid_image_file(file_name: Path):
+    """Returns whether a file name contains the valid file type for docker image
+
+    Args:
+        file_name (Path): name of file to be checked
+
+    Returns:
+        bool: Whether the file type is valid
+    """
+    try:
+        acceptable_file_types = ["tar", "tar.gz"]
+        file_name = str(file_name)
+        file_type = file_name.split(".", 1)[1]
+        return file_type in acceptable_file_types
+    except:
+        return False
