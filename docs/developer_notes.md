@@ -3,7 +3,7 @@
 ## Environment Setup
 ### Create a development environment
 The code has been developed using Python *3.9.5* using a virtual environment.
-The environment can be created using the following command, in the parent directory of the `dafni-cli` repository:
+The environment can be created using the following command, in the parent directory of the `dafni-cli` folder:
 
 `python -m venv .venv`
 
@@ -17,7 +17,7 @@ The environment must then be activated for the current shell using the following
 
 Then run the following to add all of the required development dependencies:
 
-```
+```bash
 python -m pip install -r requirements.txt
 python -m pip install -r requirements-dev.txt
 ```
@@ -29,7 +29,9 @@ additional dependencies for development.
 
 Now install an editable install of the CLI using
 
-`python -m pip install -e .`
+```bash
+python -m pip install -e .
+```
 
 This ensures any modifications are applied to the CLI itself.
 
@@ -40,7 +42,9 @@ To run the CLI against staging, modify the `ENVIRONMENT` variable in `consts.py`
 ## Running the tests
 Whilst running the activated venv created locally for the dafni-cli, ensure you are in the root directory of the git repository, and use the following to run all tests:
 
-`python -m unittest`
+```bash
+python -m unittest
+```
 
 There is also a script for running full CLI commands against the current released version of DAFNI in the `/scripts` folder. To use this you first need to modify the `DAFNI_CLI_SCRIPT` variable to point to the installed CLI script or define it as an environment variable. You may be able to get away with assigning it to `dafni` but for some reason it didn't work for me so I had to use `whereis dafni` to find the location.
 
@@ -50,15 +54,21 @@ Before running the tests make sure you login to the non-admin1 test account. If 
 
 You can then run the tests by using
 
-`python ./scripts/test_script.py`
+```bash
+python ./scripts/test_script.py
+```
 
 This will run each command one at a time, requiring you to press enter between commands. You may also use
 
-`python ./scripts/test_script.py --snapshot_overwrite`
+```bash
+python ./scripts/test_script.py --snapshot_overwrite
+```
 
 to run all in one go saving the outputs in a designated folder specified by the variable `DAFNI_SNAPSHOT_SAVE_LOCATION` (this folder should be in existence before running the script). Then using
 
-`python ./scripts/test_script.py --snapshot`
+```bash
+python ./scripts/test_script.py --snapshot
+```
 
 will rerun the tests and will cause any with different outputs to fail. This is useful for comparing any changes.
 
@@ -69,32 +79,38 @@ ___
 
 ### Automated
 
-To deploy the CLI push version tags in the form of `v\*.\*.\*``. This will run the GitHub build action, performing the build, unit tests on the built package, and then will draft a release under the GitHub releases tab. Then select the most recent tag and add any release notes and when ready publish the release to trigger the upload to PyPi. (This is not implemented just yet)
+To deploy the CLI push version tags in the form of `v*.*.*`. This will run the GitHub build action, performing the build, unit tests on the built package, and then will draft a release under the GitHub releases tab. Then select the most recent tag and add any release notes and when ready publish the release to trigger the upload to PyPi. (This is not implemented just yet)
 
 ### Manual
 
 You may wish to produce a build manually if you need to produce a build with a specific version number such as a pre-release. In this case you may temporarly force the version by modifying the `pyproject.toml` by replacing the lines
 
-```
+```toml
 dynamic = ["version"]
 
 [tool.setuptools-git-versioning]
 enabled = true
 ```
 with
-```
+```toml
 version = "0.0.1rc1"
 ```
 
 Then build the package using
-`python -m build`
+```bash
+python -m build
+```
 
 This will create a build and dist folder in the root folder, containing a `.tar.gz` and a `.whl` for the new version of the pip package ready to publish to pypi.
 
 Manually uploading these to https://test.pypi.org/ can then be done with
 
-`twine upload --repository testpypi ./dist/*`
+```bash
+twine upload --repository testpypi ./dist/*
+```
 
 or to https://pypi.org/ through
 
-`twine upload ./dist/*`
+```bash
+twine upload ./dist/*
+```
