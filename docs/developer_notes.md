@@ -79,7 +79,7 @@ ___
 
 ### Automated
 
-To deploy the CLI push version tags in the form of `v*.*.*`. This will run the GitHub build action, performing the build, unit tests on the built package, and then will draft a release under the GitHub releases tab. Then select the most recent tag and add any release notes and when ready publish the release to trigger the upload to PyPi. (This is not implemented just yet)
+To deploy the CLI push version tags in the form of `v*.*.*`. This will run the GitHub build action, performing the build, unit tests on the built package, and then will draft a release under the GitHub releases tab. Then select the most recent tag and add any release notes and when ready publish the release to trigger the upload to PyPi. (This is not implemented just yet.)
 
 ### Manual
 

@@ -63,7 +63,7 @@ dafni get dataset <version-id>
 
 ### Uploading a new dataset
 
-Uploading a new dataset requires both a metadata `.json`` file, and at least one file you wish to upload as part of the dataset.
+Uploading a new dataset requires both a metadata `.json` file, and at least one file you wish to upload as part of the dataset.
 
 #### Creating the metadata json file
 
@@ -78,7 +78,7 @@ dafni create dataset-metadata dataset_metadata.json \
     --version-message "Initial version"
 ```
 
-This then creates a file named `dataset_metadata.json` containing your given parameters which can then be used during the upload.
+This creates a file named `dataset_metadata.json` containing your given parameters which can then be used during the upload.
 
 You may also write this file directly following the schema found [here](https://github.com/dafnifacility/metadata-schema/blob/main/metadata_schema_for_upload.json). If you are following this approach you may find it useful to view the existing json metadata for datasets that have already been uploaded. You may view this using `dafni get dataset <version_id> --json`.
 
@@ -91,7 +91,7 @@ dafni upload dataset dataset_metadata.json file1.csv file2.zip
 
 You will be prompted to confirm your upload although you may also use `-y` to skip this if you prefer.
 
-Wildcards are also accepted here, so if you had many `.csv` files and wish to add all of them you may use
+Wildcards are also accepted here, so if you have many `.csv` files and wish to add all of them you may use
 
 ```bash
 dafni upload dataset dataset_metadata.json *.csv
@@ -164,7 +164,7 @@ where the `Parent ID` can again be found when by inspecting an existing workflow
 
 ### Uploading a workflow parameter set
 
-As in [Uploading a workflow or a new version of an existing workflow](#uploading-a-workflow-or-a-new-version-of-an-existing-workflow) the main difficulty is in producing a parameter set definition file to upload. Again you may inspect existing parameter sets using
+As in [Uploading a workflow or a new version of an existing workflow](#uploading-a-workflow-or-a-new-version-of-an-existing-workflow) the main difficulty in uploading a workflow parameter set is in producing a parameter set definition file to upload. Again you may inspect existing parameter sets using
 
 ```bash
 dafni get workflow-parameter-set <workflow-version-id> <parameter-set-id> --json
