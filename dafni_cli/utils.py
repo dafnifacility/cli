@@ -4,11 +4,9 @@ import re
 import textwrap
 from dataclasses import fields
 from datetime import datetime
-from io import BytesIO
 from pathlib import Path
 from typing import Any, List, Optional, Tuple, Type, Union
 from urllib.parse import urlparse
-from zipfile import ZipFile
 
 import click
 from tabulate import tabulate
@@ -93,22 +91,6 @@ def argument_confirmation(
             for message in additional_messages:
                 click.echo(message)
         click.confirm(confirmation_message, abort=True)
-
-
-def write_files_to_zip(
-    zip_path: Path, file_names: List[str], file_contents: List[BytesIO]
-) -> None:
-    """Function to compress a list of files to a zip folder, and write to disk
-
-    Args:
-        zip_path (Path): Full path including file name to write to
-        file_names (List[str]): List of all file names
-        file_contents (List[BytesIO]): List of file contents, 1 for each name
-    """
-    with ZipFile(zip_path, "w") as zipObj:
-        for idx, file_name in enumerate(file_names):
-            with zipObj.open(file_name, "w") as zip_file:
-                zip_file.write(file_contents[idx].getvalue())
 
 
 def print_json(response: Union[dict, List[dict]]) -> None:
