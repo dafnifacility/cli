@@ -7,8 +7,7 @@ import dafni_cli.datasets.dataset_download as dataset_download
 from dafni_cli.api.parser import ParserBaseObject
 from dafni_cli.consts import DOWNLOAD_CHUNK_SIZE
 from dafni_cli.datasets.dataset_metadata import DataFile
-
-from test.fixtures.dataset_metadata import TEST_DATASET_METADATA_DATAFILE
+from dafni_cli.tests.fixtures.dataset_metadata import TEST_DATASET_METADATA_DATAFILE
 
 
 class TestDownloadDataset(TestCase):
