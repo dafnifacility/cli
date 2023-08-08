@@ -29,9 +29,9 @@ enabled = true
 # version = "0.0.1"
 
 [project.urls]
-Documentation = "https://github.com/dafnifacility/cli/blob/main/docs/dafni_cli.md"
+"Documentation" = "https://github.com/dafnifacility/cli/blob/main/docs/dafni_cli.md"
 "Release notes" = "https://github.com/dafnifacility/cli/releases"
-Source = "https://github.com/dafnifacility/cli"
+"Source" = "https://github.com/dafnifacility/cli"
 "Issue Tracker" = "https://github.com/dafnifacility/cli/issues"
 
 [project.scripts]
