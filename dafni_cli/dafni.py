@@ -6,10 +6,11 @@ from dafni_cli.commands.download import download
 from dafni_cli.commands.get import get
 from dafni_cli.commands.login import login, logout
 from dafni_cli.commands.upload import upload
+from dafni_cli.version import DAFNI_CLI_VERSION
 
 
 @click.group()
-@click.version_option(version="0.0.1")
+@click.version_option(version=DAFNI_CLI_VERSION)
 def dafni():
     pass
 
