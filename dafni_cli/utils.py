@@ -285,7 +285,7 @@ class OverallFileProgressBar:
 
     def __enter__(self):
         self._progress_bar = create_file_progress_bar(
-            desc=self._get_description(),
+            description=self._get_description(),
             total=self._total_size,
             disable=self._disable,
         )

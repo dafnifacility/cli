@@ -1,4 +1,3 @@
-from pathlib import Path
 from unittest import TestCase
 from unittest.mock import ANY, MagicMock, mock_open, patch
 
@@ -52,7 +51,7 @@ class TestMinioAPI(TestCase):
         # ASSERT
         open_mock.assert_called_once_with(file_path, "rb")
         mock_create_file_progress_bar.assert_called_once_with(
-            desc=file_path.name,
+            description=file_path.name,
             total=file_path.stat().st_size,
             disable=False,
         )

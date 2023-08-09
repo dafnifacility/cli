@@ -33,7 +33,7 @@ def upload_file_to_minio(
 
     with open(file_path, "rb") as file:
         with create_file_progress_bar(
-            desc=file_path.name,
+            description=file_path.name,
             total=file_path.stat().st_size,
             disable=not progress_bar,
         ) as prog_bar:

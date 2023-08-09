@@ -614,7 +614,7 @@ class TestOverallFileProgressBar(TestCase):
         ) as overall_progress_bar:
             # Should have just created a progress bar
             mock_create_file_progress_bar.assert_called_once_with(
-                desc=f"Overall progress 0/{total_files}",
+                description=f"Overall progress 0/{total_files}",
                 total=total_size,
                 disable=disable,
             )
