@@ -79,11 +79,19 @@ ___
 
 ### Automated
 
-To deploy the CLI push version tags in the form of `v*.*.*`. This will run the GitHub build action, performing the build, unit tests on the built package, and then will draft a release under the GitHub releases tab. Then select the most recent tag and add any release notes and when ready publish the release to trigger the upload to PyPi. (This is not implemented just yet.)
+To deploy the CLI, push version tags in the form of `v*.*.*`. This will run the GitHub build action, performing the build, unit tests on the built package, and will then upload to test.pypi and draft a release under the GitHub releases tab.
+
+You should then check the correct tag is selected, select the checkbox labelled pre-release if required and add any release notes. You may also check the build uploaded to test.pypi by using
+
+```bash
+pip install --index-url https://test.pypi.org/simple/ --extra-index-url https://pypi.org/simple/ dafni-cli
+```
+
+When ready, publish the release to trigger the upload to PyPi.
 
 ### Manual
 
-You may wish to produce a build manually if you need to produce a build with a specific version number such as a pre-release. In this case you may temporarly force the version by modifying the `pyproject.toml` by replacing the lines
+Prior to producing a manual build you may wish to check what the version number of the CLI will be. This can be checked by running `python -m setuptools_git_versioning` in a clone of the repo. If you wish to force the version number you must modify the `pyproject.toml` by replacing the lines
 
 ```toml
 dynamic = ["version"]
@@ -91,7 +99,7 @@ dynamic = ["version"]
 [tool.setuptools-git-versioning]
 enabled = true
 ```
-with
+with the new version number e.g.
 ```toml
 version = "0.0.1rc1"
 ```
@@ -102,6 +110,11 @@ python -m build
 ```
 
 This will create a build and dist folder in the root folder, containing a `.tar.gz` and a `.whl` for the new version of the pip package ready to publish to pypi.
+
+You can check the build using
+```bash
+twine check ./dist/*
+```
 
 Manually uploading these to https://test.pypi.org/ can then be done with
 

@@ -25,9 +25,6 @@ dynamic = ["version"]
 [tool.setuptools-git-versioning]
 enabled = true
 
-# To override the versioning above, comment out and replace with
-# version = "0.0.1"
-
 [project.urls]
 "Documentation" = "https://github.com/dafnifacility/cli/blob/main/docs/dafni_cli.md"
 "Release notes" = "https://github.com/dafnifacility/cli/releases"
