@@ -18,6 +18,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Download release files
+        env:
+          GH_TOKEN: ${{ github.token }}
         # Download all files from the release that was just published to /dist
         # (github.ref should be the tag itself here)
         run: |
