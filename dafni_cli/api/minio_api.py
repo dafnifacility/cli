@@ -1,7 +1,8 @@
 from pathlib import Path
-from typing import List, Union
+from typing import Dict, List, Union
 
 import requests
+from tqdm.utils import CallbackIOWrapper
 
 from dafni_cli.api.session import DAFNISession
 from dafni_cli.consts import (
@@ -11,10 +12,11 @@ from dafni_cli.consts import (
     MINIO_UPLOAD_CT,
     NID_API_URL,
 )
+from dafni_cli.utils import create_file_progress_bar
 
 
 def upload_file_to_minio(
-    session: DAFNISession, url: str, file_path: Path
+    session: DAFNISession, url: str, file_path: Path, progress_bar=False
 ) -> requests.Response:
     """Function to upload definition or image files to DAFNI
 
@@ -22,16 +24,33 @@ def upload_file_to_minio(
         session (DAFNISession): User session
         url (str): URL to upload the file to
         file_path (Path): Path to the file
+        progress_bar (bool): Whether to display a progress bar for the file
+                             using tqdm
 
     Returns:
         Response: Response returned from the put request
     """
-    with open(file_path, "rb") as file_data:
-        return session.put_request(
-            url=url,
-            content_type=MINIO_UPLOAD_CT,
-            data=file_data,
-        )
+
+    with open(file_path, "rb") as file:
+        with create_file_progress_bar(
+            description=file_path.name,
+            total=file_path.stat().st_size,
+            disable=not progress_bar,
+        ) as prog_bar:
+            file_data = CallbackIOWrapper(prog_bar.update, file, "read")
+
+            # In event of a refresh need to ensure file gets reset to start
+            # as wont have uploaded anything
+            def refresh_callback():
+                file.seek(0)
+                prog_bar.reset()
+
+            return session.put_request(
+                url=url,
+                content_type=MINIO_UPLOAD_CT,
+                data=file_data,
+                refresh_callback=refresh_callback,
+            )
 
 
 def create_temp_bucket(session: DAFNISession) -> str:
@@ -87,17 +106,22 @@ def get_data_upload_urls(
 
 
 def minio_get_request(
-    session: DAFNISession, url: str, content: bool = False
-) -> Union[List[dict], dict, bytes]:
+    session: DAFNISession, url: str, stream: bool = False
+) -> Union[Dict, List[Dict], requests.Response]:
     """Get a data file from Minio
 
     Args:
         session (DAFNISession): User session
         url (str): The url endpoint that is being queried
-        content (bool): Flag to define if the response content is returned. default is the response json
-
+        stream (bool): Whether to stream the request. In this case will
+                       return the response object itself rather than the
+                       json.
     Returns:
-        dict: For an endpoint returning one object, this will be a dictionary.
+        Dict: When 'stream' is False for endpoints returning one object
+              e.g. /models/<version_id>
+        List[Dict]: When 'stream' is False for endpoints returning multiple
+                    objects e.g. /models/
+        requests.Response: When 'stream' is True - The whole response object
     """
     # Substitute the Minio URL returned in the request string with a redirect
     file_url = url.replace(MINIO_API_URL, MINIO_DOWNLOAD_REDIRECT_API_URL)
@@ -105,5 +129,5 @@ def minio_get_request(
         url=file_url,
         content_type="application/json",
         allow_redirect=False,
-        content=content,
+        stream=stream,
     )

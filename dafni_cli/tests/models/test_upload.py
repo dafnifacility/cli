@@ -74,6 +74,7 @@ class TestModelUpload(TestCase):
                     session,
                     TEST_MODELS_UPLOAD_RESPONSE["urls"]["image"],
                     image_path,
+                    progress_bar=not json,
                 ),
             ],
         )

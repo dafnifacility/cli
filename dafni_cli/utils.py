@@ -4,14 +4,13 @@ import re
 import textwrap
 from dataclasses import fields
 from datetime import datetime
-from io import BytesIO
 from pathlib import Path
 from typing import Any, List, Optional, Tuple, Type, Union
 from urllib.parse import urlparse
-from zipfile import ZipFile
 
 import click
 from tabulate import tabulate
+from tqdm import tqdm
 
 from dafni_cli.consts import (
     DATA_FORMATS,
@@ -92,22 +91,6 @@ def argument_confirmation(
             for message in additional_messages:
                 click.echo(message)
         click.confirm(confirmation_message, abort=True)
-
-
-def write_files_to_zip(
-    zip_path: Path, file_names: List[str], file_contents: List[BytesIO]
-) -> None:
-    """Function to compress a list of files to a zip folder, and write to disk
-
-    Args:
-        zip_path (Path): Full path including file name to write to
-        file_names (List[str]): List of all file names
-        file_contents (List[BytesIO]): List of file contents, 1 for each name
-    """
-    with ZipFile(zip_path, "w") as zipObj:
-        for idx, file_name in enumerate(file_names):
-            with zipObj.open(file_name, "w") as zip_file:
-                zip_file.write(file_contents[idx].getvalue())
 
 
 def print_json(response: Union[dict, List[dict]]) -> None:
@@ -258,6 +241,68 @@ def optional_echo(string: str, should_not_print: bool):
     (Used for optional printing for json flags)"""
     if not should_not_print:
         click.echo(string)
+
+
+def create_file_progress_bar(description: str, total: int, disable: bool = False):
+    """Creates a progress bar intended for file operations
+
+    Args:
+        description (str): Description to print just before the bar (usually
+                           file name)
+        total (int): Total file size
+        disable (bool): 'disable' parameter to pass through to tqdm
+    """
+    return tqdm(
+        desc=description,
+        total=total,
+        miniters=1,
+        unit="B",
+        unit_scale=True,
+        unit_divisor=1024,
+        disable=disable,
+    )
+
+
+class OverallFileProgressBar:
+    """A progress bar that displays an overall status of an operation involving
+    multiple files"""
+
+    def __init__(self, total_files: int, total_size: int, disable: bool = False):
+        """
+        Args:
+            total_files (int): Total number of files involved in the operation
+            total_size (int): Total sum of all the file sizes
+            disable (bool): disable value to pass to tqdm
+        """
+        self._total_files = total_files
+        self._total_size = total_size
+        self._disable = disable
+        self._current_file = 0
+        self._progress_bar = None
+
+    def _get_description(self):
+        return f"Overall progress {self._current_file}/{self._total_files}"
+
+    def __enter__(self):
+        self._progress_bar = create_file_progress_bar(
+            description=self._get_description(),
+            total=self._total_size,
+            disable=self._disable,
+        )
+        return self
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        self._progress_bar.close()
+
+    def update(self, file_size: int):
+        """Should be called after an operation on a file has completed, will then
+        update the status of the loading bar
+
+        Args:
+            file_size (int): Size of the file that just finished uploading"""
+        self._current_file += 1
+        self._progress_bar.set_description(self._get_description())
+        self._progress_bar.update(file_size)
 
 
 def is_valid_definition_file(file_name: Path):

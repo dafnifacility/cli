@@ -6,8 +6,8 @@ from click import Context
 
 from dafni_cli.api.session import DAFNISession
 from dafni_cli.commands.helpers import cli_get_latest_dataset_metadata
+from dafni_cli.datasets.dataset_download import download_dataset
 from dafni_cli.datasets.dataset_metadata import parse_dataset_metadata
-from dafni_cli.utils import write_files_to_zip
 
 
 @click.group(help="Download entity from DAFNI")
@@ -40,27 +40,15 @@ def dataset(
     Args:
         ctx (Context): CLI context
         version_id (str): Dataset version ID
-        directory (Optional[Path]): Directory to write zip folder to
+        directory (Optional[Path]): Directory to download files to (when None
+                                    will use the current working directory)
     """
     metadata = parse_dataset_metadata(
         cli_get_latest_dataset_metadata(ctx.obj["session"], version_id)
     )
 
     if len(metadata.files) > 0:
-        # Download all files
-        file_names, file_contents = metadata.download_dataset_files(ctx.obj["session"])
-
-        # Setup file paths
-        if not directory:
-            directory = Path.cwd()
-        zip_name = f"Dataset_{metadata.dataset_id}_{version_id}.zip"
-        path = directory / zip_name
-        # Write files to disk
-        write_files_to_zip(path, file_names, file_contents)
-        # Output file details
-        click.echo("The dataset files have been downloaded to:")
-        click.echo(path)
-        metadata.output_datafiles_table()
+        download_dataset(ctx.obj["session"], metadata.files, directory)
     else:
         click.echo(
             "There are no files currently associated with the Dataset to download"

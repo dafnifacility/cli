@@ -22,7 +22,7 @@ from dafni_cli.datasets.dataset_metadata import (
     DATASET_METADATA_THEMES,
     DATASET_METADATA_UPDATE_FREQUENCIES,
 )
-from dafni_cli.utils import optional_echo, print_json
+from dafni_cli.utils import OverallFileProgressBar, optional_echo, print_json
 
 # Keys inside dataset metadata returned from the API that are invalid for
 # uploading
@@ -244,12 +244,30 @@ def upload_files(
         json (bool): Whether to print the raw json returned by the DAFNI API
     """
     optional_echo("Retrieving file upload URls", json)
-    file_names = {file_path.name: file_path for file_path in file_paths}
-    upload_urls = get_data_upload_urls(session, temp_bucket_id, list(file_names.keys()))
+    file_names_and_paths = {file_path.name: file_path for file_path in file_paths}
+    upload_urls = get_data_upload_urls(
+        session, temp_bucket_id, list(file_names_and_paths.keys())
+    )
 
     optional_echo("Uploading files", json)
-    for key, value in upload_urls["urls"].items():
-        upload_file_to_minio(session, value, file_names[key])
+
+    # For an indication of the overall upload progress
+    total_file_size = sum(file_path.stat().st_size for file_path in file_paths)
+
+    # Progress bar keeping track of all files being uploaded
+    with OverallFileProgressBar(
+        len(file_paths), total_file_size
+    ) as overall_progress_bar:
+        for file_name, file_upload_url in upload_urls["urls"].items():
+            upload_file_to_minio(
+                session,
+                file_upload_url,
+                file_names_and_paths[file_name],
+                progress_bar=not json,
+            )
+
+            # Completed a file download, update the overall status to reflect
+            overall_progress_bar.update(file_names_and_paths[file_name].stat().st_size)
 
 
 def _commit_metadata(

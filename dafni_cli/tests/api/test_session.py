@@ -457,6 +457,7 @@ class TestDAFNISession(TestCase):
             data=None,
             json=None,
             allow_redirect=False,
+            stream=None,
         )
 
         # ASSERT
@@ -467,6 +468,7 @@ class TestDAFNISession(TestCase):
             data=None,
             json=None,
             allow_redirects=False,
+            stream=None,
             timeout=REQUESTS_TIMEOUT,
         )
 
@@ -483,6 +485,7 @@ class TestDAFNISession(TestCase):
             data=None,
             json=None,
             allow_redirect=False,
+            stream=None,
         )
 
         mock_requests.request.assert_called_once_with(
@@ -492,6 +495,7 @@ class TestDAFNISession(TestCase):
             data=None,
             json=None,
             allow_redirects=False,
+            stream=None,
             timeout=REQUESTS_TIMEOUT,
             cookies={SESSION_COOKIE: TEST_ACCESS_TOKEN},
         )
@@ -526,6 +530,7 @@ class TestDAFNISession(TestCase):
             data=None,
             json=None,
             allow_redirects=False,
+            stream=False,
             timeout=REQUESTS_TIMEOUT,
         )
         session._check_response.assert_called_once_with(
@@ -533,10 +538,10 @@ class TestDAFNISession(TestCase):
         )
         self.assertEqual(result, mock_requests.request.return_value.json.return_value)
 
-    def test_get_request_when_content_true_and_given_error_message_func(
+    def test_get_request_when_stream_true_and_given_error_message_func(
         self, mock_requests
     ):
-        """Tests sending a get request via the DAFNISession when content=True
+        """Tests sending a get request via the DAFNISession when stream=True
         and given an error message function"""
 
         # SETUP
@@ -548,7 +553,7 @@ class TestDAFNISession(TestCase):
         result = session.get_request(
             url="some_test_url",
             content_type="content_type",
-            content=True,
+            stream=True,
             error_message_func=error_message_func,
         )
 
@@ -563,6 +568,7 @@ class TestDAFNISession(TestCase):
             data=None,
             json=None,
             allow_redirects=False,
+            stream=True,
             timeout=REQUESTS_TIMEOUT,
         )
         session._check_response.assert_called_once_with(
@@ -570,7 +576,7 @@ class TestDAFNISession(TestCase):
             mock_requests.request.return_value,
             error_message_func=error_message_func,
         )
-        self.assertEqual(result, mock_requests.request.return_value.content)
+        self.assertEqual(result, mock_requests.request.return_value)
 
     def test_post_request(self, mock_requests):
         """Tests sending a post request via the DAFNISession"""
@@ -593,6 +599,7 @@ class TestDAFNISession(TestCase):
             data=None,
             json=None,
             allow_redirects=False,
+            stream=None,
             timeout=REQUESTS_TIMEOUT,
         )
         session._check_response.assert_called_once_with(
@@ -600,11 +607,9 @@ class TestDAFNISession(TestCase):
         )
         self.assertEqual(result, mock_requests.request.return_value.json.return_value)
 
-    def test_post_request_when_content_true_and_given_error_message_func(
-        self, mock_requests
-    ):
-        """Tests sending a post request via the DAFNISession when content=True
-        and given an error message function"""
+    def test_post_request_when_given_error_message_func(self, mock_requests):
+        """Tests sending a post request via the DAFNISession when given an
+        error message function"""
 
         # SETUP
         session = self.create_mock_session(True)
@@ -615,7 +620,6 @@ class TestDAFNISession(TestCase):
         result = session.post_request(
             url="some_test_url",
             content_type="content_type",
-            content=True,
             error_message_func=error_message_func,
         )
 
@@ -630,6 +634,7 @@ class TestDAFNISession(TestCase):
             data=None,
             json=None,
             allow_redirects=False,
+            stream=None,
             timeout=REQUESTS_TIMEOUT,
         )
         session._check_response.assert_called_once_with(
@@ -637,7 +642,7 @@ class TestDAFNISession(TestCase):
             mock_requests.request.return_value,
             error_message_func=error_message_func,
         )
-        self.assertEqual(result, mock_requests.request.return_value.content)
+        self.assertEqual(result, mock_requests.request.return_value.json())
 
     def test_put_request(self, mock_requests):
         """Tests sending a put request via the DAFNISession"""
@@ -660,6 +665,7 @@ class TestDAFNISession(TestCase):
             data=None,
             json=None,
             allow_redirects=False,
+            stream=None,
             timeout=REQUESTS_TIMEOUT,
         )
         session._check_response.assert_called_once_with(
@@ -667,11 +673,9 @@ class TestDAFNISession(TestCase):
         )
         self.assertEqual(result, mock_requests.request.return_value)
 
-    def test_put_request_when_content_true_and_given_error_message_func(
-        self, mock_requests
-    ):
-        """Tests sending a put request via the DAFNISession when content=True
-        and given an error message function"""
+    def test_put_request_when_given_error_message_func(self, mock_requests):
+        """Tests sending a put request via the DAFNISession when given an error
+        message function"""
 
         # SETUP
         session = self.create_mock_session(True)
@@ -682,7 +686,6 @@ class TestDAFNISession(TestCase):
         result = session.put_request(
             url="some_test_url",
             content_type="content_type",
-            content=True,
             error_message_func=error_message_func,
         )
 
@@ -697,6 +700,7 @@ class TestDAFNISession(TestCase):
             data=None,
             json=None,
             allow_redirects=False,
+            stream=None,
             timeout=REQUESTS_TIMEOUT,
         )
         session._check_response.assert_called_once_with(
@@ -704,7 +708,7 @@ class TestDAFNISession(TestCase):
             mock_requests.request.return_value,
             error_message_func=error_message_func,
         )
-        self.assertEqual(result, mock_requests.request.return_value.content)
+        self.assertEqual(result, mock_requests.request.return_value)
 
     def test_patch_request(self, mock_requests):
         """Tests sending a patch request via the DAFNISession"""
@@ -727,6 +731,7 @@ class TestDAFNISession(TestCase):
             data=None,
             json=None,
             allow_redirects=False,
+            stream=None,
             timeout=REQUESTS_TIMEOUT,
         )
         session._check_response.assert_called_once_with(
@@ -734,11 +739,9 @@ class TestDAFNISession(TestCase):
         )
         self.assertEqual(result, mock_requests.request.return_value.json.return_value)
 
-    def test_patch_request_when_content_true_and_given_error_message_func(
-        self, mock_requests
-    ):
-        """Tests sending a patch request via the DAFNISession when content=True
-        and given an error message function"""
+    def test_patch_request_when_given_error_message_func(self, mock_requests):
+        """Tests sending a patch request via the DAFNISession when given an
+        error message function"""
 
         # SETUP
         session = self.create_mock_session(True)
@@ -749,7 +752,6 @@ class TestDAFNISession(TestCase):
         result = session.patch_request(
             url="some_test_url",
             content_type="content_type",
-            content=True,
             error_message_func=error_message_func,
         )
 
@@ -764,6 +766,7 @@ class TestDAFNISession(TestCase):
             data=None,
             json=None,
             allow_redirects=False,
+            stream=None,
             timeout=REQUESTS_TIMEOUT,
         )
         session._check_response.assert_called_once_with(
@@ -771,7 +774,7 @@ class TestDAFNISession(TestCase):
             mock_requests.request.return_value,
             error_message_func=error_message_func,
         )
-        self.assertEqual(result, mock_requests.request.return_value.content)
+        self.assertEqual(result, mock_requests.request.return_value.json())
 
     def test_delete_request(self, mock_requests):
         """Tests sending a delete request via the DAFNISession"""
@@ -793,6 +796,7 @@ class TestDAFNISession(TestCase):
             data=None,
             json=None,
             allow_redirects=False,
+            stream=None,
             timeout=REQUESTS_TIMEOUT,
         )
         session._check_response.assert_called_once_with(
@@ -800,11 +804,9 @@ class TestDAFNISession(TestCase):
         )
         self.assertEqual(result, mock_requests.request.return_value)
 
-    def test_delete_request_when_content_true_and_given_error_message_func(
-        self, mock_requests
-    ):
-        """Tests sending a delete request via the DAFNISession when content=True
-        and given an error message function"""
+    def test_delete_request_when_given_error_message_func(self, mock_requests):
+        """Tests sending a delete request via the DAFNISession when given an
+        error message function"""
 
         # SETUP
         session = self.create_mock_session(True)
@@ -813,7 +815,7 @@ class TestDAFNISession(TestCase):
 
         # CALL
         result = session.delete_request(
-            url="some_test_url", content=True, error_message_func=error_message_func
+            url="some_test_url", error_message_func=error_message_func
         )
 
         # ASSERT
@@ -826,6 +828,7 @@ class TestDAFNISession(TestCase):
             data=None,
             json=None,
             allow_redirects=False,
+            stream=None,
             timeout=REQUESTS_TIMEOUT,
         )
         session._check_response.assert_called_once_with(
@@ -833,7 +836,7 @@ class TestDAFNISession(TestCase):
             mock_requests.request.return_value,
             error_message_func=error_message_func,
         )
-        self.assertEqual(result, mock_requests.request.return_value.content)
+        self.assertEqual(result, mock_requests.request.return_value)
 
     def test_refresh(self, mock_requests):
         """Tests token refreshing on an authentication failure"""
@@ -885,6 +888,8 @@ class TestDAFNISession(TestCase):
 
         session = self.create_mock_session(True)
 
+        refresh_callback = MagicMock()
+
         # Here will test only on the get request as the logic is handled by
         # the base function called by all requests anyway
 
@@ -903,7 +908,11 @@ class TestDAFNISession(TestCase):
         with patch(
             "builtins.open", new_callable=mock_open, read_data=TEST_SESSION_FILE
         ) as mock_file:
-            session.post_request(url="some_test_url", data=mock_file_to_upload)
+            session.post_request(
+                url="some_test_url",
+                data=mock_file_to_upload,
+                refresh_callback=refresh_callback,
+            )
 
             # Should save new token
             mock_file = mock_file()
@@ -913,6 +922,9 @@ class TestDAFNISession(TestCase):
 
         # Should have reset the file
         mock_file_to_upload.seek.assert_called_with(0)
+
+        # Should have called the refresh callback
+        refresh_callback.assert_called_once()
 
         # Expect a request to obtain a new token
         mock_requests.post.assert_called_once_with(
