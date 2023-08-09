@@ -1,3 +1,12 @@
+# This action:
+# - Builds a universal pip wheel and source distribution
+# - Installs and runs the unit tests on this wheel and then if successful:
+# - Generates a draft release on GitHub with build files already uploaded
+# - Uploads the build to test.pypi
+
+# To finally release see publish.yml which runs when the draft release is
+# published
+
 name: Build Python Package
 
 on:
@@ -36,9 +45,20 @@ jobs:
     steps:
       - uses: actions/download-artifact@v3
       - name: Create draft release
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: >
           gh release create --draft --repo ${{ github.repository }}
           ${{ github.ref_name }}
           artifact/*
-        env:
-          GH_TOKEN: ${{ github.token }}
+  publish_to_test_pypi:
+    needs: ['build']
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v3
+      - name: Publish to test.pypi
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          repository-url: https://test.pypi.org/legacy/
+          password: ${{ secrets.TEST_PYPI_API_TOKEN }}
+      
