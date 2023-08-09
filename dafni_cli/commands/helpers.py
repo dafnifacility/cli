@@ -1,3 +1,4 @@
+import fnmatch
 import re
 from typing import List, Optional, Tuple
 
@@ -47,39 +48,27 @@ def cli_get_latest_dataset_metadata(session: DAFNISession, version_id: str) -> d
 
 def cli_select_dataset_files(
     dataset_metadata: DatasetMetadata,
-    file_names: Optional[List[str]],
-    file_regex: Optional[str],
+    files: Optional[List[str]],
 ) -> List[DataFile]:
-    """Returns a list of DataFile's that have file names that match some given
-    regex or is one of a list of given file_names
-
-    If both file_regex and file_names are None all of the given datasets files
-    will be returned.
+    """Returns a list of DataFile's that have file names that match the given
+    'files' using glob-like matching
 
     Args:
-        file_names (Optional[List[str]]): List of specific file names to select
-        file_regex (Optional[str]): Regular expression to match with the names of
-                                    the files to select
-
-    Raises:
-        SystemExit(1): If file_names is given but not all files are found in
-                       the given dataset
+        files (Optional[List[str]]): List of specific file names to match.
+                                     When None returns all the files.
     """
-    if file_regex is None and file_names is None:
+
+    if files is None:
         return dataset_metadata.files
 
     selected_files = []
     for file in dataset_metadata.files:
-        if file_names is not None and file.name in file_names:
-            file_names.remove(file.name)
-            selected_files.append(file)
-        elif file_regex is not None and re.match(file_regex, file.name):
-            selected_files.append(file)
-
-    if file_names is not None and len(file_names) > 0:
-        click.echo("The following files were not found in the dataset:")
-        click.echo("\n".join(file_names))
-        raise SystemExit(1)
+        # Check if any one of the supplied file names matches
+        for file_name in files:
+            if fnmatch.fnmatch(file.name, file_name):
+                print(file.name, file_name)
+                selected_files.append(file)
+                break
 
     return selected_files
 

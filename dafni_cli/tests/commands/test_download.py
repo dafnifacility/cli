@@ -77,8 +77,7 @@ class TestDownloadDataset(TestCase):
     def _run_command(
         self,
         directory: str,
-        file_names: Optional[List[str]],
-        file_regex: Optional[str],
+        files: Optional[List[str]],
     ):
         """Executes the 'download dataset' command and returns the result"""
         runner = CliRunner()
@@ -88,11 +87,8 @@ class TestDownloadDataset(TestCase):
             if directory:
                 args.extend(["--directory", directory])
                 Path(directory).mkdir()
-            if file_names:
-                for file_name in file_names:
-                    args.extend(["--file", file_name])
-            if file_regex:
-                args.extend(["--regex", file_regex])
+            if files:
+                args.extend([file_name for file_name in files])
 
             result = runner.invoke(download.download, args)
 
@@ -105,7 +101,7 @@ class TestDownloadDataset(TestCase):
         optional arguments)"""
 
         # CALL
-        result = self._run_command(directory=None, file_names=None, file_regex=None)
+        result = self._run_command(directory=None, files=None)
 
         # ASSERT
         self.mock_DAFNISession.assert_called_once()
@@ -116,7 +112,7 @@ class TestDownloadDataset(TestCase):
             self.mock_cli_get_latest_dataset_metadata.return_value
         )
         self.mock_cli_select_dataset_files.assert_called_once_with(
-            self.metadata, file_names=None, file_regex=None
+            self.metadata, files=None
         )
 
         self.mock_download_dataset.assert_called_once_with(
@@ -137,9 +133,7 @@ class TestDownloadDataset(TestCase):
         directory = "some_folder"
 
         # CALL
-        result = self._run_command(
-            directory=directory, file_names=None, file_regex=None
-        )
+        result = self._run_command(directory=directory, files=None)
 
         # ASSERT
         self.mock_DAFNISession.assert_called_once()
@@ -150,7 +144,7 @@ class TestDownloadDataset(TestCase):
             self.mock_cli_get_latest_dataset_metadata.return_value
         )
         self.mock_cli_select_dataset_files.assert_called_once_with(
-            self.metadata, file_names=None, file_regex=None
+            self.metadata, files=None
         )
 
         self.mock_download_dataset.assert_called_once_with(
@@ -171,7 +165,7 @@ class TestDownloadDataset(TestCase):
         self.metadata.files = []
 
         # CALL
-        result = self._run_command(directory=None, file_names=None, file_regex=None)
+        result = self._run_command(directory=None, files=None)
 
         # ASSERT
         self.mock_DAFNISession.assert_called_once()
@@ -191,18 +185,15 @@ class TestDownloadDataset(TestCase):
 
         self.assertEqual(result.exit_code, 0)
 
-    def test_download_dataset_with_file_names_and_regex_given(
+    def test_download_dataset_with_specific_files_given(
         self,
     ):
         """Tests that the 'download dataset' command works correctly (when given
-        a list of file names and regex to match to)"""
+        a list of files match to)"""
 
         # CALL
-        file_names = ["filename1.zip", "filename2.zip"]
-        file_regex = r"^.+\.csv"
-        result = self._run_command(
-            directory=None, file_names=file_names, file_regex=file_regex
-        )
+        files = ["filename1.zip", "filename2.zip", "*.csv"]
+        result = self._run_command(directory=None, files=files)
 
         # ASSERT
         self.mock_DAFNISession.assert_called_once()
@@ -213,7 +204,7 @@ class TestDownloadDataset(TestCase):
             self.mock_cli_get_latest_dataset_metadata.return_value
         )
         self.mock_cli_select_dataset_files.assert_called_once_with(
-            self.metadata, file_names=tuple(file_names), file_regex=file_regex
+            self.metadata, files=tuple(files)
         )
 
         self.mock_download_dataset.assert_called_once_with(
@@ -235,7 +226,7 @@ class TestDownloadDataset(TestCase):
         self.mock_cli_select_dataset_files.return_value = self.selected_dataset_files
 
         # CALL
-        result = self._run_command(directory=None, file_names=None, file_regex=None)
+        result = self._run_command(directory=None, files=None)
 
         # ASSERT
         self.mock_DAFNISession.assert_called_once()
@@ -246,7 +237,7 @@ class TestDownloadDataset(TestCase):
             self.mock_cli_get_latest_dataset_metadata.return_value
         )
         self.mock_cli_select_dataset_files.assert_called_once_with(
-            self.metadata, file_names=None, file_regex=None
+            self.metadata, files=None
         )
         self.mock_download_dataset.assert_not_called()
 

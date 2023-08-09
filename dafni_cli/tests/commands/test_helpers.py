@@ -105,20 +105,17 @@ class TestCliSelectDatasetFiles(TestCase):
         """Tests that the entire list of files is returned when both file_regex
         and file_names are None"""
         # CALL
-        result = helpers.cli_select_dataset_files(
-            self.dataset_metadata, file_regex=None, file_names=None
-        )
+        result = helpers.cli_select_dataset_files(self.dataset_metadata, files=None)
 
         # ASSERT
         self.assertEqual(result, self.dataset_metadata.files)
 
-    def test_file_names_selects_correct_files(self):
-        """Tests that only files found in file_names are returned when given"""
+    def test_given_exact_file_names_selects_correct_files(self):
+        """Tests that only files found in the given list of files are returned"""
         # CALL
         result = helpers.cli_select_dataset_files(
             self.dataset_metadata,
-            file_regex=None,
-            file_names=["file1.csv", "file2.zip"],
+            files=["file1.csv", "file2.zip"],
         )
 
         # ASSERT
@@ -126,14 +123,13 @@ class TestCliSelectDatasetFiles(TestCase):
             result, [self.dataset_metadata.files[0], self.dataset_metadata.files[1]]
         )
 
-    def test_file_regex_selects_correct_files(self):
-        """Tests that only files with names matching the file_regex are
-        returned when given"""
+    def test_given_file_wildcard_selects_correct_files(self):
+        """Tests that only files with names matching the given glob-like file
+        name is returned when given"""
         # CALL
         result = helpers.cli_select_dataset_files(
             self.dataset_metadata,
-            file_regex=r"^.+\.csv",
-            file_names=None,
+            files=["*.csv"],
         )
 
         # ASSERT
@@ -141,38 +137,17 @@ class TestCliSelectDatasetFiles(TestCase):
             result, [self.dataset_metadata.files[0], self.dataset_metadata.files[2]]
         )
 
-    def test_file_names_and_regex_selects_correct_files(self):
-        """Tests that only files with names found in file_names or that match
-        the file_regex are returned when both are given"""
+    def test_given_file_name_and_wildcard_selects_correct_files(self):
+        """Tests that only files with names found explicitly given or that match
+        the a separate glob-like filename are returned when both are given"""
         # CALL
         result = helpers.cli_select_dataset_files(
             self.dataset_metadata,
-            file_regex=r"^.+\.csv",
-            file_names=["file2.zip"],
+            files=["*.csv", "file2.zip"],
         )
 
         # ASSERT
         self.assertEqual(result, self.dataset_metadata.files)
-
-    @patch("dafni_cli.commands.helpers.click")
-    def test_missing_file_names_raises_system_exit(self, mock_click):
-        """Tests that when file_names is given but not all names are found
-        in the dataset a SystemExit is raised"""
-        # CALL & ASSERT
-        with self.assertRaises(SystemExit) as err:
-            helpers.cli_select_dataset_files(
-                self.dataset_metadata,
-                file_regex=r"^.+\.csv",
-                file_names=["file1.zip", "file2.zip", "file4.csv"],
-            )
-        self.assertEqual(
-            mock_click.echo.call_args_list,
-            [
-                call("The following files were not found in the dataset:"),
-                call("file1.zip\nfile4.csv"),
-            ],
-        )
-        self.assertEqual(err.exception.code, 1)
 
 
 @patch("dafni_cli.commands.helpers.get_workflow")

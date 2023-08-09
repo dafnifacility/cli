@@ -184,13 +184,21 @@ You may download all the files of a dataset using its version id via the command
 dafni download dataset <version-id>
 ```
 
-You may also select specific files by using the `--file <file_name>` option any number of times. For a more specific selection you may also use a regular expression, for example
+You may also select specific files by using their names e.g.
 
 ```bash
-dafni download dataset <version-id> --regex "^.+\.csv"
+dafni download dataset <version-id> file1.csv file2.zip
+```
+
+As with the dataset upload you may also use wildcards. For example
+
+```bash
+dafni download dataset <version-id> "*.csv"
 ```
 
 will download all `.csv` files in the dataset.
+
+> **_NOTE:_** You should use quotation marks, `""`, here to avoid any confusion with local files that may be in your current directory.
 
 ### Deleting entities
 
@@ -213,7 +221,7 @@ There are two options for datasets. You may either delete an entire dataset with
 dafni delete dataset <version-id>
 ```
 
-> **_NOTE_** This still takes a version id. It doesn't matter which is given in this case as it will delete the associated parent dataset
+> **_NOTE:_** This still takes a version id. It doesn't matter which is given in this case as it will delete the associated parent dataset
 
 or just a version with
 
