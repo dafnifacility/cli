@@ -27,8 +27,7 @@ class TestMinioAPI(TestCase):
         session = MagicMock()
         url = "example.url"
         file_path = MagicMock(name="file_name", stat=lambda: MagicMock(st_size=1000))
-        progress_bar = MagicMock()
-        mock_progress_bar = MagicMock()
+        progress_bar_value = MagicMock()
 
         # Cause the refresh callback to be called
         put_request_return_value = MagicMock()
@@ -39,13 +38,15 @@ class TestMinioAPI(TestCase):
 
         session.put_request = MagicMock(side_effect=put_request_side_effect)
 
+        # Mock the progress bar object returned by `with create_file_progress_bar'
+        mock_progress_bar = MagicMock()
         mock_create_file_progress_bar.return_value.__enter__.return_value = (
             mock_progress_bar
         )
 
         # CALL
         result = minio_api.upload_file_to_minio(
-            session, url, file_path, progress_bar=progress_bar
+            session, url, file_path, progress_bar=progress_bar_value
         )
 
         # ASSERT

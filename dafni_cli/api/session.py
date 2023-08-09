@@ -647,7 +647,7 @@ class DAFNISession:
                              uploads that may need to be reset.
 
         Returns:
-            Dict: The response object
+            requests.Response: The response object
 
         Raises:
             EndpointNotFoundError: If the response returns a 404 status code

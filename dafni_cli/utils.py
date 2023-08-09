@@ -243,16 +243,17 @@ def optional_echo(string: str, should_not_print: bool):
         click.echo(string)
 
 
-def create_file_progress_bar(desc: str, total: int, disable: bool = False):
+def create_file_progress_bar(description: str, total: int, disable: bool = False):
     """Creates a progress bar intended for file operations
 
     Args:
-        desc (str): Description to print just before the bar (usually file name)
+        description (str): Description to print just before the bar (usually
+                           file name)
         total (int): Total file size
         disable (bool): 'disable' parameter to pass through to tqdm
     """
     return tqdm(
-        desc=desc,
+        desc=description,
         total=total,
         miniters=1,
         unit="B",

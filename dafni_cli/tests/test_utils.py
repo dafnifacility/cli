@@ -570,16 +570,18 @@ class TestCreateFileProgressBar(TestCase):
         """Tests create_file_progress_bar calls tqdm correctly"""
 
         # SETUP
-        desc = MagicMock()
+        description = MagicMock()
         total = MagicMock()
         disable = MagicMock()
 
         # CALL
-        result = utils.create_file_progress_bar(desc=desc, total=total, disable=disable)
+        result = utils.create_file_progress_bar(
+            description=description, total=total, disable=disable
+        )
 
         # ASSERT
         mock_tqdm.assert_called_once_with(
-            desc=desc,
+            desc=description,
             total=total,
             miniters=1,
             unit="B",
