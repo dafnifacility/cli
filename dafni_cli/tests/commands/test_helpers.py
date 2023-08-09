@@ -1,8 +1,9 @@
 from unittest import TestCase
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock, call, patch
 
 from dafni_cli.api.exceptions import ResourceNotFoundError
 from dafni_cli.commands import helpers
+from dafni_cli.datasets.dataset_metadata import DataFile
 
 
 @patch("dafni_cli.commands.helpers.get_model")
@@ -86,6 +87,91 @@ class TestCliGetLatestDatasetMetadata(TestCase):
             mock_session, version_id
         )
         mock_click.echo.assert_called_once_with(error)
+        self.assertEqual(err.exception.code, 1)
+
+
+class TestCliSelectDatasetFiles(TestCase):
+    """Test class to test cli_select_dataset_files"""
+
+    def setUp(self) -> None:
+        super().setUp()
+
+        self.file_names = ["file1.csv", "file2.zip", "file3.csv"]
+        self.dataset_metadata = MagicMock(
+            files=[DataFile(name=file_name, size=0) for file_name in self.file_names]
+        )
+
+    def test_all_optionals_none_returns_whole_list(self):
+        """Tests that the entire list of files is returned when both file_regex
+        and file_names are None"""
+        # CALL
+        result = helpers.cli_select_dataset_files(
+            self.dataset_metadata, file_regex=None, file_names=None
+        )
+
+        # ASSERT
+        self.assertEqual(result, self.dataset_metadata.files)
+
+    def test_file_names_selects_correct_files(self):
+        """Tests that only files found in file_names are returned when given"""
+        # CALL
+        result = helpers.cli_select_dataset_files(
+            self.dataset_metadata,
+            file_regex=None,
+            file_names=["file1.csv", "file2.zip"],
+        )
+
+        # ASSERT
+        self.assertEqual(
+            result, [self.dataset_metadata.files[0], self.dataset_metadata.files[1]]
+        )
+
+    def test_file_regex_selects_correct_files(self):
+        """Tests that only files with names matching the file_regex are
+        returned when given"""
+        # CALL
+        result = helpers.cli_select_dataset_files(
+            self.dataset_metadata,
+            file_regex=r"^.+\.csv",
+            file_names=None,
+        )
+
+        # ASSERT
+        self.assertEqual(
+            result, [self.dataset_metadata.files[0], self.dataset_metadata.files[2]]
+        )
+
+    def test_file_names_and_regex_selects_correct_files(self):
+        """Tests that only files with names found in file_names or that match
+        the file_regex are returned when both are given"""
+        # CALL
+        result = helpers.cli_select_dataset_files(
+            self.dataset_metadata,
+            file_regex=r"^.+\.csv",
+            file_names=["file2.zip"],
+        )
+
+        # ASSERT
+        self.assertEqual(result, self.dataset_metadata.files)
+
+    @patch("dafni_cli.commands.helpers.click")
+    def test_missing_file_names_raises_system_exit(self, mock_click):
+        """Tests that when file_names is given but not all names are found
+        in the dataset a SystemExit is raised"""
+        # CALL & ASSERT
+        with self.assertRaises(SystemExit) as err:
+            helpers.cli_select_dataset_files(
+                self.dataset_metadata,
+                file_regex=r"^.+\.csv",
+                file_names=["file1.zip", "file2.zip", "file4.csv"],
+            )
+        self.assertEqual(
+            mock_click.echo.call_args_list,
+            [
+                call("The following files were not found in the dataset:"),
+                call("file1.zip\nfile4.csv"),
+            ],
+        )
         self.assertEqual(err.exception.code, 1)
 
 

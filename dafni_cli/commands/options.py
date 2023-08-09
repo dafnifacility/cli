@@ -38,6 +38,15 @@ class URLParamType(click.ParamType):
         self.fail(f"'{value}' is not a valid URL")
 
 
+def click_optional_tuple_none_callback(ctx, param, value):
+    """By default click returns an empty tuple instead of None for options with
+    multiple=True, this ensures None is returned instead for consistency
+
+    To use supply callback=click_optional_tuple_none_callback to click.option
+    """
+    return None if len(value) == 0 else value
+
+
 class EmailAddressParamType(click.ParamType):
     """Email address parameter type for Click that checks if a string is a
     valid email address"""
@@ -90,18 +99,16 @@ def dataset_metadata_common_options(all_optional: bool):
         version_message (str): Version message
     """
 
-    # By default click returns an empty tuple instead of None for options with
-    # multiple=True, override here for consistency
-    def default_none(ctx, _, value):
-        return None if len(value) == 0 else value
-
     # Arguments that will be used to indicate something as required
     # Will use the default required = False and have a default of None in the
     # case all_optional is True
     required_args = {"required": True}
     if all_optional:
         required_args = {"default": None}
-    required_args_tuple = {**required_args, "callback": default_none}
+    required_args_tuple = {
+        **required_args,
+        "callback": click_optional_tuple_none_callback,
+    }
 
     def decorator(function):
         function = click.option(
@@ -119,7 +126,7 @@ def dataset_metadata_common_options(all_optional: bool):
         function = click.option(
             "--identifier",
             type=str,
-            callback=default_none,
+            callback=click_optional_tuple_none_callback,
             multiple=True,
             help="Permanent URL of external identifier for this dataset (e.g. DOI). (Can have multiple)",
         )(function)
@@ -132,7 +139,7 @@ def dataset_metadata_common_options(all_optional: bool):
         function = click.option(
             "--theme",
             type=click.Choice(DATASET_METADATA_THEMES),
-            callback=default_none,
+            callback=click_optional_tuple_none_callback,
             multiple=True,
             help="Theme, one of those found at https://inspire.ec.europa.eu/Themes/Data-Specifications/2892. Can have multiple.",
         )(function)
@@ -176,7 +183,7 @@ def dataset_metadata_common_options(all_optional: bool):
         function = click.option(
             "--person",
             type=(str, URLParamType(optional=True)),
-            callback=default_none,
+            callback=click_optional_tuple_none_callback,
             multiple=True,
             help='Name and ID of a person who created the dataset. Either value may be empty using "". When given the ID must be a valid URL, and can be an ORCID id or similar. (Can have multiple)',
         )(function)

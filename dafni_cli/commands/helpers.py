@@ -1,4 +1,5 @@
-from typing import Tuple
+import re
+from typing import List, Optional, Tuple
 
 import click
 
@@ -7,6 +8,7 @@ from dafni_cli.api.exceptions import ResourceNotFoundError
 from dafni_cli.api.models_api import get_model
 from dafni_cli.api.session import DAFNISession
 from dafni_cli.api.workflows_api import get_workflow, get_workflow_instance
+from dafni_cli.datasets.dataset_metadata import DataFile, DatasetMetadata
 from dafni_cli.workflows.parameter_set import WorkflowParameterSet
 from dafni_cli.workflows.workflow import Workflow, parse_workflow
 
@@ -41,6 +43,45 @@ def cli_get_latest_dataset_metadata(session: DAFNISession, version_id: str) -> d
     except ResourceNotFoundError as err:
         click.echo(err)
         raise SystemExit(1) from err
+
+
+def cli_select_dataset_files(
+    dataset_metadata: DatasetMetadata,
+    file_names: Optional[List[str]],
+    file_regex: Optional[str],
+) -> List[DataFile]:
+    """Returns a list of DataFile's that have file names that match some given
+    regex or is one of a list of given file_names
+
+    If both file_regex and file_names are None all of the given datasets files
+    will be returned.
+
+    Args:
+        file_names (Optional[List[str]]): List of specific file names to select
+        file_regex (Optional[str]): Regular expression to match with the names of
+                                    the files to select
+
+    Raises:
+        SystemExit(1): If file_names is given but not all files are found in
+                       the given dataset
+    """
+    if file_regex is None and file_names is None:
+        return dataset_metadata.files
+
+    selected_files = []
+    for file in dataset_metadata.files:
+        if file_names is not None and file.name in file_names:
+            file_names.remove(file.name)
+            selected_files.append(file)
+        elif file_regex is not None and re.match(file_regex, file.name):
+            selected_files.append(file)
+
+    if file_names is not None and len(file_names) > 0:
+        click.echo("The following files were not found in the dataset:")
+        click.echo("\n".join(file_names))
+        raise SystemExit(1)
+
+    return selected_files
 
 
 def cli_get_workflow(session: DAFNISession, version_id: str) -> dict:
