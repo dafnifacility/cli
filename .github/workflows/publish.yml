@@ -1,0 +1,30 @@
+# This action:
+# - Downloads all release files from the release that triggered it (whether it's a
+#   prerelease or full)
+# - Uploads these files to PyPi
+# This should follow on from build.yml - Only the files from /dist should be present
+# in the published release
+
+name: Publish Python Package to PyPi
+
+on:
+  # Release when either a full release or a pre-release is published
+  # https://docs.github.com/en/actions/using-workflows/events-that-trigger-workflows#release
+  release:
+    types: [published]
+
+jobs:
+  publish_to_pypi:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download release files
+        env:
+          GH_TOKEN: ${{ github.token }}
+        # Download all files from the release that was just published to /dist
+        # (github.ref should be the tag itself here)
+        run: |
+          gh release download -p "*" -D dist/ -R ${{ github.repository }} ${{ github.ref }}
+      - name: Publish to test.pypi
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          password: ${{ secrets.PYPI_API_TOKEN }}
