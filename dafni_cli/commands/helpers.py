@@ -1,4 +1,5 @@
-from typing import Tuple
+import fnmatch
+from typing import List, Optional, Tuple
 
 import click
 
@@ -7,6 +8,7 @@ from dafni_cli.api.exceptions import ResourceNotFoundError
 from dafni_cli.api.models_api import get_model
 from dafni_cli.api.session import DAFNISession
 from dafni_cli.api.workflows_api import get_workflow, get_workflow_instance
+from dafni_cli.datasets.dataset_metadata import DataFile, DatasetMetadata
 from dafni_cli.workflows.parameter_set import WorkflowParameterSet
 from dafni_cli.workflows.workflow import Workflow, parse_workflow
 
@@ -41,6 +43,32 @@ def cli_get_latest_dataset_metadata(session: DAFNISession, version_id: str) -> d
     except ResourceNotFoundError as err:
         click.echo(err)
         raise SystemExit(1) from err
+
+
+def cli_select_dataset_files(
+    dataset_metadata: DatasetMetadata,
+    files: Optional[List[str]],
+) -> List[DataFile]:
+    """Returns a list of DataFile's that have file names that match the given
+    'files' using glob-like matching
+
+    Args:
+        files (Optional[List[str]]): List of specific file names to match.
+                                     When None returns all the files.
+    """
+
+    if files is None:
+        return dataset_metadata.files
+
+    selected_files = []
+    for file in dataset_metadata.files:
+        # Check if any one of the supplied file names matches
+        for file_name in files:
+            if fnmatch.fnmatch(file.name, file_name):
+                selected_files.append(file)
+                break
+
+    return selected_files
 
 
 def cli_get_workflow(session: DAFNISession, version_id: str) -> dict:

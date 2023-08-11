@@ -1,8 +1,9 @@
 from unittest import TestCase
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock, call, patch
 
 from dafni_cli.api.exceptions import ResourceNotFoundError
 from dafni_cli.commands import helpers
+from dafni_cli.datasets.dataset_metadata import DataFile
 
 
 @patch("dafni_cli.commands.helpers.get_model")
@@ -87,6 +88,66 @@ class TestCliGetLatestDatasetMetadata(TestCase):
         )
         mock_click.echo.assert_called_once_with(error)
         self.assertEqual(err.exception.code, 1)
+
+
+class TestCliSelectDatasetFiles(TestCase):
+    """Test class to test cli_select_dataset_files"""
+
+    def setUp(self) -> None:
+        super().setUp()
+
+        self.file_names = ["file1.csv", "file2.zip", "file3.csv"]
+        self.dataset_metadata = MagicMock(
+            files=[DataFile(name=file_name, size=0) for file_name in self.file_names]
+        )
+
+    def test_all_optionals_none_returns_whole_list(self):
+        """Tests that the entire list of files is returned when the given list
+        of files is None"""
+        # CALL
+        result = helpers.cli_select_dataset_files(self.dataset_metadata, files=None)
+
+        # ASSERT
+        self.assertEqual(result, self.dataset_metadata.files)
+
+    def test_given_exact_file_names_selects_correct_files(self):
+        """Tests that only files found in the given list of files are returned"""
+        # CALL
+        result = helpers.cli_select_dataset_files(
+            self.dataset_metadata,
+            files=["file1.csv", "file2.zip"],
+        )
+
+        # ASSERT
+        self.assertEqual(
+            result, [self.dataset_metadata.files[0], self.dataset_metadata.files[1]]
+        )
+
+    def test_given_file_wildcard_selects_correct_files(self):
+        """Tests that only files with names matching the given glob-like file
+        name is returned when given"""
+        # CALL
+        result = helpers.cli_select_dataset_files(
+            self.dataset_metadata,
+            files=["*.csv"],
+        )
+
+        # ASSERT
+        self.assertEqual(
+            result, [self.dataset_metadata.files[0], self.dataset_metadata.files[2]]
+        )
+
+    def test_given_file_name_and_wildcard_selects_correct_files(self):
+        """Tests that only files with names found explicitly given or that match
+        the a separate glob-like filename are returned when both are given"""
+        # CALL
+        result = helpers.cli_select_dataset_files(
+            self.dataset_metadata,
+            files=["*.csv", "file2.zip"],
+        )
+
+        # ASSERT
+        self.assertEqual(result, self.dataset_metadata.files)
 
 
 @patch("dafni_cli.commands.helpers.get_workflow")
