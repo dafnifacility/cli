@@ -102,8 +102,8 @@ class TestCliSelectDatasetFiles(TestCase):
         )
 
     def test_all_optionals_none_returns_whole_list(self):
-        """Tests that the entire list of files is returned when both file_regex
-        and file_names are None"""
+        """Tests that the entire list of files is returned when the given list
+        of files is None"""
         # CALL
         result = helpers.cli_select_dataset_files(self.dataset_metadata, files=None)
 

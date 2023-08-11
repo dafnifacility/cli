@@ -1,5 +1,4 @@
 import fnmatch
-import re
 from typing import List, Optional, Tuple
 
 import click
@@ -66,7 +65,6 @@ def cli_select_dataset_files(
         # Check if any one of the supplied file names matches
         for file_name in files:
             if fnmatch.fnmatch(file.name, file_name):
-                print(file.name, file_name)
                 selected_files.append(file)
                 break
 
