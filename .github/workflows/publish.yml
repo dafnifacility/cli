@@ -23,7 +23,7 @@ jobs:
         # Download all files from the release that was just published to /dist
         # (github.ref should be the tag itself here)
         run: |
-          gh release download -p "*" -D dist/ -R ${{ github.repository }} ${{ github.ref }}
+          gh release download -p "*" -D dist/ -R ${{ github.repository }} ${{ github.ref_name }}
       - name: Publish to test.pypi
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
