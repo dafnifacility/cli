@@ -44,8 +44,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/download-artifact@v3
-        with:
-          path: ./dist
+      - name: Rename extracted folder
+        run: mv artifact dist
       - name: Create draft release
         env:
           GH_TOKEN: ${{ github.token }}
@@ -54,12 +54,15 @@ jobs:
           ${{ github.ref_name }}
           dist/*
   publish_to_test_pypi:
-    needs: ['build']
+    # Don't really need to wait on this but it will ensure that if
+    # unable to upload files from the downloaded artifact e.g. when the directory
+    # structure is wrong we wont try and upload it to test.pypi at all
+    needs: ['draft_release']
     runs-on: ubuntu-latest
     steps:
       - uses: actions/download-artifact@v3
-        with:
-          path: ./dist
+      - name: Rename extracted folder
+        run: mv artifact dist
       - name: Publish to test.pypi
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
