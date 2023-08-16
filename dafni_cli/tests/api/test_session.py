@@ -13,8 +13,10 @@ from dafni_cli.api.session import DAFNISession, LoginError
 from dafni_cli.consts import (
     LOGIN_API_ENDPOINT,
     LOGOUT_API_ENDPOINT,
+    MAX_SSL_ERROR_RETRY_ATTEMPTS,
     REQUESTS_TIMEOUT,
     SESSION_COOKIE,
+    SSL_ERROR_RETRY_WAIT,
     URLS_REQUIRING_COOKIE_AUTHENTICATION,
 )
 from dafni_cli.tests.fixtures.session import (
@@ -35,9 +37,16 @@ from dafni_cli.tests.fixtures.session import (
 )
 
 
-@patch("dafni_cli.api.session.requests")
 class TestDAFNISession(TestCase):
     """Tests the DAFNISession class"""
+
+    def setUp(self) -> None:
+        self.mock_requests = patch("dafni_cli.api.session.requests").start()
+
+        # Unpatch all exceptions to avoid TypeErrors in except blocks
+        self.mock_requests.exceptions = requests.exceptions
+
+        self.addCleanup(patch.stopall)
 
     def create_mock_session(self, use_file: bool, return_mock_file=False):
         """Loads a mock session while mocking whether a session file exists or not
@@ -58,7 +67,7 @@ class TestDAFNISession(TestCase):
                 else:
                     return DAFNISession(), mock_file()
 
-    def test_has_session_file(self, mock_requests):
+    def test_has_session_file(self):
         """Tests has_session_file works correctly"""
 
         session = self.create_mock_session(True)
@@ -72,19 +81,18 @@ class TestDAFNISession(TestCase):
 
     def test_load(
         self,
-        mock_requests,
     ):
         """Tests loading of session with a given username and password"""
 
         # Setup
-        mock_requests.post.return_value = create_mock_access_token_response()
+        self.mock_requests.post.return_value = create_mock_access_token_response()
 
         # Attempt login
         session = DAFNISession.login(username="test_username", password="test_password")
 
         # Expect post to be called, and appropriate session data to have
         # been loaded from the obtained JWT
-        mock_requests.post.assert_called_once_with(
+        self.mock_requests.post.assert_called_once_with(
             LOGIN_API_ENDPOINT,
             data={
                 "username": "test_username",
@@ -100,12 +108,11 @@ class TestDAFNISession(TestCase):
 
     def test_load_invalid_login(
         self,
-        mock_requests,
     ):
         """Tests loading of session with an invalid username and/or password"""
 
         # Setup
-        mock_requests.post.return_value = create_mock_invalid_login_response()
+        self.mock_requests.post.return_value = create_mock_invalid_login_response()
 
         # Attempt login
         with self.assertRaises(LoginError) as err:
@@ -115,7 +122,7 @@ class TestDAFNISession(TestCase):
             "Failed to login. Please check your username and password and try again.",
         )
 
-    def test_load_from_file(self, mock_requests):
+    def test_load_from_file(self):
         """Tests can load existing session from a file"""
 
         session = self.create_mock_session(True)
@@ -126,20 +133,19 @@ class TestDAFNISession(TestCase):
     def test_load_from_user(
         self,
         mock_click_prompt,
-        mock_requests,
     ):
         """Tests loading of a new session requiring input from the user"""
 
         # Setup
         mock_click_prompt.side_effect = ["test_username", "test_password"]
-        mock_requests.post.return_value = create_mock_access_token_response()
+        self.mock_requests.post.return_value = create_mock_access_token_response()
 
         # Create session using input from user
         session, mock_file = self.create_mock_session(False, return_mock_file=True)
 
         # Expect post to be called, and appropriate session data to have
         # been loaded from the obtained JWT
-        mock_requests.post.assert_called_once_with(
+        self.mock_requests.post.assert_called_once_with(
             LOGIN_API_ENDPOINT,
             data={
                 "username": "test_username",
@@ -164,18 +170,17 @@ class TestDAFNISession(TestCase):
     )
     def test_load_from_environment(
         self,
-        mock_requests,
     ):
         """Tests loading of a new session from environment variables"""
 
         # Setup
-        mock_requests.post.return_value = create_mock_access_token_response()
+        self.mock_requests.post.return_value = create_mock_access_token_response()
 
         session, mock_file = self.create_mock_session(False, return_mock_file=True)
 
         # Expect post to be called, and appropriate session data to have
         # been loaded from the obtained JWT
-        mock_requests.post.assert_called_once_with(
+        self.mock_requests.post.assert_called_once_with(
             LOGIN_API_ENDPOINT,
             data={
                 "username": "test_username",
@@ -200,18 +205,17 @@ class TestDAFNISession(TestCase):
     )
     def test_load_from_environment_when_login_fails(
         self,
-        mock_requests,
     ):
         """Tests loading of a new session from environment variables exits
         when unsuccessful"""
 
         # Setup
-        mock_requests.post.return_value = create_mock_invalid_password_response()
+        self.mock_requests.post.return_value = create_mock_invalid_password_response()
 
         with self.assertRaises(SystemExit) as err:
             self.create_mock_session(False, return_mock_file=True)
 
-        mock_requests.post.assert_called_once_with(
+        self.mock_requests.post.assert_called_once_with(
             LOGIN_API_ENDPOINT,
             data={
                 "username": "test_username",
@@ -229,7 +233,6 @@ class TestDAFNISession(TestCase):
     def test_load_from_user_repeated(
         self,
         mock_click_prompt,
-        mock_requests,
     ):
         """Tests loading of a new session requiring input from the user, while
         they get the username or password wrong initially."""
@@ -241,7 +244,7 @@ class TestDAFNISession(TestCase):
             "test_username",
             "test_password",
         ]
-        mock_requests.post.side_effect = [
+        self.mock_requests.post.side_effect = [
             create_mock_invalid_password_response(),
             create_mock_access_token_response(),
         ]
@@ -251,7 +254,7 @@ class TestDAFNISession(TestCase):
 
         # Expect post to be called, and appropriate session data to have
         # been loaded from the obtained JWT
-        mock_requests.post.assert_has_calls(
+        self.mock_requests.post.assert_has_calls(
             [
                 call(
                     LOGIN_API_ENDPOINT,
@@ -285,7 +288,7 @@ class TestDAFNISession(TestCase):
             json.dumps(session._session_data.__dict__)
         )
 
-    def test_logout(self, mock_requests):
+    def test_logout(self):
         """Tests can load existing session from a file"""
 
         # Load session from file data
@@ -297,7 +300,7 @@ class TestDAFNISession(TestCase):
             mock_unlink.assert_called_once_with()
 
         # Ensure appropriate logout endpoint is called
-        mock_requests.post.assert_called_once_with(
+        self.mock_requests.post.assert_called_once_with(
             LOGOUT_API_ENDPOINT,
             headers={
                 "Content-Type": "application/x-www-form-urlencoded",
@@ -311,7 +314,7 @@ class TestDAFNISession(TestCase):
             timeout=REQUESTS_TIMEOUT,
         )
 
-    def test_get_error_message_with_no_error(self, mock_requests):
+    def test_get_error_message_with_no_error(self):
         """Tests get_error_message when there is no error message"""
 
         # SETUP
@@ -323,7 +326,7 @@ class TestDAFNISession(TestCase):
         # ASSERT
         self.assertEqual(error_message, None)
 
-    def test_get_error_message_simple(self, mock_requests):
+    def test_get_error_message_simple(self):
         """Tests get_error_message when there is a simple error message"""
 
         # SETUP
@@ -336,7 +339,7 @@ class TestDAFNISession(TestCase):
         # ASSERT
         self.assertEqual(error_message, f"Error: {mock_response.json()['error']}")
 
-    def test_get_error_message(self, mock_requests):
+    def test_get_error_message(self):
         """Tests get_error_message when there is a specific error message"""
 
         # SETUP
@@ -352,7 +355,7 @@ class TestDAFNISession(TestCase):
             f"Error: {mock_response.json()['error']}, {mock_response.json()['error_message']}",
         )
 
-    def test_get_error_message_with_multiple_errors(self, mock_requests):
+    def test_get_error_message_with_multiple_errors(self):
         """Tests get_error_message when there are multiple errors"""
 
         # SETUP
@@ -370,14 +373,14 @@ class TestDAFNISession(TestCase):
             f"Error: {expected_errors[0]}\nError: {expected_errors[1]}",
         )
 
-    def test_get_error_message_handles_decode_error(self, mock_requests):
+    def test_get_error_message_handles_decode_error(self):
         """Tests get_error_message when JSON decoding fails"""
 
         # SETUP
         session = self.create_mock_session(True)
         mock_response = create_mock_error_response()
         # Unpatch this to avoid TypeError in except block
-        mock_requests.JSONDecodeError = requests.JSONDecodeError
+        self.mock_requests.JSONDecodeError = requests.JSONDecodeError
         mock_response.json.side_effect = requests.JSONDecodeError("", "", 0)
 
         # CALL
@@ -386,7 +389,7 @@ class TestDAFNISession(TestCase):
         # ASSERT
         self.assertEqual(error_message, None)
 
-    def test_check_response_raises_endpoint_not_found(self, mock_requests):
+    def test_check_response_raises_endpoint_not_found(self):
         """Tests _check_response raises an EndpointNotFoundError when necessary"""
 
         # SETUP
@@ -397,7 +400,7 @@ class TestDAFNISession(TestCase):
             session._check_response("test_url", create_mock_response(404))
         self.assertEqual(str(err.exception), "Could not find test_url")
 
-    def test_check_response_raises_dafni_error(self, mock_requests):
+    def test_check_response_raises_dafni_error(self):
         """Tests _check_response raises a DAFNIError when a specific error is
         given in a failed response"""
 
@@ -411,7 +414,7 @@ class TestDAFNISession(TestCase):
             session._check_response("test_url", create_mock_response(400))
         self.assertEqual(str(err.exception), "Some error message")
 
-    def test_check_response_raises_http_error(self, mock_requests):
+    def test_check_response_raises_http_error(self):
         """Tests _check_response raises a HTTPError when no specific error
         message is found"""
 
@@ -425,7 +428,7 @@ class TestDAFNISession(TestCase):
             session._check_response("test_url", create_mock_response(400))
         self.assertEqual(str(err.exception), "Test error 400")
 
-    def test_check_response_calls_error_message_func(self, mock_requests):
+    def test_check_response_calls_error_message_func(self):
         """Tests _check_response calls the given error message function and uses
         its returned value for the error message when given"""
 
@@ -442,7 +445,7 @@ class TestDAFNISession(TestCase):
         error_message_func.assert_called_once_with(mock_response)
         self.assertEqual(str(err.exception), f"{error_message_func.return_value}")
 
-    def test_authenticated_request_header_auth(self, mock_requests):
+    def test_authenticated_request_header_auth(self):
         """Tests sending a request via the DAFNISession uses header based
         authentication"""
 
@@ -461,7 +464,7 @@ class TestDAFNISession(TestCase):
         )
 
         # ASSERT
-        mock_requests.request.assert_called_once_with(
+        self.mock_requests.request.assert_called_once_with(
             "get",
             url="test_url",
             headers={"Authorization": f"Bearer {TEST_ACCESS_TOKEN}"},
@@ -472,7 +475,7 @@ class TestDAFNISession(TestCase):
             timeout=REQUESTS_TIMEOUT,
         )
 
-    def _test_authenticated_request_cookie_auth(self, mock_requests, url: str):
+    def _test_authenticated_request_cookie_auth(self, url: str):
         """Helper function that tests sending a request via the DAFNISession
         uses cookie authentication for a specific URL"""
 
@@ -488,7 +491,7 @@ class TestDAFNISession(TestCase):
             stream=None,
         )
 
-        mock_requests.request.assert_called_once_with(
+        self.mock_requests.request.assert_called_once_with(
             "get",
             url=url,
             headers={},
@@ -500,16 +503,14 @@ class TestDAFNISession(TestCase):
             cookies={SESSION_COOKIE: TEST_ACCESS_TOKEN},
         )
 
-    def test_authenticated_request_cookie_auth(self, mock_requests):
+    def test_authenticated_request_cookie_auth(self):
         """Tests sending a request via the DAFNISession uses cookie
         authentication for any URL that should require it"""
         for url in URLS_REQUIRING_COOKIE_AUTHENTICATION:
-            mock_requests.reset_mock()
-            self._test_authenticated_request_cookie_auth(
-                mock_requests, f"{url}/testendpoint"
-            )
+            self.mock_requests.reset_mock()
+            self._test_authenticated_request_cookie_auth(f"{url}/testendpoint")
 
-    def test_get_request(self, mock_requests):
+    def test_get_request(self):
         """Tests sending a get request via the DAFNISession"""
 
         # SETUP
@@ -520,7 +521,7 @@ class TestDAFNISession(TestCase):
         result = session.get_request(url="some_test_url", content_type="content_type")
 
         # ASSERT
-        mock_requests.request.assert_called_once_with(
+        self.mock_requests.request.assert_called_once_with(
             "get",
             url="some_test_url",
             headers={
@@ -534,13 +535,15 @@ class TestDAFNISession(TestCase):
             timeout=REQUESTS_TIMEOUT,
         )
         session._check_response.assert_called_once_with(
-            "some_test_url", mock_requests.request.return_value, error_message_func=None
+            "some_test_url",
+            self.mock_requests.request.return_value,
+            error_message_func=None,
         )
-        self.assertEqual(result, mock_requests.request.return_value.json.return_value)
+        self.assertEqual(
+            result, self.mock_requests.request.return_value.json.return_value
+        )
 
-    def test_get_request_when_stream_true_and_given_error_message_func(
-        self, mock_requests
-    ):
+    def test_get_request_when_stream_true_and_given_error_message_func(self):
         """Tests sending a get request via the DAFNISession when stream=True
         and given an error message function"""
 
@@ -558,7 +561,7 @@ class TestDAFNISession(TestCase):
         )
 
         # ASSERT
-        mock_requests.request.assert_called_once_with(
+        self.mock_requests.request.assert_called_once_with(
             "get",
             url="some_test_url",
             headers={
@@ -573,12 +576,12 @@ class TestDAFNISession(TestCase):
         )
         session._check_response.assert_called_once_with(
             "some_test_url",
-            mock_requests.request.return_value,
+            self.mock_requests.request.return_value,
             error_message_func=error_message_func,
         )
-        self.assertEqual(result, mock_requests.request.return_value)
+        self.assertEqual(result, self.mock_requests.request.return_value)
 
-    def test_post_request(self, mock_requests):
+    def test_post_request(self):
         """Tests sending a post request via the DAFNISession"""
 
         # SETUP
@@ -589,7 +592,7 @@ class TestDAFNISession(TestCase):
         result = session.post_request(url="some_test_url", content_type="content_type")
 
         # ASSERT
-        mock_requests.request.assert_called_once_with(
+        self.mock_requests.request.assert_called_once_with(
             "post",
             url="some_test_url",
             headers={
@@ -603,11 +606,15 @@ class TestDAFNISession(TestCase):
             timeout=REQUESTS_TIMEOUT,
         )
         session._check_response.assert_called_once_with(
-            "some_test_url", mock_requests.request.return_value, error_message_func=None
+            "some_test_url",
+            self.mock_requests.request.return_value,
+            error_message_func=None,
         )
-        self.assertEqual(result, mock_requests.request.return_value.json.return_value)
+        self.assertEqual(
+            result, self.mock_requests.request.return_value.json.return_value
+        )
 
-    def test_post_request_when_given_error_message_func(self, mock_requests):
+    def test_post_request_when_given_error_message_func(self):
         """Tests sending a post request via the DAFNISession when given an
         error message function"""
 
@@ -624,7 +631,7 @@ class TestDAFNISession(TestCase):
         )
 
         # ASSERT
-        mock_requests.request.assert_called_once_with(
+        self.mock_requests.request.assert_called_once_with(
             "post",
             url="some_test_url",
             headers={
@@ -639,12 +646,12 @@ class TestDAFNISession(TestCase):
         )
         session._check_response.assert_called_once_with(
             "some_test_url",
-            mock_requests.request.return_value,
+            self.mock_requests.request.return_value,
             error_message_func=error_message_func,
         )
-        self.assertEqual(result, mock_requests.request.return_value.json())
+        self.assertEqual(result, self.mock_requests.request.return_value.json())
 
-    def test_put_request(self, mock_requests):
+    def test_put_request(self):
         """Tests sending a put request via the DAFNISession"""
 
         # SETUP
@@ -655,7 +662,7 @@ class TestDAFNISession(TestCase):
         result = session.put_request(url="some_test_url", content_type="content_type")
 
         # ASSERT
-        mock_requests.request.assert_called_once_with(
+        self.mock_requests.request.assert_called_once_with(
             "put",
             url="some_test_url",
             headers={
@@ -669,11 +676,13 @@ class TestDAFNISession(TestCase):
             timeout=REQUESTS_TIMEOUT,
         )
         session._check_response.assert_called_once_with(
-            "some_test_url", mock_requests.request.return_value, error_message_func=None
+            "some_test_url",
+            self.mock_requests.request.return_value,
+            error_message_func=None,
         )
-        self.assertEqual(result, mock_requests.request.return_value)
+        self.assertEqual(result, self.mock_requests.request.return_value)
 
-    def test_put_request_when_given_error_message_func(self, mock_requests):
+    def test_put_request_when_given_error_message_func(self):
         """Tests sending a put request via the DAFNISession when given an error
         message function"""
 
@@ -690,7 +699,7 @@ class TestDAFNISession(TestCase):
         )
 
         # ASSERT
-        mock_requests.request.assert_called_once_with(
+        self.mock_requests.request.assert_called_once_with(
             "put",
             url="some_test_url",
             headers={
@@ -705,12 +714,12 @@ class TestDAFNISession(TestCase):
         )
         session._check_response.assert_called_once_with(
             "some_test_url",
-            mock_requests.request.return_value,
+            self.mock_requests.request.return_value,
             error_message_func=error_message_func,
         )
-        self.assertEqual(result, mock_requests.request.return_value)
+        self.assertEqual(result, self.mock_requests.request.return_value)
 
-    def test_patch_request(self, mock_requests):
+    def test_patch_request(self):
         """Tests sending a patch request via the DAFNISession"""
 
         # SETUP
@@ -721,7 +730,7 @@ class TestDAFNISession(TestCase):
         result = session.patch_request(url="some_test_url", content_type="content_type")
 
         # ASSERT
-        mock_requests.request.assert_called_once_with(
+        self.mock_requests.request.assert_called_once_with(
             "patch",
             url="some_test_url",
             headers={
@@ -735,11 +744,15 @@ class TestDAFNISession(TestCase):
             timeout=REQUESTS_TIMEOUT,
         )
         session._check_response.assert_called_once_with(
-            "some_test_url", mock_requests.request.return_value, error_message_func=None
+            "some_test_url",
+            self.mock_requests.request.return_value,
+            error_message_func=None,
         )
-        self.assertEqual(result, mock_requests.request.return_value.json.return_value)
+        self.assertEqual(
+            result, self.mock_requests.request.return_value.json.return_value
+        )
 
-    def test_patch_request_when_given_error_message_func(self, mock_requests):
+    def test_patch_request_when_given_error_message_func(self):
         """Tests sending a patch request via the DAFNISession when given an
         error message function"""
 
@@ -756,7 +769,7 @@ class TestDAFNISession(TestCase):
         )
 
         # ASSERT
-        mock_requests.request.assert_called_once_with(
+        self.mock_requests.request.assert_called_once_with(
             "patch",
             url="some_test_url",
             headers={
@@ -771,12 +784,12 @@ class TestDAFNISession(TestCase):
         )
         session._check_response.assert_called_once_with(
             "some_test_url",
-            mock_requests.request.return_value,
+            self.mock_requests.request.return_value,
             error_message_func=error_message_func,
         )
-        self.assertEqual(result, mock_requests.request.return_value.json())
+        self.assertEqual(result, self.mock_requests.request.return_value.json())
 
-    def test_delete_request(self, mock_requests):
+    def test_delete_request(self):
         """Tests sending a delete request via the DAFNISession"""
 
         # SETUP
@@ -787,7 +800,7 @@ class TestDAFNISession(TestCase):
         result = session.delete_request(url="some_test_url")
 
         # ASSERT
-        mock_requests.request.assert_called_once_with(
+        self.mock_requests.request.assert_called_once_with(
             "delete",
             url="some_test_url",
             headers={
@@ -800,11 +813,13 @@ class TestDAFNISession(TestCase):
             timeout=REQUESTS_TIMEOUT,
         )
         session._check_response.assert_called_once_with(
-            "some_test_url", mock_requests.request.return_value, error_message_func=None
+            "some_test_url",
+            self.mock_requests.request.return_value,
+            error_message_func=None,
         )
-        self.assertEqual(result, mock_requests.request.return_value)
+        self.assertEqual(result, self.mock_requests.request.return_value)
 
-    def test_delete_request_when_given_error_message_func(self, mock_requests):
+    def test_delete_request_when_given_error_message_func(self):
         """Tests sending a delete request via the DAFNISession when given an
         error message function"""
 
@@ -819,7 +834,7 @@ class TestDAFNISession(TestCase):
         )
 
         # ASSERT
-        mock_requests.request.assert_called_once_with(
+        self.mock_requests.request.assert_called_once_with(
             "delete",
             url="some_test_url",
             headers={
@@ -833,12 +848,12 @@ class TestDAFNISession(TestCase):
         )
         session._check_response.assert_called_once_with(
             "some_test_url",
-            mock_requests.request.return_value,
+            self.mock_requests.request.return_value,
             error_message_func=error_message_func,
         )
-        self.assertEqual(result, mock_requests.request.return_value)
+        self.assertEqual(result, self.mock_requests.request.return_value)
 
-    def test_refresh(self, mock_requests):
+    def test_refresh(self):
         """Tests token refreshing on an authentication failure"""
 
         session = self.create_mock_session(True)
@@ -848,13 +863,13 @@ class TestDAFNISession(TestCase):
 
         # To trigger a refresh need a response with a 403 status code, then
         # should be successful when retried
-        mock_requests.request.side_effect = [
+        self.mock_requests.request.side_effect = [
             create_mock_token_expiry_response(),
             create_mock_success_response(),
         ]
 
         # New token
-        mock_requests.post.return_value = create_mock_access_token_response()
+        self.mock_requests.post.return_value = create_mock_access_token_response()
 
         with patch(
             "builtins.open", new_callable=mock_open, read_data=TEST_SESSION_FILE
@@ -868,7 +883,7 @@ class TestDAFNISession(TestCase):
             )
 
         # Expect a request to obtain a new token
-        mock_requests.post.assert_called_once_with(
+        self.mock_requests.post.assert_called_once_with(
             LOGIN_API_ENDPOINT,
             data={
                 "client_id": "dafni-main",
@@ -880,28 +895,28 @@ class TestDAFNISession(TestCase):
 
         # Ensure get request is attempted again (should be successful the
         # second time here)
-        self.assertEqual(mock_requests.request.call_count, 2)
+        self.assertEqual(self.mock_requests.request.call_count, 2)
 
-    def test_refresh_when_uploading_file(self, mock_requests):
+    def test_refresh_when_uploading_file(self):
         """Tests token refreshing on an authentication failure while trying
         to upload a file (ensures the file read is reset on failure)"""
 
         session = self.create_mock_session(True)
 
-        refresh_callback = MagicMock()
+        retry_callback = MagicMock()
 
-        # Here will test only on the get request as the logic is handled by
+        # Here will test only on the post request as the logic is handled by
         # the base function called by all requests anyway
 
         # To trigger a refresh need a response with a 403 status code, then
         # should be successful when retried
-        mock_requests.request.side_effect = [
+        self.mock_requests.request.side_effect = [
             create_mock_token_expiry_response(),
             create_mock_success_response(),
         ]
 
         # New token
-        mock_requests.post.return_value = create_mock_access_token_response()
+        self.mock_requests.post.return_value = create_mock_access_token_response()
 
         mock_file_to_upload = MagicMock(spec=BufferedReader)
 
@@ -911,7 +926,7 @@ class TestDAFNISession(TestCase):
             session.post_request(
                 url="some_test_url",
                 data=mock_file_to_upload,
-                refresh_callback=refresh_callback,
+                retry_callback=retry_callback,
             )
 
             # Should save new token
@@ -924,10 +939,10 @@ class TestDAFNISession(TestCase):
         mock_file_to_upload.seek.assert_called_with(0)
 
         # Should have called the refresh callback
-        refresh_callback.assert_called_once()
+        retry_callback.assert_called_once()
 
         # Expect a request to obtain a new token
-        mock_requests.post.assert_called_once_with(
+        self.mock_requests.post.assert_called_once_with(
             LOGIN_API_ENDPOINT,
             data={
                 "client_id": "dafni-main",
@@ -939,9 +954,9 @@ class TestDAFNISession(TestCase):
 
         # Ensure get request is attempted again (should be successful the
         # second time here)
-        self.assertEqual(mock_requests.request.call_count, 2)
+        self.assertEqual(self.mock_requests.request.call_count, 2)
 
-    def test_refresh_from_redirect(self, mock_requests):
+    def test_refresh_from_redirect(self):
         """Tests token refreshing on an authentication failure where we
         receive an unexpected redirect rather than a direct authentication
         error"""
@@ -953,13 +968,13 @@ class TestDAFNISession(TestCase):
 
         # To trigger a refresh need a response with a 403 status code, then
         # should be successful when retried
-        mock_requests.request.side_effect = [
+        self.mock_requests.request.side_effect = [
             create_mock_token_expiry_redirect_response(),
             create_mock_success_response(),
         ]
 
         # New token
-        mock_requests.post.return_value = create_mock_access_token_response()
+        self.mock_requests.post.return_value = create_mock_access_token_response()
 
         with patch(
             "builtins.open", new_callable=mock_open, read_data=TEST_SESSION_FILE
@@ -973,7 +988,7 @@ class TestDAFNISession(TestCase):
             )
 
         # Expect a request to obtain a new token
-        mock_requests.post.assert_called_once_with(
+        self.mock_requests.post.assert_called_once_with(
             LOGIN_API_ENDPOINT,
             data={
                 "client_id": "dafni-main",
@@ -985,9 +1000,9 @@ class TestDAFNISession(TestCase):
 
         # Ensure get request is attempted again (should be successful the
         # second time here)
-        self.assertEqual(mock_requests.request.call_count, 2)
+        self.assertEqual(self.mock_requests.request.call_count, 2)
 
-    def test_refresh_login_error(self, mock_requests):
+    def test_refresh_login_error(self):
         """Tests a LoginError is raised when refreshing a token fails to
         return the expected response"""
 
@@ -998,10 +1013,10 @@ class TestDAFNISession(TestCase):
 
         # To trigger a refresh need a response with a 403 status code, then
         # should be successful when retried - here we keep it failing
-        mock_requests.request.return_value = create_mock_token_expiry_response()
+        self.mock_requests.request.return_value = create_mock_token_expiry_response()
 
         # No new token
-        mock_requests.post.return_value = create_mock_invalid_login_response()()
+        self.mock_requests.post.return_value = create_mock_invalid_login_response()()
 
         with self.assertRaises(LoginError) as error:
             # Avoid creating any local files
@@ -1012,7 +1027,7 @@ class TestDAFNISession(TestCase):
 
         self.assertEqual(str(error.exception), "Unable to refresh login.")
 
-    def test_refresh_runtime_error(self, mock_requests):
+    def test_refresh_runtime_error(self):
         """Tests a RuntimeError is raised when refreshing a token fails"""
 
         session = self.create_mock_session(True)
@@ -1022,10 +1037,10 @@ class TestDAFNISession(TestCase):
 
         # To trigger a refresh need a response with a 403 status code, then
         # should be successful when retried - here we keep it failing
-        mock_requests.request.return_value = create_mock_token_expiry_response()
+        self.mock_requests.request.return_value = create_mock_token_expiry_response()
 
         # New token
-        mock_requests.post.return_value = create_mock_access_token_response()
+        self.mock_requests.post.return_value = create_mock_access_token_response()
 
         with self.assertRaises(RuntimeError) as error:
             # Avoid creating any local files
@@ -1037,11 +1052,11 @@ class TestDAFNISession(TestCase):
         self.assertEqual(
             str(error.exception),
             "Could not authenticate request: "
-            f"{mock_requests.request.return_value.content.decode.return_value}",
+            f"{self.mock_requests.request.return_value.content.decode.return_value}",
         )
 
     @patch("click.prompt")
-    def test_refresh_expiry(self, mock_click_prompt, mock_requests):
+    def test_refresh_expiry(self, mock_click_prompt):
         """Tests refresh token expiry is handled correctly."""
 
         session = self.create_mock_session(True)
@@ -1051,12 +1066,12 @@ class TestDAFNISession(TestCase):
 
         # To trigger a refresh need a response with a 403 status code, then
         # should be successful when retried
-        mock_requests.request.side_effect = [
+        self.mock_requests.request.side_effect = [
             create_mock_token_expiry_response(),
             create_mock_success_response(),
         ]
 
-        mock_requests.post.side_effect = [
+        self.mock_requests.post.side_effect = [
             # Token authentication expiry when trying to obtain a new one
             create_mock_refresh_token_expiry_response(),
             # Successful login using user provided credentials
@@ -1078,7 +1093,7 @@ class TestDAFNISession(TestCase):
             )
 
         # Expect a request to obtain a new token
-        mock_requests.post.assert_has_calls(
+        self.mock_requests.post.assert_has_calls(
             [
                 # Attempt to get new token using refresh token
                 call(
@@ -1107,4 +1122,46 @@ class TestDAFNISession(TestCase):
 
         # Ensure get request is attempted again (should be successful the
         # second time here)
-        self.assertEqual(mock_requests.request.call_count, 2)
+        self.assertEqual(self.mock_requests.request.call_count, 2)
+
+    @patch("dafni_cli.api.session.time")
+    def test_retry_on_ssl_error(self, mock_time):
+        """Tests that when requests raises an SSLError the request is retired
+        multiple times while waiting in between before finally giving a
+        RuntimeError"""
+
+        # SETUP
+        session = self.create_mock_session(True)
+
+        retry_callback = MagicMock()
+
+        # Here will test only on the get request as the logic is handled by
+        # the base function called by all requests anyway
+
+        # Unpatch this to avoid TypeError in except block
+        self.mock_requests.exceptions.SSLError = requests.exceptions.SSLError
+
+        # 3 retries = 4 attempts
+        expected_number_of_attempts = MAX_SSL_ERROR_RETRY_ATTEMPTS + 1
+        self.mock_requests.request.side_effect = [requests.exceptions.SSLError] * (
+            expected_number_of_attempts
+        )
+
+        # CALL & ASSERT
+        with self.assertRaises(RuntimeError) as err:
+            session.get_request(
+                url="some_test_url",
+                retry_callback=retry_callback,
+            )
+
+        self.assertEqual(
+            self.mock_requests.request.call_count, expected_number_of_attempts
+        )
+        self.assertEqual(
+            mock_time.sleep.call_args_list,
+            [call(SSL_ERROR_RETRY_WAIT)] * MAX_SSL_ERROR_RETRY_ATTEMPTS,
+        )
+        self.assertEqual(
+            str(err.exception),
+            f"Could not connect due to an SSLError after retrying {MAX_SSL_ERROR_RETRY_ATTEMPTS} times",
+        )

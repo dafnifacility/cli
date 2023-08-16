@@ -1,5 +1,6 @@
 import json
 import os
+import time
 from dataclasses import dataclass
 from io import BufferedReader
 from pathlib import Path
@@ -13,9 +14,11 @@ from dafni_cli.api.exceptions import DAFNIError, EndpointNotFoundError, LoginErr
 from dafni_cli.consts import (
     LOGIN_API_ENDPOINT,
     LOGOUT_API_ENDPOINT,
+    MAX_SSL_ERROR_RETRY_ATTEMPTS,
     REQUESTS_TIMEOUT,
     SESSION_COOKIE,
     SESSION_SAVE_FILE,
+    SSL_ERROR_RETRY_WAIT,
     URLS_REQUIRING_COOKIE_AUTHENTICATION,
 )
 from dafni_cli.utils import dataclass_from_dict
@@ -322,8 +325,9 @@ class DAFNISession:
         json,
         allow_redirect: bool,
         stream: Optional[bool] = None,
-        refresh_callback: Optional[Callable] = None,
-        recursion_level: int = 0,
+        retry_callback: Optional[Callable] = None,
+        auth_recursion_level: int = 0,
+        ssl_recursion_level: int = 0,
     ) -> requests.Response:
         """Performs an authenticated request from the DAFNI API
 
@@ -335,89 +339,116 @@ class DAFNISession:
             json: Any JSON serialisable object to include in the request
             allow_redirect (bool): Flag to allow redirects during API call.
             stream (Optional[bool]): Whether to stream the request
-            refresh_callback (Optional[Callable]): Function called when the
-                             token is refreshed. Particularly useful for file
-                             uploads that may need to be reset.
-            recursion_level (int): Used by this method to avoid infinite loop
-                                   while attempting to refresh the access token
+            retry_callback (Optional[Callable]): Function called when the
+                             request is retried e.g. after a token refresh
+                             or if there is an SSLError. Particularly useful
+                             for file uploads that may need to be reset.
+            auth_recursion_level (int): Number of times this method has
+                             been recursively called due to an authentication
+                             issue (Used to avoid infinite loops)
+            ssl_recursion_level (int): Number of times this method has
+                             been recursively called due to an SSLError
+                             (Used to avoid infinite loops)
 
         Returns:
             requests.Response: Response from the requests library
         """
 
-        # Switch to cookie based authentication only for those that require it
-        if any(
-            url_requiring_cookie in url
-            for url_requiring_cookie in URLS_REQUIRING_COOKIE_AUTHENTICATION
-        ):
-            response = requests.request(
-                method,
-                url=url,
-                headers=headers,
-                data=data,
-                json=json,
-                allow_redirects=allow_redirect,
-                stream=stream,
-                timeout=REQUESTS_TIMEOUT,
-                cookies={SESSION_COOKIE: self._session_data.access_token},
-            )
-        else:
-            response = requests.request(
-                method,
-                url=url,
-                headers={
-                    "Authorization": f"Bearer {self._session_data.access_token}",
-                    **headers,
-                },
-                data=data,
-                json=json,
-                allow_redirects=allow_redirect,
-                stream=stream,
-                timeout=REQUESTS_TIMEOUT,
-            )
+        # Should we retry the request for any reason
+        retry = False
 
-        # Check for any kind of authentication error, or an attempted redirect
-        # (this covers a case during file upload where a 302 is returned rather
-        # than an actual authentication error)
-        if response.status_code == 403 or (
-            response.status_code == 302 and not allow_redirect
-        ):
-            # Try again, but only once
-            if recursion_level > 1:
-                # Provide further details from the response (if there is
-                # anything) - one place this occurs is running out of
-                # temporary buckets during upload
-                message = response.content.decode()
-                raise RuntimeError(f"Could not authenticate request: {message}")
-            else:
-                self._refresh_tokens()
-
-                # It seems in the event the token needs a refresh requests still
-                # reads at least a small part of any file being uploaded - this
-                # for example can result in  the validation of some metadata
-                # files to fail citing that they are missing all parameters when
-                # in fact they are defined. Resetting any file reader here
-                # solves the issue.
-                if isinstance(data, BufferedReader):
-                    data.seek(0)
-
-                # When tqdm is also involved we cannot quite apply the same
-                # solution so allow a callback function that can be used to
-                # reset the original file and any progress bars
-                if refresh_callback is not None:
-                    refresh_callback()
-
-                response = self._authenticated_request(
+        try:
+            # Switch to cookie based authentication only for those that require it
+            if any(
+                url_requiring_cookie in url
+                for url_requiring_cookie in URLS_REQUIRING_COOKIE_AUTHENTICATION
+            ):
+                response = requests.request(
                     method,
                     url=url,
                     headers=headers,
                     data=data,
                     json=json,
+                    allow_redirects=allow_redirect,
                     stream=stream,
-                    allow_redirect=allow_redirect,
-                    refresh_callback=refresh_callback,
-                    recursion_level=recursion_level + 1,
+                    timeout=REQUESTS_TIMEOUT,
+                    cookies={SESSION_COOKIE: self._session_data.access_token},
                 )
+            else:
+                response = requests.request(
+                    method,
+                    url=url,
+                    headers={
+                        "Authorization": f"Bearer {self._session_data.access_token}",
+                        **headers,
+                    },
+                    data=data,
+                    json=json,
+                    allow_redirects=allow_redirect,
+                    stream=stream,
+                    timeout=REQUESTS_TIMEOUT,
+                )
+
+            # Check for any kind of authentication error, or an attempted redirect
+            # (this covers a case during file upload where a 302 is returned rather
+            # than an actual authentication error)
+            if response.status_code == 403 or (
+                response.status_code == 302 and not allow_redirect
+            ):
+                # Try again, but only once
+                if auth_recursion_level > 1:
+                    # Provide further details from the response (if there is
+                    # anything) - one place this occurs is running out of
+                    # temporary buckets during upload
+                    message = response.content.decode()
+                    raise RuntimeError(f"Could not authenticate request: {message}")
+                else:
+                    self._refresh_tokens()
+
+                    retry = True
+                    auth_recursion_level += 1
+        except requests.exceptions.SSLError as err:
+            # Retry a if below the maximum number of retires
+            if ssl_recursion_level >= MAX_SSL_ERROR_RETRY_ATTEMPTS:
+                raise RuntimeError(
+                    f"Could not connect due to an SSLError after retrying {MAX_SSL_ERROR_RETRY_ATTEMPTS} times"
+                ) from err
+            else:
+                # Workaround for https://github.com/dafnifacility/cli/issues/113
+                # Retry up to MAX_SSL_ERROR_RETRY_ATTEMPTS times, waiting for
+                # SSL_ERROR_RETRY_WAIT seconds between each attempt
+                retry = True
+                ssl_recursion_level += 1
+                time.sleep(SSL_ERROR_RETRY_WAIT)
+
+        if retry:
+            # It seems in the event we need to retry the request, requests
+            # still reads at least a small part of any file being uploaded -
+            # this for example can result in  the validation of some metadata
+            # files to fail citing that they are missing all parameters when
+            # in fact they are defined. Resetting any file reader here
+            # solves the issue.
+            if isinstance(data, BufferedReader):
+                data.seek(0)
+
+            # When tqdm is also involved we cannot quite apply the same
+            # solution so allow a callback function that can be used to
+            # reset the original file and any progress bars
+            if retry_callback is not None:
+                retry_callback()
+
+            response = self._authenticated_request(
+                method,
+                url=url,
+                headers=headers,
+                data=data,
+                json=json,
+                stream=stream,
+                allow_redirect=allow_redirect,
+                retry_callback=retry_callback,
+                auth_recursion_level=auth_recursion_level,
+                ssl_recursion_level=ssl_recursion_level,
+            )
 
         return response
 
@@ -510,7 +541,7 @@ class DAFNISession:
         error_message_func: Optional[
             Callable[[requests.Response], Optional[str]]
         ] = None,
-        refresh_callback: Optional[Callable] = None,
+        retry_callback: Optional[Callable] = None,
     ) -> Union[Dict, List[Dict], requests.Response]:
         """Performs a GET request from the DAFNI API
 
@@ -528,9 +559,10 @@ class DAFNISession:
                                 HTTPError will be returned, otherwise it will be
                                 a DAFNIError. By default this will be
                                 get_error_message.
-            refresh_callback (Optional[Callable]): Function called when the
-                             token is refreshed. Particularly useful for file
-                             uploads that may need to be reset.
+            retry_callback (Optional[Callable]): Function called when the
+                             request is retried e.g. after a token refresh
+                             or if there is an SSLError. Particularly useful
+                             for file uploads that may need to be reset.
 
         Returns:
             Dict: When 'stream' is False for endpoints returning one object
@@ -553,7 +585,7 @@ class DAFNISession:
             json=None,
             allow_redirect=allow_redirect,
             stream=stream,
-            refresh_callback=refresh_callback,
+            retry_callback=retry_callback,
         )
         self._check_response(url, response, error_message_func=error_message_func)
 
@@ -571,7 +603,7 @@ class DAFNISession:
         error_message_func: Optional[
             Callable[[requests.Response], Optional[str]]
         ] = None,
-        refresh_callback: Optional[Callable] = None,
+        retry_callback: Optional[Callable] = None,
     ) -> Dict:
         """Performs a POST request to the DAFNI API
 
@@ -588,9 +620,10 @@ class DAFNISession:
                                 HTTPError will be returned, otherwise it will be
                                 a DAFNIError. By default this will be
                                 get_error_message.
-            refresh_callback (Optional[Callable]): Function called when the
-                                token is refreshed. Particularly useful for file
-                                uploads that may need to be reset.
+            retry_callback (Optional[Callable]): Function called when the
+                             request is retried e.g. after a token refresh
+                             or if there is an SSLError. Particularly useful
+                             for file uploads that may need to be reset.
 
         Returns:
             Dict: The decoded json response
@@ -608,7 +641,7 @@ class DAFNISession:
             data=data,
             json=json,
             allow_redirect=allow_redirect,
-            refresh_callback=refresh_callback,
+            retry_callback=retry_callback,
         )
 
         self._check_response(url, response, error_message_func=error_message_func)
@@ -625,7 +658,7 @@ class DAFNISession:
         error_message_func: Optional[
             Callable[[requests.Response], Optional[str]]
         ] = None,
-        refresh_callback: Optional[Callable] = None,
+        retry_callback: Optional[Callable] = None,
     ) -> requests.Response:
         """Performs a PUT request to the DAFNI API
 
@@ -642,9 +675,10 @@ class DAFNISession:
                                 HTTPError will be returned, otherwise it will be
                                 a DAFNIError. By default this will be
                                 get_error_message.
-            refresh_callback (Optional[Callable]): Function called when the
-                             token is refreshed. Particularly useful for file
-                             uploads that may need to be reset.
+            retry_callback (Optional[Callable]): Function called when the
+                             request is retried e.g. after a token refresh
+                             or if there is an SSLError. Particularly useful
+                             for file uploads that may need to be reset.
 
         Returns:
             requests.Response: The response object
@@ -662,7 +696,7 @@ class DAFNISession:
             data=data,
             json=json,
             allow_redirect=allow_redirect,
-            refresh_callback=refresh_callback,
+            retry_callback=retry_callback,
         )
 
         self._check_response(url, response, error_message_func=error_message_func)
@@ -679,7 +713,7 @@ class DAFNISession:
         error_message_func: Optional[
             Callable[[requests.Response], Optional[str]]
         ] = None,
-        refresh_callback: Optional[Callable] = None,
+        retry_callback: Optional[Callable] = None,
     ) -> Dict:
         """Performs a PATCH request to the DAFNI API
 
@@ -696,9 +730,10 @@ class DAFNISession:
                                 HTTPError will be returned, otherwise it will be
                                 a DAFNIError. By default this will be
                                 get_error_message.
-            refresh_callback (Optional[Callable]): Function called when the
-                             token is refreshed. Particularly useful for file
-                             uploads that may need to be reset.
+            retry_callback (Optional[Callable]): Function called when the
+                             request is retried e.g. after a token refresh
+                             or if there is an SSLError. Particularly useful
+                             for file uploads that may need to be reset.
 
         Returns:
             Dict: The decoded json response
@@ -716,7 +751,7 @@ class DAFNISession:
             data=data,
             json=json,
             allow_redirect=allow_redirect,
-            refresh_callback=refresh_callback,
+            retry_callback=retry_callback,
         )
 
         self._check_response(url, response, error_message_func=error_message_func)
@@ -730,7 +765,7 @@ class DAFNISession:
         error_message_func: Optional[
             Callable[[requests.Response], Optional[str]]
         ] = None,
-        refresh_callback: Optional[Callable] = None,
+        retry_callback: Optional[Callable] = None,
     ) -> requests.Response:
         """Performs a DELETE request to the DAFNI API
 
@@ -746,9 +781,10 @@ class DAFNISession:
                                 HTTPError will be returned, otherwise it will be
                                 a DAFNIError. By default this will be
                                 get_error_message.
-            refresh_callback (Optional[Callable]): Function called when the
-                             token is refreshed. Particularly useful for file
-                             uploads that may need to be reset.
+            retry_callback (Optional[Callable]): Function called when the
+                             request is retried e.g. after a token refresh
+                             or if there is an SSLError. Particularly useful
+                             for file uploads that may need to be reset.
 
         Returns:
             requests.Response: The response object
@@ -766,7 +802,7 @@ class DAFNISession:
             data=None,
             json=None,
             allow_redirect=allow_redirect,
-            refresh_callback=refresh_callback,
+            retry_callback=retry_callback,
         )
 
         self._check_response(url, response, error_message_func=error_message_func)
