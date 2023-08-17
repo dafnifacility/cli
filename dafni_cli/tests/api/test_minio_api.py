@@ -31,8 +31,8 @@ class TestMinioAPI(TestCase):
         # Cause the refresh callback to be called
         put_request_return_value = MagicMock()
 
-        def put_request_side_effect(url, content_type, data, refresh_callback):
-            refresh_callback()
+        def put_request_side_effect(url, content_type, data, retry_callback):
+            retry_callback()
             return put_request_return_value
 
         session.put_request = MagicMock(side_effect=put_request_side_effect)
@@ -62,10 +62,10 @@ class TestMinioAPI(TestCase):
             url=url,
             content_type=MINIO_UPLOAD_CT,
             data=mock_CallbackIOWrapper.return_value,
-            refresh_callback=ANY,
+            retry_callback=ANY,
         )
 
-        # refresh_callback
+        # retry_callback
         open_mock.return_value.seek.assert_called_once_with(0)
         mock_progress_bar.reset.assert_called_once()
 

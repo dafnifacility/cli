@@ -41,7 +41,7 @@ def upload_file_to_minio(
 
             # In event of a refresh need to ensure file gets reset to start
             # as wont have uploaded anything
-            def refresh_callback():
+            def retry_callback():
                 file.seek(0)
                 prog_bar.reset()
 
@@ -49,7 +49,7 @@ def upload_file_to_minio(
                 url=url,
                 content_type=MINIO_UPLOAD_CT,
                 data=file_data,
-                refresh_callback=refresh_callback,
+                retry_callback=retry_callback,
             )
 
 

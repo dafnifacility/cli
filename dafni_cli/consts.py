@@ -110,6 +110,12 @@ TAB_SPACE = "    "
 # small enough to fit in memory and give a reasonable loading bar scale
 DOWNLOAD_CHUNK_SIZE = 1024 * 1024  # 1 MB
 
+# Maximum number of times to retry requests that have SSLErrors
+MAX_SSL_ERROR_RETRY_ATTEMPTS = 3
+
+# Time to wait between retry attempts when an SSLError occurs (seconds)
+SSL_ERROR_RETRY_WAIT = 1
+
 # Data formats for datasets (See mimeTypes.js in front end)
 DATA_FORMATS = {
     "audio/3gpp": "3GPP Audio",
