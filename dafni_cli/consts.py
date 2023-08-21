@@ -116,6 +116,9 @@ MAX_SSL_ERROR_RETRY_ATTEMPTS = 3
 # Time to wait between retry attempts when an SSLError occurs (seconds)
 SSL_ERROR_RETRY_WAIT = 1
 
+# Number of files to upload in a single batch during dataset upload
+DATASET_UPLOAD_MAX_FILES_PER_BATCH = 10
+
 # Data formats for datasets (See mimeTypes.js in front end)
 DATA_FORMATS = {
     "audio/3gpp": "3GPP Audio",

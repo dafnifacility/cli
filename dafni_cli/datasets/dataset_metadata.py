@@ -1,15 +1,12 @@
 from dataclasses import dataclass, field
 from datetime import datetime
-from io import BytesIO
-from typing import ClassVar, List, Optional, Tuple
+from typing import ClassVar, List, Optional
 
 import click
 from tabulate import tabulate
 
 from dafni_cli.api.auth import Auth
-from dafni_cli.api.minio_api import minio_get_request
 from dafni_cli.api.parser import ParserBaseObject, ParserParam, parse_datetime
-from dafni_cli.api.session import DAFNISession
 from dafni_cli.consts import (
     CONSOLE_WIDTH,
     TABLE_MODIFIED_HEADER,
