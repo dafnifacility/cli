@@ -8,6 +8,7 @@ from unittest.mock import MagicMock, call, mock_open, patch
 from requests import HTTPError
 
 from dafni_cli.api.exceptions import DAFNIError
+from dafni_cli.consts import DATASET_UPLOAD_MAX_FILES_PER_BATCH
 from dafni_cli.datasets import dataset_upload
 from dafni_cli.datasets.dataset_metadata import (
     DATASET_METADATA_LANGUAGES,
@@ -16,6 +17,7 @@ from dafni_cli.datasets.dataset_metadata import (
     DATASET_METADATA_UPDATE_FREQUENCIES,
 )
 from dafni_cli.tests.fixtures.dataset_metadata import TEST_DATASET_METADATA
+from dafni_cli.utils import split_list
 
 
 class TestRemoveDatasetMetadataInvalidForUpload(TestCase):
@@ -307,16 +309,26 @@ class TestDatasetUpload(TestCase):
         session = MagicMock()
         temp_bucket_id = "some-temp-bucket"
         file_size = 1000
+        # Want enough files for two batches
         file_paths = [
-            MagicMock(name="file_1.txt", stat=lambda: MagicMock(st_size=file_size)),
-            MagicMock(name="file_2.txt", stat=lambda: MagicMock(st_size=file_size)),
+            MagicMock(name=f"file_{i}.txt", stat=lambda: MagicMock(st_size=file_size))
+            for i in range(DATASET_UPLOAD_MAX_FILES_PER_BATCH * 2)
         ]
+        file_paths_batches = list(
+            split_list(file_paths, DATASET_UPLOAD_MAX_FILES_PER_BATCH)
+        )
         urls = [f"upload/url/{file_path.name}" for file_path in file_paths]
-        upload_urls = {
-            "urls": {file_paths[idx].name: url for idx, url in enumerate(urls)}
-        }
+        url_batches = list(split_list(urls, DATASET_UPLOAD_MAX_FILES_PER_BATCH))
+        upload_urls = [
+            {
+                "urls": {
+                    file_paths_batch[idx].name: url for idx, url in enumerate(url_batch)
+                }
+            }
+            for file_paths_batch, url_batch in zip(file_paths_batches, url_batches)
+        ]
 
-        self.mock_get_data_upload_urls.return_value = upload_urls
+        self.mock_get_data_upload_urls.side_effect = upload_urls
         mock_overall_progress_bar = MagicMock()
         self.mock_OverallFileProgressBar.return_value.__enter__.return_value = (
             mock_overall_progress_bar
@@ -326,8 +338,20 @@ class TestDatasetUpload(TestCase):
         dataset_upload.upload_files(session, temp_bucket_id, file_paths, json=json)
 
         # ASSERT
-        self.mock_get_data_upload_urls.assert_called_once_with(
-            session, temp_bucket_id, [file_path.name for file_path in file_paths]
+        self.assertEqual(
+            self.mock_get_data_upload_urls.call_args_list,
+            [
+                call(
+                    session,
+                    temp_bucket_id,
+                    [file_path.name for file_path in file_paths_batches[0]],
+                ),
+                call(
+                    session,
+                    temp_bucket_id,
+                    [file_path.name for file_path in file_paths_batches[1]],
+                ),
+            ],
         )
         self.mock_OverallFileProgressBar.assert_called_once_with(
             len(file_paths), file_size * len(file_paths)
@@ -346,7 +370,6 @@ class TestDatasetUpload(TestCase):
         self.assertEqual(
             self.mock_optional_echo.call_args_list,
             [
-                call("Retrieving file upload URls", json),
                 call("Uploading files", json),
             ],
         )

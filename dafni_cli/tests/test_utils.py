@@ -697,3 +697,57 @@ class TestIsValidImageFile(TestCase):
 
         # ASSERT
         self.assertFalse(result)
+
+
+class TestSplitList(TestCase):
+    """Test class to test the split_list function"""
+
+    def test_no_splitting_when_shorter_than_max_size(self):
+        """Tests split_list returns a generator that produces a list containing
+        the unmodified list when its length is shorter than max_size"""
+        # SETUP
+        list_length = 20
+        max_size = 100
+        lst = range(list_length)
+
+        # CALL
+        result = list(utils.split_list(lst=lst, max_size=max_size))
+
+        # ASSERT
+        self.assertEqual(result, [lst])
+
+    def test_splits_when_longer_than_max_size_when_fits_exactly(self):
+        """Tests split_list returns a generator that produces a list containing
+        many shorter lists not exceeding max_size when its length is longer
+        than max_size and the split list elements are all the same size"""
+        # SETUP
+        list_length = 20
+        max_size = 2
+        lst = list(range(list_length))
+
+        # CALL
+        result = list(utils.split_list(lst=lst, max_size=max_size))
+
+        # ASSERT
+        self.assertEqual(
+            result,
+            [list(range(i, i + max_size)) for i in range(0, list_length, max_size)],
+        )
+
+    def test_splits_when_longer_than_max_size_when_does_not_fit_exactly(self):
+        """Tests split_list returns a generator that produces a list containing
+        many shorter lists not exceeding max_size when its length is longer
+        than max_size and the array cannot be split into exact chunks"""
+        # SETUP
+        list_length = 20
+        max_size = 15
+        lst = list(range(list_length))
+
+        # CALL
+        result = list(utils.split_list(lst=lst, max_size=max_size))
+
+        # ASSERT
+        self.assertEqual(
+            result,
+            [list(range(0, max_size)), list(range(max_size, list_length))],
+        )

@@ -340,3 +340,19 @@ def is_valid_image_file(file_name: Path):
         return file_type in acceptable_file_types
     except:
         return False
+
+
+def split_list(lst: List, max_size: int):
+    """Splits a given list into 'max_size' or smaller lists
+
+    Args:
+        lst (List): List to split
+        max_size: Maximum size of any given list returned
+
+    Returns:
+        Generator[List]: A generator that returns a list with a maximum
+                         size max_size e.g. use list(list_split(lst, max_size))
+
+    """
+    for i in range(0, len(lst), max_size):
+        yield lst[i : i + max_size]
