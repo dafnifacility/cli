@@ -13,10 +13,10 @@ from dafni_cli.api.session import DAFNISession, LoginError
 from dafni_cli.consts import (
     LOGIN_API_ENDPOINT,
     LOGOUT_API_ENDPOINT,
-    MAX_SSL_ERROR_RETRY_ATTEMPTS,
+    REQUEST_ERROR_RETRY_ATTEMPTS,
     REQUESTS_TIMEOUT,
     SESSION_COOKIE,
-    SSL_ERROR_RETRY_WAIT,
+    REQUEST_ERROR_RETRY_WAIT,
     URLS_REQUIRING_COOKIE_AUTHENTICATION,
 )
 from dafni_cli.tests.fixtures.session import (
@@ -1125,8 +1125,8 @@ class TestDAFNISession(TestCase):
         self.assertEqual(self.mock_requests.request.call_count, 2)
 
     @patch("dafni_cli.api.session.time")
-    def test_retry_on_ssl_error(self, mock_time):
-        """Tests that when requests raises an SSLError the request is retired
+    def test_retry_on_error(self, mock_time):
+        """Tests that when requests raises an error the request is retired
         multiple times while waiting in between before finally giving a
         RuntimeError"""
 
@@ -1142,7 +1142,7 @@ class TestDAFNISession(TestCase):
         self.mock_requests.exceptions.SSLError = requests.exceptions.SSLError
 
         # 3 retries = 4 attempts
-        expected_number_of_attempts = MAX_SSL_ERROR_RETRY_ATTEMPTS + 1
+        expected_number_of_attempts = REQUEST_ERROR_RETRY_ATTEMPTS + 1
         self.mock_requests.request.side_effect = [requests.exceptions.SSLError] * (
             expected_number_of_attempts
         )
@@ -1159,9 +1159,9 @@ class TestDAFNISession(TestCase):
         )
         self.assertEqual(
             mock_time.sleep.call_args_list,
-            [call(SSL_ERROR_RETRY_WAIT)] * MAX_SSL_ERROR_RETRY_ATTEMPTS,
+            [call(REQUEST_ERROR_RETRY_WAIT)] * REQUEST_ERROR_RETRY_ATTEMPTS,
         )
         self.assertEqual(
             str(err.exception),
-            f"Could not connect due to an SSLError after retrying {MAX_SSL_ERROR_RETRY_ATTEMPTS} times",
+            f"Could not connect due to an error after retrying {REQUEST_ERROR_RETRY_ATTEMPTS} times",
         )
