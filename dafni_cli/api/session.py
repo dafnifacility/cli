@@ -359,6 +359,8 @@ class DAFNISession:
 
         Raises:
             LoginError: If unable to login or refresh tokens to authenticate
+            RuntimeError: If some other error repeatedly occurs e.g. an SSLError
+                          (See https://github.com/dafnifacility/cli/issues/113)
         """
 
         # Should we retry the request for any reason

@@ -8,7 +8,7 @@ from unittest.mock import MagicMock, call, mock_open, patch
 from requests import HTTPError
 
 from dafni_cli.api.exceptions import DAFNIError
-from dafni_cli.consts import DATASET_UPLOAD_MAX_FILES_PER_BATCH
+from dafni_cli.consts import DATASET_UPLOAD_FILE_RETRY_ATTEMPTS
 from dafni_cli.datasets import dataset_upload
 from dafni_cli.datasets.dataset_metadata import (
     DATASET_METADATA_LANGUAGES,
@@ -17,7 +17,6 @@ from dafni_cli.datasets.dataset_metadata import (
     DATASET_METADATA_UPDATE_FREQUENCIES,
 )
 from dafni_cli.tests.fixtures.dataset_metadata import TEST_DATASET_METADATA
-from dafni_cli.utils import split_list
 
 
 class TestRemoveDatasetMetadataInvalidForUpload(TestCase):
@@ -309,23 +308,13 @@ class TestDatasetUpload(TestCase):
         session = MagicMock()
         temp_bucket_id = "some-temp-bucket"
         file_size = 1000
-        # Want enough files for two batches
         file_paths = [
-            MagicMock(name=f"file_{i}.txt", stat=lambda: MagicMock(st_size=file_size))
-            for i in range(DATASET_UPLOAD_MAX_FILES_PER_BATCH * 2)
+            MagicMock(name="file_1.txt", stat=lambda: MagicMock(st_size=file_size)),
+            MagicMock(name="file_2.txt", stat=lambda: MagicMock(st_size=file_size)),
         ]
-        file_paths_batches = list(
-            split_list(file_paths, DATASET_UPLOAD_MAX_FILES_PER_BATCH)
-        )
         urls = [f"upload/url/{file_path.name}" for file_path in file_paths]
-        url_batches = list(split_list(urls, DATASET_UPLOAD_MAX_FILES_PER_BATCH))
         upload_urls = [
-            {
-                "urls": {
-                    file_paths_batch[idx].name: url for idx, url in enumerate(url_batch)
-                }
-            }
-            for file_paths_batch, url_batch in zip(file_paths_batches, url_batches)
+            {"urls": {file_path.name: url}} for file_path, url in zip(file_paths, urls)
         ]
 
         self.mock_get_data_upload_urls.side_effect = upload_urls
@@ -344,13 +333,9 @@ class TestDatasetUpload(TestCase):
                 call(
                     session,
                     temp_bucket_id,
-                    [file_path.name for file_path in file_paths_batches[0]],
-                ),
-                call(
-                    session,
-                    temp_bucket_id,
-                    [file_path.name for file_path in file_paths_batches[1]],
-                ),
+                    [file_path.name],
+                )
+                for file_path in file_paths
             ],
         )
         self.mock_OverallFileProgressBar.assert_called_once_with(
@@ -372,6 +357,115 @@ class TestDatasetUpload(TestCase):
             [
                 call("Uploading files", json),
             ],
+        )
+
+    def test_upload_files_retries_when_errors_occur(self):
+        """Tests that upload_files raises an error less than the maximum number
+        of times during a file's upload"""
+        # SETUP
+        session = MagicMock()
+        temp_bucket_id = "some-temp-bucket"
+        file_size = 1000
+        file_path = MagicMock(
+            name="file_1.txt", stat=lambda: MagicMock(st_size=file_size)
+        )
+        urls = [f"upload/url-{i}" for i in range(0, DATASET_UPLOAD_FILE_RETRY_ATTEMPTS)]
+        upload_urls = [{"urls": {file_path.name: url}} for url in urls]
+
+        self.mock_get_data_upload_urls.side_effect = upload_urls
+        mock_overall_progress_bar = MagicMock()
+        self.mock_OverallFileProgressBar.return_value.__enter__.return_value = (
+            mock_overall_progress_bar
+        )
+        self.mock_upload_file_to_minio.side_effect = [
+            RuntimeError for i in range(DATASET_UPLOAD_FILE_RETRY_ATTEMPTS - 1)
+        ] + [None]
+
+        # CALL
+        dataset_upload.upload_files(session, temp_bucket_id, [file_path])
+
+        # ASSERT
+        self.assertEqual(
+            self.mock_get_data_upload_urls.call_args_list,
+            [
+                call(
+                    session,
+                    temp_bucket_id,
+                    [file_path.name],
+                )
+                for url in urls
+            ],
+        )
+        self.mock_OverallFileProgressBar.assert_called_once_with(1, file_size)
+        self.assertEqual(
+            mock_overall_progress_bar.update.call_args_list,
+            [call(file_size)],
+        )
+        self.mock_upload_file_to_minio.assert_has_calls(
+            [call(session, url, file_path, progress_bar=True) for url in urls]
+        )
+
+        self.assertEqual(
+            self.mock_optional_echo.call_args_list,
+            [
+                call("Uploading files", False),
+            ],
+        )
+
+    def test_upload_files_raises_runtime_error_when_fails_repeatedly(self):
+        """Tests that upload_files raises an error equal to the maximum number
+        of times during a file's upload, a RuntimeError is raised"""
+        # SETUP
+        session = MagicMock()
+        temp_bucket_id = "some-temp-bucket"
+        file_size = 1000
+        file_path = MagicMock(
+            name="file_1.txt", stat=lambda: MagicMock(st_size=file_size)
+        )
+        urls = [f"upload/url-{i}" for i in range(0, DATASET_UPLOAD_FILE_RETRY_ATTEMPTS)]
+        upload_urls = [{"urls": {file_path.name: url}} for url in urls]
+
+        self.mock_get_data_upload_urls.side_effect = upload_urls
+        mock_overall_progress_bar = MagicMock()
+        self.mock_OverallFileProgressBar.return_value.__enter__.return_value = (
+            mock_overall_progress_bar
+        )
+        self.mock_upload_file_to_minio.side_effect = [
+            RuntimeError for i in range(DATASET_UPLOAD_FILE_RETRY_ATTEMPTS)
+        ]
+
+        # CALL
+        with self.assertRaises(RuntimeError) as err:
+            dataset_upload.upload_files(session, temp_bucket_id, [file_path])
+
+        # ASSERT
+        self.assertEqual(
+            self.mock_get_data_upload_urls.call_args_list,
+            [
+                call(
+                    session,
+                    temp_bucket_id,
+                    [file_path.name],
+                )
+                for url in urls
+            ],
+        )
+        self.mock_OverallFileProgressBar.assert_called_once_with(1, file_size)
+        self.mock_upload_file_to_minio.assert_has_calls(
+            [call(session, url, file_path, progress_bar=True) for url in urls]
+        )
+        mock_overall_progress_bar.assert_not_called()
+
+        self.assertEqual(
+            self.mock_optional_echo.call_args_list,
+            [
+                call("Uploading files", False),
+            ],
+        )
+
+        self.assertEqual(
+            str(err.exception),
+            f"Attempted to upload file {DATASET_UPLOAD_FILE_RETRY_ATTEMPTS} times but failed repeatedly",
         )
 
     def test_upload_files(self):
