@@ -16,7 +16,10 @@ from dafni_cli.api.minio_api import (
     upload_file_to_minio,
 )
 from dafni_cli.api.session import DAFNISession
-from dafni_cli.consts import DATASET_UPLOAD_MAX_FILES_PER_BATCH
+from dafni_cli.consts import (
+    DATASET_UPLOAD_FILE_RETRY_ATTEMPTS,
+    DATASET_UPLOAD_MAX_FILES_PER_BATCH,
+)
 from dafni_cli.datasets.dataset_metadata import (
     DATASET_METADATA_LANGUAGES,
     DATASET_METADATA_SUBJECTS,
@@ -248,12 +251,11 @@ def upload_files(
         temp_bucket_id (str): Minio temporary bucket ID to upload files to
         file_paths (List[Path]): List of Paths to dataset data files
         json (bool): Whether to print the raw json returned by the DAFNI API
+
+    Raises:
+        RuntimeError: If unable to upload the file for some reason
     """
-    # Split up file_paths into batches - Workaround for
-    # https://github.com/dafnifacility/cli/issues/113
-    file_paths_batches = list(
-        split_list(file_paths, DATASET_UPLOAD_MAX_FILES_PER_BATCH)
-    )
+    file_names_and_paths = {file_path.name: file_path for file_path in file_paths}
 
     optional_echo("Uploading files", json)
 
@@ -266,27 +268,34 @@ def upload_files(
     ) as overall_progress_bar:
         # Obtain upload URLs for each batch separately and wait until uploaded
         # all the files in the current batch before starting the next
-        for file_paths_batch in file_paths_batches:
-            file_names_and_paths = {
-                file_path.name: file_path for file_path in file_paths_batch
-            }
+        for file_name, file_path in file_names_and_paths.items():
+            upload_attempts = 0
 
-            upload_urls = get_data_upload_urls(
-                session, temp_bucket_id, list(file_names_and_paths.keys())
-            )
+            # Try and upload, but if fails for any reason - retry with a new upload URL
+            while upload_attempts < DATASET_UPLOAD_FILE_RETRY_ATTEMPTS:
+                upload_url = get_data_upload_urls(session, temp_bucket_id, [file_name])[
+                    "urls"
+                ][file_name]
 
-            for file_name, file_upload_url in upload_urls["urls"].items():
-                upload_file_to_minio(
-                    session,
-                    file_upload_url,
-                    file_names_and_paths[file_name],
-                    progress_bar=not json,
-                )
+                try:
+                    upload_file_to_minio(
+                        session,
+                        upload_url,
+                        file_path,
+                        progress_bar=not json,
+                    )
+                    break
+                except RuntimeError as err:
+                    upload_attempts += 1
 
-                # Completed a file download, update the overall status to reflect
-                overall_progress_bar.update(
-                    file_names_and_paths[file_name].stat().st_size
-                )
+                    if upload_attempts == DATASET_UPLOAD_FILE_RETRY_ATTEMPTS:
+                        # Completely broken
+                        raise RuntimeError(
+                            f"Attempted to upload file {DATASET_UPLOAD_FILE_RETRY_ATTEMPTS} times but failed repeatedly"
+                        ) from err
+
+            # Completed a file download, update the overall status to reflect
+            overall_progress_bar.update(file_names_and_paths[file_name].stat().st_size)
 
 
 def _commit_metadata(

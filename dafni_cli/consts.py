@@ -110,11 +110,15 @@ TAB_SPACE = "    "
 # small enough to fit in memory and give a reasonable loading bar scale
 DOWNLOAD_CHUNK_SIZE = 1024 * 1024  # 1 MB
 
-# Maximum number of times to retry requests that have SSLErrors
-MAX_SSL_ERROR_RETRY_ATTEMPTS = 3
+# Maximum number of times to retry requests that have failed due to an error
+REQUEST_ERROR_RETRY_ATTEMPTS = 3
 
-# Time to wait between retry attempts when an SSLError occurs (seconds)
-SSL_ERROR_RETRY_WAIT = 1
+# Time to wait between retry attempts when an error occurs during a
+# request (seconds)
+REQUEST_ERROR_RETRY_WAIT = 1
+
+# Number of upload attempts to make when there is a problem during dataset upload
+DATASET_UPLOAD_FILE_RETRY_ATTEMPTS = 3
 
 # Number of files to upload in a single batch during dataset upload
 DATASET_UPLOAD_MAX_FILES_PER_BATCH = 10

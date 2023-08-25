@@ -1,4 +1,5 @@
 import json
+from multiprocessing import AuthenticationError
 import os
 import time
 from dataclasses import dataclass
@@ -14,11 +15,11 @@ from dafni_cli.api.exceptions import DAFNIError, EndpointNotFoundError, LoginErr
 from dafni_cli.consts import (
     LOGIN_API_ENDPOINT,
     LOGOUT_API_ENDPOINT,
-    MAX_SSL_ERROR_RETRY_ATTEMPTS,
+    REQUEST_ERROR_RETRY_ATTEMPTS,
     REQUESTS_TIMEOUT,
     SESSION_COOKIE,
     SESSION_SAVE_FILE,
-    SSL_ERROR_RETRY_WAIT,
+    REQUEST_ERROR_RETRY_WAIT,
     URLS_REQUIRING_COOKIE_AUTHENTICATION,
 )
 from dafni_cli.utils import dataclass_from_dict
@@ -152,6 +153,9 @@ class DAFNISession:
 
         Will attempt to request one using the currently stored refresh token,
         but in the case it has expired will ask the user to login again.
+
+        Raises:
+            LoginError: If unable to login or gain a new refresh token
         """
 
         # Request a new refresh token
@@ -327,7 +331,7 @@ class DAFNISession:
         stream: Optional[bool] = None,
         retry_callback: Optional[Callable] = None,
         auth_recursion_level: int = 0,
-        ssl_recursion_level: int = 0,
+        retry_recursion_level: int = 0,
     ) -> requests.Response:
         """Performs an authenticated request from the DAFNI API
 
@@ -346,12 +350,17 @@ class DAFNISession:
             auth_recursion_level (int): Number of times this method has
                              been recursively called due to an authentication
                              issue (Used to avoid infinite loops)
-            ssl_recursion_level (int): Number of times this method has
-                             been recursively called due to an SSLError
+            retry_recursion_level (int): Number of times this method has
+                             been recursively called due to an error
                              (Used to avoid infinite loops)
 
         Returns:
             requests.Response: Response from the requests library
+
+        Raises:
+            LoginError: If unable to login or refresh tokens to authenticate
+            RuntimeError: If some other error repeatedly occurs e.g. an SSLError
+                          (See https://github.com/dafnifacility/cli/issues/113)
         """
 
         # Should we retry the request for any reason
@@ -401,25 +410,28 @@ class DAFNISession:
                     # anything) - one place this occurs is running out of
                     # temporary buckets during upload
                     message = response.content.decode()
-                    raise RuntimeError(f"Could not authenticate request: {message}")
+                    raise LoginError(f"Could not authenticate request: {message}")
                 else:
                     self._refresh_tokens()
 
                     retry = True
                     auth_recursion_level += 1
-        except requests.exceptions.SSLError as err:
+        # Pass through in case of auth error
+        except LoginError:
+            raise
+        except Exception as err:
             # Retry a if below the maximum number of retires
-            if ssl_recursion_level >= MAX_SSL_ERROR_RETRY_ATTEMPTS:
+            if retry_recursion_level >= REQUEST_ERROR_RETRY_ATTEMPTS:
                 raise RuntimeError(
-                    f"Could not connect due to an SSLError after retrying {MAX_SSL_ERROR_RETRY_ATTEMPTS} times"
+                    f"Could not connect due to an error after retrying {REQUEST_ERROR_RETRY_ATTEMPTS} times"
                 ) from err
             else:
                 # Workaround for https://github.com/dafnifacility/cli/issues/113
-                # Retry up to MAX_SSL_ERROR_RETRY_ATTEMPTS times, waiting for
-                # SSL_ERROR_RETRY_WAIT seconds between each attempt
+                # Retry up to ERROR_RETRY_ATTEMPTS times, waiting for
+                # ERROR_RETRY_WAIT seconds between each attempt
                 retry = True
-                ssl_recursion_level += 1
-                time.sleep(SSL_ERROR_RETRY_WAIT)
+                retry_recursion_level += 1
+                time.sleep(REQUEST_ERROR_RETRY_WAIT)
 
         if retry:
             # It seems in the event we need to retry the request, requests
@@ -447,7 +459,7 @@ class DAFNISession:
                 allow_redirect=allow_redirect,
                 retry_callback=retry_callback,
                 auth_recursion_level=auth_recursion_level,
-                ssl_recursion_level=ssl_recursion_level,
+                retry_recursion_level=retry_recursion_level,
             )
 
         return response

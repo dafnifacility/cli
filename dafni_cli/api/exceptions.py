@@ -2,6 +2,10 @@ class LoginError(Exception):
     """Generic error to distinguish login failures"""
 
 
+class AuthenticationError(Exception):
+    """Generic error to distinguish an authentication error"""
+
+
 class DAFNIError(Exception):
     """An error returned by one of the DAFNI API's"""
 
