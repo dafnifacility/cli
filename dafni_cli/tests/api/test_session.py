@@ -1028,7 +1028,7 @@ class TestDAFNISession(TestCase):
         self.assertEqual(str(error.exception), "Unable to refresh login.")
 
     def test_refresh_runtime_error(self):
-        """Tests a RuntimeError is raised when refreshing a token fails"""
+        """Tests a LoginError is raised when refreshing a token fails"""
 
         session = self.create_mock_session(True)
 
@@ -1042,7 +1042,7 @@ class TestDAFNISession(TestCase):
         # New token
         self.mock_requests.post.return_value = create_mock_access_token_response()
 
-        with self.assertRaises(RuntimeError) as error:
+        with self.assertRaises(LoginError) as error:
             # Avoid creating any local files
             with patch(
                 "builtins.open", new_callable=mock_open, read_data=TEST_SESSION_FILE

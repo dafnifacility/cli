@@ -1,4 +1,5 @@
 import json
+from multiprocessing import AuthenticationError
 import os
 import time
 from dataclasses import dataclass
@@ -152,6 +153,9 @@ class DAFNISession:
 
         Will attempt to request one using the currently stored refresh token,
         but in the case it has expired will ask the user to login again.
+
+        Raises:
+            LoginError: If unable to login or gain a new refresh token
         """
 
         # Request a new refresh token
@@ -352,6 +356,9 @@ class DAFNISession:
 
         Returns:
             requests.Response: Response from the requests library
+
+        Raises:
+            LoginError: If unable to login or refresh tokens to authenticate
         """
 
         # Should we retry the request for any reason
@@ -401,15 +408,13 @@ class DAFNISession:
                     # anything) - one place this occurs is running out of
                     # temporary buckets during upload
                     message = response.content.decode()
-                    raise RuntimeError(f"Could not authenticate request: {message}")
+                    raise LoginError(f"Could not authenticate request: {message}")
                 else:
                     self._refresh_tokens()
 
                     retry = True
                     auth_recursion_level += 1
         # Pass through in case of auth error
-        except RuntimeError:
-            raise
         except LoginError:
             raise
         except Exception as err:
