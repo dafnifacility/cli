@@ -2,7 +2,7 @@ import json
 from copy import deepcopy
 from datetime import datetime
 from pathlib import Path
-from typing import List, Optional, Tuple
+from typing import Dict, List, Optional, Tuple
 
 import click
 from requests.exceptions import HTTPError
@@ -18,7 +18,6 @@ from dafni_cli.api.minio_api import (
 from dafni_cli.api.session import DAFNISession
 from dafni_cli.consts import (
     DATASET_UPLOAD_FILE_RETRY_ATTEMPTS,
-    DATASET_UPLOAD_MAX_FILES_PER_BATCH,
 )
 from dafni_cli.datasets.dataset_metadata import (
     DATASET_METADATA_LANGUAGES,
@@ -45,6 +44,51 @@ METADATA_KEYS_INVALID_FOR_UPLOAD = [
     "dcat:distribution",
     "status",
 ]
+
+
+def parse_filenames_from_paths(
+    paths: List[Path],
+    expanded_files_dict: Optional[Dict[str, Path]] = None,
+    filename_prefix: Optional[str] = None,
+) -> Dict[str, Path]:
+    """Obtains all filenames and filepaths to upload given a set of input
+    filepaths that may also contain folders to upload
+
+    All filenames from folders should have a unix style '/' regardless of
+    platform
+
+    Args:
+        paths (Path): List of paths to check for folders
+        expanded_files_dict (Optional[Dict[str, Path]]): Existing files found
+        filename_prefix (Optional[str]): Prefix for the filename to add
+
+    Returns:
+        dict[str, Path]: Dictionary with keys being specific filenames to upload
+                         and the values as the paths to the corresponding files
+    """
+    # Avoids dangerous default arg
+    if expanded_files_dict is None:
+        expanded_files_dict = {}
+
+    for path in paths:
+        current_filename_prefix = (
+            f"{filename_prefix}/{path.name}"
+            if filename_prefix is not None
+            else path.name
+        )
+
+        if path.is_dir():
+            # Expand folder
+            expanded_files_dict = parse_filenames_from_paths(
+                path.glob("*"),
+                expanded_files_dict=expanded_files_dict,
+                filename_prefix=current_filename_prefix,
+            )
+        else:
+            # Append file
+            expanded_files_dict[current_filename_prefix] = path
+
+    return expanded_files_dict
 
 
 def remove_dataset_metadata_invalid_for_upload(metadata: dict):

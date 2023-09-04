@@ -2,6 +2,7 @@ import json
 from copy import deepcopy
 from datetime import datetime
 from pathlib import Path
+from tempfile import TemporaryDirectory
 from unittest import TestCase
 from unittest.mock import MagicMock, call, mock_open, patch
 
@@ -17,6 +18,45 @@ from dafni_cli.datasets.dataset_metadata import (
     DATASET_METADATA_UPDATE_FREQUENCIES,
 )
 from dafni_cli.tests.fixtures.dataset_metadata import TEST_DATASET_METADATA
+
+
+class TestParseFilenamesFromPaths(TestCase):
+    """Test class to test parse_filenames_from_paths works as
+    expected"""
+
+    def test_parse_filenames_from_paths(self):
+        """Tests that parse_filenames_from_paths functions correctly"""
+
+        # SETUP
+        with TemporaryDirectory("test") as td:
+            test_path = Path(td)
+            (test_path / "folder").mkdir()
+            (test_path / "folder/folder").mkdir()
+
+            paths_to_upload = [
+                test_path / "file1.txt",
+                test_path / "file2.txt",
+                test_path / "folder",
+            ]
+            expected_dict = {
+                "file1.txt": test_path / Path("file1.txt"),
+                "file2.txt": test_path / Path("file2.txt"),
+                # Files in a sub folder
+                "folder/file3.txt": test_path / Path("folder/file3.txt"),
+                # Recursive
+                "folder/folder/file4.txt": test_path / Path("folder/folder/file4.txt"),
+            }
+
+            # Create temporary files to test on
+            for path in expected_dict.values():
+                with open(test_path / path, "w", encoding="utf-8") as file:
+                    file.write("Temp file contents")
+
+            # CALL
+            result = dataset_upload.parse_filenames_from_paths(paths=paths_to_upload)
+
+            # ASSERT
+            self.assertDictEqual(result, expected_dict)
 
 
 class TestRemoveDatasetMetadataInvalidForUpload(TestCase):
