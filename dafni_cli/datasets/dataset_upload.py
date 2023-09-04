@@ -29,7 +29,6 @@ from dafni_cli.utils import (
     OverallFileProgressBar,
     optional_echo,
     print_json,
-    split_list,
 )
 
 # Keys inside dataset metadata returned from the API that are invalid for
@@ -46,10 +45,10 @@ METADATA_KEYS_INVALID_FOR_UPLOAD = [
 ]
 
 
-def parse_filenames_from_paths(
+def parse_file_names_from_paths(
     paths: List[Path],
     expanded_files_dict: Optional[Dict[str, Path]] = None,
-    filename_prefix: Optional[str] = None,
+    file_name_prefix: Optional[str] = None,
 ) -> Dict[str, Path]:
     """Obtains all filenames and filepaths to upload given a set of input
     filepaths that may also contain folders to upload
@@ -60,7 +59,7 @@ def parse_filenames_from_paths(
     Args:
         paths (Path): List of paths to check for folders
         expanded_files_dict (Optional[Dict[str, Path]]): Existing files found
-        filename_prefix (Optional[str]): Prefix for the filename to add
+        file_name_prefix (Optional[str]): Prefix for the filename to add
 
     Returns:
         dict[str, Path]: Dictionary with keys being specific filenames to upload
@@ -71,22 +70,22 @@ def parse_filenames_from_paths(
         expanded_files_dict = {}
 
     for path in paths:
-        current_filename_prefix = (
-            f"{filename_prefix}/{path.name}"
-            if filename_prefix is not None
+        current_file_name_prefix = (
+            f"{file_name_prefix}/{path.name}"
+            if file_name_prefix is not None
             else path.name
         )
 
         if path.is_dir():
             # Expand folder
-            expanded_files_dict = parse_filenames_from_paths(
+            expanded_files_dict = parse_file_names_from_paths(
                 path.glob("*"),
                 expanded_files_dict=expanded_files_dict,
-                filename_prefix=current_filename_prefix,
+                file_name_prefix=current_file_name_prefix,
             )
         else:
             # Append file
-            expanded_files_dict[current_filename_prefix] = path
+            expanded_files_dict[current_file_name_prefix] = path
 
     return expanded_files_dict
 
@@ -290,6 +289,10 @@ def upload_files(
     """Function to upload all given files to a temporary bucket via the Minio
     API
 
+    If any of the file_paths are folders they will be expanded according to
+    parse_file_names_from_paths such that their new file names will include
+    the directory structure as well
+
     Args:
         session (DAFNISession): User session
         temp_bucket_id (str): Minio temporary bucket ID to upload files to
@@ -299,7 +302,7 @@ def upload_files(
     Raises:
         RuntimeError: If unable to upload the file for some reason
     """
-    file_names_and_paths = {file_path.name: file_path for file_path in file_paths}
+    file_names_and_paths = parse_file_names_from_paths(paths=file_paths)
 
     optional_echo("Uploading files", json)
 
@@ -308,7 +311,7 @@ def upload_files(
 
     # Progress bar keeping track of all files being uploaded
     with OverallFileProgressBar(
-        len(file_paths), total_file_size
+        len(file_names_and_paths), total_file_size
     ) as overall_progress_bar:
         # Obtain upload URLs for each batch separately and wait until uploaded
         # all the files in the current batch before starting the next
@@ -326,6 +329,7 @@ def upload_files(
                         session,
                         upload_url,
                         file_path,
+                        file_name=file_name,
                         progress_bar=not json,
                     )
                     break

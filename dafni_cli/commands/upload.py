@@ -16,6 +16,7 @@ from dafni_cli.commands.options import (
 from dafni_cli.datasets.dataset_metadata import parse_dataset_metadata
 from dafni_cli.datasets.dataset_upload import (
     modify_dataset_metadata_for_upload,
+    parse_file_names_from_paths,
     upload_dataset,
     upload_dataset_metadata_version,
 )
@@ -148,7 +149,8 @@ def dataset(
     """
     # Confirm upload details
     arguments = [("Dataset metadata file path", metadata_path)] + [
-        ("Dataset file path", file) for file in files
+        ("Dataset file name", file_name)
+        for file_name in parse_file_names_from_paths(files).keys()
     ]
     confirmation_message = "Confirm dataset upload?"
     argument_confirmation(arguments, confirmation_message, skip=yes or json)
@@ -275,7 +277,10 @@ def dataset_version(
             ("Dataset Title", dataset_metadata_obj.title),
             ("Dataset ID", dataset_metadata_obj.dataset_id),
             ("Dataset Version ID", dataset_metadata_obj.version_id),
-        ] + [("Dataset file path", file) for file in files]
+        ] + [
+            ("Dataset file name", filename)
+            for filename in parse_file_names_from_paths(files).keys()
+        ]
 
         if metadata:
             arguments.append(("Dataset metadata file path", metadata))

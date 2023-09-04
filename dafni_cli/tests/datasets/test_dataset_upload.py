@@ -21,39 +21,40 @@ from dafni_cli.tests.fixtures.dataset_metadata import TEST_DATASET_METADATA
 
 
 class TestParseFilenamesFromPaths(TestCase):
-    """Test class to test parse_filenames_from_paths works as
+    """Test class to test parse_file_names_from_paths works as
     expected"""
 
-    def test_parse_filenames_from_paths(self):
-        """Tests that parse_filenames_from_paths functions correctly"""
+    def test_parse_file_names_from_paths(self):
+        """Tests that parse_file_names_from_paths functions correctly"""
 
         # SETUP
-        with TemporaryDirectory("test") as td:
-            test_path = Path(td)
-            (test_path / "folder").mkdir()
-            (test_path / "folder/folder").mkdir()
+        with TemporaryDirectory("test") as temp_dir:
+            temp_dir_path = Path(temp_dir)
+            (temp_dir_path / "folder").mkdir()
+            (temp_dir_path / "folder/folder").mkdir()
 
             paths_to_upload = [
-                test_path / "file1.txt",
-                test_path / "file2.txt",
-                test_path / "folder",
+                temp_dir_path / "file1.txt",
+                temp_dir_path / "file2.txt",
+                temp_dir_path / "folder",
             ]
             expected_dict = {
-                "file1.txt": test_path / Path("file1.txt"),
-                "file2.txt": test_path / Path("file2.txt"),
+                "file1.txt": temp_dir_path / Path("file1.txt"),
+                "file2.txt": temp_dir_path / Path("file2.txt"),
                 # Files in a sub folder
-                "folder/file3.txt": test_path / Path("folder/file3.txt"),
+                "folder/file3.txt": temp_dir_path / Path("folder/file3.txt"),
                 # Recursive
-                "folder/folder/file4.txt": test_path / Path("folder/folder/file4.txt"),
+                "folder/folder/file4.txt": temp_dir_path
+                / Path("folder/folder/file4.txt"),
             }
 
             # Create temporary files to test on
             for path in expected_dict.values():
-                with open(test_path / path, "w", encoding="utf-8") as file:
+                with open(temp_dir_path / path, "w", encoding="utf-8") as file:
                     file.write("Temp file contents")
 
             # CALL
-            result = dataset_upload.parse_filenames_from_paths(paths=paths_to_upload)
+            result = dataset_upload.parse_file_names_from_paths(paths=paths_to_upload)
 
             # ASSERT
             self.assertDictEqual(result, expected_dict)
@@ -349,8 +350,16 @@ class TestDatasetUpload(TestCase):
         temp_bucket_id = "some-temp-bucket"
         file_size = 1000
         file_paths = [
-            MagicMock(name="file_1.txt", stat=lambda: MagicMock(st_size=file_size)),
-            MagicMock(name="file_2.txt", stat=lambda: MagicMock(st_size=file_size)),
+            MagicMock(
+                name="file_1.txt",
+                stat=lambda: MagicMock(st_size=file_size),
+                is_dir=MagicMock(return_value=False),
+            ),
+            MagicMock(
+                name="file_2.txt",
+                stat=lambda: MagicMock(st_size=file_size),
+                is_dir=MagicMock(return_value=False),
+            ),
         ]
         urls = [f"upload/url/{file_path.name}" for file_path in file_paths]
         upload_urls = [
@@ -387,7 +396,13 @@ class TestDatasetUpload(TestCase):
         )
         self.mock_upload_file_to_minio.assert_has_calls(
             [
-                call(session, url, file_paths[idx], progress_bar=not json)
+                call(
+                    session,
+                    url,
+                    file_paths[idx],
+                    file_name=file_paths[idx].name,
+                    progress_bar=not json,
+                )
                 for idx, url in enumerate(urls)
             ]
         )
@@ -407,7 +422,9 @@ class TestDatasetUpload(TestCase):
         temp_bucket_id = "some-temp-bucket"
         file_size = 1000
         file_path = MagicMock(
-            name="file_1.txt", stat=lambda: MagicMock(st_size=file_size)
+            name="file_1.txt",
+            stat=lambda: MagicMock(st_size=file_size),
+            is_dir=MagicMock(return_value=False),
         )
         urls = [f"upload/url-{i}" for i in range(0, DATASET_UPLOAD_FILE_RETRY_ATTEMPTS)]
         upload_urls = [{"urls": {file_path.name: url}} for url in urls]
@@ -442,7 +459,12 @@ class TestDatasetUpload(TestCase):
             [call(file_size)],
         )
         self.mock_upload_file_to_minio.assert_has_calls(
-            [call(session, url, file_path, progress_bar=True) for url in urls]
+            [
+                call(
+                    session, url, file_path, file_name=file_path.name, progress_bar=True
+                )
+                for url in urls
+            ]
         )
 
         self.assertEqual(
@@ -460,7 +482,9 @@ class TestDatasetUpload(TestCase):
         temp_bucket_id = "some-temp-bucket"
         file_size = 1000
         file_path = MagicMock(
-            name="file_1.txt", stat=lambda: MagicMock(st_size=file_size)
+            name="file_1.txt",
+            stat=lambda: MagicMock(st_size=file_size),
+            is_dir=MagicMock(return_value=False),
         )
         urls = [f"upload/url-{i}" for i in range(0, DATASET_UPLOAD_FILE_RETRY_ATTEMPTS)]
         upload_urls = [{"urls": {file_path.name: url}} for url in urls]
@@ -492,7 +516,12 @@ class TestDatasetUpload(TestCase):
         )
         self.mock_OverallFileProgressBar.assert_called_once_with(1, file_size)
         self.mock_upload_file_to_minio.assert_has_calls(
-            [call(session, url, file_path, progress_bar=True) for url in urls]
+            [
+                call(
+                    session, url, file_path, file_name=file_path.name, progress_bar=True
+                )
+                for url in urls
+            ]
         )
         mock_overall_progress_bar.assert_not_called()
 

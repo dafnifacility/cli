@@ -317,7 +317,7 @@ class TestUploadDataset(TestCase):
         self.assertEqual(
             result.output,
             f"Dataset metadata file path: {self.metadata_path}\n"
-            f"Dataset file path: {dataset_file_path}\n"
+            f"Dataset file name: {dataset_file_path}\n"
             "Confirm dataset upload? [y/N]: y\n",
         )
         self.assertEqual(result.exit_code, 0)
@@ -346,8 +346,8 @@ class TestUploadDataset(TestCase):
         self.assertEqual(
             result.output,
             f"Dataset metadata file path: {self.metadata_path}\n"
-            f"Dataset file path: {dataset_file_paths[0]}\n"
-            f"Dataset file path: {dataset_file_paths[1]}\n"
+            f"Dataset file name: {dataset_file_paths[0]}\n"
+            f"Dataset file name: {dataset_file_paths[1]}\n"
             "Confirm dataset upload? [y/N]: y\n",
         )
         self.assertEqual(result.exit_code, 0)
@@ -416,7 +416,7 @@ class TestUploadDataset(TestCase):
         self.assertEqual(
             result.output,
             f"Dataset metadata file path: {self.metadata_path}\n"
-            f"Dataset file path: {dataset_file_path}\n"
+            f"Dataset file name: {dataset_file_path}\n"
             "Confirm dataset upload? [y/N]: n\n"
             "Aborted!\n",
         )
@@ -549,7 +549,7 @@ class TestUploadDatasetVersion(TestCase):
             f"Dataset Title: {metadata.title}\n"
             f"Dataset ID: {metadata.dataset_id}\n"
             f"Dataset Version ID: {metadata.version_id}\n"
-            f"Dataset file path: {dataset_file_path}\n"
+            f"Dataset file name: {dataset_file_path}\n"
             "Confirm dataset upload? [y/N]: y\n",
         )
         self.assertEqual(result.exit_code, 0)
@@ -613,8 +613,8 @@ class TestUploadDatasetVersion(TestCase):
             f"Dataset Title: {metadata.title}\n"
             f"Dataset ID: {metadata.dataset_id}\n"
             f"Dataset Version ID: {metadata.version_id}\n"
-            f"Dataset file path: {dataset_file_paths[0]}\n"
-            f"Dataset file path: {dataset_file_paths[1]}\n"
+            f"Dataset file name: {dataset_file_paths[0]}\n"
+            f"Dataset file name: {dataset_file_paths[1]}\n"
             "Confirm dataset upload? [y/N]: y\n",
         )
         self.assertEqual(result.exit_code, 0)
@@ -843,7 +843,7 @@ class TestUploadDatasetVersion(TestCase):
             f"Dataset Title: {metadata.title}\n"
             f"Dataset ID: {metadata.dataset_id}\n"
             f"Dataset Version ID: {metadata.version_id}\n"
-            f"Dataset file path: {dataset_file_path}\n"
+            f"Dataset file name: {dataset_file_path}\n"
             "Confirm dataset upload? [y/N]: n\n"
             "Aborted!\n",
         )
@@ -927,7 +927,7 @@ class TestUploadDatasetVersion(TestCase):
             f"Dataset Title: {metadata.title}\n"
             f"Dataset ID: {metadata.dataset_id}\n"
             f"Dataset Version ID: {metadata.version_id}\n"
-            f"Dataset file path: {dataset_file_path}\n"
+            f"Dataset file name: {dataset_file_path}\n"
             f"Dataset metadata file path: {metadata_path}\n"
             "Confirm dataset upload? [y/N]: y\n",
         )
