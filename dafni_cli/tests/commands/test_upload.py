@@ -540,7 +540,7 @@ class TestUploadDatasetVersion(TestCase):
             self.mock_session,
             dataset_id=metadata.dataset_id,
             metadata=self.mock_modify_dataset_metadata_for_upload.return_value,
-            file_paths=(Path(dataset_file_path),),
+            paths=(Path(dataset_file_path),),
             json=False,
         )
 
@@ -604,7 +604,7 @@ class TestUploadDatasetVersion(TestCase):
             self.mock_session,
             dataset_id=metadata.dataset_id,
             metadata=self.mock_modify_dataset_metadata_for_upload.return_value,
-            file_paths=(Path(dataset_file_paths[0]), Path(dataset_file_paths[1])),
+            paths=(Path(dataset_file_paths[0]), Path(dataset_file_paths[1])),
             json=False,
         )
 
@@ -728,7 +728,7 @@ class TestUploadDatasetVersion(TestCase):
             self.mock_session,
             dataset_id=metadata.dataset_id,
             metadata=self.mock_modify_dataset_metadata_for_upload.return_value,
-            file_paths=(Path(dataset_file_path),),
+            paths=(Path(dataset_file_path),),
             json=False,
         )
 
@@ -784,7 +784,7 @@ class TestUploadDatasetVersion(TestCase):
             self.mock_session,
             dataset_id=metadata.dataset_id,
             metadata=self.mock_modify_dataset_metadata_for_upload.return_value,
-            file_paths=(Path(dataset_file_path),),
+            paths=(Path(dataset_file_path),),
             json=True,
         )
 
@@ -918,7 +918,7 @@ class TestUploadDatasetVersion(TestCase):
             self.mock_session,
             dataset_id=metadata.dataset_id,
             metadata=self.mock_modify_dataset_metadata_for_upload.return_value,
-            file_paths=(Path(dataset_file_path),),
+            paths=(Path(dataset_file_path),),
             json=False,
         )
 
