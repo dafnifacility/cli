@@ -115,7 +115,19 @@ def model(
 ###############################################################################
 # COMMAND: Upload a new DATASET to DAFNI
 ###############################################################################
-@upload.command(help="Upload a new dataset to DAFNI")
+WILDCARD_HELP_TEXT = (
+    "Most terminals also support wildcards for the PATHS parameter e.g. "
+    "'data/*' "
+    "indicates you wish to upload all files from a folder named 'data'.\n\n"
+    "When a folder is found in these paths, all files and folders found "
+    "inside will also be uploaded.\n\n"
+    "All folders uploaded keep their names in the uploaded file names, e.g. if you "
+    "upload an entire folder named 'data' containing a file named 'file1.csv' the "
+    "resulting file name will be 'data/file1.csv'."
+)
+
+
+@upload.command(help=f"Upload a new dataset to DAFNI.\n\n{WILDCARD_HELP_TEXT}")
 @click.argument(
     "metadata_path",
     nargs=1,
@@ -123,7 +135,7 @@ def model(
     type=click.Path(exists=True, path_type=Path),
 )
 @click.argument(
-    "files",
+    "paths",
     nargs=-1,
     required=True,
     type=click.Path(exists=True, path_type=Path),
@@ -134,7 +146,7 @@ def model(
 def dataset(
     ctx: Context,
     metadata_path: Path,
-    files: List[Path],
+    paths: List[Path],
     yes: bool,
     json: bool,
 ):
@@ -143,14 +155,14 @@ def dataset(
     Args:
         ctx (Context): contains user session for authentication
         metadata_path (Path): Dataset metadata file path
-        files (List[Path]): Dataset data files
+        paths (List[Path]): Dataset file/folder paths
         yes (bool): Used to skip confirmations before they are displayed
         json (bool): Whether to print the raw json returned by the DAFNI API
     """
     # Confirm upload details
     arguments = [("Dataset metadata file path", metadata_path)] + [
         ("Dataset file name", file_name)
-        for file_name in parse_file_names_from_paths(files).keys()
+        for file_name in parse_file_names_from_paths(paths).keys()
     ]
     confirmation_message = "Confirm dataset upload?"
     argument_confirmation(arguments, confirmation_message, skip=yes or json)
@@ -160,16 +172,18 @@ def dataset(
         metadata = json_lib.load(metadata_file)
 
     # Upload the dataset
-    upload_dataset(ctx.obj["session"], metadata, files, json=json)
+    upload_dataset(ctx.obj["session"], metadata, paths, json=json)
 
 
 ###############################################################################
 # COMMAND: Upload a new version of a DATASET to DAFNI
 ###############################################################################
-@upload.command(help="Upload a new version of a dataset to DAFNI")
+@upload.command(
+    help=f"Upload a new version of a dataset to DAFNI.\n\n{WILDCARD_HELP_TEXT}"
+)
 @click.argument("existing_version_id", required=True, type=str)
 @click.argument(
-    "files",
+    "paths",
     nargs=-1,
     required=True,
     type=click.Path(exists=True, path_type=Path),
@@ -192,7 +206,7 @@ def dataset(
 def dataset_version(
     ctx: Context,
     existing_version_id: str,
-    files: List[Path],
+    paths: List[Path],
     metadata: Optional[Path],
     save: Optional[Path],
     title: Optional[str],
@@ -223,7 +237,7 @@ def dataset_version(
         ctx (Context): contains user session for authentication
         existing_version_id (str): Existing version id of the dataset to add a
                                    new version to
-        files (List[Path]): Dataset data files
+        paths (List[Path]): Dataset file/folder paths
         metadata (Optional[Path]): Dataset metadata file
         save (Optional[Path]): Path to save existing metadata in for editing
         yes (bool): Used to skip confirmations before they are displayed
@@ -279,7 +293,7 @@ def dataset_version(
             ("Dataset Version ID", dataset_metadata_obj.version_id),
         ] + [
             ("Dataset file name", filename)
-            for filename in parse_file_names_from_paths(files).keys()
+            for filename in parse_file_names_from_paths(paths).keys()
         ]
 
         if metadata:
@@ -293,7 +307,7 @@ def dataset_version(
             ctx.obj["session"],
             dataset_id=dataset_metadata_obj.dataset_id,
             metadata=dataset_metadata_dict,
-            file_paths=files,
+            paths=paths,
             json=json,
         )
 

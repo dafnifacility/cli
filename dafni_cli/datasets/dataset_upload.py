@@ -283,31 +283,31 @@ def modify_dataset_metadata_for_upload(
 def upload_files(
     session: DAFNISession,
     temp_bucket_id: str,
-    file_paths: List[Path],
+    paths: List[Path],
     json: bool = False,
 ):
     """Function to upload all given files to a temporary bucket via the Minio
     API
 
-    If any of the file_paths are folders they will be expanded according to
+    If any of the paths are folders they will be expanded according to
     parse_file_names_from_paths such that their new file names will include
     the directory structure as well
 
     Args:
         session (DAFNISession): User session
         temp_bucket_id (str): Minio temporary bucket ID to upload files to
-        file_paths (List[Path]): List of Paths to dataset data files
+        paths (List[Path]): List of paths to dataset data files/folders
         json (bool): Whether to print the raw json returned by the DAFNI API
 
     Raises:
         RuntimeError: If unable to upload the file for some reason
     """
-    file_names_and_paths = parse_file_names_from_paths(paths=file_paths)
+    file_names_and_paths = parse_file_names_from_paths(paths=paths)
 
     optional_echo("Uploading files", json)
 
     # For an indication of the overall upload progress
-    total_file_size = sum(file_path.stat().st_size for file_path in file_paths)
+    total_file_size = sum(file_path.stat().st_size for file_path in paths)
 
     # Progress bar keeping track of all files being uploaded
     with OverallFileProgressBar(
@@ -385,16 +385,20 @@ def _commit_metadata(
 def upload_dataset(
     session: DAFNISession,
     metadata: dict,
-    file_paths: List[Path],
+    paths: List[Path],
     dataset_id: Optional[str] = None,
     json: bool = False,
 ) -> None:
     """Function to upload a Dataset
 
+    If any of the paths are folders they will be expanded according to
+    parse_file_names_from_paths such that their new file names will include
+    the directory structure as well
+
     Args:
         session (DAFNISession): User session
         metadata (dict): Metadata to upload
-        file_paths (List[Path]): List of Paths to dataset data files
+        paths (List[Path]): List of Paths to dataset data files/folders
         dataset_id (Optional[str]): ID of an existing dataset to add a version
                                     to. Creates a new dataset if None.
         json (bool): Whether to print the raw json returned by the DAFNI API
@@ -407,7 +411,7 @@ def upload_dataset(
     # temporary bucket to prevent a build up in the user's quota
     try:
         # Upload all files
-        upload_files(session, temp_bucket_id, file_paths, json=json)
+        upload_files(session, temp_bucket_id, paths, json=json)
         details = _commit_metadata(
             session, metadata, temp_bucket_id, dataset_id=dataset_id, json=json
         )

@@ -103,6 +103,23 @@ Or you could upload the contents of an entire directory named `data` with
 dafni upload dataset dataset_metadata.json ./data/*
 ```
 
+Any folders that are found will also themselves be uploaded, but will keep their folder structure in the uploaded file names. For example if you have a folder that looks like
+```
+data
+    folder
+        file1.csv
+    file2.csv
+```
+Then uploading with
+```bash
+dafni upload dataset dataset_metadata.json ./data/*
+```
+will upload with the names
+```
+folder/file1.csv
+file2.csv
+```
+
 ### Updating an existing dataset to create a new version
 
 If you wish to create a new dataset version you may use `dafni upload dataset-version`. To use this you need any version id of the dataset you wish to update. Then the simplest way you can upload the new files is with
