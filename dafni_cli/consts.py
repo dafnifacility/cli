@@ -1,6 +1,9 @@
 # Timeout for requests (in seconds)
 REQUESTS_TIMEOUT = 100
 
+# Sender-Type for monitoring endpoint calls
+SENDER_TYPE = "cli"
+
 # Environment - Either 'production' or 'staging' for development purposes
 ENVIRONMENT = "production"
 ENVIRONMENT_DOMAIN = "secure" if ENVIRONMENT == "production" else "staging"
