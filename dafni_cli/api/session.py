@@ -17,6 +17,7 @@ from dafni_cli.consts import (
     LOGOUT_API_ENDPOINT,
     REQUEST_ERROR_RETRY_ATTEMPTS,
     REQUESTS_TIMEOUT,
+    SENDER_TYPE,
     SESSION_COOKIE,
     SESSION_SAVE_FILE,
     REQUEST_ERROR_RETRY_WAIT,
@@ -365,6 +366,9 @@ class DAFNISession:
 
         # Should we retry the request for any reason
         retry = False
+
+        # Add Sender-Type to all headers sent
+        headers["Sender-Type"] = SENDER_TYPE
 
         try:
             # Switch to cookie based authentication only for those that require it

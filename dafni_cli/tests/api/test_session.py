@@ -15,6 +15,7 @@ from dafni_cli.consts import (
     LOGOUT_API_ENDPOINT,
     REQUEST_ERROR_RETRY_ATTEMPTS,
     REQUESTS_TIMEOUT,
+    SENDER_TYPE,
     SESSION_COOKIE,
     REQUEST_ERROR_RETRY_WAIT,
     URLS_REQUIRING_COOKIE_AUTHENTICATION,
@@ -456,7 +457,7 @@ class TestDAFNISession(TestCase):
         session._authenticated_request(
             "get",
             url="test_url",
-            headers={},
+            headers={"Sender-Type": SENDER_TYPE},
             data=None,
             json=None,
             allow_redirect=False,
@@ -467,7 +468,10 @@ class TestDAFNISession(TestCase):
         self.mock_requests.request.assert_called_once_with(
             "get",
             url="test_url",
-            headers={"Authorization": f"Bearer {TEST_ACCESS_TOKEN}"},
+            headers={
+                "Sender-Type": SENDER_TYPE,
+                "Authorization": f"Bearer {TEST_ACCESS_TOKEN}",
+            },
             data=None,
             json=None,
             allow_redirects=False,
@@ -484,7 +488,7 @@ class TestDAFNISession(TestCase):
         session._authenticated_request(
             "get",
             url=url,
-            headers={},
+            headers={"Sender-Type": SENDER_TYPE},
             data=None,
             json=None,
             allow_redirect=False,
@@ -494,7 +498,7 @@ class TestDAFNISession(TestCase):
         self.mock_requests.request.assert_called_once_with(
             "get",
             url=url,
-            headers={},
+            headers={"Sender-Type": SENDER_TYPE},
             data=None,
             json=None,
             allow_redirects=False,
@@ -525,6 +529,7 @@ class TestDAFNISession(TestCase):
             "get",
             url="some_test_url",
             headers={
+                "Sender-Type": SENDER_TYPE,
                 "Authorization": f"Bearer {TEST_ACCESS_TOKEN}",
                 "Content-Type": "content_type",
             },
@@ -565,6 +570,7 @@ class TestDAFNISession(TestCase):
             "get",
             url="some_test_url",
             headers={
+                "Sender-Type": SENDER_TYPE,
                 "Authorization": f"Bearer {TEST_ACCESS_TOKEN}",
                 "Content-Type": "content_type",
             },
@@ -596,6 +602,7 @@ class TestDAFNISession(TestCase):
             "post",
             url="some_test_url",
             headers={
+                "Sender-Type": SENDER_TYPE,
                 "Authorization": f"Bearer {TEST_ACCESS_TOKEN}",
                 "Content-Type": "content_type",
             },
@@ -635,6 +642,7 @@ class TestDAFNISession(TestCase):
             "post",
             url="some_test_url",
             headers={
+                "Sender-Type": SENDER_TYPE,
                 "Authorization": f"Bearer {TEST_ACCESS_TOKEN}",
                 "Content-Type": "content_type",
             },
@@ -666,6 +674,7 @@ class TestDAFNISession(TestCase):
             "put",
             url="some_test_url",
             headers={
+                "Sender-Type": SENDER_TYPE,
                 "Authorization": f"Bearer {TEST_ACCESS_TOKEN}",
                 "Content-Type": "content_type",
             },
@@ -703,6 +712,7 @@ class TestDAFNISession(TestCase):
             "put",
             url="some_test_url",
             headers={
+                "Sender-Type": SENDER_TYPE,
                 "Authorization": f"Bearer {TEST_ACCESS_TOKEN}",
                 "Content-Type": "content_type",
             },
@@ -734,6 +744,7 @@ class TestDAFNISession(TestCase):
             "patch",
             url="some_test_url",
             headers={
+                "Sender-Type": SENDER_TYPE,
                 "Authorization": f"Bearer {TEST_ACCESS_TOKEN}",
                 "Content-Type": "content_type",
             },
@@ -773,6 +784,7 @@ class TestDAFNISession(TestCase):
             "patch",
             url="some_test_url",
             headers={
+                "Sender-Type": SENDER_TYPE,
                 "Authorization": f"Bearer {TEST_ACCESS_TOKEN}",
                 "Content-Type": "content_type",
             },
@@ -804,6 +816,7 @@ class TestDAFNISession(TestCase):
             "delete",
             url="some_test_url",
             headers={
+                "Sender-Type": SENDER_TYPE,
                 "Authorization": f"Bearer {TEST_ACCESS_TOKEN}",
             },
             data=None,
@@ -838,6 +851,7 @@ class TestDAFNISession(TestCase):
             "delete",
             url="some_test_url",
             headers={
+                "Sender-Type": SENDER_TYPE,
                 "Authorization": f"Bearer {TEST_ACCESS_TOKEN}",
             },
             data=None,
