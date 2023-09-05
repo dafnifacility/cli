@@ -2,7 +2,7 @@ import json
 from copy import deepcopy
 from datetime import datetime
 from pathlib import Path
-from typing import List, Optional, Tuple
+from typing import Dict, List, Optional, Tuple
 
 import click
 from requests.exceptions import HTTPError
@@ -18,7 +18,6 @@ from dafni_cli.api.minio_api import (
 from dafni_cli.api.session import DAFNISession
 from dafni_cli.consts import (
     DATASET_UPLOAD_FILE_RETRY_ATTEMPTS,
-    DATASET_UPLOAD_MAX_FILES_PER_BATCH,
 )
 from dafni_cli.datasets.dataset_metadata import (
     DATASET_METADATA_LANGUAGES,
@@ -30,7 +29,6 @@ from dafni_cli.utils import (
     OverallFileProgressBar,
     optional_echo,
     print_json,
-    split_list,
 )
 
 # Keys inside dataset metadata returned from the API that are invalid for
@@ -45,6 +43,51 @@ METADATA_KEYS_INVALID_FOR_UPLOAD = [
     "dcat:distribution",
     "status",
 ]
+
+
+def parse_file_names_from_paths(
+    paths: List[Path],
+    expanded_files_dict: Optional[Dict[str, Path]] = None,
+    file_name_prefix: Optional[str] = None,
+) -> Dict[str, Path]:
+    """Obtains all filenames and filepaths to upload given a set of input
+    filepaths that may also contain folders to upload
+
+    All filenames from folders should have a unix style '/' regardless of
+    platform
+
+    Args:
+        paths (Path): List of paths to check for folders
+        expanded_files_dict (Optional[Dict[str, Path]]): Existing files found
+        file_name_prefix (Optional[str]): Prefix for the filename to add
+
+    Returns:
+        dict[str, Path]: Dictionary with keys being specific filenames to upload
+                         and the values as the paths to the corresponding files
+    """
+    # Avoids dangerous default arg
+    if expanded_files_dict is None:
+        expanded_files_dict = {}
+
+    for path in paths:
+        current_file_name_prefix = (
+            f"{file_name_prefix}/{path.name}"
+            if file_name_prefix is not None
+            else path.name
+        )
+
+        if path.is_dir():
+            # Expand folder
+            expanded_files_dict = parse_file_names_from_paths(
+                path.glob("*"),
+                expanded_files_dict=expanded_files_dict,
+                file_name_prefix=current_file_name_prefix,
+            )
+        else:
+            # Append file
+            expanded_files_dict[current_file_name_prefix] = path
+
+    return expanded_files_dict
 
 
 def remove_dataset_metadata_invalid_for_upload(metadata: dict):
@@ -240,31 +283,35 @@ def modify_dataset_metadata_for_upload(
 def upload_files(
     session: DAFNISession,
     temp_bucket_id: str,
-    file_paths: List[Path],
+    paths: List[Path],
     json: bool = False,
 ):
     """Function to upload all given files to a temporary bucket via the Minio
     API
 
+    If any of the paths are folders they will be expanded according to
+    parse_file_names_from_paths such that their new file names will include
+    the directory structure as well
+
     Args:
         session (DAFNISession): User session
         temp_bucket_id (str): Minio temporary bucket ID to upload files to
-        file_paths (List[Path]): List of Paths to dataset data files
+        paths (List[Path]): List of paths to dataset data files/folders
         json (bool): Whether to print the raw json returned by the DAFNI API
 
     Raises:
         RuntimeError: If unable to upload the file for some reason
     """
-    file_names_and_paths = {file_path.name: file_path for file_path in file_paths}
+    file_names_and_paths = parse_file_names_from_paths(paths=paths)
 
     optional_echo("Uploading files", json)
 
     # For an indication of the overall upload progress
-    total_file_size = sum(file_path.stat().st_size for file_path in file_paths)
+    total_file_size = sum(file_path.stat().st_size for file_path in paths)
 
     # Progress bar keeping track of all files being uploaded
     with OverallFileProgressBar(
-        len(file_paths), total_file_size
+        len(file_names_and_paths), total_file_size
     ) as overall_progress_bar:
         # Obtain upload URLs for each batch separately and wait until uploaded
         # all the files in the current batch before starting the next
@@ -282,6 +329,7 @@ def upload_files(
                         session,
                         upload_url,
                         file_path,
+                        file_name=file_name,
                         progress_bar=not json,
                     )
                     break
@@ -337,16 +385,20 @@ def _commit_metadata(
 def upload_dataset(
     session: DAFNISession,
     metadata: dict,
-    file_paths: List[Path],
+    paths: List[Path],
     dataset_id: Optional[str] = None,
     json: bool = False,
 ) -> None:
     """Function to upload a Dataset
 
+    If any of the paths are folders they will be expanded according to
+    parse_file_names_from_paths such that their new file names will include
+    the directory structure as well
+
     Args:
         session (DAFNISession): User session
         metadata (dict): Metadata to upload
-        file_paths (List[Path]): List of Paths to dataset data files
+        paths (List[Path]): List of Paths to dataset data files/folders
         dataset_id (Optional[str]): ID of an existing dataset to add a version
                                     to. Creates a new dataset if None.
         json (bool): Whether to print the raw json returned by the DAFNI API
@@ -359,7 +411,7 @@ def upload_dataset(
     # temporary bucket to prevent a build up in the user's quota
     try:
         # Upload all files
-        upload_files(session, temp_bucket_id, file_paths, json=json)
+        upload_files(session, temp_bucket_id, paths, json=json)
         details = _commit_metadata(
             session, metadata, temp_bucket_id, dataset_id=dataset_id, json=json
         )

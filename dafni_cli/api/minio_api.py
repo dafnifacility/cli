@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import Dict, List, Union
+from typing import Dict, List, Optional, Union
 
 import requests
 from tqdm.utils import CallbackIOWrapper
@@ -16,7 +16,11 @@ from dafni_cli.utils import create_file_progress_bar
 
 
 def upload_file_to_minio(
-    session: DAFNISession, url: str, file_path: Path, progress_bar=False
+    session: DAFNISession,
+    url: str,
+    file_path: Path,
+    file_name: Optional[str] = None,
+    progress_bar=False,
 ) -> requests.Response:
     """Function to upload definition or image files to DAFNI
 
@@ -24,6 +28,8 @@ def upload_file_to_minio(
         session (DAFNISession): User session
         url (str): URL to upload the file to
         file_path (Path): Path to the file
+        file_name (Optional[str]): File name of the file to display in the
+                  loading bar (if None will take it from the file path instead)
         progress_bar (bool): Whether to display a progress bar for the file
                              using tqdm
 
@@ -33,7 +39,7 @@ def upload_file_to_minio(
 
     with open(file_path, "rb") as file:
         with create_file_progress_bar(
-            description=file_path.name,
+            description=file_name if file_name is not None else file_path.name,
             total=file_path.stat().st_size,
             disable=not progress_bar,
         ) as prog_bar:
