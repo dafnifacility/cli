@@ -11,6 +11,7 @@ TEST_SESSION_DATA = SessionData(
     username="test_username",
     access_token=TEST_ACCESS_TOKEN,
     refresh_token="some_refresh_token",
+    timestamp_to_refresh=float("inf"),
 )
 TEST_SESSION_FILE = f"{json.dumps(TEST_SESSION_DATA.__dict__)}"
 
@@ -48,6 +49,7 @@ def create_mock_access_token_response():
         {
             "access_token": TEST_ACCESS_TOKEN,
             "refresh_token": "some_refresh_token",
+            "expires_in": 300,
         },
     )
 
