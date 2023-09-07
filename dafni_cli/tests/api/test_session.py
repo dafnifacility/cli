@@ -3,7 +3,7 @@ import os
 from io import BufferedReader
 from pathlib import Path
 from unittest import TestCase
-from unittest.mock import MagicMock, call, mock_open, patch
+from unittest.mock import ANY, MagicMock, call, mock_open, patch
 
 import requests
 from requests import HTTPError
@@ -105,7 +105,11 @@ class TestDAFNISession(TestCase):
             timeout=REQUESTS_TIMEOUT,
         )
 
-        self.assertEqual(session._session_data.__dict__, TEST_SESSION_DATA.__dict__)
+        self.assertEqual(
+            session._session_data.__dict__,
+            # Can't mock datetime, so have to settle for this
+            {**TEST_SESSION_DATA.__dict__, "timestamp_to_refresh": ANY},
+        )
 
     def test_load_invalid_login(
         self,
@@ -131,10 +135,7 @@ class TestDAFNISession(TestCase):
         self.assertEqual(session._session_data.__dict__, TEST_SESSION_DATA.__dict__)
 
     @patch("click.prompt")
-    def test_load_from_user(
-        self,
-        mock_click_prompt,
-    ):
+    def test_load_from_user(self, mock_click_prompt):
         """Tests loading of a new session requiring input from the user"""
 
         # Setup
@@ -158,7 +159,11 @@ class TestDAFNISession(TestCase):
             timeout=REQUESTS_TIMEOUT,
         )
 
-        self.assertEqual(session._session_data.__dict__, TEST_SESSION_DATA.__dict__)
+        self.assertEqual(
+            session._session_data.__dict__,
+            # Can't mock datetime, so have to settle for this
+            {**TEST_SESSION_DATA.__dict__, "timestamp_to_refresh": ANY},
+        )
 
         # Ensure session file is written
         mock_file.write.assert_called_once_with(
@@ -193,7 +198,11 @@ class TestDAFNISession(TestCase):
             timeout=REQUESTS_TIMEOUT,
         )
 
-        self.assertEqual(session._session_data.__dict__, TEST_SESSION_DATA.__dict__)
+        self.assertEqual(
+            session._session_data.__dict__,
+            # Can't mock datetime, so have to settle for this
+            {**TEST_SESSION_DATA.__dict__, "timestamp_to_refresh": ANY},
+        )
 
         # Ensure session file is written
         mock_file.write.assert_called_once_with(
@@ -282,7 +291,11 @@ class TestDAFNISession(TestCase):
             ]
         )
 
-        self.assertEqual(session._session_data.__dict__, TEST_SESSION_DATA.__dict__)
+        self.assertEqual(
+            session._session_data.__dict__,
+            # Can't mock datetime, so have to settle for this
+            {**TEST_SESSION_DATA.__dict__, "timestamp_to_refresh": ANY},
+        )
 
         # Ensure session file is written
         mock_file.write.assert_called_once_with(
@@ -1137,6 +1150,47 @@ class TestDAFNISession(TestCase):
         # Ensure get request is attempted again (should be successful the
         # second time here)
         self.assertEqual(self.mock_requests.request.call_count, 2)
+
+    def test_refresh_when_close_to_expiry(self):
+        """Tests token refreshing occurs when close to the token expiry time"""
+
+        session = self.create_mock_session(True)
+        session._session_data.timestamp_to_refresh = 0
+
+        # Here will test only on the get request as the logic is handled by
+        # the base function called by all requests anyway
+
+        self.mock_requests.request.side_effect = [
+            create_mock_success_response(),
+        ]
+
+        # New token
+        self.mock_requests.post.return_value = create_mock_access_token_response()
+
+        with patch(
+            "builtins.open", new_callable=mock_open, read_data=TEST_SESSION_FILE
+        ) as mock_file:
+            session.get_request(url="some_test_url")
+
+            # Should save new token
+            mock_file = mock_file()
+            mock_file.write.assert_called_once_with(
+                json.dumps(session._session_data.__dict__)
+            )
+
+        # Expect a request to obtain a new token
+        self.mock_requests.post.assert_called_once_with(
+            LOGIN_API_ENDPOINT,
+            data={
+                "client_id": "dafni-main",
+                "grant_type": "refresh_token",
+                "refresh_token": "some_refresh_token",
+            },
+            timeout=REQUESTS_TIMEOUT,
+        )
+
+        # Should only try request once as refreshes before called in this case
+        self.assertEqual(self.mock_requests.request.call_count, 1)
 
     @patch("dafni_cli.api.session.time")
     def test_retry_on_error(self, mock_time):

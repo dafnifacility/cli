@@ -38,6 +38,10 @@ LOGOUT_API_ENDPOINT = f"{KEYCLOAK_API_URL}/auth/realms/{KEYCLOAK_API_REALM}/prot
 SESSION_SAVE_FILE = ".dafni-cli"
 SESSION_COOKIE = "__Secure-dafni"
 
+# Time before a token expires that we should refresh the token regardless
+# of any authentication errors (seconds) - 60 matches VueKeyCloak
+TOKEN_EXPIRE_OFFSET = 60
+
 # Content types
 MINIO_UPLOAD_CT = "multipart/form-data"
 VALIDATE_MODEL_CT = "application/yaml"

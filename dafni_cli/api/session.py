@@ -1,5 +1,5 @@
+import datetime
 import json
-from multiprocessing import AuthenticationError
 import os
 import time
 from dataclasses import dataclass
@@ -16,11 +16,12 @@ from dafni_cli.consts import (
     LOGIN_API_ENDPOINT,
     LOGOUT_API_ENDPOINT,
     REQUEST_ERROR_RETRY_ATTEMPTS,
+    REQUEST_ERROR_RETRY_WAIT,
     REQUESTS_TIMEOUT,
     SENDER_TYPE,
     SESSION_COOKIE,
     SESSION_SAVE_FILE,
-    REQUEST_ERROR_RETRY_WAIT,
+    TOKEN_EXPIRE_OFFSET,
     URLS_REQUIRING_COOKIE_AUTHENTICATION,
 )
 from dafni_cli.utils import dataclass_from_dict
@@ -32,13 +33,18 @@ class LoginResponse:
 
     access_token: Optional[str] = None
     refresh_token: Optional[str] = None
+    expires_in: Optional[int] = None
 
     def was_successful(self):
         """
         Returns whether this login response represents a successful login
         """
 
-        return self.access_token is not None and self.refresh_token is not None
+        return (
+            self.access_token is not None
+            and self.refresh_token is not None
+            and self.expires_in is not None
+        )
 
 
 @dataclass
@@ -49,11 +55,15 @@ class SessionData:
     username: str
     access_token: str
     refresh_token: str
+    timestamp_to_refresh: float
 
     @staticmethod
     def from_login_response(username: str, login_response: LoginResponse):
         """
         Constructs a session data object and returns it
+
+        The timestamp_to_refresh parameter will be set to the current time
+        + the token's time to expiry - the TOKEN_EXPIRE_OFFSET.
 
         Args:
             username (str): Username to identify the session with
@@ -61,10 +71,15 @@ class SessionData:
                                             from logging in
         """
 
+        datetime_to_refresh = datetime.datetime.now() + datetime.timedelta(
+            seconds=login_response.expires_in - TOKEN_EXPIRE_OFFSET
+        )
+
         return SessionData(
             username=username,
             access_token=login_response.access_token,
             refresh_token=login_response.refresh_token,
+            timestamp_to_refresh=datetime_to_refresh.timestamp(),
         )
 
 
@@ -187,6 +202,20 @@ class DAFNISession:
 
             if self._use_session_data_file:
                 self._save_session_data()
+
+    def _check_and_refresh_tokens(self):
+        """Checks whether the current stored token will expire soon, and if
+        so will attempt to refresh it
+
+        Raises:
+            LoginError: If unable to login or gain a new refresh token
+        """
+        if (
+            datetime.datetime.now().timestamp()
+            >= self._session_data.timestamp_to_refresh
+        ):
+            # Need a refresh
+            self._refresh_tokens()
 
     def logout(self):
         """Logs out of keycloak"""
@@ -345,9 +374,10 @@ class DAFNISession:
             allow_redirect (bool): Flag to allow redirects during API call.
             stream (Optional[bool]): Whether to stream the request
             retry_callback (Optional[Callable]): Function called when the
-                             request is retried e.g. after a token refresh
-                             or if there is an SSLError. Particularly useful
-                             for file uploads that may need to be reset.
+                             request is retried e.g. after a token refresh after an
+                             initial request is sent or if there is an SSLError.
+                             Particularly useful for file uploads that may need to
+                             be reset.
             auth_recursion_level (int): Number of times this method has
                              been recursively called due to an authentication
                              issue (Used to avoid infinite loops)
@@ -363,6 +393,10 @@ class DAFNISession:
             RuntimeError: If some other error repeatedly occurs e.g. an SSLError
                           (See https://github.com/dafnifacility/cli/issues/113)
         """
+
+        # Before doing anything check whether the current token will expire
+        # soon and refresh if so
+        self._check_and_refresh_tokens()
 
         # Should we retry the request for any reason
         retry = False
