@@ -63,7 +63,7 @@ class SessionData:
         Constructs a session data object and returns it
 
         The timestamp_to_refresh parameter will be set to the current time
-        + the expiry time - the TOKEN_EXPIRE_OFFSET.
+        + the token's time to expiry - the TOKEN_EXPIRE_OFFSET.
 
         Args:
             username (str): Username to identify the session with
@@ -214,11 +214,6 @@ class DAFNISession:
             datetime.datetime.now().timestamp()
             >= self._session_data.timestamp_to_refresh
         ):
-            print(
-                "NEW REFRESH",
-                datetime.datetime.now().timestamp()
-                - self._session_data.timestamp_to_refresh,
-            )
             # Need a refresh
             self._refresh_tokens()
 
