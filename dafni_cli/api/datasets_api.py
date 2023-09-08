@@ -173,5 +173,5 @@ def delete_dataset_version(session: DAFNISession, version_id: str) -> Response:
         session (DAFNISession): User session
         version_id (str): Dataset version ID for the selected dataset version
     """
-    url = f"{NID_API_URL}/nid/version/{version_id}"
+    url = f"{NID_API_URL}/nid/version/{version_id}/"
     return session.delete_request(url)
