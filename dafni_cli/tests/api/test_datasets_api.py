@@ -230,6 +230,6 @@ class TestDatasetsAPI(TestCase):
 
         # ASSERT
         session.delete_request.assert_called_once_with(
-            f"{NID_API_URL}/nid/version/{version_id}",
+            f"{NID_API_URL}/nid/version/{version_id}/",
         )
         self.assertEqual(result, session.delete_request.return_value)
