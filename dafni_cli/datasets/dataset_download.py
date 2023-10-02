@@ -41,6 +41,7 @@ def download_dataset(
         # Each file downloaded individually with its own progress bar
         for file in files:
             file_save_path = directory / file.name
+            file_save_path.parent.mkdir(exist_ok=True, parents=True)
 
             # Stream the file download
             with minio_get_request(
