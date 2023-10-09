@@ -45,7 +45,7 @@ class TestDatasetsAPI(TestCase):
 
         # ASSERT
         session.get_request.assert_called_once_with(
-            url=f"{SEARCH_AND_DISCOVERY_API_URL}/metadata/{version_id}",
+            url=f"{NID_API_URL}/nid/metadata/{version_id}",
             allow_redirect=True,
         )
         self.assertEqual(result, session.get_request.return_value)

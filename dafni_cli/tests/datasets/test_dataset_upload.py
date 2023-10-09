@@ -68,7 +68,7 @@ class TestRemoveDatasetMetadataInvalidForUpload(TestCase):
         """Tests that remove_dataset_metadata_invalid_for_upload works as expected"""
 
         # SETUP
-        original_metadata = deepcopy(TEST_DATASET_METADATA)
+        original_metadata = deepcopy(TEST_DATASET_METADATA["metadata"])
         metadata = deepcopy(original_metadata)
 
         # CALL
