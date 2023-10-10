@@ -645,9 +645,13 @@ class DatasetMetadata(ParserBaseObject):
         ParserParam("publisher", ["metadata", "dct:publisher"], Publisher),
         ParserParam("rights", ["metadata", "dct:rights"], str),
         ParserParam("update_frequency", ["metadata", "dct:accrualPeriodicity"], str),
-        ParserParam("end_date", ["metadata", "dct:PeriodOfTime", "time:hasEnd"], parse_datetime),
         ParserParam(
-            "start_date", ["metadata", "dct:PeriodOfTime", "time:hasBeginning"], parse_datetime
+            "end_date", ["metadata", "dct:PeriodOfTime", "time:hasEnd"], parse_datetime
+        ),
+        ParserParam(
+            "start_date",
+            ["metadata", "dct:PeriodOfTime", "time:hasBeginning"],
+            parse_datetime,
         ),
     ]
 

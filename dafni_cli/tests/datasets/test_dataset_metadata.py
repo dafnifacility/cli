@@ -395,8 +395,12 @@ class TestDatasetMetadataTestCase(TestCase):
         metadata = parse_dataset_metadata(TEST_DATASET_METADATA)
 
         self.assertEqual(metadata.title, TEST_DATASET_METADATA["metadata"]["dct:title"])
-        self.assertEqual(metadata.description, TEST_DATASET_METADATA["metadata"]["dct:description"])
-        self.assertEqual(metadata.subject, TEST_DATASET_METADATA["metadata"]["dct:subject"])
+        self.assertEqual(
+            metadata.description, TEST_DATASET_METADATA["metadata"]["dct:description"]
+        )
+        self.assertEqual(
+            metadata.subject, TEST_DATASET_METADATA["metadata"]["dct:subject"]
+        )
         self.assertEqual(metadata.created, datetime(2021, 3, 16, 0, 0))
 
         # Creators (Contents tested in TestCreator)
@@ -409,7 +413,9 @@ class TestDatasetMetadataTestCase(TestCase):
         # Location (Contents tested in TestLocation)
         self.assertEqual(type(metadata.location), Location)
 
-        self.assertEqual(metadata.keywords, TEST_DATASET_METADATA["metadata"]["dcat:keyword"])
+        self.assertEqual(
+            metadata.keywords, TEST_DATASET_METADATA["metadata"]["dcat:keyword"]
+        )
 
         self.assertEqual(
             metadata.modified, datetime(2021, 3, 16, 9, 27, 21, tzinfo=tzutc())
@@ -417,17 +423,24 @@ class TestDatasetMetadataTestCase(TestCase):
         self.assertEqual(
             metadata.issued, datetime(2021, 3, 16, 9, 27, 21, tzinfo=tzutc())
         )
-        self.assertEqual(metadata.language, TEST_DATASET_METADATA["metadata"]["dct:language"])
+        self.assertEqual(
+            metadata.language, TEST_DATASET_METADATA["metadata"]["dct:language"]
+        )
 
-        self.assertEqual(metadata.asset_id, TEST_DATASET_METADATA["metadata"]["@id"]["asset_id"])
         self.assertEqual(
-            metadata.dataset_id, TEST_DATASET_METADATA["metadata"]["@id"]["dataset_uuid"]
+            metadata.asset_id, TEST_DATASET_METADATA["metadata"]["@id"]["asset_id"]
         )
         self.assertEqual(
-            metadata.version_id, TEST_DATASET_METADATA["metadata"]["@id"]["version_uuid"]
+            metadata.dataset_id,
+            TEST_DATASET_METADATA["metadata"]["@id"]["dataset_uuid"],
         )
         self.assertEqual(
-            metadata.metadata_id, TEST_DATASET_METADATA["metadata"]["@id"]["metadata_uuid"]
+            metadata.version_id,
+            TEST_DATASET_METADATA["metadata"]["@id"]["version_uuid"],
+        )
+        self.assertEqual(
+            metadata.metadata_id,
+            TEST_DATASET_METADATA["metadata"]["@id"]["metadata_uuid"],
         )
 
         # Auth tested in test_auth anyway
@@ -440,14 +453,19 @@ class TestDatasetMetadataTestCase(TestCase):
         self.assertEqual(metadata.status, TEST_DATASET_METADATA["status"])
 
         self.assertEqual(
-            metadata.version_message, TEST_DATASET_METADATA["metadata"]["dafni_version_note"]
+            metadata.version_message,
+            TEST_DATASET_METADATA["metadata"]["dafni_version_note"],
         )
 
         # Version history (Contents tested in TestVersionHistory)
         self.assertEqual(type(metadata.version_history), DatasetVersionHistory)
 
-        self.assertEqual(metadata.identifiers, TEST_DATASET_METADATA["metadata"]["dct:identifier"])
-        self.assertEqual(metadata.themes, TEST_DATASET_METADATA["metadata"]["dcat:theme"])
+        self.assertEqual(
+            metadata.identifiers, TEST_DATASET_METADATA["metadata"]["dct:identifier"]
+        )
+        self.assertEqual(
+            metadata.themes, TEST_DATASET_METADATA["metadata"]["dcat:theme"]
+        )
 
         # Standard (Contents tested in TestStandard)
         self.assertEqual(type(metadata.standard), Standard)
@@ -455,9 +473,12 @@ class TestDatasetMetadataTestCase(TestCase):
         # Publisher (Contents tested in TestPublisher)
         self.assertEqual(type(metadata.publisher), Publisher)
 
-        self.assertEqual(metadata.rights, TEST_DATASET_METADATA["metadata"]["dct:rights"])
         self.assertEqual(
-            metadata.update_frequency, TEST_DATASET_METADATA["metadata"]["dct:accrualPeriodicity"]
+            metadata.rights, TEST_DATASET_METADATA["metadata"]["dct:rights"]
+        )
+        self.assertEqual(
+            metadata.update_frequency,
+            TEST_DATASET_METADATA["metadata"]["dct:accrualPeriodicity"],
         )
         self.assertEqual(
             metadata.start_date, datetime(2019, 3, 27, 0, 0, tzinfo=tzutc())
