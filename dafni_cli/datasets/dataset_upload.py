@@ -381,7 +381,6 @@ def _commit_metadata(
 
     return response
 
-
 def upload_dataset(
     session: DAFNISession,
     metadata: dict,
@@ -403,6 +402,9 @@ def upload_dataset(
                                     to. Creates a new dataset if None.
         json (bool): Whether to print the raw json returned by the DAFNI API
     """
+    optional_echo("Validating metadata", json)
+    datasets_api.validate_metadata(session, metadata)
+    optional_echo("Metadata validated", json)
 
     optional_echo("\nRetrieving temporary bucket ID", json)
     temp_bucket_id = create_temp_bucket(session)

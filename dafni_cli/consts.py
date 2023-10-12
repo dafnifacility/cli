@@ -5,7 +5,7 @@ REQUESTS_TIMEOUT = 100
 SENDER_TYPE = "cli"
 
 # Environment - Either 'production' or 'staging' for development purposes
-ENVIRONMENT = "production"
+ENVIRONMENT = "staging"
 ENVIRONMENT_DOMAIN = "secure" if ENVIRONMENT == "production" else "staging"
 
 # URLs
