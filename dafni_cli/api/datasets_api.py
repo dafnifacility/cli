@@ -124,7 +124,6 @@ def upload_dataset_metadata(
     Returns:
         Response: Upload Response
     """
-    validate_metadata(metadata)
 
     if dataset_id:
         url = f"{NID_API_URL}/nid/dataset/{dataset_id}"
