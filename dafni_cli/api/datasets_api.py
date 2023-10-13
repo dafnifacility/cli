@@ -14,15 +14,19 @@ def validate_metadata(session: DAFNISession, metadata):
     Function to validate metadata prior to upload
     
     Args:
-    
+        session (DAFNISession): User session
+        metadata: metadata in .json format
     Returns:
-    
+        True on successful validation, raises error if unsuccessful
     """
     url = f"{NID_API_URL}/nid/validate/"
-
-    return session.post_request(url=url, json=metadata)
-
-
+    if "metadata" not in metadata:
+        metadata = {"metadata": metadata}
+    try:
+        session.post_request(url=url, json=metadata)
+    except Exception as err:
+        raise SystemExit(err)
+    return True
 
 # TODO this should work with pagination - check
 def get_all_datasets(session: DAFNISession, filters: dict) -> List[dict]:

@@ -404,7 +404,7 @@ def upload_dataset(
     """
     optional_echo("Validating metadata", json)
     datasets_api.validate_metadata(session, metadata)
-    optional_echo("Metadata validated", json)
+    optional_echo("Metadata validation finished", json)
 
     optional_echo("\nRetrieving temporary bucket ID", json)
     temp_bucket_id = create_temp_bucket(session)
@@ -430,7 +430,7 @@ def upload_dataset(
         click.echo(f"Dataset ID: {details['datasetId']}")
         click.echo(f"Version ID: {details['versionId']}")
         click.echo(f"Metadata ID: {details['metadataId']}")
-
+ 
 
 def upload_dataset_metadata_version(
     session: DAFNISession,
