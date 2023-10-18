@@ -8,7 +8,7 @@ import click
 from requests.exceptions import HTTPError
 
 import dafni_cli.api.datasets_api as datasets_api
-from dafni_cli.api.exceptions import DAFNIError, EndpointNotFoundError
+from dafni_cli.api.exceptions import DAFNIError, EndpointNotFoundError, ValidationError
 from dafni_cli.api.minio_api import (
     create_temp_bucket,
     delete_temp_bucket,
@@ -403,8 +403,12 @@ def upload_dataset(
         json (bool): Whether to print the raw json returned by the DAFNI API
     """
     optional_echo("Validating metadata", json)
-    datasets_api.validate_metadata(session, metadata)
-    optional_echo("Metadata validation finished", json)
+    try:
+        datasets_api.validate_metadata(session, metadata)
+    except ValidationError as err:
+        click.echo(err)
+        raise SystemExit(1) from err
+    optional_echo("Metadata validation successful", json)
 
     optional_echo("\nRetrieving temporary bucket ID", json)
     temp_bucket_id = create_temp_bucket(session)

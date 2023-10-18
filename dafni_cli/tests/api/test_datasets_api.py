@@ -4,13 +4,42 @@ from unittest.mock import MagicMock, patch
 import requests
 
 from dafni_cli.api import datasets_api
-from dafni_cli.api.exceptions import EndpointNotFoundError, ResourceNotFoundError
+from dafni_cli.api.exceptions import EndpointNotFoundError, ResourceNotFoundError, DAFNIError, ValidationError
 from dafni_cli.consts import NID_API_URL, SEARCH_AND_DISCOVERY_API_URL
 from dafni_cli.tests.fixtures.session import create_mock_metadata_errors_response
 
 
 class TestDatasetsAPI(TestCase):
     """Test class to test the functions in datasets_api.py"""
+
+    def test_validate_metadata_with_valid_metadata(self):
+        """Tests that validate_metadata works as expected with valid metadata"""
+
+        # SETUP
+        session = MagicMock()
+        metadata = "test_metadata"
+
+        # CALL
+        datasets_api.validate_metadata(session, metadata)
+
+        # ASSERT
+        session.post_request.assert_called_once_with(
+            url=f"{NID_API_URL}/nid/validate/",
+            json={"metadata": metadata},
+        )
+    
+    def test_validate_metadata_with_invalid_metadata(self):
+        """Tests that validate_metadata raises a ValidationError with invalid metadata"""
+
+        # SETUP
+        session = MagicMock()
+        session.post_request.side_effect = DAFNIError
+        metadata = "test_metadata"
+
+        # CALL + ASSERT
+        with self.assertRaises(ValidationError): 
+            datasets_api.validate_metadata(session, metadata)
+
 
     def test_get_all_datasets(self):
         """Tests that get_all_datasets works as expected"""

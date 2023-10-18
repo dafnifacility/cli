@@ -5,6 +5,7 @@ import click
 from click import Context
 
 from dafni_cli.api.session import DAFNISession
+from dafni_cli.api.exceptions import ValidationError
 from dafni_cli.api.datasets_api import validate_metadata
 from dafni_cli.commands.options import (
     confirmation_skip_option
@@ -31,7 +32,7 @@ def validate(ctx: Context):
 ###############################################################################
 # COMMAND: Validation check for metadata for DAFNI
 ###############################################################################
-@validate.command(help="Validation check a model to DAFNI")
+@validate.command(help="Validation check a dataset metadata for DAFNI")
 @click.argument(
     "metadata_path",
     nargs=1,
@@ -41,7 +42,7 @@ def validate(ctx: Context):
 
 @confirmation_skip_option
 @click.pass_context
-def metadata(
+def dataset_metadata(
     ctx: Context,
     metadata_path: Path,
     yes: bool,
@@ -52,6 +53,7 @@ def metadata(
         ctx (Context): contains user session for authentication
         metadata_path (Path): File path to the metadata file
     """
+    # Confirm upload details
     arguments = [
         ("metadata path", metadata_path),
     ]
@@ -64,8 +66,11 @@ def metadata(
     with open(metadata_path, "r", encoding="utf-8") as metadata_file:
         metadata = json_lib.load(metadata_file)
 
-    if(validate_metadata(
-        ctx.obj["session"],
-        metadata,
-    )):
-        click.echo("Metadata file is valid")
+    #Send to validation endpoint
+    click.echo("Validating metadata")
+    try:
+        validate_metadata(ctx.obj["session"], metadata)
+    except ValidationError as err:
+        click.echo(err)
+        raise SystemExit(1) from err
+    click.echo("Metadata validation successful")
