@@ -44,6 +44,7 @@ class TestValidate(TestCase):
         self.assertEqual(ctx["session"], session)
         self.assertEqual(result.exit_code, 0)
 
+
 class TestValidateDatasetMetadata(TestCase):
     """Test class to test the upload dataset commands"""
 
@@ -52,7 +53,9 @@ class TestValidateDatasetMetadata(TestCase):
 
         self.metadata_path = "test_metadata.json"
 
-        self.mock_DAFNISession = patch("dafni_cli.commands.validate.DAFNISession").start()
+        self.mock_DAFNISession = patch(
+            "dafni_cli.commands.validate.DAFNISession"
+        ).start()
         self.mock_session = MagicMock()
         self.mock_DAFNISession.return_value = self.mock_session
 
@@ -108,9 +111,7 @@ class TestValidateDatasetMetadata(TestCase):
 
         # ASSERT
         self.mock_DAFNISession.assert_called_once()
-        self.mock_validate_metadata.assert_called_once_with(
-            self.mock_session, {}
-        )
+        self.mock_validate_metadata.assert_called_once_with(self.mock_session, {})
 
         self.assertEqual(
             result.output,
