@@ -6,16 +6,14 @@ from click.testing import CliRunner
 from dafni_cli.commands import login
 
 
-@patch("dafni_cli.commands.login.get_notifications_messages")
 @patch("dafni_cli.commands.login.DAFNISession")
 class TestLogin(TestCase):
     """Test class to test the login command"""
 
-    def test_when_logged_in(self, mock_session, mock_notifications):
+    def test_when_logged_in(self, mock_session):
         """Tests login behaves appropriately when already logged in"""
 
         mock_session.has_session_file.return_value = True
-        mock_notifications.return_value = ["test-message"]
         runner = CliRunner()
 
         result = runner.invoke(login.login)
@@ -25,10 +23,10 @@ class TestLogin(TestCase):
 
         self.assertEqual(
             result.stdout,
-            f"Already logged in as {mock_session_inst.username}\ntest-message\n",
+            f"Already logged in as {mock_session_inst.username}\n",
         )
 
-    def test_when_not_logged_in(self, mock_session, mock_notifications):
+    def test_when_not_logged_in(self, mock_session):
         """Tests login behaves appropriately when not logged in"""
 
         mock_session.has_session_file.return_value = False
