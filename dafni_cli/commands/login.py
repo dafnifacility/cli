@@ -1,5 +1,6 @@
 import click
 
+from dafni_cli.api.notifications_api import get_notifications_messages
 from dafni_cli.api.session import DAFNISession
 
 
@@ -10,6 +11,7 @@ def login():
     and password. If there is already a cached session this will instead
     output the current logged in username and user_id.
     """
+    messages = get_notifications_messages()
 
     if DAFNISession.has_session_file():
         # Output current stored session's username and user id
@@ -18,6 +20,9 @@ def login():
     else:
         # Creating a new session will request authentication anyway
         DAFNISession()
+
+    for message in messages:
+        click.echo(message)
 
 
 @click.command(help="Logout of DAFNI")
