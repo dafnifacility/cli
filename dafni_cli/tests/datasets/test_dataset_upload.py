@@ -8,7 +8,7 @@ from unittest.mock import MagicMock, call, mock_open, patch
 
 from requests import HTTPError
 
-from dafni_cli.api.exceptions import DAFNIError
+from dafni_cli.api.exceptions import DAFNIError, ValidationError
 from dafni_cli.consts import DATASET_UPLOAD_FILE_RETRY_ATTEMPTS
 from dafni_cli.datasets import dataset_upload
 from dafni_cli.datasets.dataset_metadata import (
@@ -683,8 +683,12 @@ class TestDatasetUpload(TestCase):
                 session, metadata, temp_bucket_id, dataset_id=dataset_id, json=json
             )
 
-            self.mock_optional_echo.assert_called_once_with(
-                "\nRetrieving temporary bucket ID", json
+            self.mock_optional_echo.assert_has_calls(
+                [
+                    call("Validating metadata", json),
+                    call("Metadata validation successful", json),
+                    call("\nRetrieving temporary bucket ID", json)
+                ]
             )
 
             if json:
@@ -699,6 +703,21 @@ class TestDatasetUpload(TestCase):
                         call(f"Version ID: {details['versionId']}"),
                         call(f"Metadata ID: {details['metadataId']}"),
                     ]
+                )
+
+    def test_upload_dataset_validation_error(self):
+         """Tests that the validation error is handled correctly when raised due to metadata validation failing"""
+         with patch("dafni_cli.api.datasets_api.validate_metadata") as mock_validate_metadata:
+             # SETUP
+             session = MagicMock()
+             metadata = MagicMock()
+             paths = MagicMock()
+             mock_validate_metadata.side_effect = ValidationError
+
+             # CALL
+             with self.assertRaises(SystemExit):
+                dataset_upload.upload_dataset(
+                    session, metadata, paths
                 )
 
     def test_upload_dataset(self):
@@ -747,6 +766,8 @@ class TestDatasetUpload(TestCase):
             self.assertEqual(
                 self.mock_optional_echo.call_args_list,
                 [
+                    call("Validating metadata", json),
+                    call("Metadata validation successful", json),
                     call("\nRetrieving temporary bucket ID", json),
                     call("Deleting temporary bucket", json),
                 ],
@@ -803,6 +824,8 @@ class TestDatasetUpload(TestCase):
             self.assertEqual(
                 self.mock_optional_echo.call_args_list,
                 [
+                    call("Validating metadata", False),
+                    call("Metadata validation successful", False),
                     call("\nRetrieving temporary bucket ID", False),
                     call("Deleting temporary bucket", False),
                 ],
