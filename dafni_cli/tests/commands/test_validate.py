@@ -43,5 +43,3 @@ class TestValidate(TestCase):
 
         self.assertEqual(ctx["session"], session)
         self.assertEqual(result.exit_code, 0)
-
-
