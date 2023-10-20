@@ -12,7 +12,7 @@ import requests
 from requests import HTTPError
 
 from dafni_cli.api.exceptions import DAFNIError, EndpointNotFoundError, LoginError
-from dafni_cli.api.notifications_api import get_notifications_messages
+from dafni_cli.api.notifications_api import get_notifications
 from dafni_cli.consts import (
     LOGIN_API_ENDPOINT,
     LOGOUT_API_ENDPOINT,
@@ -25,7 +25,7 @@ from dafni_cli.consts import (
     TOKEN_EXPIRE_OFFSET,
     URLS_REQUIRING_COOKIE_AUTHENTICATION,
 )
-from dafni_cli.utils import dataclass_from_dict
+from dafni_cli.utils import dataclass_from_dict, get_current_messages
 
 
 @dataclass
@@ -86,6 +86,9 @@ class SessionData:
 
 class DAFNISession:
     """Handles user login and authentication"""
+
+    # Notifications
+    notifications = get_notifications()
 
     # Session data
     _session_data: SessionData
@@ -340,9 +343,12 @@ class DAFNISession:
 
         click.echo(f"Logged in as {self.username}")
 
-        messages = get_notifications_messages()
-        for message in messages:
-            click.echo(message)
+        messages = get_current_messages(self.notifications)
+        if messages:
+            click.echo("***** NOTICE *****")
+            for message in messages:
+                click.echo(message)
+            click.echo("***** NOTICE *****")
 
     def attempt_login(self):
         """First attempts to find login credentials from environment variables

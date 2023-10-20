@@ -2,7 +2,7 @@ from datetime import datetime
 from typing import List
 
 
-def get_notifications_messages() -> List[str]:
+def get_notifications() -> List[str]:
     """Function for getting notification messages on DAFNI. In the future the notifications will be pulled from an API, but for now are hard coded with start and end dates"""
     notifications = [
         {
@@ -12,10 +12,4 @@ def get_notifications_messages() -> List[str]:
         }
     ]
 
-    now = datetime.now()
-    current_messages = [
-        notification["message"]
-        for notification in notifications
-        if notification["start_date"] < now and notification["end_date"] > now
-    ]
-    return current_messages
+    return notifications

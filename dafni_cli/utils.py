@@ -356,3 +356,13 @@ def split_list(lst: List, max_size: int):
     """
     for i in range(0, len(lst), max_size):
         yield lst[i : i + max_size]
+
+
+def get_current_messages(all_notifications: dict) -> List[str]:
+    now = datetime.now()
+    current_messages = [
+        notification["message"]
+        for notification in all_notifications
+        if notification["start_date"] < now and notification["end_date"] > now
+    ]
+    return current_messages

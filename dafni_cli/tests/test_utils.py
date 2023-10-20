@@ -5,6 +5,8 @@ from typing import List, Optional
 from unittest import TestCase
 from unittest.mock import MagicMock, call, patch
 
+from freezegun import freeze_time
+
 from dafni_cli import utils
 from dafni_cli.consts import (
     DATA_FORMATS,
@@ -751,3 +753,30 @@ class TestSplitList(TestCase):
             result,
             [list(range(0, max_size)), list(range(max_size, list_length))],
         )
+
+
+@freeze_time("2000-01-10")
+class TestGetCurrentMessages(TestCase):
+    """Test class to test the get_current_messages function"""
+
+    def test_returns_correct_messages_from_list(self):
+        # SETUP
+        mock_notifications = [
+            {
+                "start_date": datetime(2000, 1, 1),
+                "end_date": datetime(2000, 1, 20),
+                "message": "this will be returned",
+            },
+            {
+                "start_date": datetime(2000, 1, 15),
+                "end_date": datetime(2000, 1, 20),
+                "message": "this will not be returned",
+            },
+        ]
+        expected_result = ["this will be returned"]
+
+        # CALL
+        result = utils.get_current_messages(mock_notifications)
+
+        # ASSERT
+        self.assertEqual(result, expected_result)
