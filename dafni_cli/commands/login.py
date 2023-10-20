@@ -10,6 +10,7 @@ def login():
     and password. If there is already a cached session this will instead
     output the current logged in username and user_id.
     """
+
     if DAFNISession.has_session_file():
         # Output current stored session's username and user id
         session = DAFNISession()

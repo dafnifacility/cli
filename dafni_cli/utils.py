@@ -358,7 +358,16 @@ def split_list(lst: List, max_size: int):
         yield lst[i : i + max_size]
 
 
-def get_current_messages(all_notifications: dict) -> List[str]:
+def get_current_messages(all_notifications: List[dict]) -> List[str]:
+    """Gets the currently active messages from list of notification
+
+    Args:
+        all_notifications (List): List of notifications
+
+    Returns:
+        current_messages[List]: List of active messages
+
+    """
     now = datetime.now()
     current_messages = [
         notification["message"]
