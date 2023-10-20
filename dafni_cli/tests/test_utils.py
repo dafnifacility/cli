@@ -772,6 +772,11 @@ class TestGetCurrentMessages(TestCase):
                 "end_date": datetime(2000, 1, 20),
                 "message": "this will not be returned",
             },
+            {
+                "start_date": datetime(2000, 1, 1),
+                "end_date": datetime(2000, 1, 10),
+                "message": "this will not be returned",
+            },
         ]
         expected_result = ["this will be returned"]
 

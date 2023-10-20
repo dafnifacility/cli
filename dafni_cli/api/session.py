@@ -343,13 +343,6 @@ class DAFNISession:
 
         click.echo(f"Logged in as {self.username}")
 
-        messages = get_current_messages(self.notifications)
-        if messages:
-            click.echo("***** NOTICE *****")
-            for message in messages:
-                click.echo(message)
-            click.echo("***** NOTICE *****")
-
     def attempt_login(self):
         """First attempts to find login credentials from environment variables
         and if that fails prompt's the user to enter a username and password
@@ -357,6 +350,13 @@ class DAFNISession:
 
         if not self._attempt_login_from_env():
             self._request_user_login()
+
+        messages = get_current_messages(self.notifications)
+        if messages:
+            click.echo("***** NOTICE *****")
+            for message in messages:
+                click.echo(message)
+            click.echo("***** NOTICE *****")
 
     # Listed below this point are various methods for performing specific HTTP
     # requests using the session data
