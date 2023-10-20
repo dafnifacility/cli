@@ -381,6 +381,7 @@ def _commit_metadata(
 
     return response
 
+
 def upload_dataset(
     session: DAFNISession,
     metadata: dict,
@@ -434,7 +435,7 @@ def upload_dataset(
         click.echo(f"Dataset ID: {details['datasetId']}")
         click.echo(f"Version ID: {details['versionId']}")
         click.echo(f"Metadata ID: {details['metadataId']}")
- 
+
 
 def upload_dataset_metadata_version(
     session: DAFNISession,

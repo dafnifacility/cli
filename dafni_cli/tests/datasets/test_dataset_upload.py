@@ -687,7 +687,7 @@ class TestDatasetUpload(TestCase):
                 [
                     call("Validating metadata", json),
                     call("Metadata validation successful", json),
-                    call("\nRetrieving temporary bucket ID", json)
+                    call("\nRetrieving temporary bucket ID", json),
                 ]
             )
 
@@ -706,19 +706,19 @@ class TestDatasetUpload(TestCase):
                 )
 
     def test_upload_dataset_validation_error(self):
-         """Tests that the validation error is handled correctly when raised due to metadata validation failing"""
-         with patch("dafni_cli.api.datasets_api.validate_metadata") as mock_validate_metadata:
-             # SETUP
-             session = MagicMock()
-             metadata = MagicMock()
-             paths = MagicMock()
-             mock_validate_metadata.side_effect = ValidationError
+        """Tests that the validation error is handled correctly when raised due to metadata validation failing"""
+        with patch(
+            "dafni_cli.api.datasets_api.validate_metadata"
+        ) as mock_validate_metadata:
+            # SETUP
+            session = MagicMock()
+            metadata = MagicMock()
+            paths = MagicMock()
+            mock_validate_metadata.side_effect = ValidationError
 
-             # CALL
-             with self.assertRaises(SystemExit):
-                dataset_upload.upload_dataset(
-                    session, metadata, paths
-                )
+            # CALL
+            with self.assertRaises(SystemExit):
+                dataset_upload.upload_dataset(session, metadata, paths)
 
     def test_upload_dataset(self):
         """Tests that upload_dataset works as expected with json = False"""

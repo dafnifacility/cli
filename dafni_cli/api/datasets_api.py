@@ -4,15 +4,21 @@ import requests
 
 from requests import Response
 
-from dafni_cli.api.exceptions import EndpointNotFoundError, DAFNIError, ResourceNotFoundError, ValidationError
+from dafni_cli.api.exceptions import (
+    EndpointNotFoundError,
+    DAFNIError,
+    ResourceNotFoundError,
+    ValidationError,
+)
 from dafni_cli.api.session import DAFNISession
 from dafni_cli.consts import NID_API_URL, SEARCH_AND_DISCOVERY_API_URL
+
 
 # Validation function for
 def validate_metadata(session: DAFNISession, metadata: dict):
     """
     Function to validate metadata prior to upload
-    
+
     Args:
         session (DAFNISession): User session
         metadata: metadata in .json format
@@ -23,10 +29,9 @@ def validate_metadata(session: DAFNISession, metadata: dict):
     metadata = {"metadata": metadata}
     try:
         session.post_request(url=url, json=metadata)
-    except (DAFNIError) as err:
-        raise ValidationError(
-            f"Dataset metadata validation failed. {err}"
-        )
+    except DAFNIError as err:
+        raise ValidationError(f"Dataset metadata validation failed. {err}")
+
 
 # TODO this should work with pagination - check
 def get_all_datasets(session: DAFNISession, filters: dict) -> List[dict]:

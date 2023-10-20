@@ -7,9 +7,7 @@ from click import Context
 from dafni_cli.api.session import DAFNISession
 from dafni_cli.api.exceptions import ValidationError
 from dafni_cli.api.datasets_api import validate_metadata
-from dafni_cli.commands.options import (
-    confirmation_skip_option
-)
+from dafni_cli.commands.options import confirmation_skip_option
 from dafni_cli.utils import argument_confirmation
 
 
@@ -39,7 +37,6 @@ def validate(ctx: Context):
     required=True,
     type=click.Path(exists=True, path_type=Path),
 )
-
 @confirmation_skip_option
 @click.pass_context
 def dataset_metadata(
@@ -58,15 +55,13 @@ def dataset_metadata(
         ("metadata path", metadata_path),
     ]
     confirmation_message = "Confirm metadata validation check?"
-    argument_confirmation(
-        arguments, confirmation_message, skip=yes
-    )
+    argument_confirmation(arguments, confirmation_message, skip=yes)
 
     # Obtain the metadata
     with open(metadata_path, "r", encoding="utf-8") as metadata_file:
         metadata = json_lib.load(metadata_file)
 
-    #Send to validation endpoint
+    # Send to validation endpoint
     click.echo("Validating metadata")
     try:
         validate_metadata(ctx.obj["session"], metadata)
