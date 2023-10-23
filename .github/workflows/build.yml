@@ -34,6 +34,7 @@ jobs:
         run: |
           rm -r dafni_cli
           pip install ./dist/dafni_cli-*.whl
+          pip install freezegun
           python -m unittest discover dafni_cli.tests
       - name: Upload artifact
         uses: actions/upload-artifact@v3
