@@ -120,22 +120,22 @@ class TestValidateDatasetMetadata(TestCase):
     def test_validate_metadata_SystemExit_on_ValidationError(
         self,
     ):
-            """Tests that the 'validate_dataset-metadata' command works correctly when validate_metadata returns a ValidationError"""
+        """Tests that the 'validate_dataset-metadata' command works correctly when validate_metadata returns a ValidationError"""
 
-            # SETUP
-            self.mock_validate_metadata.side_effect = ValidationError
+        # SETUP
+        self.mock_validate_metadata.side_effect = ValidationError
 
-            # CALL
-            result = self.invoke_command(input="y")
+        # CALL
+        result = self.invoke_command(input="y")
 
-            # ASSERT
-            self.mock_DAFNISession.assert_called_once()
-            self.mock_validate_metadata.assert_called_once_with(self.mock_session, {})
+        # ASSERT
+        self.mock_DAFNISession.assert_called_once()
+        self.mock_validate_metadata.assert_called_once_with(self.mock_session, {})
 
-            self.assertEqual(
-                result.output,
-                f"metadata path: {self.metadata_path}\n"
-                "Confirm metadata validation check? [y/N]: y\n"
-                "Validating metadata\n\n",
-            )
-            self.assertEqual(result.exit_code, 1)
+        self.assertEqual(
+            result.output,
+            f"metadata path: {self.metadata_path}\n"
+            "Confirm metadata validation check? [y/N]: y\n"
+            "Validating metadata\n\n",
+        )
+        self.assertEqual(result.exit_code, 1)
