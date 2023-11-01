@@ -1,12 +1,11 @@
 from typing import List, Optional
 
 import requests
-
 from requests import Response
 
 from dafni_cli.api.exceptions import (
-    EndpointNotFoundError,
     DAFNIError,
+    EndpointNotFoundError,
     ResourceNotFoundError,
     ValidationError,
 )
@@ -14,7 +13,7 @@ from dafni_cli.api.session import DAFNISession
 from dafni_cli.consts import NID_API_URL, SEARCH_AND_DISCOVERY_API_URL
 
 
-# Validation function for
+# Validation function for validating the dataset-metadata
 def validate_metadata(session: DAFNISession, metadata: dict):
     """
     Function to validate metadata prior to upload

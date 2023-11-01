@@ -4,9 +4,9 @@ from pathlib import Path
 import click
 from click import Context
 
-from dafni_cli.api.session import DAFNISession
-from dafni_cli.api.exceptions import ValidationError
 from dafni_cli.api.datasets_api import validate_metadata
+from dafni_cli.api.exceptions import ValidationError
+from dafni_cli.api.session import DAFNISession
 from dafni_cli.commands.options import confirmation_skip_option
 from dafni_cli.utils import argument_confirmation
 

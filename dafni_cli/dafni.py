@@ -6,8 +6,8 @@ from dafni_cli.commands.download import download
 from dafni_cli.commands.get import get
 from dafni_cli.commands.login import login, logout
 from dafni_cli.commands.upload import upload
-from dafni_cli.version import DAFNI_CLI_VERSION
 from dafni_cli.commands.validate import validate
+from dafni_cli.version import DAFNI_CLI_VERSION
 
 
 @click.group()

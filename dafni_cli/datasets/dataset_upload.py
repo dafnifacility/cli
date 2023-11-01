@@ -16,20 +16,14 @@ from dafni_cli.api.minio_api import (
     upload_file_to_minio,
 )
 from dafni_cli.api.session import DAFNISession
-from dafni_cli.consts import (
-    DATASET_UPLOAD_FILE_RETRY_ATTEMPTS,
-)
+from dafni_cli.consts import DATASET_UPLOAD_FILE_RETRY_ATTEMPTS
 from dafni_cli.datasets.dataset_metadata import (
     DATASET_METADATA_LANGUAGES,
     DATASET_METADATA_SUBJECTS,
     DATASET_METADATA_THEMES,
     DATASET_METADATA_UPDATE_FREQUENCIES,
 )
-from dafni_cli.utils import (
-    OverallFileProgressBar,
-    optional_echo,
-    print_json,
-)
+from dafni_cli.utils import OverallFileProgressBar, optional_echo, print_json
 
 # Keys inside dataset metadata returned from the API that are invalid for
 # uploading

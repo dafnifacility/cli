@@ -5,9 +5,9 @@ import requests
 
 from dafni_cli.api import datasets_api
 from dafni_cli.api.exceptions import (
+    DAFNIError,
     EndpointNotFoundError,
     ResourceNotFoundError,
-    DAFNIError,
     ValidationError,
 )
 from dafni_cli.consts import NID_API_URL, SEARCH_AND_DISCOVERY_API_URL
@@ -17,8 +17,8 @@ from dafni_cli.tests.fixtures.session import create_mock_metadata_errors_respons
 class TestDatasetsAPI(TestCase):
     """Test class to test the functions in datasets_api.py"""
 
-    def test_validate_metadata_with_valid_metadata(self):
-        """Tests that validate_metadata works as expected with valid metadata"""
+    def test_validate_metadata_function_called_correctly_on_good_post_request(self):
+        """Tests that validate_metadata called as expected when no error raised"""
 
         # SETUP
         session = MagicMock()
@@ -33,8 +33,8 @@ class TestDatasetsAPI(TestCase):
             json={"metadata": metadata},
         )
 
-    def test_validate_metadata_with_invalid_metadata(self):
-        """Tests that validate_metadata raises a ValidationError with invalid metadata"""
+    def test_validate_metadata_when_DAFNIError(self):
+        """Tests that validate_metadata raises a ValidationError when DAFNIError raised on post request"""
 
         # SETUP
         session = MagicMock()

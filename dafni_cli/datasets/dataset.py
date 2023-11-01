@@ -6,7 +6,7 @@ import click
 
 from dafni_cli.api.parser import ParserBaseObject, ParserParam, parse_datetime
 from dafni_cli.consts import CONSOLE_WIDTH, TAB_SPACE
-from dafni_cli.utils import format_datetime, format_data_format, prose_print
+from dafni_cli.utils import format_data_format, format_datetime, prose_print
 
 
 @dataclass
