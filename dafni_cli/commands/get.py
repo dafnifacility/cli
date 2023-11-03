@@ -34,6 +34,10 @@ from dafni_cli.consts import (
     TABLE_SUMMARY_MAX_COLUMN_WIDTH,
     TABLE_VERSION_ID_HEADER,
     TABLE_WORKFLOW_VERSION_ID_HEADER,
+    TABLE_CONTACT_POINT_NAME,
+    TABLE_CONTACT_POINT_EMAIL,
+    TABLE_LICENSE,
+    TABLE_RIGHTS,
 )
 from dafni_cli.datasets import dataset_filtering
 from dafni_cli.datasets.dataset import parse_datasets
@@ -141,11 +145,19 @@ def models(
                     TABLE_STATUS_HEADER,
                     TABLE_ACCESS_HEADER,
                     TABLE_PUBLICATION_DATE_HEADER,
+                    TABLE_CONTACT_POINT_NAME,
+                    TABLE_CONTACT_POINT_EMAIL,
+                    TABLE_LICENSE,
+                    TABLE_RIGHTS,
                     TABLE_SUMMARY_HEADER,
                 ],
                 rows=rows,
                 max_column_widths=[
                     TABLE_DISPLAY_NAME_MAX_COLUMN_WIDTH,
+                    None,
+                    None,
+                    None,
+                    None,
                     None,
                     None,
                     None,

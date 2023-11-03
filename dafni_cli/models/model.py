@@ -48,10 +48,14 @@ class ModelMetadata(ParserBaseObject):
     name: str
     summary: str
     status: str
+    contact_point_name: str
+    contact_point_email: str
 
     description: Optional[str] = None
     publisher: Optional[str] = None
     source_code: Optional[str] = None
+    license: Optional[str] = None
+    rights: Optional[str] = None
 
     STATUS_STRINGS = {
         "P": "Pending",
@@ -69,6 +73,10 @@ class ModelMetadata(ParserBaseObject):
         ParserParam("description", "description", str),
         ParserParam("publisher", "publisher", str),
         ParserParam("source_code", "source_code", str),
+        ParserParam("contact_point_name", "contact_point_name", str),
+        ParserParam("contact_point_email", "contact_point_email", str),
+        ParserParam("license", "license", str),
+        ParserParam("rights", "rights", str),
     ]
 
     def get_status_string(self) -> str:
@@ -220,6 +228,10 @@ class Model(ParserBaseObject):
         ParserParam("_name", "name", str),
         ParserParam("_summary", "summary", str),
         ParserParam("_status", "status", str),
+        ParserParam("_contact_point_name", "contact_point_name", str),
+        ParserParam("_contact_point_email", "contact_point_email", str),
+        ParserParam("_license", "license", str),
+        ParserParam("_rights", "rights", str),
     ]
 
     @property
@@ -248,6 +260,10 @@ class Model(ParserBaseObject):
             name=self._name,
             summary=self._summary,
             status=self._status,
+            contact_point_name=self.contact_point_name,
+            contact_point_email=self.contact_point_email,
+            license=self.licence,
+            rights=self.rights,
         )
         return self._metadata
 
@@ -277,6 +293,14 @@ class Model(ParserBaseObject):
         )
         click.echo("")
         click.echo(f"Published by: {self.metadata.publisher}")
+        click.echo("")
+        click.echo(
+            f"Contact point name: {self.metadata.contact_point_name} | Contact point email: {self.metadata.contact_point_email}"
+        )
+        click.echo("")
+        click.echo(f"License: {self.metadata.license}")
+        click.echo("")
+        click.echo(f"Rights: {self.metadata.rights}")
         click.echo("")
         click.echo(
             tabulate(
