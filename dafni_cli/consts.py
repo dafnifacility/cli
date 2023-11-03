@@ -5,7 +5,7 @@ REQUESTS_TIMEOUT = 100
 SENDER_TYPE = "cli"
 
 # Environment - Either 'production' or 'staging' for development purposes
-ENVIRONMENT = "production"
+ENVIRONMENT = "staging"
 ENVIRONMENT_DOMAIN = "secure" if ENVIRONMENT == "production" else "staging"
 
 # URLs
@@ -99,6 +99,10 @@ TABLE_GENERATE_VALUES_HEADER = "Generate values"
 TABLE_PATH_TO_DATA_HEADER = "Path to data"
 TABLE_DATASET_VERSION_IDS_HEADER = "Dataset version IDs"
 TABLE_STEPS_THAT_CONTAIN_DATASLOT_HEADER = "Steps that contain dataslot"
+TABLE_CONTACT_POINT_NAME = "Contact name"
+TABLE_CONTACT_POINT_EMAIL = "Contact email"
+TABLE_LICENSE = "License"
+TABLE_RIGHTS = "Rights"
 
 TABLE_DESCRIPTION_MAX_COLUMN_WIDTH = 80
 TABLE_DISPLAY_NAME_MAX_COLUMN_WIDTH = 40
