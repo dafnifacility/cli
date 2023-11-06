@@ -68,4 +68,4 @@ def dataset_metadata(
     except ValidationError as err:
         click.echo(err)
         raise SystemExit(1) from err
-    click.echo("Metadata validation successfull")
+    click.echo("Metadata validation successful")
