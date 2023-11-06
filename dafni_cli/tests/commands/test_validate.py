@@ -113,7 +113,7 @@ class TestValidateDatasetMetadata(TestCase):
             f"metadata path: {self.metadata_path}\n"
             "Confirm metadata validation check? [y/N]: y\n"
             "Validating metadata\n"
-            "Metadata validation successfull\n",
+            "Metadata validation successful\n",
         )
         self.assertEqual(result.exit_code, 0)
 
