@@ -12,10 +12,10 @@ from dafni_cli.api.models_api import (
 )
 from dafni_cli.api.session import DAFNISession
 from dafni_cli.utils import (
+    is_valid_definition_file,
+    is_valid_image_file,
     optional_echo,
     print_json,
-    is_valid_image_file,
-    is_valid_definition_file,
 )
 
 
