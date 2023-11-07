@@ -190,17 +190,14 @@ class Model(ParserBaseObject):
     version_tags: List[str]
     version_history: List[ModelVersion]
     auth: Auth
+    _contact_point_name: str
+    _contact_point_email: str
     ingest_completed_date: Optional[datetime] = None
 
     api_version: Optional[str] = None
     type: Optional[str] = None
     spec: Optional[ModelSpec] = None
-
-    contact_point_name: str
-    contact_point_email: str
-    licence: Optional[str] = None
-    rights: Optional[str] = None
-
+    
     # Internal metadata storage - Defined explicitly for the
     # /model/<version_id> endpoint but is None otherwise, the property
     # 'metadata' handles this discrepancy
@@ -212,6 +209,8 @@ class Model(ParserBaseObject):
     _name: Optional[str] = None
     _summary: Optional[str] = None
     _status: Optional[str] = None
+    _licence: Optional[str] = None
+    _rights: Optional[str] = None
 
     _parser_params: ClassVar[List[ParserParam]] = [
         ParserParam("model_id", "id", str),
@@ -265,10 +264,10 @@ class Model(ParserBaseObject):
             name=self._name,
             summary=self._summary,
             status=self._status,
-            contact_point_name=self.contact_point_name,
-            contact_point_email=self.contact_point_email,
-            licence=self.licence,
-            rights=self.rights,
+            contact_point_name=self._contact_point_name,
+            contact_point_email=self._contact_point_email,
+            licence=self._licence,
+            rights=self._rights,
         )
         return self._metadata
 
