@@ -243,6 +243,7 @@ class TestModel(TestCase):
         self.assertEqual(model.metadata.description, TEST_MODEL_METADATA["description"])
         self.assertEqual(model.metadata.publisher, TEST_MODEL_METADATA["publisher"])
         self.assertEqual(model.metadata.source_code, TEST_MODEL_METADATA["source_code"])
+        #TODO add contact point and licence fields
 
     def test_get_brief_details(self):
         """Tests get_brief_details works correctly"""

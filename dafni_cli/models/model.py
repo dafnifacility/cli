@@ -285,6 +285,10 @@ class Model(ParserBaseObject):
             self.metadata.get_status_string(),
             self.auth.get_permission_string(),
             format_datetime(self.publication_date, include_time=False),
+            self.metadata.contact_point_name,
+            self.metadata.contact_point_email,
+            self.metadata.licence,
+            self.metadata.rights,
             self.metadata.summary,
         ]
 
