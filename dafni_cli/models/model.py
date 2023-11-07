@@ -54,7 +54,7 @@ class ModelMetadata(ParserBaseObject):
     description: Optional[str] = None
     publisher: Optional[str] = None
     source_code: Optional[str] = None
-    license: Optional[str] = None
+    licence: Optional[str] = None
     rights: Optional[str] = None
 
     STATUS_STRINGS = {
@@ -75,7 +75,7 @@ class ModelMetadata(ParserBaseObject):
         ParserParam("source_code", "source_code", str),
         ParserParam("contact_point_name", "contact_point_name", str),
         ParserParam("contact_point_email", "contact_point_email", str),
-        ParserParam("license", "license", str),
+        ParserParam("licence", "licence", str),
         ParserParam("rights", "rights", str),
     ]
 
@@ -196,6 +196,11 @@ class Model(ParserBaseObject):
     type: Optional[str] = None
     spec: Optional[ModelSpec] = None
 
+    contact_point_name = str
+    contact_point_email = str
+    licence: Optional[str] = None
+    rights: Optional[str] = None
+
     # Internal metadata storage - Defined explicitly for the
     # /model/<version_id> endpoint but is None otherwise, the property
     # 'metadata' handles this discrepancy
@@ -230,7 +235,7 @@ class Model(ParserBaseObject):
         ParserParam("_status", "status", str),
         ParserParam("_contact_point_name", "contact_point_name", str),
         ParserParam("_contact_point_email", "contact_point_email", str),
-        ParserParam("_license", "license", str),
+        ParserParam("_licence", "licence", str),
         ParserParam("_rights", "rights", str),
     ]
 
@@ -262,7 +267,7 @@ class Model(ParserBaseObject):
             status=self._status,
             contact_point_name=self.contact_point_name,
             contact_point_email=self.contact_point_email,
-            license=self.licence,
+            licence=self.licence,
             rights=self.rights,
         )
         return self._metadata
@@ -298,7 +303,7 @@ class Model(ParserBaseObject):
             f"Contact point name: {self.metadata.contact_point_name} | Contact point email: {self.metadata.contact_point_email}"
         )
         click.echo("")
-        click.echo(f"License: {self.metadata.license}")
+        click.echo(f"licence: {self.metadata.licence}")
         click.echo("")
         click.echo(f"Rights: {self.metadata.rights}")
         click.echo("")
