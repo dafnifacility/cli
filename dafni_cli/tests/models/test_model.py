@@ -262,6 +262,10 @@ class TestModel(TestCase):
                 model.metadata.get_status_string(),
                 model.auth.get_permission_string(),
                 format_datetime(model.publication_date, include_time=False),
+                model.metadata.contact_point_name,
+                model.metadata.contact_point_email,
+                model.metadata.licence,
+                model.metadata.rights,
                 model.metadata.summary,
             ],
         )
@@ -294,6 +298,14 @@ class TestModel(TestCase):
                 ),
                 call(""),
                 call(f"Published by: {str(model.metadata.publisher)}"),
+                call(""),
+                call(
+                    f"Contact point name: {model.metadata.contact_point_name} | Contact point email: {model.metadata.contact_point_email}"
+                ),
+                call(""),
+                call(f"licence: {model.metadata.licence}"),
+                call(""),
+                call(f"Rights: {model.metadata.rights}"),
                 call(""),
                 call(mock_tabulate.return_value),
                 call(""),
@@ -354,6 +366,14 @@ class TestModel(TestCase):
                 call(""),
                 call(f"Published by: {str(model.metadata.publisher)}"),
                 call(""),
+                call(
+                    f"Contact point name: {model.metadata.contact_point_name} | Contact point email: {model.metadata.contact_point_email}"
+                ),
+                call(""),
+                call(f"licence: {model.metadata.licence}"),
+                call(""),
+                call(f"Rights: {model.metadata.rights}"),
+                call(""),
                 call(mock_tabulate.return_value),
                 call(""),
                 call("Version message:"),
@@ -411,6 +431,14 @@ class TestModel(TestCase):
                 call(""),
                 call(f"Published by: {str(model.metadata.publisher)}"),
                 call(""),
+                call(
+                    f"Contact point name: {model.metadata.contact_point_name} | Contact point email: {model.metadata.contact_point_email}"
+                ),
+                call(""),
+                call(f"licence: {model.metadata.licence}"),
+                call(""),
+                call(f"Rights: {model.metadata.rights}"),
+                call(""),
                 call(mock_tabulate.return_value),
                 call(""),
                 call("Version message:"),
@@ -465,6 +493,14 @@ class TestModel(TestCase):
                 ),
                 call(""),
                 call(f"Published by: {str(model.metadata.publisher)}"),
+                call(""),
+                call(
+                    f"Contact point name: {model.metadata.contact_point_name} | Contact point email: {model.metadata.contact_point_email}"
+                ),
+                call(""),
+                call(f"licence: {model.metadata.licence}"),
+                call(""),
+                call(f"Rights: {model.metadata.rights}"),
                 call(""),
                 call(mock_tabulate.return_value),
                 call(""),

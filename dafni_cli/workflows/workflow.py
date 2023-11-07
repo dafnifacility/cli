@@ -101,8 +101,6 @@ class Workflow(ParserBaseObject):
     version_tags: List[str]
     version_message: str
     parent_id: str
-    _contact_point_name: str
-    _contact_point_email: str
 
     instances: Optional[List[WorkflowInstanceList]] = None
     parameter_sets: Optional[List[WorkflowParameterSet]] = None
@@ -119,6 +117,8 @@ class Workflow(ParserBaseObject):
     _display_name: Optional[str] = None
     _name: Optional[str] = None
     _summary: Optional[str] = None
+    _contact_point_name: Optional[str] = ""
+    _contact_point_email: Optional[str] = ""
     _licence: Optional[str] = None
     _rights: Optional[str] = None
 

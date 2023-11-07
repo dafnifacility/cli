@@ -190,8 +190,7 @@ class Model(ParserBaseObject):
     version_tags: List[str]
     version_history: List[ModelVersion]
     auth: Auth
-    _contact_point_name: str
-    _contact_point_email: str
+    
     ingest_completed_date: Optional[datetime] = None
 
     api_version: Optional[str] = None
@@ -211,6 +210,8 @@ class Model(ParserBaseObject):
     _status: Optional[str] = None
     _licence: Optional[str] = None
     _rights: Optional[str] = None
+    _contact_point_name: Optional[str] = ""
+    _contact_point_email: Optional[str] = ""
 
     _parser_params: ClassVar[List[ParserParam]] = [
         ParserParam("model_id", "id", str),

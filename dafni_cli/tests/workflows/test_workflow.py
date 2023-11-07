@@ -209,6 +209,10 @@ class TestWorkflow(TestCase):
                 workflow.metadata.display_name,
                 workflow.workflow_id,
                 format_datetime(workflow.publication_date, include_time=False),
+                workflow.metadata.contact_point_name,
+                workflow.metadata.contact_point_email,
+                workflow.metadata.licence,
+                workflow.metadata.rights,
                 workflow.metadata.summary,
             ],
         )
@@ -328,6 +332,14 @@ class TestWorkflow(TestCase):
                 call(""),
                 call(f"Published by: {workflow.metadata.publisher_id}"),
                 call(""),
+                call(
+                    f"Contact point name: {workflow.metadata.contact_point_name} | Contact point email: {workflow.metadata.contact_point_email}"
+                ),
+                call(""),
+                call(f"licence: {workflow.metadata.licence}"),
+                call(""),
+                call(f"Rights: {workflow.metadata.rights}"),
+                call(""),
                 call(mock_tabulate.return_value),
                 call(""),
                 call("Version message:"),
@@ -389,6 +401,14 @@ class TestWorkflow(TestCase):
                 ),
                 call(""),
                 call(f"Published by: {workflow.metadata.publisher_id}"),
+                call(""),
+                call(
+                    f"Contact point name: {workflow.metadata.contact_point_name} | Contact point email: {workflow.metadata.contact_point_email}"
+                ),
+                call(""),
+                call(f"licence: {workflow.metadata.licence}"),
+                call(""),
+                call(f"Rights: {workflow.metadata.rights}"),
                 call(""),
                 call(mock_tabulate.return_value),
                 call(""),
