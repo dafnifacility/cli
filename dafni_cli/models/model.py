@@ -196,8 +196,8 @@ class Model(ParserBaseObject):
     type: Optional[str] = None
     spec: Optional[ModelSpec] = None
 
-    contact_point_name = str
-    contact_point_email = str
+    contact_point_name: str
+    contact_point_email: str
     licence: Optional[str] = None
     rights: Optional[str] = None
 
