@@ -263,7 +263,7 @@ class Workflow(ParserBaseObject):
             f"Contact point name: {self.metadata.contact_point_name} | Contact point email: {self.metadata.contact_point_email}"
         )
         click.echo("")
-        click.echo(f"licence: {self.metadata.licence}")
+        click.echo(f"Licence: {self.metadata.licence}")
         click.echo("")
         click.echo(f"Rights: {self.metadata.rights}")
         click.echo("")

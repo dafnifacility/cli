@@ -336,7 +336,7 @@ class TestWorkflow(TestCase):
                     f"Contact point name: {workflow.metadata.contact_point_name} | Contact point email: {workflow.metadata.contact_point_email}"
                 ),
                 call(""),
-                call(f"licence: {workflow.metadata.licence}"),
+                call(f"Licence: {workflow.metadata.licence}"),
                 call(""),
                 call(f"Rights: {workflow.metadata.rights}"),
                 call(""),
@@ -406,7 +406,7 @@ class TestWorkflow(TestCase):
                     f"Contact point name: {workflow.metadata.contact_point_name} | Contact point email: {workflow.metadata.contact_point_email}"
                 ),
                 call(""),
-                call(f"licence: {workflow.metadata.licence}"),
+                call(f"Licence: {workflow.metadata.licence}"),
                 call(""),
                 call(f"Rights: {workflow.metadata.rights}"),
                 call(""),

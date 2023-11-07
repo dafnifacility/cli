@@ -303,7 +303,7 @@ class TestModel(TestCase):
                     f"Contact point name: {model.metadata.contact_point_name} | Contact point email: {model.metadata.contact_point_email}"
                 ),
                 call(""),
-                call(f"licence: {model.metadata.licence}"),
+                call(f"Licence: {model.metadata.licence}"),
                 call(""),
                 call(f"Rights: {model.metadata.rights}"),
                 call(""),
@@ -370,7 +370,7 @@ class TestModel(TestCase):
                     f"Contact point name: {model.metadata.contact_point_name} | Contact point email: {model.metadata.contact_point_email}"
                 ),
                 call(""),
-                call(f"licence: {model.metadata.licence}"),
+                call(f"Licence: {model.metadata.licence}"),
                 call(""),
                 call(f"Rights: {model.metadata.rights}"),
                 call(""),
@@ -435,7 +435,7 @@ class TestModel(TestCase):
                     f"Contact point name: {model.metadata.contact_point_name} | Contact point email: {model.metadata.contact_point_email}"
                 ),
                 call(""),
-                call(f"licence: {model.metadata.licence}"),
+                call(f"Licence: {model.metadata.licence}"),
                 call(""),
                 call(f"Rights: {model.metadata.rights}"),
                 call(""),
@@ -498,7 +498,7 @@ class TestModel(TestCase):
                     f"Contact point name: {model.metadata.contact_point_name} | Contact point email: {model.metadata.contact_point_email}"
                 ),
                 call(""),
-                call(f"licence: {model.metadata.licence}"),
+                call(f"Licence: {model.metadata.licence}"),
                 call(""),
                 call(f"Rights: {model.metadata.rights}"),
                 call(""),
