@@ -243,8 +243,13 @@ class TestModel(TestCase):
         self.assertEqual(model.metadata.description, TEST_MODEL_METADATA["description"])
         self.assertEqual(model.metadata.publisher, TEST_MODEL_METADATA["publisher"])
         self.assertEqual(model.metadata.source_code, TEST_MODEL_METADATA["source_code"])
-        self.assertEqual(model.metadata.contact_point_name, TEST_MODEL_METADATA["contact_point_name"])
-        self.assertEqual(model.metadata.contact_point_email, TEST_MODEL_METADATA["contact_point_email"])
+        self.assertEqual(
+            model.metadata.contact_point_name, TEST_MODEL_METADATA["contact_point_name"]
+        )
+        self.assertEqual(
+            model.metadata.contact_point_email,
+            TEST_MODEL_METADATA["contact_point_email"],
+        )
         self.assertEqual(model.metadata.licence, TEST_MODEL_METADATA["licence"])
         self.assertEqual(model.metadata.rights, TEST_MODEL_METADATA["rights"])
 

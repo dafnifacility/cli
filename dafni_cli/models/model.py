@@ -190,13 +190,13 @@ class Model(ParserBaseObject):
     version_tags: List[str]
     version_history: List[ModelVersion]
     auth: Auth
-    
+
     ingest_completed_date: Optional[datetime] = None
 
     api_version: Optional[str] = None
     type: Optional[str] = None
     spec: Optional[ModelSpec] = None
-    
+
     # Internal metadata storage - Defined explicitly for the
     # /model/<version_id> endpoint but is None otherwise, the property
     # 'metadata' handles this discrepancy
