@@ -140,7 +140,7 @@ def add_dataset_metadata_common_options(
             ]
         )
     elif not all_optional:
-        dictionary["license"] = "https://creativecommons.org/licences/by/4.0/"
+        dictionary["license"] = "https://creativecommons.org/licenses/by/4.0/"
 
     if rights is not None:
         args.extend(

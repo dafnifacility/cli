@@ -28,7 +28,7 @@ TEST_WORKFLOW_DATA_WORKFLOWS_ENDPOINT: dict = {
     "version_history": [TEST_WORKFLOW_VERSION],
     "contact_point_name": "Lorem Ipsum",
     "contact_point_email": "lorem.ipsum@example.com",
-    "license": "https://creativecommons.org/licenses/by/4.0/",
+    "licence": "https://creativecommons.org/licenses/by/4.0/",
     "rights": "Open",
 }
 
@@ -101,7 +101,7 @@ TEST_WORKFLOW: dict = {
                             }
                         ],
                         "dct:license": {
-                            "@id": "https://creativecommons.org/licences/by/4.0/",
+                            "@id": "https://creativecommons.org/licenses/by/4.0/",
                             "@type": "LicenseDocument",
                             "rdfs:label": None,
                         },

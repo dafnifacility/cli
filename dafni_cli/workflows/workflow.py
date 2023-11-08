@@ -191,10 +191,11 @@ class Workflow(ParserBaseObject):
             self.metadata.display_name,
             self.workflow_id,
             format_datetime(self.publication_date, include_time=False),
-            self.metadata.contact_point_name,
-            self.metadata.contact_point_email,
-            self.metadata.licence,
-            self.metadata.rights,
+            # self.metadata.contact_point_name,
+            # self.metadata.contact_point_email,
+            # self.metadata.licence,
+            # self.metadata.rights,
+            # f"{self.metadata.contact_point_name} ({self.metadata.contact_point_email})",
             self.metadata.summary,
         ]
 
@@ -258,14 +259,9 @@ class Workflow(ParserBaseObject):
         )
         click.echo("")
         click.echo(f"Published by: {self.metadata.publisher_id}")
-        click.echo("")
         click.echo(
-            f"Contact point name: {self.metadata.contact_point_name} | Contact point email: {self.metadata.contact_point_email}"
+            f"Contact Point: {self.metadata.contact_point_name} ({self.metadata.contact_point_email})"
         )
-        click.echo("")
-        click.echo(f"Licence: {self.metadata.licence}")
-        click.echo("")
-        click.echo(f"Rights: {self.metadata.rights}")
         click.echo("")
         click.echo(
             tabulate(
@@ -286,6 +282,9 @@ class Workflow(ParserBaseObject):
         click.echo("")
         click.echo("Description:")
         prose_print(self.metadata.description, CONSOLE_WIDTH)
+        click.echo("")
+        click.echo(f"Licence: {self.metadata.licence}")
+        click.echo(f"Rights: {self.metadata.rights}")
         if self.parameter_sets is not None:
             click.echo("")
             click.echo("Parameter sets:")

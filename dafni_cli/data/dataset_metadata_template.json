@@ -42,7 +42,7 @@
     },
     "dct:license": {
         "@type": "LicenseDocument",
-        "@id": "https://creativecommons.org/licences/by/4.0/",
+        "@id": "https://creativecommons.org/licenses/by/4.0/",
         "rdfs:label": null
     },
     "dct:rights": null,

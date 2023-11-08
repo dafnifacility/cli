@@ -19,7 +19,7 @@ TEST_MODEL_METADATA: dict = {
     "status": "F",
     "contact_point_name": "Lorem Ipsum",
     "contact_point_email": "lorem.ipsum@example.com",
-    "license": "https://creativecommons.org/licenses/by/4.0/",
+    "licence": "https://creativecommons.org/licenses/by/4.0/",
     "rights": "Open",
 }
 
@@ -49,7 +49,7 @@ TEST_MODEL_DATA_MODELS_ENDPOINT: dict = {
     ],
     "contact_point_name": "Lorem Ipsum",
     "contact_point_email": "lorem.ipsum@example.com",
-    "license": "https://creativecommons.org/licenses/by/4.0/",
+    "licence": "https://creativecommons.org/licenses/by/4.0/",
     "rights": "Open",
 }
 

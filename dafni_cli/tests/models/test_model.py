@@ -243,6 +243,10 @@ class TestModel(TestCase):
         self.assertEqual(model.metadata.description, TEST_MODEL_METADATA["description"])
         self.assertEqual(model.metadata.publisher, TEST_MODEL_METADATA["publisher"])
         self.assertEqual(model.metadata.source_code, TEST_MODEL_METADATA["source_code"])
+        self.assertEqual(model.metadata.contact_point_name, TEST_MODEL_METADATA["contact_point_name"])
+        self.assertEqual(model.metadata.contact_point_email, TEST_MODEL_METADATA["contact_point_email"])
+        self.assertEqual(model.metadata.licence, TEST_MODEL_METADATA["licence"])
+        self.assertEqual(model.metadata.rights, TEST_MODEL_METADATA["rights"])
         #TODO add contact point and licence fields
 
     def test_get_brief_details(self):
@@ -262,10 +266,10 @@ class TestModel(TestCase):
                 model.metadata.get_status_string(),
                 model.auth.get_permission_string(),
                 format_datetime(model.publication_date, include_time=False),
-                model.metadata.contact_point_name,
-                model.metadata.contact_point_email,
-                model.metadata.licence,
-                model.metadata.rights,
+                # model.metadata.contact_point_name,
+                # model.metadata.contact_point_email,
+                # model.metadata.licence,
+                # model.metadata.rights,
                 model.metadata.summary,
             ],
         )
@@ -298,14 +302,9 @@ class TestModel(TestCase):
                 ),
                 call(""),
                 call(f"Published by: {str(model.metadata.publisher)}"),
-                call(""),
                 call(
-                    f"Contact point name: {model.metadata.contact_point_name} | Contact point email: {model.metadata.contact_point_email}"
+                    f"Contact Point: {model.metadata.contact_point_name} ({model.metadata.contact_point_email})"
                 ),
-                call(""),
-                call(f"Licence: {model.metadata.licence}"),
-                call(""),
-                call(f"Rights: {model.metadata.rights}"),
                 call(""),
                 call(mock_tabulate.return_value),
                 call(""),
@@ -319,6 +318,8 @@ class TestModel(TestCase):
                 call(""),
                 call("Source code:"),
                 call(model.metadata.source_code),
+                call(f"Licence: {model.metadata.licence}"),
+                call(f"Rights: {model.metadata.rights}"),
                 call(""),
                 call("Input Parameters: "),
                 call(self.mock_inputs_format_parameters.return_value),
@@ -365,14 +366,9 @@ class TestModel(TestCase):
                 ),
                 call(""),
                 call(f"Published by: {str(model.metadata.publisher)}"),
-                call(""),
                 call(
-                    f"Contact point name: {model.metadata.contact_point_name} | Contact point email: {model.metadata.contact_point_email}"
+                    f"Contact Point: {model.metadata.contact_point_name} ({model.metadata.contact_point_email})"
                 ),
-                call(""),
-                call(f"Licence: {model.metadata.licence}"),
-                call(""),
-                call(f"Rights: {model.metadata.rights}"),
                 call(""),
                 call(mock_tabulate.return_value),
                 call(""),
@@ -386,6 +382,8 @@ class TestModel(TestCase):
                 call(""),
                 call("Source code:"),
                 call(model.metadata.source_code),
+                call(f"Licence: {model.metadata.licence}"),
+                call(f"Rights: {model.metadata.rights}"),
                 call(""),
                 call("Input Parameters: "),
                 call(self.mock_inputs_format_parameters.return_value),
@@ -430,14 +428,9 @@ class TestModel(TestCase):
                 ),
                 call(""),
                 call(f"Published by: {str(model.metadata.publisher)}"),
-                call(""),
                 call(
-                    f"Contact point name: {model.metadata.contact_point_name} | Contact point email: {model.metadata.contact_point_email}"
+                    f"Contact Point: {model.metadata.contact_point_name} ({model.metadata.contact_point_email})"
                 ),
-                call(""),
-                call(f"Licence: {model.metadata.licence}"),
-                call(""),
-                call(f"Rights: {model.metadata.rights}"),
                 call(""),
                 call(mock_tabulate.return_value),
                 call(""),
@@ -451,6 +444,8 @@ class TestModel(TestCase):
                 call(""),
                 call("Source code:"),
                 call(model.metadata.source_code),
+                call(f"Licence: {model.metadata.licence}"),
+                call(f"Rights: {model.metadata.rights}"),
                 call(""),
                 call("Outputs: "),
                 call(self.mock_outputs_format_outputs.return_value),
@@ -493,14 +488,9 @@ class TestModel(TestCase):
                 ),
                 call(""),
                 call(f"Published by: {str(model.metadata.publisher)}"),
-                call(""),
                 call(
-                    f"Contact point name: {model.metadata.contact_point_name} | Contact point email: {model.metadata.contact_point_email}"
+                    f"Contact Point: {model.metadata.contact_point_name} ({model.metadata.contact_point_email})"
                 ),
-                call(""),
-                call(f"Licence: {model.metadata.licence}"),
-                call(""),
-                call(f"Rights: {model.metadata.rights}"),
                 call(""),
                 call(mock_tabulate.return_value),
                 call(""),
@@ -514,6 +504,8 @@ class TestModel(TestCase):
                 call(""),
                 call("Source code:"),
                 call(model.metadata.source_code),
+                call(f"Licence: {model.metadata.licence}"),
+                call(f"Rights: {model.metadata.rights}"),
             ],
         )
         mock_tabulate.assert_called_once_with(

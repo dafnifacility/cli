@@ -6,6 +6,6 @@ TEST_WORKFLOW_METADATA: dict = {
     "summary": "Test workflow created to learn about DAFNI",
     "contact_point_name": "Lorem Ipsum",
     "contact_point_email": "lorem.ipsum@example.com",
-    "license": "https://creativecommons.org/licenses/by/4.0/",
+    "licence": "https://creativecommons.org/licenses/by/4.0/",
     "rights": "Open",
 }

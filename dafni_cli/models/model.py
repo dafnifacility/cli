@@ -286,10 +286,11 @@ class Model(ParserBaseObject):
             self.metadata.get_status_string(),
             self.auth.get_permission_string(),
             format_datetime(self.publication_date, include_time=False),
-            self.metadata.contact_point_name,
-            self.metadata.contact_point_email,
-            self.metadata.licence,
-            self.metadata.rights,
+            # self.metadata.contact_point_name,
+            # self.metadata.contact_point_email,
+            # self.metadata.licence,
+            # self.metadata.rights,
+            # f"{self.metadata.contact_point_name} ({self.metadata.contact_point_email})",
             self.metadata.summary,
         ]
 
@@ -302,14 +303,9 @@ class Model(ParserBaseObject):
         )
         click.echo("")
         click.echo(f"Published by: {self.metadata.publisher}")
-        click.echo("")
         click.echo(
-            f"Contact point name: {self.metadata.contact_point_name} | Contact point email: {self.metadata.contact_point_email}"
+            f"Contact Point: {self.metadata.contact_point_name} ({self.metadata.contact_point_email})"
         )
-        click.echo("")
-        click.echo(f"Licence: {self.metadata.licence}")
-        click.echo("")
-        click.echo(f"Rights: {self.metadata.rights}")
         click.echo("")
         click.echo(
             tabulate(
@@ -333,6 +329,8 @@ class Model(ParserBaseObject):
         click.echo("")
         click.echo("Source code:")
         click.echo(self.metadata.source_code)
+        click.echo(f"Licence: {self.metadata.licence}")
+        click.echo(f"Rights: {self.metadata.rights}")
         if self.spec.inputs is not None:
             click.echo("")
             click.echo("Input Parameters: ")
