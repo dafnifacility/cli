@@ -117,6 +117,10 @@ class Workflow(ParserBaseObject):
     _display_name: Optional[str] = None
     _name: Optional[str] = None
     _summary: Optional[str] = None
+    _contact_point_name: Optional[str] = ""
+    _contact_point_email: Optional[str] = ""
+    _licence: Optional[str] = None
+    _rights: Optional[str] = None
 
     _parser_params: ClassVar[List[ParserParam]] = [
         ParserParam("workflow_id", "id", str),
@@ -137,6 +141,10 @@ class Workflow(ParserBaseObject):
         ParserParam("_display_name", "display_name", str),
         ParserParam("_name", "name", str),
         ParserParam("_summary", "summary", str),
+        ParserParam("_contact_point_name", "contact_point_name", str),
+        ParserParam("_contact_point_email", "contact_point_email", str),
+        ParserParam("_licence", "licence", str),
+        ParserParam("_rights", "rights", str),
     ]
 
     @property
@@ -164,6 +172,10 @@ class Workflow(ParserBaseObject):
             display_name=self._display_name,
             name=self._name,
             summary=self._summary,
+            contact_point_name=self._contact_point_name,
+            contact_point_email=self._contact_point_email,
+            licence=self._licence,
+            rights=self._rights,
         )
         return self._metadata
 
@@ -242,6 +254,9 @@ class Workflow(ParserBaseObject):
         )
         click.echo("")
         click.echo(f"Published by: {self.metadata.publisher_id}")
+        click.echo(
+            f"Contact Point: {self.metadata.contact_point_name} ({self.metadata.contact_point_email})"
+        )
         click.echo("")
         click.echo(
             tabulate(
@@ -262,6 +277,9 @@ class Workflow(ParserBaseObject):
         click.echo("")
         click.echo("Description:")
         prose_print(self.metadata.description, CONSOLE_WIDTH)
+        click.echo("")
+        click.echo(f"Licence: {self.metadata.licence}")
+        click.echo(f"Rights: {self.metadata.rights}")
         if self.parameter_sets is not None:
             click.echo("")
             click.echo("Parameter sets:")

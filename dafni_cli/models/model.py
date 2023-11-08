@@ -48,10 +48,14 @@ class ModelMetadata(ParserBaseObject):
     name: str
     summary: str
     status: str
+    contact_point_name: str
+    contact_point_email: str
 
     description: Optional[str] = None
     publisher: Optional[str] = None
     source_code: Optional[str] = None
+    licence: Optional[str] = None
+    rights: Optional[str] = None
 
     STATUS_STRINGS = {
         "P": "Pending",
@@ -69,6 +73,10 @@ class ModelMetadata(ParserBaseObject):
         ParserParam("description", "description", str),
         ParserParam("publisher", "publisher", str),
         ParserParam("source_code", "source_code", str),
+        ParserParam("contact_point_name", "contact_point_name", str),
+        ParserParam("contact_point_email", "contact_point_email", str),
+        ParserParam("licence", "licence", str),
+        ParserParam("rights", "rights", str),
     ]
 
     def get_status_string(self) -> str:
@@ -182,6 +190,7 @@ class Model(ParserBaseObject):
     version_tags: List[str]
     version_history: List[ModelVersion]
     auth: Auth
+
     ingest_completed_date: Optional[datetime] = None
 
     api_version: Optional[str] = None
@@ -199,6 +208,10 @@ class Model(ParserBaseObject):
     _name: Optional[str] = None
     _summary: Optional[str] = None
     _status: Optional[str] = None
+    _licence: Optional[str] = None
+    _rights: Optional[str] = None
+    _contact_point_name: Optional[str] = ""
+    _contact_point_email: Optional[str] = ""
 
     _parser_params: ClassVar[List[ParserParam]] = [
         ParserParam("model_id", "id", str),
@@ -220,6 +233,10 @@ class Model(ParserBaseObject):
         ParserParam("_name", "name", str),
         ParserParam("_summary", "summary", str),
         ParserParam("_status", "status", str),
+        ParserParam("_contact_point_name", "contact_point_name", str),
+        ParserParam("_contact_point_email", "contact_point_email", str),
+        ParserParam("_licence", "licence", str),
+        ParserParam("_rights", "rights", str),
     ]
 
     @property
@@ -248,6 +265,10 @@ class Model(ParserBaseObject):
             name=self._name,
             summary=self._summary,
             status=self._status,
+            contact_point_name=self._contact_point_name,
+            contact_point_email=self._contact_point_email,
+            licence=self._licence,
+            rights=self._rights,
         )
         return self._metadata
 
@@ -277,6 +298,9 @@ class Model(ParserBaseObject):
         )
         click.echo("")
         click.echo(f"Published by: {self.metadata.publisher}")
+        click.echo(
+            f"Contact Point: {self.metadata.contact_point_name} ({self.metadata.contact_point_email})"
+        )
         click.echo("")
         click.echo(
             tabulate(
@@ -300,6 +324,8 @@ class Model(ParserBaseObject):
         click.echo("")
         click.echo("Source code:")
         click.echo(self.metadata.source_code)
+        click.echo(f"Licence: {self.metadata.licence}")
+        click.echo(f"Rights: {self.metadata.rights}")
         if self.spec.inputs is not None:
             click.echo("")
             click.echo("Input Parameters: ")

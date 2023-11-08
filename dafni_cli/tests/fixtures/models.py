@@ -17,6 +17,10 @@ TEST_MODEL_METADATA: dict = {
     "summary": "For testing",
     "source_code": "https://github.com/dafnifacility/cli",
     "status": "F",
+    "contact_point_name": "Lorem Ipsum",
+    "contact_point_email": "lorem.ipsum@example.com",
+    "licence": "https://creativecommons.org/licenses/by/4.0/",
+    "rights": "Open",
 }
 
 # Data for a model from the /models endpoint
@@ -43,6 +47,10 @@ TEST_MODEL_DATA_MODELS_ENDPOINT: dict = {
             "version_message": "First version",
         }
     ],
+    "contact_point_name": "Lorem Ipsum",
+    "contact_point_email": "lorem.ipsum@example.com",
+    "licence": "https://creativecommons.org/licenses/by/4.0/",
+    "rights": "Open",
 }
 
 TEST_MODELS: List[dict] = [TEST_MODEL_DATA_MODELS_ENDPOINT]

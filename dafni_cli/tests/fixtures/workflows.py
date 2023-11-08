@@ -26,6 +26,10 @@ TEST_WORKFLOW_DATA_WORKFLOWS_ENDPOINT: dict = {
     "version_message": "",
     "parent": "0a0a0a0a-0a00-0a00-a000-0a0a0000000b",
     "version_history": [TEST_WORKFLOW_VERSION],
+    "contact_point_name": "Lorem Ipsum",
+    "contact_point_email": "lorem.ipsum@example.com",
+    "licence": "https://creativecommons.org/licenses/by/4.0/",
+    "rights": "Open",
 }
 
 TEST_WORKFLOWS: List[dict] = [TEST_WORKFLOW_DATA_WORKFLOWS_ENDPOINT]
@@ -97,7 +101,7 @@ TEST_WORKFLOW: dict = {
                             }
                         ],
                         "dct:license": {
-                            "@id": "https://creativecommons.org/licences/by/4.0/",
+                            "@id": "https://creativecommons.org/licenses/by/4.0/",
                             "@type": "LicenseDocument",
                             "rdfs:label": None,
                         },
