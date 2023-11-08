@@ -191,11 +191,6 @@ class Workflow(ParserBaseObject):
             self.metadata.display_name,
             self.workflow_id,
             format_datetime(self.publication_date, include_time=False),
-            # self.metadata.contact_point_name,
-            # self.metadata.contact_point_email,
-            # self.metadata.licence,
-            # self.metadata.rights,
-            # f"{self.metadata.contact_point_name} ({self.metadata.contact_point_email})",
             self.metadata.summary,
         ]
 

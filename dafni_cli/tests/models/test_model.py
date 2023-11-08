@@ -247,7 +247,6 @@ class TestModel(TestCase):
         self.assertEqual(model.metadata.contact_point_email, TEST_MODEL_METADATA["contact_point_email"])
         self.assertEqual(model.metadata.licence, TEST_MODEL_METADATA["licence"])
         self.assertEqual(model.metadata.rights, TEST_MODEL_METADATA["rights"])
-        #TODO add contact point and licence fields
 
     def test_get_brief_details(self):
         """Tests get_brief_details works correctly"""
@@ -266,10 +265,6 @@ class TestModel(TestCase):
                 model.metadata.get_status_string(),
                 model.auth.get_permission_string(),
                 format_datetime(model.publication_date, include_time=False),
-                # model.metadata.contact_point_name,
-                # model.metadata.contact_point_email,
-                # model.metadata.licence,
-                # model.metadata.rights,
                 model.metadata.summary,
             ],
         )

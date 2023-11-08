@@ -209,10 +209,6 @@ class TestWorkflow(TestCase):
                 workflow.metadata.display_name,
                 workflow.workflow_id,
                 format_datetime(workflow.publication_date, include_time=False),
-                # workflow.metadata.contact_point_name,
-                # workflow.metadata.contact_point_email,
-                # workflow.metadata.licence,
-                # workflow.metadata.rights,
                 workflow.metadata.summary,
             ],
         )
