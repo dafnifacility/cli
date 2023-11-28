@@ -243,6 +243,15 @@ class TestModel(TestCase):
         self.assertEqual(model.metadata.description, TEST_MODEL_METADATA["description"])
         self.assertEqual(model.metadata.publisher, TEST_MODEL_METADATA["publisher"])
         self.assertEqual(model.metadata.source_code, TEST_MODEL_METADATA["source_code"])
+        self.assertEqual(
+            model.metadata.contact_point_name, TEST_MODEL_METADATA["contact_point_name"]
+        )
+        self.assertEqual(
+            model.metadata.contact_point_email,
+            TEST_MODEL_METADATA["contact_point_email"],
+        )
+        self.assertEqual(model.metadata.licence, TEST_MODEL_METADATA["licence"])
+        self.assertEqual(model.metadata.rights, TEST_MODEL_METADATA["rights"])
 
     def test_get_brief_details(self):
         """Tests get_brief_details works correctly"""
@@ -293,6 +302,9 @@ class TestModel(TestCase):
                 ),
                 call(""),
                 call(f"Published by: {str(model.metadata.publisher)}"),
+                call(
+                    f"Contact Point: {model.metadata.contact_point_name} ({model.metadata.contact_point_email})"
+                ),
                 call(""),
                 call(mock_tabulate.return_value),
                 call(""),
@@ -306,6 +318,8 @@ class TestModel(TestCase):
                 call(""),
                 call("Source code:"),
                 call(model.metadata.source_code),
+                call(f"Licence: {model.metadata.licence}"),
+                call(f"Rights: {model.metadata.rights}"),
                 call(""),
                 call("Input Parameters: "),
                 call(self.mock_inputs_format_parameters.return_value),
@@ -352,6 +366,9 @@ class TestModel(TestCase):
                 ),
                 call(""),
                 call(f"Published by: {str(model.metadata.publisher)}"),
+                call(
+                    f"Contact Point: {model.metadata.contact_point_name} ({model.metadata.contact_point_email})"
+                ),
                 call(""),
                 call(mock_tabulate.return_value),
                 call(""),
@@ -365,6 +382,8 @@ class TestModel(TestCase):
                 call(""),
                 call("Source code:"),
                 call(model.metadata.source_code),
+                call(f"Licence: {model.metadata.licence}"),
+                call(f"Rights: {model.metadata.rights}"),
                 call(""),
                 call("Input Parameters: "),
                 call(self.mock_inputs_format_parameters.return_value),
@@ -409,6 +428,9 @@ class TestModel(TestCase):
                 ),
                 call(""),
                 call(f"Published by: {str(model.metadata.publisher)}"),
+                call(
+                    f"Contact Point: {model.metadata.contact_point_name} ({model.metadata.contact_point_email})"
+                ),
                 call(""),
                 call(mock_tabulate.return_value),
                 call(""),
@@ -422,6 +444,8 @@ class TestModel(TestCase):
                 call(""),
                 call("Source code:"),
                 call(model.metadata.source_code),
+                call(f"Licence: {model.metadata.licence}"),
+                call(f"Rights: {model.metadata.rights}"),
                 call(""),
                 call("Outputs: "),
                 call(self.mock_outputs_format_outputs.return_value),
@@ -464,6 +488,9 @@ class TestModel(TestCase):
                 ),
                 call(""),
                 call(f"Published by: {str(model.metadata.publisher)}"),
+                call(
+                    f"Contact Point: {model.metadata.contact_point_name} ({model.metadata.contact_point_email})"
+                ),
                 call(""),
                 call(mock_tabulate.return_value),
                 call(""),
@@ -477,6 +504,8 @@ class TestModel(TestCase):
                 call(""),
                 call("Source code:"),
                 call(model.metadata.source_code),
+                call(f"Licence: {model.metadata.licence}"),
+                call(f"Rights: {model.metadata.rights}"),
             ],
         )
         mock_tabulate.assert_called_once_with(

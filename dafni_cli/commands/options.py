@@ -216,8 +216,8 @@ def dataset_metadata_common_options(all_optional: bool):
             type=URLParamType(),
             default=None
             if all_optional
-            else "https://creativecommons.org/licences/by/4.0/",
-            help="Permanent URL of an applicable license. Default: https://creativecommons.org/licences/by/4.0/.",
+            else "https://creativecommons.org/licenses/by/4.0/",
+            help="Permanent URL of an applicable license. Default: https://creativecommons.org/licenses/by/4.0/.",
         )(function)
         function = click.option(
             "--rights",

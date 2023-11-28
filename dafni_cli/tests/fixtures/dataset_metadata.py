@@ -131,7 +131,7 @@ TEST_DATASET_METADATA: dict = {
         "dcat:contactPoint": TEST_DATASET_METADATA_CONTACT,
         "dct:license": {
             "@type": "LicenseDocument",
-            "@id": "https://creativecommons.org/licences/by/4.0/",
+            "@id": "https://creativecommons.org/licenses/by/4.0/",
             "rdfs:label": None,
         },
         "dct:rights": "Open Government Licence.",
@@ -178,7 +178,7 @@ TEST_DATASET_METADATA_DEFAULT: dict = {
         "dcat:contactPoint": TEST_DATASET_METADATA_CONTACT,
         "dct:license": {
             "@type": "LicenseDocument",
-            "@id": "https://creativecommons.org/licences/by/4.0/",
+            "@id": "https://creativecommons.org/licenses/by/4.0/",
             "rdfs:label": None,
         },
         "@id": {

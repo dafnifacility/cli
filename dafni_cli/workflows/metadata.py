@@ -24,9 +24,13 @@ class WorkflowMetadata(ParserBaseObject):
     display_name: str
     name: str
     summary: str
+    contact_point_name: str
+    contact_point_email: str
 
     publisher_id: Optional[str] = None
     description: Optional[str] = None
+    licence: Optional[str] = None
+    rights: Optional[str] = None
 
     _parser_params: ClassVar[List[ParserParam]] = [
         ParserParam("display_name", "display_name", str),
@@ -34,5 +38,8 @@ class WorkflowMetadata(ParserBaseObject):
         ParserParam("summary", "summary", str),
         ParserParam("description", "description", str),
         ParserParam("publisher_id", "publisher", str),
-        ParserParam("summary", "summary", str),
+        ParserParam("contact_point_name", "contact_point_name", str),
+        ParserParam("contact_point_email", "contact_point_email", str),
+        ParserParam("licence", "licence", str),
+        ParserParam("rights", "rights", str),
     ]

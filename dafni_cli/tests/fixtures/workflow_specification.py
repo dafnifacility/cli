@@ -64,7 +64,7 @@ TEST_WORKFLOW_SPECIFICATION = {
                     "dct:identifier": [],
                     "dct:language": "en",
                     "dct:license": {
-                        "@id": "https://creativecommons.org/licences/by/4.0/",
+                        "@id": "https://creativecommons.org/licenses/by/4.0/",
                         "@type": "LicenseDocument",
                         "rdfs:label": None,
                     },
