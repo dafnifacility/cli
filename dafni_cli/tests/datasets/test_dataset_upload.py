@@ -68,7 +68,7 @@ class TestRemoveDatasetMetadataInvalidForUpload(TestCase):
         """Tests that remove_dataset_metadata_invalid_for_upload works as expected"""
 
         # SETUP
-        original_metadata = deepcopy(TEST_DATASET_METADATA)
+        original_metadata = deepcopy(TEST_DATASET_METADATA["metadata"])
         metadata = deepcopy(original_metadata)
 
         # CALL
@@ -108,8 +108,8 @@ class TestModifyDatasetMetadataForUpload(TestCase):
 
         # ASSERT
         mock_open.assert_not_called()
-        mock_remove_invalid.assert_called_once_with(metadata)
-        self.assertEqual(result, TEST_DATASET_METADATA)
+        mock_remove_invalid.assert_called_once_with(metadata["metadata"])
+        self.assertEqual(result, TEST_DATASET_METADATA["metadata"])
 
     def test_with_definition_path(self, mock_open, mock_remove_invalid):
         """Tests that calling the function with a definition path loads
@@ -231,7 +231,7 @@ class TestModifyDatasetMetadataForUpload(TestCase):
         # metadata/TEST_DATASET_METADATA - also want to ensure the original
         # hasn't been accidentally modified so double check here
         mock_remove_invalid.assert_called_once_with(result)
-        self.assertNotEqual(metadata["dafni_version_note"], version_message)
+        self.assertNotEqual(metadata["metadata"]["dafni_version_note"], version_message)
         self.assertEqual(result["dafni_version_note"], version_message)
 
     def test_with_invalid_subject_raises_error(self, mock_open, mock_remove_invalid):

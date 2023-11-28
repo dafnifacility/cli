@@ -32,10 +32,7 @@ METADATA_KEYS_INVALID_FOR_UPLOAD = [
     "dct:issued",
     "dct:modified",
     "mediatypes",
-    "version_history",
-    "auth",
     "dcat:distribution",
-    "status",
 ]
 
 
@@ -184,7 +181,7 @@ def modify_dataset_metadata_for_upload(
         with open(metadata_path, "r", encoding="utf-8") as metadata_file:
             metadata = json.load(metadata_file)
     else:
-        metadata = deepcopy(existing_metadata)
+        metadata = deepcopy(existing_metadata["metadata"])
 
     remove_dataset_metadata_invalid_for_upload(metadata)
 
