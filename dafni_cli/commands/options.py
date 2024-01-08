@@ -227,6 +227,7 @@ def dataset_metadata_common_options(all_optional: bool):
         )(function)
         function = click.option(
             "--version-message",
+            "-m",
             type=str,
             **required_args,
             help="Version message to replace in any existing or provided metadata.",

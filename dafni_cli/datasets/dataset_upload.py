@@ -33,6 +33,7 @@ METADATA_KEYS_INVALID_FOR_UPLOAD = [
     "dct:modified",
     "mediatypes",
     "dcat:distribution",
+    "dataset_type",
 ]
 
 

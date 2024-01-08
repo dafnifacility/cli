@@ -146,6 +146,7 @@ TEST_DATASET_METADATA: dict = {
         "dct:issued": "2021-03-16T09:27:21+00:00",
         "dcat:distribution": [TEST_DATASET_METADATA_DATAFILE],
         "mediatypes": [None],
+        "dataset_type": "internal",
     },
     "status": "ingested",
     "version_history": TEST_DATASET_METADATA_VERSION_HISTORY,
