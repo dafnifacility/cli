@@ -173,7 +173,7 @@ class TestParameterSetUpload(TestCase):
         validation error and json = True"""
         self._test_upload_parameter_set_exits_for_validation_error(json=True)
 
-    def _test_upload_parameter_set_exits_for_dafni_error(self, json: bool):
+    def test_upload_parameter_set_exits_for_dafni_error(self, json: bool):
         """Tests that upload_parameter_set works as expected when there is a
         dafni error with a given value of json"""
         # SETUP
