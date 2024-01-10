@@ -173,7 +173,7 @@ class TestParameterSetUpload(TestCase):
         validation error and json = True"""
         self._test_upload_parameter_set_exits_for_validation_error(json=True)
 
-    def test_upload_parameter_set_exits_for_dafni_error(self, json: bool):
+    def _test_upload_parameter_set_exits_for_dafni_error(self, json: bool):
         """Tests that upload_parameter_set works as expected when there is a
         dafni error with a given value of json"""
         # SETUP
@@ -211,3 +211,13 @@ class TestParameterSetUpload(TestCase):
         self.mock_click.echo.assert_called_once_with(
             self.mock_workflows_api.upload_parameter_set.side_effect
         )
+
+    def test_upload_parameter_set_exits_for_dafni_error(self):
+        """Tests that upload_parameter_set works as expected when there is a
+        validation error and json = False"""
+        self._test_upload_parameter_set_exits_for_dafni_error(json=False)
+
+    def test_upload_parameter_set_exits_for_dafni_error_json(self):
+        """Tests that upload_parameter_set works as expected when there is a
+        validation error and json = True"""
+        self._test_upload_parameter_set_exits_for_dafni_error(json=True)
