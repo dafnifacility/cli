@@ -214,10 +214,10 @@ class TestParameterSetUpload(TestCase):
 
     def test_upload_parameter_set_exits_for_dafni_error(self):
         """Tests that upload_parameter_set works as expected when there is a
-        validation error and json = False"""
+        dafni error and json = False"""
         self._test_upload_parameter_set_exits_for_dafni_error(json=False)
 
     def test_upload_parameter_set_exits_for_dafni_error_json(self):
         """Tests that upload_parameter_set works as expected when there is a
-        validation error and json = True"""
+        dafni error and json = True"""
         self._test_upload_parameter_set_exits_for_dafni_error(json=True)
