@@ -4,7 +4,7 @@ from typing import Optional
 import click
 
 import dafni_cli.api.workflows_api as workflows_api
-from dafni_cli.api.exceptions import ValidationError
+from dafni_cli.api.exceptions import DAFNIError, ValidationError
 from dafni_cli.api.session import DAFNISession
 from dafni_cli.utils import optional_echo, print_json
 
@@ -59,7 +59,12 @@ def upload_parameter_set(session: DAFNISession, definition: Path, json: bool = F
         raise SystemExit(1) from err
 
     optional_echo("Uploading parameter set", json)
-    details = workflows_api.upload_parameter_set(session, definition)
+
+    try:
+        details = workflows_api.upload_parameter_set(session, definition)
+    except DAFNIError as err:
+        click.echo(err)
+        raise SystemExit(1) from err
 
     # Output details
     if json:

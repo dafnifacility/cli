@@ -2,7 +2,7 @@ from pathlib import Path
 from unittest import TestCase
 from unittest.mock import MagicMock, call, patch
 
-from dafni_cli.api.exceptions import ValidationError
+from dafni_cli.api.exceptions import DAFNIError, ValidationError
 from dafni_cli.tests.fixtures.workflow_parameter_set import TEST_WORKFLOW_PARAMETER_SET
 from dafni_cli.tests.fixtures.workflows import TEST_WORKFLOW
 from dafni_cli.workflows import upload
@@ -172,3 +172,52 @@ class TestParameterSetUpload(TestCase):
         """Tests that upload_parameter_set works as expected when there is a
         validation error and json = True"""
         self._test_upload_parameter_set_exits_for_validation_error(json=True)
+
+    def _test_upload_parameter_set_exits_for_dafni_error(self, json: bool):
+        """Tests that upload_parameter_set works as expected when there is a
+        dafni error with a given value of json"""
+        # SETUP
+        session = MagicMock()
+        definition_path = Path("path/to/definition")
+
+        self.mock_workflows_api.upload_parameter_set.side_effect = DAFNIError(
+            "Some ingestion error message"
+        )
+
+        # CALL & ASSERT
+        with self.assertRaises(SystemExit) as err:
+            upload.upload_parameter_set(session, definition_path, json=json)
+
+        # ASSERT
+        self.assertEqual(
+            self.mock_optional_echo.call_args_list,
+            [
+                call("Validating parameter set definition", json),
+                call("Uploading parameter set", json),
+            ],
+        )
+
+        self.mock_workflows_api.validate_parameter_set_definition.assert_called_once_with(
+            session, definition_path
+        )
+
+        self.mock_workflows_api.upload_parameter_set.assert_called_once_with(
+            session, definition_path
+        )
+
+        self.assertEqual(err.exception.code, 1)
+        self.mock_print_json.assert_not_called()
+
+        self.mock_click.echo.assert_called_once_with(
+            self.mock_workflows_api.upload_parameter_set.side_effect
+        )
+
+    def test_upload_parameter_set_exits_for_dafni_error(self):
+        """Tests that upload_parameter_set works as expected when there is a
+        dafni error and json = False"""
+        self._test_upload_parameter_set_exits_for_dafni_error(json=False)
+
+    def test_upload_parameter_set_exits_for_dafni_error_json(self):
+        """Tests that upload_parameter_set works as expected when there is a
+        dafni error and json = True"""
+        self._test_upload_parameter_set_exits_for_dafni_error(json=True)
