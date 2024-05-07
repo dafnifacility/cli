@@ -9,9 +9,9 @@ class TestNotificationsAPI(TestCase):
         # SETUP
         expected_notifications = [
             {
-                "start_date": datetime(2023, 10, 15),
-                "end_date": datetime(2023, 11, 4),
-                "message": "DAFNI will be shutting down for mandatory electrical safety checks and as a result will be unavailable from 27th to 31st October. DAFNI will not be accepting any new Data, Models or Workflows from 25th October as we cannot guarantee any assets submitted after this date will finish ingesting/running before the shutdown. Please see https://www.dafni.ac.uk/important-notice-to-dafni-users/ for more information.",
+                "start_date": datetime(2024, 5, 7, 1),
+                "end_date": datetime(2024, 5, 13, 16),
+                "message": "DAFNI will be undergoing scheduled maintenance between 1pm and 4pm on the 13th May 2024. Please do not attempt to submit/execute any new Data, Models or Workflows during the maintenance window.",
             }
         ]
         # CALL
