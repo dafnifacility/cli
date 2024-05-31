@@ -19,6 +19,20 @@ dafni --help
 
 to view a list of all of the available sub commands. Use `--help` on any unfamiliar command to receive more information about it.
 
+Note, if you are installing directly to a linux system you may find that the executable, `dafni`, may not be 
+on the system path (this will result in the `dafni` command not being found). You can fix this (in eg. Ubuntu) by adding the local 
+path with following line (in the line replace bob with your own username), 
+
+```bash
+export PATH="/home/bob/.local/bin:${PATH}"
+```
+You can confirm /home/bob/.local/bin is the correct location to add with the command
+
+```bash
+find . -name "dafni"
+```
+which will recursively search for `dafni`
+
 ## Authentication
 
 Almost all commands require authentication and there are two methods to achieve this.
@@ -59,6 +73,18 @@ will list all datasets you have access to. Then you can inspect a particular dat
 
 ```bash
 dafni get dataset <version-id>
+```
+
+It is also possible to select datasets based on a search term with the following command (the search term will filter datasets based on keywords, as well as the dataset title and description).
+
+```bash
+dafni get datasets --search "Transport"
+```
+
+If you would prefer to output the results in a json file you can use the command
+
+```bash
+dafni get datasets --search "Transport" -j
 ```
 
 ### Uploading a new dataset
