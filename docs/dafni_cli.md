@@ -81,7 +81,7 @@ It is also possible to select datasets based on a search term with the following
 dafni get datasets --search "Transport"
 ```
 
-If you would prefer to output the results in a json file you can use the command
+If you would prefer to output the results in json format you can use the command
 
 ```bash
 dafni get datasets --search "Transport" -j
