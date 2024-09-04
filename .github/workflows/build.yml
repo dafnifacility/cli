@@ -44,7 +44,7 @@ jobs:
     needs: ['build']
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/download-artifact@v3
+      - uses: actions/download-artifact@v4.1.7
       - name: Rename extracted folder
         run: mv artifact dist
       - name: Create draft release
@@ -61,7 +61,7 @@ jobs:
     needs: ['draft_release']
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/download-artifact@v3
+      - uses: actions/download-artifact@v4.1.7
       - name: Rename extracted folder
         run: mv artifact dist
       - name: Publish to test.pypi
