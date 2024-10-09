@@ -184,7 +184,7 @@ def modify_dataset_metadata_for_upload(
     else:
         metadata = deepcopy(existing_metadata["metadata"])
 
-    remove_dataset_metadata_invalid_for_upload(metadata[])
+    remove_dataset_metadata_invalid_for_upload(metadata)
 
     # Make modifications to the metadata from the inputs
     if title is not None:
