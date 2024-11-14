@@ -9,11 +9,11 @@ ENVIRONMENT = "production"
 ENVIRONMENT_DOMAIN = "secure" if ENVIRONMENT == "production" else "staging"
 
 # URLs
-DSS_API_URL = f"https://dafni-dss-dssauth.{ENVIRONMENT_DOMAIN}.dafni.rl.ac.uk"
-NIMS_API_URL = f"https://dafni-nims-api.{ENVIRONMENT_DOMAIN}.dafni.rl.ac.uk"
-NID_API_URL = f"https://dafni-nid-api.{ENVIRONMENT_DOMAIN}.dafni.rl.ac.uk"
+DSS_API_URL = f"https://dss.{ENVIRONMENT_DOMAIN}.dafni.rl.ac.uk"
+NIMS_API_URL = f"https://nims.{ENVIRONMENT_DOMAIN}.dafni.rl.ac.uk"
+NID_API_URL = f"https://nid.{ENVIRONMENT_DOMAIN}.dafni.rl.ac.uk"
 SEARCH_AND_DISCOVERY_API_URL = (
-    f"https://dafni-search-and-discovery-api.{ENVIRONMENT_DOMAIN}.dafni.rl.ac.uk"
+    f"https://snd.{ENVIRONMENT_DOMAIN}.dafni.rl.ac.uk"
 )
 MINIO_API_URL = f"https://minio.{ENVIRONMENT_DOMAIN}.dafni.rl.ac.uk"
 MINIO_DOWNLOAD_REDIRECT_API_URL = (
@@ -31,8 +31,8 @@ URLS_REQUIRING_COOKIE_AUTHENTICATION = [
 KEYCLOAK_API_REALM = ENVIRONMENT.capitalize()
 
 # Specific endpoints
-LOGIN_API_ENDPOINT = f"{KEYCLOAK_API_URL}/auth/realms/{KEYCLOAK_API_REALM}/protocol/openid-connect/token/"
-LOGOUT_API_ENDPOINT = f"{KEYCLOAK_API_URL}/auth/realms/{KEYCLOAK_API_REALM}/protocol/openid-connect/logout"
+LOGIN_API_ENDPOINT = f"{KEYCLOAK_API_URL}/realms/{KEYCLOAK_API_REALM}/protocol/openid-connect/token/"
+LOGOUT_API_ENDPOINT = f"{KEYCLOAK_API_URL}/realms/{KEYCLOAK_API_REALM}/protocol/openid-connect/logout"
 
 # Authentication
 SESSION_SAVE_FILE = ".dafni-cli"
