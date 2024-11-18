@@ -25,6 +25,7 @@ KEYCLOAK_API_URL = f"https://keycloak.{ENVIRONMENT_DOMAIN}.dafni.rl.ac.uk"
 URLS_REQUIRING_COOKIE_AUTHENTICATION = [
     MINIO_API_URL,
     f"https://nid-minio.{ENVIRONMENT_DOMAIN}.dafni.rl.ac.uk",
+    "https://s3.echo.stfc.ac.uk"
 ]
 
 # Keycloak realm
