@@ -13,13 +13,10 @@ DSS_API_URL = f"https://dss.{ENVIRONMENT_DOMAIN}.dafni.rl.ac.uk"
 NIMS_API_URL = f"https://nims.{ENVIRONMENT_DOMAIN}.dafni.rl.ac.uk"
 NID_API_URL = f"https://nid.{ENVIRONMENT_DOMAIN}.dafni.rl.ac.uk"
 SEARCH_AND_DISCOVERY_API_URL = f"https://snd.{ENVIRONMENT_DOMAIN}.dafni.rl.ac.uk"
-MINIO_API_URL = f"https://minio.{ENVIRONMENT_DOMAIN}.dafni.rl.ac.uk"
 KEYCLOAK_API_URL = f"https://keycloak.{ENVIRONMENT_DOMAIN}.dafni.rl.ac.uk"
 
 # URLs that require cookie based auth instead of header based
 URLS_REQUIRING_COOKIE_AUTHENTICATION = [
-    MINIO_API_URL,
-    f"https://nid-minio.{ENVIRONMENT_DOMAIN}.dafni.rl.ac.uk",
     "https://s3.echo.stfc.ac.uk",
 ]
 
