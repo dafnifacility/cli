@@ -5,7 +5,6 @@ from dafni_cli.api import minio_api
 from dafni_cli.consts import (
     DSS_API_URL,
     MINIO_API_URL,
-    MINIO_DOWNLOAD_REDIRECT_API_URL,
     MINIO_UPLOAD_CT,
     NID_API_URL,
 )
@@ -134,7 +133,7 @@ class TestMinioAPI(TestCase):
 
         # ASSERT
         session.get_request.assert_called_once_with(
-            url=f"{MINIO_DOWNLOAD_REDIRECT_API_URL}/example_file.zip",
+            url=url,
             content_type="application/json",
             allow_redirect=False,
             stream=stream,

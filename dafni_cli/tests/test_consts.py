@@ -7,7 +7,6 @@ from dafni_cli.consts import (
     LOGIN_API_ENDPOINT,
     LOGOUT_API_ENDPOINT,
     MINIO_API_URL,
-    MINIO_DOWNLOAD_REDIRECT_API_URL,
     NID_API_URL,
     NIMS_API_URL,
     SEARCH_AND_DISCOVERY_API_URL,
@@ -32,10 +31,6 @@ class TestConsts(TestCase):
             "https://dafni-search-and-discovery-api.secure.dafni.rl.ac.uk",
         )
         self.assertEqual(MINIO_API_URL, "https://minio.secure.dafni.rl.ac.uk")
-        self.assertEqual(
-            MINIO_DOWNLOAD_REDIRECT_API_URL,
-            "https://fwd.secure.dafni.rl.ac.uk/nidminio",
-        )
         self.assertEqual(KEYCLOAK_API_URL, "https://keycloak.secure.dafni.rl.ac.uk")
         self.assertEqual(
             LOGIN_API_ENDPOINT,

@@ -7,8 +7,6 @@ from tqdm.utils import CallbackIOWrapper
 from dafni_cli.api.session import DAFNISession
 from dafni_cli.consts import (
     DSS_API_URL,
-    MINIO_API_URL,
-    MINIO_DOWNLOAD_REDIRECT_API_URL,
     MINIO_UPLOAD_CT,
     NID_API_URL,
 )
@@ -129,10 +127,8 @@ def minio_get_request(
                     objects e.g. /models/
         requests.Response: When 'stream' is True - The whole response object
     """
-    # Substitute the Minio URL returned in the request string with a redirect
-    file_url = url.replace(MINIO_API_URL, MINIO_DOWNLOAD_REDIRECT_API_URL)
     return session.get_request(
-        url=file_url,
+        url=url,
         content_type="application/json",
         allow_redirect=False,
         stream=stream,

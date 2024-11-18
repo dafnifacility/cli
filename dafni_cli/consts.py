@@ -16,9 +16,6 @@ SEARCH_AND_DISCOVERY_API_URL = (
     f"https://snd.{ENVIRONMENT_DOMAIN}.dafni.rl.ac.uk"
 )
 MINIO_API_URL = f"https://minio.{ENVIRONMENT_DOMAIN}.dafni.rl.ac.uk"
-MINIO_DOWNLOAD_REDIRECT_API_URL = (
-    f"https://fwd.{ENVIRONMENT_DOMAIN}.dafni.rl.ac.uk/nidminio"
-)
 KEYCLOAK_API_URL = f"https://keycloak.{ENVIRONMENT_DOMAIN}.dafni.rl.ac.uk"
 
 # URLs that require cookie based auth instead of header based
