@@ -649,11 +649,14 @@ class TestDatasetUpload(TestCase):
         of json"""
 
         # Additionally patch these functions in the same file
-        with patch(
-            "dafni_cli.datasets.dataset_upload._commit_metadata"
-        ) as mock_commit_metadata, patch(
-            "dafni_cli.datasets.dataset_upload.upload_files"
-        ) as mock_upload_files:
+        with (
+            patch(
+                "dafni_cli.datasets.dataset_upload._commit_metadata"
+            ) as mock_commit_metadata,
+            patch(
+                "dafni_cli.datasets.dataset_upload.upload_files"
+            ) as mock_upload_files,
+        ):
             # SETUP
             session = MagicMock()
             metadata = MagicMock()
@@ -733,11 +736,14 @@ class TestDatasetUpload(TestCase):
         error occurs while using a specific value of json"""
 
         # Additionally patch these functions in the same file
-        with patch(
-            "dafni_cli.datasets.dataset_upload._commit_metadata"
-        ) as mock_commit_metadata, patch(
-            "dafni_cli.datasets.dataset_upload.upload_files"
-        ) as mock_upload_files:
+        with (
+            patch(
+                "dafni_cli.datasets.dataset_upload._commit_metadata"
+            ) as mock_commit_metadata,
+            patch(
+                "dafni_cli.datasets.dataset_upload.upload_files"
+            ) as mock_upload_files,
+        ):
             # SETUP
             session = MagicMock()
             metadata = MagicMock()
@@ -791,11 +797,14 @@ class TestDatasetUpload(TestCase):
         to do the check anyway)"""
 
         # Additionally patch these functions in the same file
-        with patch(
-            "dafni_cli.datasets.dataset_upload._commit_metadata"
-        ) as mock_commit_metadata, patch(
-            "dafni_cli.datasets.dataset_upload.upload_files"
-        ) as mock_upload_files:
+        with (
+            patch(
+                "dafni_cli.datasets.dataset_upload._commit_metadata"
+            ) as mock_commit_metadata,
+            patch(
+                "dafni_cli.datasets.dataset_upload.upload_files"
+            ) as mock_upload_files,
+        ):
             # SETUP
             session = MagicMock()
             metadata = MagicMock()

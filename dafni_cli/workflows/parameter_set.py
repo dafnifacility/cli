@@ -351,9 +351,11 @@ class WorkflowParameterSet(ParserBaseObject):
                             ["Iteration mode:", workflow_spec_step.iteration_mode],
                             [
                                 "Base parameter set ID:",
-                                step.base_parameter_set
-                                if step.base_parameter_set
-                                else "No base parameter set",
+                                (
+                                    step.base_parameter_set
+                                    if step.base_parameter_set
+                                    else "No base parameter set"
+                                ),
                             ],
                         ],
                         tablefmt="plain",

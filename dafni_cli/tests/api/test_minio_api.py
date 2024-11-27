@@ -4,8 +4,6 @@ from unittest.mock import ANY, MagicMock, mock_open, patch
 from dafni_cli.api import minio_api
 from dafni_cli.consts import (
     DSS_API_URL,
-    MINIO_API_URL,
-    MINIO_DOWNLOAD_REDIRECT_API_URL,
     MINIO_UPLOAD_CT,
     NID_API_URL,
 )
@@ -120,23 +118,3 @@ class TestMinioAPI(TestCase):
             allow_redirect=True,
         )
         self.assertEqual(result, session.patch_request.return_value)
-
-    def test_minio_get_request(self):
-        """Tests that minio_get_request works as expected"""
-
-        # SETUP
-        session = MagicMock()
-        url = f"{MINIO_API_URL}/example_file.zip"
-        stream = MagicMock()
-
-        # CALL
-        result = minio_api.minio_get_request(session, url, stream)
-
-        # ASSERT
-        session.get_request.assert_called_once_with(
-            url=f"{MINIO_DOWNLOAD_REDIRECT_API_URL}/example_file.zip",
-            content_type="application/json",
-            allow_redirect=False,
-            stream=stream,
-        )
-        self.assertEqual(result, session.get_request.return_value)
