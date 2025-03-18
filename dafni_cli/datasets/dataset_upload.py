@@ -288,7 +288,9 @@ def modify_dataset_metadata_for_upload(
     if project_name is not None and project_url is not None:
         metadata["project"]["name"] = project_name
         metadata["project"]["url"] = project_url
-    if (project_url is not None and project_name is None) or (project_name is not None and project_url is None):
+    if (project_url is not None and project_name is None) or (
+        project_name is not None and project_url is None
+    ):
         raise ValueError("Both project name and url are required if one is provided")
     if version_message is not None:
         metadata["dafni_version_note"] = version_message
