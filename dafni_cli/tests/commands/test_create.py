@@ -213,6 +213,11 @@ class TestCreateDatasetMetadata(TestCase):
             "contact": ("contact_point_name", "test@example.com"),
             "license": None,
             "rights": None,
+            "dataset_source": None,
+            "embargo_end_date": None,
+            "funding": None,
+            "project_name": None,
+            "project_url": None,
             "version_message": "Some version message",
         }
 
@@ -262,6 +267,11 @@ class TestCreateDatasetMetadata(TestCase):
             "contact": ("contact_point_name", "test@example.com"),
             "license": None,
             "rights": None,
+            "dataset_source": None,
+            "embargo_end_date": None,
+            "funding": None,
+            "project_name": None,
+            "project_url": None,
             "version_message": "Some version message",
         }
 
@@ -312,6 +322,11 @@ class TestCreateDatasetMetadata(TestCase):
             "contact": ("contact_point_name", "test@example.com"),
             "license": None,
             "rights": None,
+            "dataset_source": None,
+            "embargo_end_date": None,
+            "funding": None,
+            "project_name": None,
+            "project_url": None,
             "version_message": "Some version message",
         }
 
@@ -362,6 +377,11 @@ class TestCreateDatasetMetadata(TestCase):
             "contact": ("contact_point_name", ""),
             "license": None,
             "rights": None,
+            "dataset_source": None,
+            "embargo_end_date": None,
+            "funding": None,
+            "project_name": None,
+            "project_url": None,
             "version_message": "Some version message",
         }
 
@@ -411,6 +431,11 @@ class TestCreateDatasetMetadata(TestCase):
             "contact": ("contact_point_name", "test@example.com"),
             "license": None,
             "rights": None,
+            "dataset_source": None,
+            "embargo_end_date": None,
+            "funding": None,
+            "project_name": None,
+            "project_url": None,
             "version_message": "Some version message",
         }
 
@@ -460,6 +485,11 @@ class TestCreateDatasetMetadata(TestCase):
             "contact": ("contact_point_name", "test@example.com"),
             "license": None,
             "rights": None,
+            "dataset_source": None,
+            "embargo_end_date": None,
+            "funding": None,
+            "project_name": None,
+            "project_url": None,
             "version_message": "Some version message",
         }
 
@@ -509,6 +539,11 @@ class TestCreateDatasetMetadata(TestCase):
             "contact": ("contact_point_name", "test@example.com"),
             "license": None,
             "rights": None,
+            "dataset_source": None,
+            "embargo_end_date": None,
+            "funding": None,
+            "project_name": None,
+            "project_url": None,
             "version_message": "Some version message",
         }
 
@@ -558,6 +593,11 @@ class TestCreateDatasetMetadata(TestCase):
             "contact": ("contact_point_name", "test@example.com"),
             "license": None,
             "rights": None,
+            "dataset_source": None,
+            "embargo_end_date": None,
+            "funding": None,
+            "project_name": None,
+            "project_url": None,
             "version_message": "Some version message",
         }
 
@@ -607,6 +647,11 @@ class TestCreateDatasetMetadata(TestCase):
             "contact": ("contact_point_name", "test@example.com"),
             "license": "",
             "rights": None,
+            "dataset_source": None,
+            "embargo_end_date": None,
+            "funding": None,
+            "project_name": None,
+            "project_url": None,
             "version_message": "Some version message",
         }
 
@@ -623,6 +668,114 @@ class TestCreateDatasetMetadata(TestCase):
                 "Usage: create dataset-metadata [OPTIONS] SAVE_PATH\n"
                 "Try 'create dataset-metadata --help' for help.\n\n"
                 "Error: Invalid value for '--license': Value cannot be an empty string\n",
+            )
+
+            self.assertEqual(result.exit_code, 2)
+
+    def test_with_project_url_but_empty_project_name(
+        self,
+        mock_modify_dataset_metadata_for_upload,
+    ):
+        """Tests that the 'create dataset-metadata' command
+        fails when license is given as an empty string"""
+
+        # SETUP
+        metadata_path = "test_metadata.json"
+
+        options = {
+            "title": "Dataset title",
+            "description": "Dataset description",
+            "identifiers": None,
+            "subject": "Farming",
+            "themes": None,
+            "language": "en",
+            "keywords": ("test", "another_test"),
+            "standard": None,
+            "start_date": None,
+            "end_date": None,
+            "organisation": ("organisation_name", "https://www.organisaton-url.com/"),
+            "people": None,
+            "created_date": None,
+            "update_frequency": None,
+            "publisher": None,
+            "contact": ("contact_point_name", "test@example.com"),
+            "license": None,
+            "rights": None,
+            "dataset_source": None,
+            "embargo_end_date": None,
+            "funding": None,
+            "project_name": None,
+            "project_url": "https://www.organisaton-url.com/",
+            "version_message": "Some version message",
+        }
+
+        # CALL
+        with self._test_create_dataset_metadata(
+            mock_modify_dataset_metadata_for_upload,
+            metadata_path,
+            options,
+            should_fail=True,
+        ) as result:
+            # ASSERT
+            self.assertEqual(
+                result.output,
+                "Usage: create dataset-metadata [OPTIONS] SAVE_PATH\n"
+                "Try 'create dataset-metadata --help' for help.\n\n"
+                "Error: Invalid value for '--project-url': Value cannot be an empty string\n",
+            )
+
+            self.assertEqual(result.exit_code, 2)
+
+    def test_with_project_name_but_empty_project_url(
+        self,
+        mock_modify_dataset_metadata_for_upload,
+    ):
+        """Tests that the 'create dataset-metadata' command
+        fails when license is given as an empty string"""
+
+        # SETUP
+        metadata_path = "test_metadata.json"
+
+        options = {
+            "title": "Dataset title",
+            "description": "Dataset description",
+            "identifiers": None,
+            "subject": "Farming",
+            "themes": None,
+            "language": "en",
+            "keywords": ("test", "another_test"),
+            "standard": None,
+            "start_date": None,
+            "end_date": None,
+            "organisation": ("organisation_name", "https://www.organisaton-url.com/"),
+            "people": None,
+            "created_date": None,
+            "update_frequency": None,
+            "publisher": None,
+            "contact": ("contact_point_name", "test@example.com"),
+            "license": None,
+            "rights": None,
+            "dataset_source": None,
+            "embargo_end_date": None,
+            "funding": None,
+            "project_name": "Project name",
+            "project_url": None,
+            "version_message": "Some version message",
+        }
+
+        # CALL
+        with self._test_create_dataset_metadata(
+            mock_modify_dataset_metadata_for_upload,
+            metadata_path,
+            options,
+            should_fail=True,
+        ) as result:
+            # ASSERT
+            self.assertEqual(
+                result.output,
+                "Usage: create dataset-metadata [OPTIONS] SAVE_PATH\n"
+                "Try 'create dataset-metadata --help' for help.\n\n"
+                "Error: Invalid value for '--project-url': Value cannot be an empty string\n",
             )
 
             self.assertEqual(result.exit_code, 2)

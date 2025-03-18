@@ -1199,6 +1199,11 @@ class TestUploadDatasetMetadata(TestCase):
             "contact": ("contact_point_name", "test@example.com"),
             "license": "http://www.license-url.com/",
             "rights": "Some rights",
+            "dataset_source": "Dataset source",
+            "embargo_end_date": datetime(2026, 3, 9),
+            "funding": "A funding source",
+            "project_name": "Project name",
+            "project_url": "https://www.project.ac.uk",
             "version_message": "Some version message",
         }
 
