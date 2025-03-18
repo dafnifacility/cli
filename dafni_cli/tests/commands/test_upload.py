@@ -1079,6 +1079,11 @@ class TestUploadDatasetMetadata(TestCase):
             contact=None,
             license=None,
             rights=None,
+            dataset_source=None,
+            embargo_end_date=None,
+            funding=None,
+            project_name=None,
+            project_url=None,
             version_message=None,
         )
         self.mock_upload_dataset_metadata_version.assert_called_once_with(
@@ -1143,6 +1148,11 @@ class TestUploadDatasetMetadata(TestCase):
             contact=None,
             license=None,
             rights=None,
+            dataset_source=None,
+            embargo_end_date=None,
+            funding=None,
+            project_name=None,
+            project_url=None,
             version_message=None,
         )
         self.assertEqual(
@@ -1274,6 +1284,11 @@ class TestUploadDatasetMetadata(TestCase):
             contact=None,
             license=None,
             rights=None,
+            dataset_source=None,
+            embargo_end_date=None,
+            funding=None,
+            project_name=None,
+            project_url=None,
             version_message=None,
         )
         self.mock_upload_dataset_metadata_version.assert_called_once_with(
@@ -1326,6 +1341,11 @@ class TestUploadDatasetMetadata(TestCase):
             contact=None,
             license=None,
             rights=None,
+            dataset_source=None,
+            embargo_end_date=None,
+            funding=None,
+            project_name=None,
+            project_url=None,
             version_message=None,
         )
         self.mock_upload_dataset_metadata_version.assert_called_once_with(
@@ -1377,6 +1397,11 @@ class TestUploadDatasetMetadata(TestCase):
             contact=None,
             license=None,
             rights=None,
+            dataset_source=None,
+            embargo_end_date=None,
+            funding=None,
+            project_name=None,
+            project_url=None,
             version_message=None,
         )
         self.mock_upload_dataset_metadata_version.assert_not_called()
