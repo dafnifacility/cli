@@ -96,6 +96,12 @@ def dataset_metadata_common_options(all_optional: bool):
         license (str): URL to a license that applies to the dataset
         rights (Optional[str]): Description of any usage rights, restrictions
                                 or citations required by users of the dataset
+        dataset_source (Optional[str]): Details about the source of the data
+        embargo_end_date (Optional[datetime]): End date of embargo applied to
+                                the dataset
+        funding (Optional[str]): Funding source of dataset's associated project
+        project_name (Optional[str]): = Name of dataset's associated project
+        project_url (Optional[str]): URL of dataset's asscoiated project
         version_message (str): Version message
     """
 
@@ -224,6 +230,36 @@ def dataset_metadata_common_options(all_optional: bool):
             type=str,
             default=None,
             help="Details of any usage rights, restrictions or citations required by users of the dataset.",
+        )(function)
+        function = click.option(
+            "--dataset_source",
+            type=str,
+            default=None,
+            help="Details about the source of the data.",
+        )(function)
+        function = click.option(
+            "--embargo-end-date",
+            type=click.DateTime(formats=[DATE_INPUT_FORMAT]),
+            default=None,
+            help=f"End date of embargo applied to the dataset. Format: {DATE_INPUT_FORMAT_VERBOSE}",
+        )(function)
+        function = click.option(
+            "--funding",
+            type=str,
+            default=None,
+            help="Funding source of the dataset's associated project.",
+        )(function)
+        function = click.option(
+            "--project-name",
+            type=str,
+            default=None,
+            help="Name of the dataset's associated project. Both project name and url are required if one is provided.",
+        )(function)
+        function = click.option(
+            "--project-url",
+            type=(str, URLParamType(optional=True)),
+            default=None,
+            help="URL of the dataset's associated project. Both project name and url are required if one is provided.",
         )(function)
         function = click.option(
             "--version-message",

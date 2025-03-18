@@ -46,6 +46,13 @@
             "rdfs:label": null
         },
         "dct:rights": null,
+        "datasetSource": null,
+        "funding": null,
+        "embargoEndDate": null,
+        "project": {
+            "name": null,
+            "url": null
+        },
         "dafni_version_note": "Initial Dataset version"
     }
 }
