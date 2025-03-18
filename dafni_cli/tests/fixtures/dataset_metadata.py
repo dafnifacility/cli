@@ -135,6 +135,11 @@ TEST_DATASET_METADATA: dict = {
             "rdfs:label": None,
         },
         "dct:rights": "Open Government Licence.",
+        "dataset_source": "Dataset source",
+        "embargo_end_date": "2026-03-09",
+        "funding": "A funding source",
+        "project_name": "Project name",
+        "project_url": "https://www.project.ac.uk",
         "dafni_version_note": "Initial Dataset version",
         "@id": {
             "asset_id": "0a0a0a0a-0a00-0a00-a000-0a0a0000000a:0a0a0a0a-0a00-0a00-a000-0a0a0000000b:0a0a0a0a-0a00-0a00-a000-0a0a0000000c",

@@ -534,6 +534,11 @@ class TestUploadDatasetVersion(TestCase):
             contact=None,
             license=None,
             rights=None,
+            dataset_source=None,
+            embargo_end_date=None,
+            funding=None,
+            project_name=None,
+            project_url=None,
             version_message=None,
         )
         self.mock_upload_dataset.assert_called_once_with(
@@ -598,6 +603,11 @@ class TestUploadDatasetVersion(TestCase):
             contact=None,
             license=None,
             rights=None,
+            dataset_source=None,
+            embargo_end_date=None,
+            funding=None,
+            project_name=None,
+            project_url=None,
             version_message=None,
         )
         self.mock_upload_dataset.assert_called_once_with(
@@ -667,6 +677,11 @@ class TestUploadDatasetVersion(TestCase):
             contact=None,
             license=None,
             rights=None,
+            dataset_source=None,
+            embargo_end_date=None,
+            funding=None,
+            project_name=None,
+            project_url=None,
             version_message=None,
         )
         self.assertEqual(
@@ -722,6 +737,11 @@ class TestUploadDatasetVersion(TestCase):
             contact=None,
             license=None,
             rights=None,
+            dataset_source=None,
+            embargo_end_date=None,
+            funding=None,
+            project_name=None,
+            project_url=None,
             version_message=None,
         )
         self.mock_upload_dataset.assert_called_once_with(
@@ -778,6 +798,11 @@ class TestUploadDatasetVersion(TestCase):
             contact=None,
             license=None,
             rights=None,
+            dataset_source=None,
+            embargo_end_date=None,
+            funding=None,
+            project_name=None,
+            project_url=None,
             version_message=None,
         )
         self.mock_upload_dataset.assert_called_once_with(
@@ -834,6 +859,11 @@ class TestUploadDatasetVersion(TestCase):
             contact=None,
             license=None,
             rights=None,
+            dataset_source=None,
+            embargo_end_date=None,
+            funding=None,
+            project_name=None,
+            project_url=None,
             version_message=None,
         )
         self.mock_upload_dataset.assert_not_called()
@@ -883,6 +913,11 @@ class TestUploadDatasetVersion(TestCase):
             "contact": ("contact_point_name", "test@example.com"),
             "license": "http://www.license-url.com/",
             "rights": "Some rights",
+            "dataset_source": "Dataset source",
+            "embargo_end_date": "2026-03-09",
+            "funding": "A funding source",
+            "project_name": "Project name",
+            "project_url": "https://www.project.ac.uk",
             "version_message": "Some version message",
         }
 
