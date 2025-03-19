@@ -914,7 +914,7 @@ class TestUploadDatasetVersion(TestCase):
             "license": "http://www.license-url.com/",
             "rights": "Some rights",
             "dataset_source": "Dataset source",
-            "embargo_end_date": "2026-03-09",
+            "embargo_end_date": datetime(2026, 3, 9),
             "funding": "A funding source",
             "project_name": "Project name",
             "project_url": "https://www.project.ac.uk",
