@@ -155,7 +155,7 @@ def add_dataset_metadata_common_options(
         args.extend(
             [
                 "--embargo-end-date",
-                embargo_end_date,
+                embargo_end_date.strftime(DATE_INPUT_FORMAT),
             ]
         )
     if funding is not None:
