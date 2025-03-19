@@ -294,7 +294,9 @@ def modify_dataset_metadata_for_upload(
         elif project_url is not None and metadata["project"].get("name") is not None:
             metadata["project"]["url"] = project_url
         elif project_name is not None or project_url is not None:
-            raise ValueError("Both project name and url are required if one is provided")
+            raise ValueError(
+                "Both project name and url are required if one is provided"
+            )
     # TODO This else can be removed once parsing of dataset metadata includes the new fields
     else:
         if project_name is not None and project_url is not None:
@@ -304,7 +306,9 @@ def modify_dataset_metadata_for_upload(
         elif (project_url is not None and project_name is None) or (
             project_name is not None and project_url is None
         ):
-            raise ValueError("Both project name and url are required if one is provided")
+            raise ValueError(
+                "Both project name and url are required if one is provided"
+            )
     if version_message is not None:
         metadata["dafni_version_note"] = version_message
 
