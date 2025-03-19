@@ -257,7 +257,7 @@ def dataset_metadata_common_options(all_optional: bool):
         )(function)
         function = click.option(
             "--project-url",
-            type=(str, URLParamType(optional=True)),
+            type=URLParamType(optional=True),
             default=None,
             help="URL of the dataset's associated project. Both project name and url are required if one is provided.",
         )(function)
