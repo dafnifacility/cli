@@ -144,6 +144,15 @@ def add_dataset_metadata_common_options(
                 license,
             ]
         )
+    elif not all_optional:
+        dictionary["license"] = "https://creativecommons.org/licenses/by/4.0/"
+    if rights is not None:
+        args.extend(
+            [
+                "--rights",
+                rights,
+            ]
+        )
     if dataset_source is not None:
         args.extend(
             [
@@ -177,16 +186,6 @@ def add_dataset_metadata_common_options(
             [
                 "--project-url",
                 project_url,
-            ]
-        )
-    elif not all_optional:
-        dictionary["license"] = "https://creativecommons.org/licenses/by/4.0/"
-
-    if rights is not None:
-        args.extend(
-            [
-                "--rights",
-                rights,
             ]
         )
     if version_message is not None:
