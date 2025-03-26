@@ -59,12 +59,9 @@ class TestCreateDatasetMetadata(TestCase):
             **options,
         )
 
-        print(args)
-
         with runner.isolated_filesystem():
             # CALL
             result = runner.invoke(create.create, args)
-            print(result.output)
 
             # ASSERT
             if should_fail:
