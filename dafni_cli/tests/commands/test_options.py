@@ -69,12 +69,6 @@ def add_dataset_metadata_common_options(
     if themes is not None:
         for theme in themes:
             args.extend(["--theme", theme])
-        args.extend(
-            [
-                "--language",
-                language,
-            ]
-        )
     if language is not None:
         args.extend(["--language", language])
     if keywords is not None:

@@ -939,6 +939,8 @@ class TestUploadDatasetVersion(TestCase):
             input="y",
         )
 
+        print(f"###############\n{result}\n")
+
         # ASSERT
         self.mock_DAFNISession.assert_called_once()
         self.mock_cli_get_latest_dataset_metadata.assert_called_once_with(

@@ -59,9 +59,12 @@ class TestCreateDatasetMetadata(TestCase):
             **options,
         )
 
+        print(args)
+
         with runner.isolated_filesystem():
             # CALL
             result = runner.invoke(create.create, args)
+            print(result.output)
 
             # ASSERT
             if should_fail:
@@ -108,7 +111,7 @@ class TestCreateDatasetMetadata(TestCase):
             "funding": None,
             "project_name": None,
             "project_url": None,
-            "version_message": None,
+            "version_message": "Some version message",
         }
 
         # CALL

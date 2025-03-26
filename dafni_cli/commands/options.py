@@ -232,7 +232,7 @@ def dataset_metadata_common_options(all_optional: bool):
             help="Details of any usage rights, restrictions or citations required by users of the dataset.",
         )(function)
         function = click.option(
-            "--dataset_source",
+            "--dataset-source",
             type=str,
             default=None,
             help="Details about the source of the data.",
