@@ -284,6 +284,7 @@ def modify_dataset_metadata_for_upload(
     if embargo_end_date is not None:
         metadata["embargoEndDate"] = embargo_end_date.isoformat()
     if project is not None:
+        # TODO this can be removed once new fields are parsed when getting metadata
         if not metadata.get("project"):
             metadata["project"] = {}
         if (
