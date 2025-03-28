@@ -227,6 +227,10 @@ def dataset_version(
     contact: Optional[Tuple[str, str]],
     license: Optional[str],
     rights: Optional[str],
+    dataset_source: Optional[str],
+    embargo_end_date: Optional[datetime],
+    funding: Optional[str],
+    project: Optional[Tuple[str, str]],
     version_message: Optional[str],
     yes: bool,
     json: bool,
@@ -277,6 +281,10 @@ def dataset_version(
         contact=contact,
         license=license,
         rights=rights,
+        dataset_source=dataset_source,
+        embargo_end_date=embargo_end_date,
+        funding=funding,
+        project=project,
         version_message=version_message,
     )
 
@@ -355,6 +363,10 @@ def dataset_metadata(
     contact: Optional[Tuple[str, str]],
     license: Optional[str],
     rights: Optional[str],
+    dataset_source: Optional[str],
+    embargo_end_date: Optional[datetime],
+    funding: Optional[str],
+    project: Optional[Tuple[str, str]],
     version_message: Optional[str],
     yes: bool,
     json: bool,
@@ -404,6 +416,10 @@ def dataset_metadata(
         contact=contact,
         license=license,
         rights=rights,
+        dataset_source=dataset_source,
+        embargo_end_date=embargo_end_date,
+        funding=funding,
+        project=project,
         version_message=version_message,
     )
 

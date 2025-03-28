@@ -128,6 +128,10 @@ def modify_dataset_metadata_for_upload(
     contact: Optional[Tuple[str]] = None,
     license: Optional[str] = None,
     rights: Optional[str] = None,
+    dataset_source: Optional[str] = None,
+    embargo_end_date: Optional[datetime] = None,
+    funding: Optional[str] = None,
+    project: Optional[Tuple[str, str]] = None,
     version_message: Optional[str] = None,
 ) -> dict:
     """Modifies existing dataset metadata or that loaded from a file according
@@ -169,6 +173,13 @@ def modify_dataset_metadata_for_upload(
         license (Optional[str]): URL to a license that applies to the dataset
         rights (Optional[str]): Description of any usage rights, restrictions
                                 or citations required by users of the dataset
+        dataset_source (Optional[str]): Details about the source of the data
+        embargo_end_date (Optional[datetime]): End date of embargo applied to
+                                the dataset
+        funding (Optional[str]): Funding source of the dataset's associated
+                                project
+        project (Optional[Tuple[str, str]]): = Name and URL of the dataset's
+                                associated project
         version_message (Optional[str]): Version message
     Returns:
         dict: The modified dataset metadata
@@ -266,6 +277,28 @@ def modify_dataset_metadata_for_upload(
         metadata["dct:license"]["@id"] = license
     if rights is not None:
         metadata["dct:rights"] = rights
+    if dataset_source is not None:
+        metadata["datasetSource"] = dataset_source
+    if funding is not None:
+        metadata["funding"] = funding
+    if embargo_end_date is not None:
+        metadata["embargoEndDate"] = embargo_end_date.isoformat()
+    if project is not None:
+        # TODO this can be removed once new fields are parsed when getting metadata
+        if not metadata.get("project"):
+            metadata["project"] = {}
+        if (
+            project[0] is not None
+            and len(project[0]) > 0
+            and project[1] is not None
+            and len(project[1]) > 0
+        ):
+            metadata["project"]["name"] = project[0]
+            metadata["project"]["url"] = project[1]
+        else:
+            raise ValueError(
+                "Both project name and URL are required if one is provided."
+            )
     if version_message is not None:
         metadata["dafni_version_note"] = version_message
 

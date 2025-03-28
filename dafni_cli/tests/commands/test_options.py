@@ -27,6 +27,10 @@ def add_dataset_metadata_common_options(
     contact: Optional[Tuple[str]],
     license: Optional[str],
     rights: Optional[str],
+    dataset_source: Optional[str],
+    embargo_end_date: Optional[datetime],
+    funding: Optional[str],
+    project: Optional[Tuple[str, str]],
     version_message: Optional[str],
 ):
     """Adds command line arguments to match the options added by the
@@ -64,12 +68,6 @@ def add_dataset_metadata_common_options(
     if themes is not None:
         for theme in themes:
             args.extend(["--theme", theme])
-        args.extend(
-            [
-                "--language",
-                language,
-            ]
-        )
     if language is not None:
         args.extend(["--language", language])
     if keywords is not None:
@@ -141,12 +139,40 @@ def add_dataset_metadata_common_options(
         )
     elif not all_optional:
         dictionary["license"] = "https://creativecommons.org/licenses/by/4.0/"
-
     if rights is not None:
         args.extend(
             [
                 "--rights",
                 rights,
+            ]
+        )
+    if dataset_source is not None:
+        args.extend(
+            [
+                "--dataset-source",
+                dataset_source,
+            ]
+        )
+    if embargo_end_date is not None:
+        args.extend(
+            [
+                "--embargo-end-date",
+                embargo_end_date.strftime(DATE_INPUT_FORMAT),
+            ]
+        )
+    if funding is not None:
+        args.extend(
+            [
+                "--funding",
+                funding,
+            ]
+        )
+    if project is not None:
+        args.extend(
+            [
+                "--project",
+                project[0],
+                project[1],
             ]
         )
     if version_message is not None:
