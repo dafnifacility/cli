@@ -317,7 +317,9 @@ class TestModifyDatasetMetadataForUpload(TestCase):
             f"Update frequency 'Invalid frequency' is invalid, choose one from {''.join(DATASET_METADATA_UPDATE_FREQUENCIES)}",
         )
 
-    def test_with_project_name_but_empty_url_raises_error(self, mock_open, mock_remove_invalid):
+    def test_with_project_name_but_empty_url_raises_error(
+        self, mock_open, mock_remove_invalid
+    ):
         """Tests that calling the function with a project name but
         empty project url raises an appropriate ValueError"""
 
@@ -334,7 +336,9 @@ class TestModifyDatasetMetadataForUpload(TestCase):
             "Both project name and URL are required if one is provided.",
         )
 
-    def test_with_project_url_but_empty_name_raises_error(self, mock_open, mock_remove_invalid):
+    def test_with_project_url_but_empty_name_raises_error(
+        self, mock_open, mock_remove_invalid
+    ):
         """Tests that calling the function with a project name but
         empty project url raises an appropriate ValueError"""
 
