@@ -537,8 +537,7 @@ class TestUploadDatasetVersion(TestCase):
             dataset_source=None,
             embargo_end_date=None,
             funding=None,
-            project_name=None,
-            project_url=None,
+            project=None,
             version_message=None,
         )
         self.mock_upload_dataset.assert_called_once_with(
@@ -606,8 +605,7 @@ class TestUploadDatasetVersion(TestCase):
             dataset_source=None,
             embargo_end_date=None,
             funding=None,
-            project_name=None,
-            project_url=None,
+            project=None,
             version_message=None,
         )
         self.mock_upload_dataset.assert_called_once_with(
@@ -680,8 +678,7 @@ class TestUploadDatasetVersion(TestCase):
             dataset_source=None,
             embargo_end_date=None,
             funding=None,
-            project_name=None,
-            project_url=None,
+            project=None,
             version_message=None,
         )
         self.assertEqual(
@@ -740,8 +737,7 @@ class TestUploadDatasetVersion(TestCase):
             dataset_source=None,
             embargo_end_date=None,
             funding=None,
-            project_name=None,
-            project_url=None,
+            project=None,
             version_message=None,
         )
         self.mock_upload_dataset.assert_called_once_with(
@@ -801,8 +797,7 @@ class TestUploadDatasetVersion(TestCase):
             dataset_source=None,
             embargo_end_date=None,
             funding=None,
-            project_name=None,
-            project_url=None,
+            project=None,
             version_message=None,
         )
         self.mock_upload_dataset.assert_called_once_with(
@@ -862,8 +857,7 @@ class TestUploadDatasetVersion(TestCase):
             dataset_source=None,
             embargo_end_date=None,
             funding=None,
-            project_name=None,
-            project_url=None,
+            project=None,
             version_message=None,
         )
         self.mock_upload_dataset.assert_not_called()
@@ -916,8 +910,7 @@ class TestUploadDatasetVersion(TestCase):
             "dataset_source": "Dataset source",
             "embargo_end_date": datetime(2026, 3, 9),
             "funding": "A funding source",
-            "project_name": "Project name",
-            "project_url": "https://www.project.ac.uk",
+            "project": ("Project name", "https://www.project.ac.uk"),
             "version_message": "Some version message",
         }
 
@@ -1082,8 +1075,7 @@ class TestUploadDatasetMetadata(TestCase):
             dataset_source=None,
             embargo_end_date=None,
             funding=None,
-            project_name=None,
-            project_url=None,
+            project=None,
             version_message=None,
         )
         self.mock_upload_dataset_metadata_version.assert_called_once_with(
@@ -1151,8 +1143,7 @@ class TestUploadDatasetMetadata(TestCase):
             dataset_source=None,
             embargo_end_date=None,
             funding=None,
-            project_name=None,
-            project_url=None,
+            project=None,
             version_message=None,
         )
         self.assertEqual(
@@ -1202,8 +1193,7 @@ class TestUploadDatasetMetadata(TestCase):
             "dataset_source": "Dataset source",
             "embargo_end_date": datetime(2026, 3, 9),
             "funding": "A funding source",
-            "project_name": "Project name",
-            "project_url": "https://www.project.ac.uk",
+            "project": ("Project name", "https://www.project.ac.uk"),
             "version_message": "Some version message",
         }
 
@@ -1292,8 +1282,7 @@ class TestUploadDatasetMetadata(TestCase):
             dataset_source=None,
             embargo_end_date=None,
             funding=None,
-            project_name=None,
-            project_url=None,
+            project=None,
             version_message=None,
         )
         self.mock_upload_dataset_metadata_version.assert_called_once_with(
@@ -1349,8 +1338,7 @@ class TestUploadDatasetMetadata(TestCase):
             dataset_source=None,
             embargo_end_date=None,
             funding=None,
-            project_name=None,
-            project_url=None,
+            project=None,
             version_message=None,
         )
         self.mock_upload_dataset_metadata_version.assert_called_once_with(
@@ -1405,8 +1393,7 @@ class TestUploadDatasetMetadata(TestCase):
             dataset_source=None,
             embargo_end_date=None,
             funding=None,
-            project_name=None,
-            project_url=None,
+            project=None,
             version_message=None,
         )
         self.mock_upload_dataset_metadata_version.assert_not_called()

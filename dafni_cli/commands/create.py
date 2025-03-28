@@ -49,8 +49,7 @@ def dataset_metadata(
     dataset_source: Optional[str],
     embargo_end_date: Optional[datetime],
     funding: Optional[str],
-    project_name: Optional[str],
-    project_url: Optional[str],
+    project: Optional[Tuple[str, str]],
     version_message: str,
 ):
     """Creates a new file containing a new Dataset's metadata ready for upload
@@ -93,8 +92,7 @@ def dataset_metadata(
         dataset_source=dataset_source,
         embargo_end_date=embargo_end_date,
         funding=funding,
-        project_name=project_name,
-        project_url=project_url,
+        project=project,
         version_message=version_message,
     )
 

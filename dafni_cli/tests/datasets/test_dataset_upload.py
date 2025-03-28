@@ -153,7 +153,11 @@ class TestModifyDatasetMetadataForUpload(TestCase):
         publisher = ("publisher_name", "publisher_id")
         contact = ("contact_name", "contact_email_address")
         license = "some/url"
-        rights = "Rights"
+        rights = "rights"
+        funding = "funding_source"
+        embargo_end_date = datetime(2025, 3, 9)
+        dataset_source = "source_of_data"
+        project = ("project_name", "project_url")
         version_message = "new_version_message"
 
         # CALL
@@ -177,6 +181,10 @@ class TestModifyDatasetMetadataForUpload(TestCase):
             contact=contact,
             license=license,
             rights=rights,
+            funding=funding,
+            embargo_end_date=embargo_end_date,
+            dataset_source=dataset_source,
+            project=project,
             version_message=version_message,
         )
 
@@ -225,6 +233,11 @@ class TestModifyDatasetMetadataForUpload(TestCase):
         self.assertEqual(result["dcat:contactPoint"]["vcard:hasEmail"], contact[1])
         self.assertEqual(result["dct:license"]["@id"], license)
         self.assertEqual(result["dct:rights"], rights)
+        self.assertEqual(result["funding"], funding)
+        self.assertEqual(result["embargoEndDate"], embargo_end_date.isoformat())
+        self.assertEqual(result["datasetSource"], dataset_source)
+        self.assertEqual(result["project"]["name"], project[0])
+        self.assertEqual(result["project"]["url"], project[1])
 
         # Since unittest is storing the reference it is further modified by
         # the version message so use result here instead of
@@ -302,6 +315,40 @@ class TestModifyDatasetMetadataForUpload(TestCase):
         self.assertEqual(
             str(err.exception),
             f"Update frequency 'Invalid frequency' is invalid, choose one from {''.join(DATASET_METADATA_UPDATE_FREQUENCIES)}",
+        )
+
+    def test_with_project_name_but_empty_url_raises_error(self, mock_open, mock_remove_invalid):
+        """Tests that calling the function with a project name but
+        empty project url raises an appropriate ValueError"""
+
+        # SETUP
+        metadata = TEST_DATASET_METADATA
+
+        # CALL & ASSERT
+        with self.assertRaises(ValueError) as err:
+            dataset_upload.modify_dataset_metadata_for_upload(
+                metadata, project=("project_name", "")
+            )
+        self.assertEqual(
+            str(err.exception),
+            "Both project name and URL are required if one is provided.",
+        )
+
+    def test_with_project_url_but_empty_name_raises_error(self, mock_open, mock_remove_invalid):
+        """Tests that calling the function with a project name but
+        empty project url raises an appropriate ValueError"""
+
+        # SETUP
+        metadata = TEST_DATASET_METADATA
+
+        # CALL & ASSERT
+        with self.assertRaises(ValueError) as err:
+            dataset_upload.modify_dataset_metadata_for_upload(
+                metadata, project=("", "project_url")
+            )
+        self.assertEqual(
+            str(err.exception),
+            "Both project name and URL are required if one is provided.",
         )
 
 

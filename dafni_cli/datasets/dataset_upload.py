@@ -131,8 +131,7 @@ def modify_dataset_metadata_for_upload(
     dataset_source: Optional[str] = None,
     embargo_end_date: Optional[datetime] = None,
     funding: Optional[str] = None,
-    project_name: Optional[str] = None,
-    project_url: Optional[str] = None,
+    project: Optional[Tuple[str, str]] = None,
     version_message: Optional[str] = None,
 ) -> dict:
     """Modifies existing dataset metadata or that loaded from a file according
@@ -179,9 +178,8 @@ def modify_dataset_metadata_for_upload(
                                 the dataset
         funding (Optional[str]): Funding source of the dataset's associated
                                 project
-        project_name (Optional[str]): = Name of the dataset's associated
-                                project
-        project_url (Optional[str]): URL of the dataset's asscoiated project
+        project (Optional[Tuple[str, str]]): = Name and URL of the dataset's
+                                associated project
         version_message (Optional[str]): Version message
     Returns:
         dict: The modified dataset metadata
@@ -285,29 +283,20 @@ def modify_dataset_metadata_for_upload(
         metadata["funding"] = funding
     if embargo_end_date is not None:
         metadata["embargoEndDate"] = embargo_end_date.isoformat()
-    if metadata.get("project"):
-        if project_name is not None and project_url is not None:
-            metadata["project"]["name"] = project_name
-            metadata["project"]["url"] = project_url
-        elif project_name is not None and metadata["project"].get("url") is not None:
-            metadata["project"]["name"] = project_name
-        elif project_url is not None and metadata["project"].get("name") is not None:
-            metadata["project"]["url"] = project_url
-        elif project_name is not None or project_url is not None:
-            raise ValueError(
-                "Both project name and url are required if one is provided"
-            )
-    # TODO This else can be removed once parsing of dataset metadata includes the new fields
-    else:
-        if project_name is not None and project_url is not None:
+    if project is not None:
+        if not metadata.get("project"):
             metadata["project"] = {}
-            metadata["project"]["name"] = project_name
-            metadata["project"]["url"] = project_url
-        elif (project_url is not None and project_name is None) or (
-            project_name is not None and project_url is None
+        if (
+            project[0] is not None
+            and len(project[0]) > 0
+            and project[1] is not None
+            and len(project[1]) > 0
         ):
+            metadata["project"]["name"] = project[0]
+            metadata["project"]["url"] = project[1]
+        else:
             raise ValueError(
-                "Both project name and url are required if one is provided"
+                "Both project name and URL are required if one is provided."
             )
     if version_message is not None:
         metadata["dafni_version_note"] = version_message

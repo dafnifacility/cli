@@ -100,8 +100,8 @@ def dataset_metadata_common_options(all_optional: bool):
         embargo_end_date (Optional[datetime]): End date of embargo applied to
                                 the dataset
         funding (Optional[str]): Funding source of dataset's associated project
-        project_name (Optional[str]): = Name of dataset's associated project
-        project_url (Optional[str]): URL of dataset's asscoiated project
+        project (Optional[Tuple[str, str]]): = Name and URL of dataset's
+                                associated project
         version_message (str): Version message
     """
 
@@ -250,16 +250,11 @@ def dataset_metadata_common_options(all_optional: bool):
             help="Funding source of the dataset's associated project.",
         )(function)
         function = click.option(
-            "--project-name",
-            type=str,
+            "--project",
+            type=(str, URLParamType()),
+            # callback=click_optional_tuple_none_callback,
             default=None,
-            help="Name of the dataset's associated project. Both project name and url are required if one is provided.",
-        )(function)
-        function = click.option(
-            "--project-url",
-            type=URLParamType(optional=True),
-            default=None,
-            help="URL of the dataset's associated project. Both project name and url are required if one is provided.",
+            help="Name and URL of the dataset's associated project. Both are required if one is provided.",
         )(function)
         function = click.option(
             "--version-message",

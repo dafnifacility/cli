@@ -230,8 +230,7 @@ def dataset_version(
     dataset_source: Optional[str],
     embargo_end_date: Optional[datetime],
     funding: Optional[str],
-    project_name: Optional[str],
-    project_url: Optional[str],
+    project: Optional[Tuple[str, str]],
     version_message: Optional[str],
     yes: bool,
     json: bool,
@@ -285,8 +284,7 @@ def dataset_version(
         dataset_source=dataset_source,
         embargo_end_date=embargo_end_date,
         funding=funding,
-        project_name=project_name,
-        project_url=project_url,
+        project=project,
         version_message=version_message,
     )
 
@@ -368,8 +366,7 @@ def dataset_metadata(
     dataset_source: Optional[str],
     embargo_end_date: Optional[datetime],
     funding: Optional[str],
-    project_name: Optional[str],
-    project_url: Optional[str],
+    project: Optional[Tuple[str, str]],
     version_message: Optional[str],
     yes: bool,
     json: bool,
@@ -422,8 +419,7 @@ def dataset_metadata(
         dataset_source=dataset_source,
         embargo_end_date=embargo_end_date,
         funding=funding,
-        project_name=project_name,
-        project_url=project_url,
+        project=project,
         version_message=version_message,
     )
 

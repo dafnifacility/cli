@@ -30,8 +30,7 @@ def add_dataset_metadata_common_options(
     dataset_source: Optional[str],
     embargo_end_date: Optional[datetime],
     funding: Optional[str],
-    project_name: Optional[str],
-    project_url: Optional[str],
+    project: Optional[Tuple[str, str]],
     version_message: Optional[str],
 ):
     """Adds command line arguments to match the options added by the
@@ -168,18 +167,12 @@ def add_dataset_metadata_common_options(
                 funding,
             ]
         )
-    if project_name is not None:
+    if project is not None:
         args.extend(
             [
-                "--project-name",
-                project_name,
-            ]
-        )
-    if project_url is not None:
-        args.extend(
-            [
-                "--project-url",
-                project_url,
+                "--project",
+                project[0],
+                project[1],
             ]
         )
     if version_message is not None:
