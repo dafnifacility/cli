@@ -12,6 +12,8 @@ from dafni_cli.api.exceptions import (
 from dafni_cli.api.session import DAFNISession
 from dafni_cli.consts import NID_API_URL, SEARCH_AND_DISCOVERY_API_URL
 
+MAX_DATASETS = 20000
+
 
 # Validation function for validating the dataset-metadata
 def validate_metadata(session: DAFNISession, metadata: dict):
@@ -44,7 +46,11 @@ def get_all_datasets(session: DAFNISession, filters: dict) -> List[dict]:
         List[dict]: List of available datasets
     """
     url = f"{SEARCH_AND_DISCOVERY_API_URL}/catalogue/"
-    data = {"offset": {"start": 0, "size": 1000}, "sort_by": "recent", **filters}
+    data = {
+        "offset": {"start": 0, "size": MAX_DATASETS},
+        "sort_by": "recent",
+        **filters,
+    }
 
     return session.post_request(url=url, json=data, allow_redirect=True)
 
