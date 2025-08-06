@@ -13,7 +13,6 @@ from dafni_cli.api.exceptions import (
 from dafni_cli.consts import NID_API_URL, SEARCH_AND_DISCOVERY_API_URL
 from dafni_cli.tests.fixtures.session import create_mock_metadata_errors_response
 
-
 class TestDatasetsAPI(TestCase):
     """Test class to test the functions in datasets_api.py"""
 
@@ -61,7 +60,7 @@ class TestDatasetsAPI(TestCase):
         # ASSERT
         session.post_request.assert_called_once_with(
             url=f"{SEARCH_AND_DISCOVERY_API_URL}/catalogue/",
-            json={"offset": {"start": 0, "size": 1000}, "sort_by": "recent", **filters},
+            json={"offset": {"start": 0, "size": datasets_api.MAX_DATASETS}, "sort_by": "recent", **filters},
             allow_redirect=True,
         )
         self.assertEqual(result, session.post_request.return_value)
