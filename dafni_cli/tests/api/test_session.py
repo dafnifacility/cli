@@ -238,7 +238,7 @@ class TestDAFNISession(TestCase):
                 "scope": "openid",
             },
             timeout=REQUESTS_TIMEOUT,
-            verify=True
+            verify=True,
         )
 
         self.assertEqual(err.exception.code, 1)
