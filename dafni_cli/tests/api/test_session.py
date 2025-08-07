@@ -292,6 +292,7 @@ class TestDAFNISession(TestCase):
                         "scope": "openid",
                     },
                     timeout=REQUESTS_TIMEOUT,
+                    verify=True,
                 ),
             ]
         )
@@ -1165,6 +1166,7 @@ class TestDAFNISession(TestCase):
                         "scope": "openid",
                     },
                     timeout=REQUESTS_TIMEOUT,
+                    verify=True,
                 ),
             ]
         )
