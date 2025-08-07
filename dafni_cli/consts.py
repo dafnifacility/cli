@@ -125,6 +125,9 @@ REQUEST_ERROR_RETRY_ATTEMPTS = 3
 # request (seconds)
 REQUEST_ERROR_RETRY_WAIT = 1
 
+# Sets whether certificates need validating for the request
+VERIFY = True
+
 # Number of upload attempts to make when there is a problem during dataset upload
 DATASET_UPLOAD_FILE_RETRY_ATTEMPTS = 3
 
