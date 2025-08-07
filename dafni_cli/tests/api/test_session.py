@@ -280,6 +280,7 @@ class TestDAFNISession(TestCase):
                         "scope": "openid",
                     },
                     timeout=REQUESTS_TIMEOUT,
+                    verify=True,
                 ),
                 call(
                     LOGIN_API_ENDPOINT,
@@ -1151,6 +1152,7 @@ class TestDAFNISession(TestCase):
                         "refresh_token": "some_refresh_token",
                     },
                     timeout=REQUESTS_TIMEOUT,
+                    verify=True,
                 ),
                 # New token request
                 call(
