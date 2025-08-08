@@ -37,7 +37,7 @@ This ensures any modifications are applied to the CLI itself.
 
 ## Running against staging
 
-To run the CLI against staging, modify the `ENVIRONMENT` variable in `consts.py` to be `staging` instead of `production`.
+To run the CLI against staging, modify the `ENVIRONMENT` variable in `consts.py` to be `staging` instead of `production`. You may also need to set the `VERIFY` variable, located in the same file, to be `False` to avoid SSL errors during development. 
 
 ## Running the tests
 Whilst running the activated venv created locally for the dafni-cli, ensure you are in the root directory of the git repository, and use the following to run all tests:

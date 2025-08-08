@@ -103,6 +103,7 @@ class TestDAFNISession(TestCase):
                 "scope": "openid",
             },
             timeout=REQUESTS_TIMEOUT,
+            verify=True,
         )
 
         self.assertEqual(
@@ -157,6 +158,7 @@ class TestDAFNISession(TestCase):
                 "scope": "openid",
             },
             timeout=REQUESTS_TIMEOUT,
+            verify=True,
         )
 
         self.assertEqual(
@@ -196,6 +198,7 @@ class TestDAFNISession(TestCase):
                 "scope": "openid",
             },
             timeout=REQUESTS_TIMEOUT,
+            verify=True,
         )
 
         self.assertEqual(
@@ -235,6 +238,7 @@ class TestDAFNISession(TestCase):
                 "scope": "openid",
             },
             timeout=REQUESTS_TIMEOUT,
+            verify=True,
         )
 
         self.assertEqual(err.exception.code, 1)
@@ -276,6 +280,7 @@ class TestDAFNISession(TestCase):
                         "scope": "openid",
                     },
                     timeout=REQUESTS_TIMEOUT,
+                    verify=True,
                 ),
                 call(
                     LOGIN_API_ENDPOINT,
@@ -287,6 +292,7 @@ class TestDAFNISession(TestCase):
                         "scope": "openid",
                     },
                     timeout=REQUESTS_TIMEOUT,
+                    verify=True,
                 ),
             ]
         )
@@ -326,6 +332,7 @@ class TestDAFNISession(TestCase):
                 "scope": "openid",
             },
             timeout=REQUESTS_TIMEOUT,
+            verify=True,
         )
 
     def test_get_error_message_with_no_error(self):
@@ -490,6 +497,7 @@ class TestDAFNISession(TestCase):
             allow_redirects=False,
             stream=None,
             timeout=REQUESTS_TIMEOUT,
+            verify=True,
         )
 
     def _test_authenticated_request_cookie_auth(self, url: str):
@@ -518,6 +526,7 @@ class TestDAFNISession(TestCase):
             stream=None,
             timeout=REQUESTS_TIMEOUT,
             cookies={SESSION_COOKIE: TEST_ACCESS_TOKEN},
+            verify=True,
         )
 
     def test_authenticated_request_cookie_auth(self):
@@ -551,6 +560,7 @@ class TestDAFNISession(TestCase):
             allow_redirects=False,
             stream=False,
             timeout=REQUESTS_TIMEOUT,
+            verify=True,
         )
         session._check_response.assert_called_once_with(
             "some_test_url",
@@ -592,6 +602,7 @@ class TestDAFNISession(TestCase):
             allow_redirects=False,
             stream=True,
             timeout=REQUESTS_TIMEOUT,
+            verify=True,
         )
         session._check_response.assert_called_once_with(
             "some_test_url",
@@ -624,6 +635,7 @@ class TestDAFNISession(TestCase):
             allow_redirects=False,
             stream=None,
             timeout=REQUESTS_TIMEOUT,
+            verify=True,
         )
         session._check_response.assert_called_once_with(
             "some_test_url",
@@ -664,6 +676,7 @@ class TestDAFNISession(TestCase):
             allow_redirects=False,
             stream=None,
             timeout=REQUESTS_TIMEOUT,
+            verify=True,
         )
         session._check_response.assert_called_once_with(
             "some_test_url",
@@ -696,6 +709,7 @@ class TestDAFNISession(TestCase):
             allow_redirects=False,
             stream=None,
             timeout=REQUESTS_TIMEOUT,
+            verify=True,
         )
         session._check_response.assert_called_once_with(
             "some_test_url",
@@ -734,6 +748,7 @@ class TestDAFNISession(TestCase):
             allow_redirects=False,
             stream=None,
             timeout=REQUESTS_TIMEOUT,
+            verify=True,
         )
         session._check_response.assert_called_once_with(
             "some_test_url",
@@ -766,6 +781,7 @@ class TestDAFNISession(TestCase):
             allow_redirects=False,
             stream=None,
             timeout=REQUESTS_TIMEOUT,
+            verify=True,
         )
         session._check_response.assert_called_once_with(
             "some_test_url",
@@ -806,6 +822,7 @@ class TestDAFNISession(TestCase):
             allow_redirects=False,
             stream=None,
             timeout=REQUESTS_TIMEOUT,
+            verify=True,
         )
         session._check_response.assert_called_once_with(
             "some_test_url",
@@ -837,6 +854,7 @@ class TestDAFNISession(TestCase):
             allow_redirects=False,
             stream=None,
             timeout=REQUESTS_TIMEOUT,
+            verify=True,
         )
         session._check_response.assert_called_once_with(
             "some_test_url",
@@ -872,6 +890,7 @@ class TestDAFNISession(TestCase):
             allow_redirects=False,
             stream=None,
             timeout=REQUESTS_TIMEOUT,
+            verify=True,
         )
         session._check_response.assert_called_once_with(
             "some_test_url",
@@ -918,6 +937,7 @@ class TestDAFNISession(TestCase):
                 "refresh_token": "some_refresh_token",
             },
             timeout=REQUESTS_TIMEOUT,
+            verify=True,
         )
 
         # Ensure get request is attempted again (should be successful the
@@ -977,6 +997,7 @@ class TestDAFNISession(TestCase):
                 "refresh_token": "some_refresh_token",
             },
             timeout=REQUESTS_TIMEOUT,
+            verify=True,
         )
 
         # Ensure get request is attempted again (should be successful the
@@ -1023,6 +1044,7 @@ class TestDAFNISession(TestCase):
                 "refresh_token": "some_refresh_token",
             },
             timeout=REQUESTS_TIMEOUT,
+            verify=True,
         )
 
         # Ensure get request is attempted again (should be successful the
@@ -1131,6 +1153,7 @@ class TestDAFNISession(TestCase):
                         "refresh_token": "some_refresh_token",
                     },
                     timeout=REQUESTS_TIMEOUT,
+                    verify=True,
                 ),
                 # New token request
                 call(
@@ -1143,6 +1166,7 @@ class TestDAFNISession(TestCase):
                         "scope": "openid",
                     },
                     timeout=REQUESTS_TIMEOUT,
+                    verify=True,
                 ),
             ]
         )
@@ -1187,6 +1211,7 @@ class TestDAFNISession(TestCase):
                 "refresh_token": "some_refresh_token",
             },
             timeout=REQUESTS_TIMEOUT,
+            verify=True,
         )
 
         # Should only try request once as refreshes before called in this case

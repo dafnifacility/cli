@@ -24,6 +24,7 @@ from dafni_cli.consts import (
     SESSION_SAVE_FILE,
     TOKEN_EXPIRE_OFFSET,
     URLS_REQUIRING_COOKIE_AUTHENTICATION,
+    VERIFY,
 )
 from dafni_cli.utils import dataclass_from_dict, get_current_messages
 
@@ -187,6 +188,7 @@ class DAFNISession:
                 "refresh_token": self._session_data.refresh_token,
             },
             timeout=REQUESTS_TIMEOUT,
+            verify=VERIFY,
         )
 
         if response.status_code == 400 and response.json()["error"] == "invalid_grant":
@@ -235,6 +237,7 @@ class DAFNISession:
                 "scope": "openid",
             },
             timeout=REQUESTS_TIMEOUT,
+            verify=VERIFY,
         )
 
         response.raise_for_status()
@@ -262,6 +265,7 @@ class DAFNISession:
                 "scope": "openid",
             },
             timeout=REQUESTS_TIMEOUT,
+            verify=VERIFY,
         )
 
         # When status_code is 401 => The username or password is wrong and
@@ -431,6 +435,7 @@ class DAFNISession:
                     stream=stream,
                     timeout=REQUESTS_TIMEOUT,
                     cookies={SESSION_COOKIE: self._session_data.access_token},
+                    verify=VERIFY,
                 )
             else:
                 response = requests.request(
@@ -445,6 +450,7 @@ class DAFNISession:
                     allow_redirects=allow_redirect,
                     stream=stream,
                     timeout=REQUESTS_TIMEOUT,
+                    verify=VERIFY,
                 )
 
             # Check for any kind of authentication error, or an attempted redirect
