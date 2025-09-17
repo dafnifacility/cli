@@ -40,9 +40,9 @@ class Dataset(ParserBaseObject):
     metadata_id: str
     modified_date: datetime
     source: str
-    status: str
     subject: str
     title: str
+    status: str = "Unknown"
     formats: List[str] = field(default_factory=list)
     description: Optional[str] = None
     date_range_start: Optional[datetime] = None
