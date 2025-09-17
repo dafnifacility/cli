@@ -12,7 +12,7 @@ from dafni_cli.api.exceptions import (
 from dafni_cli.api.session import DAFNISession
 from dafni_cli.consts import NID_API_URL, SEARCH_AND_DISCOVERY_API_URL
 
-MAX_DATASETS = 20000
+MAX_DATASETS = 15000
 
 
 # Validation function for validating the dataset-metadata
