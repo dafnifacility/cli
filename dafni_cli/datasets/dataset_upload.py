@@ -365,9 +365,11 @@ def upload_files(
                         raise RuntimeError(
                             f"Attempted to upload file {DATASET_UPLOAD_FILE_RETRY_ATTEMPTS} times but failed repeatedly"
                         ) from err
-                    
+
                     # Get new urls before retrying
-                    upload_urls = get_data_upload_urls(session, temp_bucket_id, file_names)["urls"]
+                    upload_urls = get_data_upload_urls(
+                        session, temp_bucket_id, file_names
+                    )["urls"]
 
             # Completed a file download, update the overall status to reflect
             overall_progress_bar.update(file_names_and_paths[file_name].stat().st_size)
