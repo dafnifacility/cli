@@ -338,22 +338,21 @@ def upload_files(
     with OverallFileProgressBar(
         len(file_names_and_paths), total_file_size
     ) as overall_progress_bar:
-        # Obtain upload URLs for each batch separately and wait until uploaded
-        # all the files in the current batch before starting the next
-        for file_name, file_path in file_names_and_paths.items():
+        # Obtain upload URLs for all files
+        file_names = file_names_and_paths.keys()
+        upload_urls = get_data_upload_urls(session, temp_bucket_id, file_names)["urls"]
+
+        # Loop through and attempt upload of each file
+        for file_name in file_names:
             upload_attempts = 0
 
             # Try and upload, but if fails for any reason - retry with a new upload URL
             while upload_attempts < DATASET_UPLOAD_FILE_RETRY_ATTEMPTS:
-                upload_url = get_data_upload_urls(session, temp_bucket_id, [file_name])[
-                    "urls"
-                ][file_name]
-
                 try:
                     upload_file_to_minio(
                         session,
-                        upload_url,
-                        file_path,
+                        upload_urls[file_name],
+                        file_names_and_paths[file_name],
                         file_name=file_name,
                         progress_bar=not json,
                     )
@@ -366,6 +365,9 @@ def upload_files(
                         raise RuntimeError(
                             f"Attempted to upload file {DATASET_UPLOAD_FILE_RETRY_ATTEMPTS} times but failed repeatedly"
                         ) from err
+                    
+                    # Get new urls before retrying
+                    upload_urls = get_data_upload_urls(session, temp_bucket_id, file_names)["urls"]
 
             # Completed a file download, update the overall status to reflect
             overall_progress_bar.update(file_names_and_paths[file_name].stat().st_size)
