@@ -413,11 +413,11 @@ class TestDatasetUpload(TestCase):
             ),
         ]
         urls = [f"upload/url/{file_path.name}" for file_path in file_paths]
-        upload_urls = [
-            {"urls": {file_path.name: url}} for file_path, url in zip(file_paths, urls)
-        ]
+        upload_urls = {
+            "urls": {file_path.name: url for file_path, url in zip(file_paths, urls)}
+        }
 
-        self.mock_get_data_upload_urls.side_effect = upload_urls
+        self.mock_get_data_upload_urls.return_value = upload_urls
         mock_overall_progress_bar = MagicMock()
         self.mock_OverallFileProgressBar.return_value.__enter__.return_value = (
             mock_overall_progress_bar
@@ -427,16 +427,10 @@ class TestDatasetUpload(TestCase):
         dataset_upload.upload_files(session, temp_bucket_id, file_paths, json=json)
 
         # ASSERT
-        self.assertEqual(
-            self.mock_get_data_upload_urls.call_args_list,
-            [
-                call(
-                    session,
-                    temp_bucket_id,
-                    [file_path.name],
-                )
-                for file_path in file_paths
-            ],
+        self.mock_get_data_upload_urls.assert_called_once_with(
+            session,
+            temp_bucket_id,
+            [file_path.name for file_path in file_paths],
         )
         self.mock_OverallFileProgressBar.assert_called_once_with(
             len(file_paths), file_size * len(file_paths)

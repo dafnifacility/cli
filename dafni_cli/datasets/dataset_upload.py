@@ -339,7 +339,7 @@ def upload_files(
         len(file_names_and_paths), total_file_size
     ) as overall_progress_bar:
         # Obtain upload URLs for all files
-        file_names = file_names_and_paths.keys()
+        file_names = list(file_names_and_paths.keys())
         upload_urls = get_data_upload_urls(session, temp_bucket_id, file_names)["urls"]
 
         # Loop through and attempt upload of each file
