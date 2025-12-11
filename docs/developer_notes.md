@@ -2,7 +2,7 @@
 
 ## Environment Setup
 ### Create a development environment
-The code has been developed using Python *3.9.5* using a virtual environment.
+The code has been developed using Python *3.10* using a virtual environment.
 The environment can be created using the following command, in the parent directory of the `dafni-cli` folder:
 
 `python -m venv .venv`
