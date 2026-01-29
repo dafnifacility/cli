@@ -1,3 +1,3 @@
-import pkg_resources
+import importlib
 
-DAFNI_CLI_VERSION = pkg_resources.get_distribution("dafni-cli").version
+DAFNI_CLI_VERSION = importlib.metadata.version("dafni-cli")
