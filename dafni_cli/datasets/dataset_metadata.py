@@ -9,9 +9,10 @@ from dafni_cli.api.auth import Auth
 from dafni_cli.api.parser import ParserBaseObject, ParserParam, parse_datetime
 from dafni_cli.consts import (
     CONSOLE_WIDTH,
-    TABLE_MODIFIED_HEADER,
+    TABLE_PUBLICATION_DATE_HEADER,
     TABLE_VERSION_ID_HEADER,
     TABLE_VERSION_MESSAGE_HEADER,
+    TABLE_VERSION_TAGS_HEADER,
 )
 from dafni_cli.utils import (
     format_data_format,
@@ -367,15 +368,14 @@ class Contact(ParserBaseObject):
 
     def __str__(self) -> str:
         """Nicer string representation for printing"""
-        if self.name is None and self.email is None:
-            return "N/A"
-
         if self.name and self.email:
             return f"{self.name}, {self.email}"
         elif self.name:
             return self.name
         elif self.email:
             return self.email
+        else:
+            return "N/A"
 
 
 @dataclass
@@ -455,95 +455,27 @@ class Standard(ParserBaseObject):
 
 
 @dataclass
-class DatasetMetadataVersion(ParserBaseObject):
-    """Dataclass representing a metadata version listed in a dataset's
-    version_history
-
-    Attributes:
-        metadata_id (str): ID of this version of the metadata
-        modified_date (datetime): Time and date of last modification of this
-                                  version
-        version_message (Optional[str]): Version message for the metadata
-    """
-
-    metadata_id: str
-    modified_date: datetime
-    version_message: Optional[str] = None
-
-    _parser_params: ClassVar[List[ParserParam]] = [
-        ParserParam("metadata_id", "metadata_uuid", str),
-        ParserParam("modified_date", "modified_date", parse_datetime),
-        ParserParam("version_message", "dafni_version_note", str),
-    ]
-
-
-@dataclass
 class DatasetVersion(ParserBaseObject):
-    """Dataclass representing a specific dataset version listed under a
-       dataset's metadata version_history
+    """Dataclass containing information on a historic version of a dataset
 
     Attributes:
-        version_id (str): ID of this version of the dataset
-        metadata_versions (List[DatasetMetadataVersion): List of metadata
-                              versions under this version of the dataset
+        version_id (str): ID of the version
+        version_message (str): Message labelling the dataset version
+        version_tags (List[str]): Version tags e.g. 'latest'
+        publication_date: Date and time this version was published
     """
 
     version_id: str
-    metadata_versions: List[DatasetMetadataVersion]
+    version_message: str
+    version_tags: List[str]
+    publication_date: datetime
 
     _parser_params: ClassVar[List[ParserParam]] = [
-        ParserParam("version_id", "version_uuid", str),
-        ParserParam("metadata_versions", "metadata_versions", DatasetMetadataVersion),
+        ParserParam("version_id", "id", str),
+        ParserParam("version_message", "version_message", str),
+        ParserParam("version_tags", "version_tags"),
+        ParserParam("publication_date", "publication_date", parse_datetime),
     ]
-
-
-@dataclass
-class DatasetVersionHistory(ParserBaseObject):
-    """Dataclass for processing the version history of a dataset
-
-    Methods:
-        process_and_output_version_history(session: DAFNISession, json_flag: bool): Iterates through all versions and outputs details
-
-    Attributes:
-        session (DAFNISession): User session
-        dataset_id (str): Dataset ID
-        versions (List[dict]): List of associated Version dicts
-        version_ids (List[str]): List of Version IDs
-    """
-
-    dataset_id: str
-    versions: List[DatasetVersion]
-
-    _parser_params: ClassVar[List[ParserParam]] = [
-        ParserParam("dataset_id", "dataset_uuid", str),
-        ParserParam("versions", "versions", DatasetVersion),
-    ]
-
-    def output_version_history(self):
-        """Iterates through all versions and outputs their details in a table
-        printed to the command line
-        """
-        table_rows = []
-        for version in self.versions:
-            # Latest metadata is always the first
-            latest_metadata = version.metadata_versions[0]
-            table_rows.append(
-                [
-                    version.version_id,
-                    format_datetime(latest_metadata.modified_date, include_time=True),
-                    latest_metadata.version_message,
-                ]
-            )
-        click.echo(
-            format_table(
-                headers=[
-                    TABLE_VERSION_ID_HEADER,
-                    TABLE_MODIFIED_HEADER,
-                    TABLE_VERSION_MESSAGE_HEADER,
-                ],
-                rows=table_rows,
-            )
-        )
 
 
 @dataclass
@@ -571,8 +503,6 @@ class DatasetMetadata(ParserBaseObject):
         dataset_id (str): Dataset identifier
         version_id (str): Version identifier of the latest version of this
                           dataset
-        metadata_id (str): Metadata identifier of the latest metadata for this
-                           dataset
         auth (Auth): Authentication credentials giving the permissions the
                      current user has on the dataset
         files (List[DataFile]): Files associated with the dataset
@@ -603,11 +533,10 @@ class DatasetMetadata(ParserBaseObject):
     asset_id: str
     dataset_id: str
     version_id: str
-    metadata_id: str
     auth: Auth
     files: List[DataFile]
     status: str
-    version_history: DatasetVersionHistory
+    version_history: List[DatasetVersion]
     version_message: Optional[str] = None
     identifiers: List[str] = field(default_factory=list)
     themes: List[str] = field(default_factory=list)
@@ -630,14 +559,13 @@ class DatasetMetadata(ParserBaseObject):
         ParserParam("modified", ["metadata", "dct:modified"], parse_datetime),
         ParserParam("issued", ["metadata", "dct:issued"], parse_datetime),
         ParserParam("language", ["metadata", "dct:language"], str),
-        ParserParam("asset_id", ["metadata", "@id", "asset_id"], str),
-        ParserParam("dataset_id", ["metadata", "@id", "dataset_uuid"], str),
-        ParserParam("version_id", ["metadata", "@id", "version_uuid"], str),
-        ParserParam("metadata_id", ["metadata", "@id", "metadata_uuid"], str),
+        ParserParam("asset_id", ["metadata", "@id"], str),
+        ParserParam("dataset_id", "parent", str),
+        ParserParam("version_id", "id", str),
         ParserParam("auth", "auth", Auth),
         ParserParam("files", ["metadata", "dcat:distribution"], DataFile),
         ParserParam("status", "status", str),
-        ParserParam("version_history", "version_history", DatasetVersionHistory),
+        ParserParam("version_history", "version_history", DatasetVersion),
         ParserParam("version_message", ["metadata", "dafni_version_note"], str),
         ParserParam("identifiers", ["metadata", "dct:identifier"]),
         ParserParam("themes", ["metadata", "dcat:theme"]),
@@ -746,7 +674,7 @@ class DatasetMetadata(ParserBaseObject):
         """Returns a string with details about the dataset (used prior to
         deletion)"""
         version_ids = "\n".join(
-            [version.version_id for version in self.version_history.versions]
+            [version.version_id for version in self.version_history]
         )
         return (
             f"Title: {self.title}\n"
@@ -764,6 +692,32 @@ class DatasetMetadata(ParserBaseObject):
             f"Version ID: {self.version_id}\n"
             f"Created: {format_datetime(self.created, include_time=True)}\n"
             f"Publisher: {self.publisher.name}\n"
+        )
+
+    def output_version_history(self):
+        """Iterates through all versions and outputs their details in a table
+        printed to the command line
+        """
+        table_rows = []
+        for version in self.version_history:
+            table_rows.append(
+                [
+                    version.version_id,
+                    format_datetime(version.publication_date, include_time=True),
+                    ", ".join(version.version_tags),
+                    version.version_message,
+                ]
+            )
+        click.echo(
+            format_table(
+                headers=[
+                    TABLE_VERSION_ID_HEADER,
+                    TABLE_PUBLICATION_DATE_HEADER,
+                    TABLE_VERSION_TAGS_HEADER,
+                    TABLE_VERSION_MESSAGE_HEADER,
+                ],
+                rows=table_rows,
+            )
         )
 
 

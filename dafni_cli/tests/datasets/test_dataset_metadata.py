@@ -17,7 +17,7 @@ from dafni_cli.datasets.dataset_metadata import (
     Creator,
     DataFile,
     DatasetMetadata,
-    DatasetVersionHistory,
+    DatasetVersion,
     Location,
     Publisher,
     Standard,
@@ -265,8 +265,8 @@ class TestDatasetVersionHistory(TestCase):
     def test_parse(self):
         """Tests parsing of a dataset's version history"""
 
-        version_history: DatasetVersionHistory = ParserBaseObject.parse_from_dict(
-            DatasetVersionHistory, TEST_DATASET_METADATA_VERSION_HISTORY
+        version_history: DatasetVersion = ParserBaseObject.parse_from_dict(
+            DatasetVersion, TEST_DATASET_METADATA_VERSION_HISTORY
         )
 
         self.assertEqual(
@@ -353,8 +353,8 @@ class TestDatasetVersionHistory(TestCase):
         """Tests output_version_history works correctly"""
 
         # SETUP
-        version_history: DatasetVersionHistory = ParserBaseObject.parse_from_dict(
-            DatasetVersionHistory, TEST_DATASET_METADATA_VERSION_HISTORY
+        version_history: DatasetVersion = ParserBaseObject.parse_from_dict(
+            DatasetVersion, TEST_DATASET_METADATA_VERSION_HISTORY
         )
 
         # CALL
@@ -458,7 +458,7 @@ class TestDatasetMetadataTestCase(TestCase):
         )
 
         # Version history (Contents tested in TestVersionHistory)
-        self.assertEqual(type(metadata.version_history), DatasetVersionHistory)
+        self.assertEqual(type(metadata.version_history), DatasetVersion)
 
         self.assertEqual(
             metadata.identifiers, TEST_DATASET_METADATA["metadata"]["dct:identifier"]
