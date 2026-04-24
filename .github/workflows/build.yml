@@ -47,12 +47,6 @@ jobs:
       - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
         with:
           path: dist
-      - name: Display structure of downloaded files
-        run: | 
-          ls -R
-          pwd
-      #- name: Rename extracted folder
-      #  run: mv artifact dist
       - name: Create draft release
         env:
           GH_TOKEN: ${{ github.token }}
@@ -68,8 +62,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
-      - name: Rename extracted folder
-        run: mv artifact dist
+        with:
+          path: dist
       - name: Publish to test.pypi
         uses: pypa/gh-action-pypi-publish@cef221092ed1bacb1cc03d23a2d87d1d172e277b
         with:
