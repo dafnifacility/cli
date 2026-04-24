@@ -45,6 +45,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
+      - name: Display structure of downloaded files
+        run: ls -R
       - name: Rename extracted folder
         run: mv artifact dist
       - name: Create draft release
