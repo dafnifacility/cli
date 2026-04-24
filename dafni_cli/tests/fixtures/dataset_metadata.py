@@ -69,38 +69,24 @@ TEST_DATASET_METADATA_STANDARD: dict = {
 
 TEST_DATASET_METADATA_STANDARD_DEFAULT: dict = {}
 
-TEST_DATASET_METADATA_VERSION_HISTORY: dict = {
-    "dataset_uuid": "0a0a0a0a-0a00-0a00-a000-0a0a0000000a",
-    "versions": [
-        {
-            "version_uuid": "0a0a0a0a-0a00-0a00-a000-0a0a0000000b",
-            "metadata_versions": [
-                {
-                    "metadata_uuid": "0a0a0a0a-0a00-0a00-a000-0a0a0000000d",
-                    "dafni_version_note": "Second Dataset version",
-                    "modified_date": "2021-03-17T09:27:21+00:00",
-                },
-                {
-                    "metadata_uuid": "0a0a0a0a-0a00-0a00-a000-0a0a0000000c",
-                    "dafni_version_note": "Initial Dataset version",
-                    "modified_date": "2021-03-16T09:27:21+00:00",
-                },
-            ],
-        },
-        {
-            "version_uuid": "0a0a0a0a-0a00-0a00-a000-0a0a0000000c",
-            "metadata_versions": [
-                {
-                    "metadata_uuid": "0a0a0a0a-0a00-0a00-a000-0a0a0000000d",
-                    "dafni_version_note": "Initial Dataset version",
-                    "modified_date": "2021-03-16T09:27:21+00:00",
-                },
-            ],
-        },
-    ],
-}
+TEST_DATASET_METADATA_VERSION_HISTORY: list = [
+    {
+        "id": "0a0a0a0a-0a00-0a00-a000-0a0a0000000b",
+        "version_tags": ["latest"],
+        "publication_date": "2021-03-17T09:27:21+00:00",
+        "version_message": "Second Dataset version",
+    },
+    {
+        "id": "0a0a0a0a-0a00-0a00-a000-0a0a0000000c",
+        "version_tags": [],
+        "publication_date": "2021-03-16T09:27:21+00:00",
+        "version_message": "Initial Dataset version",
+    },
+]
 
 TEST_DATASET_METADATA: dict = {
+    "id": "0a0a0a0a-0a00-0a00-a000-0a0a0000000b",
+    "parent": "0a0a0a0a-0a00-0a00-a000-0a0a0000000a",
     "metadata": {
         "@context": ["metadata-v1"],
         "@type": "dcat:Dataset",
@@ -143,12 +129,7 @@ TEST_DATASET_METADATA: dict = {
             "url": "https://www.project.ac.uk",
         },
         "dafni_version_note": "Initial Dataset version",
-        "@id": {
-            "asset_id": "0a0a0a0a-0a00-0a00-a000-0a0a0000000a:0a0a0a0a-0a00-0a00-a000-0a0a0000000b:0a0a0a0a-0a00-0a00-a000-0a0a0000000c",
-            "dataset_uuid": "0a0a0a0a-0a00-0a00-a000-0a0a0000000a",
-            "version_uuid": "0a0a0a0a-0a00-0a00-a000-0a0a0000000b",
-            "metadata_uuid": "0a0a0a0a-0a00-0a00-a000-0a0a0000000c",
-        },
+        "@id": "0a0a0a0a-0a00-0a00-a000-0a0a0000000a:0a0a0a0a-0a00-0a00-a000-0a0a0000000b:0a0a0a0a-0a00-0a00-a000-0a0a0000000c",
         "dct:modified": "2021-03-16T09:27:21+00:00",
         "dct:issued": "2021-03-16T09:27:21+00:00",
         "dcat:distribution": [TEST_DATASET_METADATA_DATAFILE],
@@ -168,6 +149,8 @@ TEST_DATASET_METADATA: dict = {
 }
 
 TEST_DATASET_METADATA_DEFAULT: dict = {
+    "id": "0a0a0a0a-0a00-0a00-a000-0a0a0000000b",
+    "parent": "0a0a0a0a-0a00-0a00-a000-0a0a0000000a",
     "metadata": {
         "@context": ["metadata-v1"],
         "@type": "dcat:Dataset",
@@ -189,12 +172,7 @@ TEST_DATASET_METADATA_DEFAULT: dict = {
             "@id": "https://creativecommons.org/licenses/by/4.0/",
             "rdfs:label": None,
         },
-        "@id": {
-            "asset_id": "0a0a0a0a-0a00-0a00-a000-0a0a0000000a:0a0a0a0a-0a00-0a00-a000-0a0a0000000b:0a0a0a0a-0a00-0a00-a000-0a0a0000000c",
-            "dataset_uuid": "0a0a0a0a-0a00-0a00-a000-0a0a0000000a",
-            "version_uuid": "0a0a0a0a-0a00-0a00-a000-0a0a0000000b",
-            "metadata_uuid": "0a0a0a0a-0a00-0a00-a000-0a0a0000000c",
-        },
+        "@id": "0a0a0a0a-0a00-0a00-a000-0a0a0000000c:0a0a0a0a-0a00-0a00-a000-0a0a0000000b:0a0a0a0a-0a00-0a00-a000-0a0a0000000a",
         "dct:modified": "2021-03-16T09:27:21+00:00",
         "dct:issued": "2021-03-16T09:27:21+00:00",
         "dcat:distribution": [TEST_DATASET_METADATA_DATAFILE],

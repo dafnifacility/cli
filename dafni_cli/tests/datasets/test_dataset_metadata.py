@@ -8,9 +8,10 @@ from dafni_cli.api.auth import Auth
 from dafni_cli.api.parser import ParserBaseObject
 from dafni_cli.consts import (
     CONSOLE_WIDTH,
-    TABLE_MODIFIED_HEADER,
+    TABLE_PUBLICATION_DATE_HEADER,
     TABLE_VERSION_ID_HEADER,
     TABLE_VERSION_MESSAGE_HEADER,
+    TABLE_VERSION_TAGS_HEADER,
 )
 from dafni_cli.datasets.dataset_metadata import (
     Contact,
@@ -259,132 +260,32 @@ class TestStandard(TestCase):
         self.assertEqual(str(standard), "Some label")
 
 
-class TestDatasetVersionHistory(TestCase):
-    """Tests the DatasetVersionHistory dataclass"""
+class TestDatasetVersion(TestCase):
+    """Tests the DatasetVersion dataclass"""
 
     def test_parse(self):
         """Tests parsing of a dataset's version history"""
 
-        version_history: DatasetVersion = ParserBaseObject.parse_from_dict(
-            DatasetVersion, TEST_DATASET_METADATA_VERSION_HISTORY
+        dataset_version: DatasetVersion = ParserBaseObject.parse_from_dict(
+            DatasetVersion, TEST_DATASET_METADATA_VERSION_HISTORY[0]
         )
 
         self.assertEqual(
-            version_history.dataset_id,
-            TEST_DATASET_METADATA_VERSION_HISTORY["dataset_uuid"],
-        )
-        self.assertEqual(len(version_history.versions), 2)
-
-        # Version 1
-        self.assertEqual(
-            version_history.versions[0].version_id,
-            TEST_DATASET_METADATA_VERSION_HISTORY["versions"][0]["version_uuid"],
-        )
-        self.assertEqual(len(version_history.versions[0].metadata_versions), 2)
-
-        # Version 1, Metadata Version 1
-        self.assertEqual(
-            version_history.versions[0].metadata_versions[0].metadata_id,
-            TEST_DATASET_METADATA_VERSION_HISTORY["versions"][0]["metadata_versions"][
-                0
-            ]["metadata_uuid"],
+            dataset_version.version_id,
+            TEST_DATASET_METADATA_VERSION_HISTORY[0]["id"],
         )
         self.assertEqual(
-            version_history.versions[0].metadata_versions[0].modified_date,
+            dataset_version.publication_date,
             datetime(2021, 3, 17, 9, 27, 21, tzinfo=tzutc()),
         )
         self.assertEqual(
-            version_history.versions[0].metadata_versions[0].version_message,
-            TEST_DATASET_METADATA_VERSION_HISTORY["versions"][0]["metadata_versions"][
-                0
-            ]["dafni_version_note"],
-        )
-
-        # Version 1, Metadata Version 2
-        self.assertEqual(
-            version_history.versions[0].metadata_versions[1].metadata_id,
-            TEST_DATASET_METADATA_VERSION_HISTORY["versions"][0]["metadata_versions"][
-                1
-            ]["metadata_uuid"],
+            dataset_version.version_message,
+            TEST_DATASET_METADATA_VERSION_HISTORY[0]["version_message"],
         )
         self.assertEqual(
-            version_history.versions[0].metadata_versions[1].modified_date,
-            datetime(2021, 3, 16, 9, 27, 21, tzinfo=tzutc()),
+            dataset_version.version_tags,
+            TEST_DATASET_METADATA_VERSION_HISTORY[0]["version_tags"],
         )
-        self.assertEqual(
-            version_history.versions[0].metadata_versions[1].version_message,
-            TEST_DATASET_METADATA_VERSION_HISTORY["versions"][0]["metadata_versions"][
-                1
-            ]["dafni_version_note"],
-        )
-
-        # Version 2
-        self.assertEqual(
-            version_history.versions[1].version_id,
-            TEST_DATASET_METADATA_VERSION_HISTORY["versions"][1]["version_uuid"],
-        )
-        self.assertEqual(len(version_history.versions[1].metadata_versions), 1)
-
-        # Version 1, Metadata Version 1
-        self.assertEqual(
-            version_history.versions[1].metadata_versions[0].metadata_id,
-            TEST_DATASET_METADATA_VERSION_HISTORY["versions"][1]["metadata_versions"][
-                0
-            ]["metadata_uuid"],
-        )
-        self.assertEqual(
-            version_history.versions[1].metadata_versions[0].modified_date,
-            datetime(2021, 3, 16, 9, 27, 21, tzinfo=tzutc()),
-        )
-        self.assertEqual(
-            version_history.versions[1].metadata_versions[0].version_message,
-            TEST_DATASET_METADATA_VERSION_HISTORY["versions"][1]["metadata_versions"][
-                0
-            ]["dafni_version_note"],
-        )
-
-    @patch("dafni_cli.datasets.dataset_metadata.format_table")
-    @patch("dafni_cli.datasets.dataset_metadata.click")
-    def test_output_version_history(
-        self,
-        mock_click,
-        mock_format_table,
-    ):
-        """Tests output_version_history works correctly"""
-
-        # SETUP
-        version_history: DatasetVersion = ParserBaseObject.parse_from_dict(
-            DatasetVersion, TEST_DATASET_METADATA_VERSION_HISTORY
-        )
-
-        # CALL
-        version_history.output_version_history()
-
-        # ASSERT
-        mock_format_table.assert_called_once_with(
-            headers=[
-                TABLE_VERSION_ID_HEADER,
-                TABLE_MODIFIED_HEADER,
-                TABLE_VERSION_MESSAGE_HEADER,
-            ],
-            rows=[
-                [
-                    "0a0a0a0a-0a00-0a00-a000-0a0a0000000b",
-                    format_datetime(
-                        datetime(2021, 3, 17, 9, 27, 21), include_time=True
-                    ),
-                    "Second Dataset version",
-                ],
-                [
-                    "0a0a0a0a-0a00-0a00-a000-0a0a0000000c",
-                    format_datetime(
-                        datetime(2021, 3, 16, 9, 27, 21), include_time=True
-                    ),
-                    "Initial Dataset version",
-                ],
-            ],
-        )
-        mock_click.echo.assert_called_once_with(mock_format_table.return_value)
 
 
 class TestDatasetMetadataTestCase(TestCase):
@@ -427,20 +328,14 @@ class TestDatasetMetadataTestCase(TestCase):
             metadata.language, TEST_DATASET_METADATA["metadata"]["dct:language"]
         )
 
-        self.assertEqual(
-            metadata.asset_id, TEST_DATASET_METADATA["metadata"]["@id"]["asset_id"]
-        )
+        self.assertEqual(metadata.asset_id, TEST_DATASET_METADATA["metadata"]["@id"])
         self.assertEqual(
             metadata.dataset_id,
-            TEST_DATASET_METADATA["metadata"]["@id"]["dataset_uuid"],
+            TEST_DATASET_METADATA["parent"],
         )
         self.assertEqual(
             metadata.version_id,
-            TEST_DATASET_METADATA["metadata"]["@id"]["version_uuid"],
-        )
-        self.assertEqual(
-            metadata.metadata_id,
-            TEST_DATASET_METADATA["metadata"]["@id"]["metadata_uuid"],
+            TEST_DATASET_METADATA["id"],
         )
 
         # Auth tested in test_auth anyway
@@ -458,7 +353,8 @@ class TestDatasetMetadataTestCase(TestCase):
         )
 
         # Version history (Contents tested in TestVersionHistory)
-        self.assertEqual(type(metadata.version_history), DatasetVersion)
+        for version in metadata.version_history:
+            self.assertEqual(type(version), DatasetVersion)
 
         self.assertEqual(
             metadata.identifiers, TEST_DATASET_METADATA["metadata"]["dct:identifier"]
@@ -801,8 +697,8 @@ class TestDatasetMetadataTestCase(TestCase):
             f"Created: {format_datetime(dataset_metadata.created, include_time=True)}\n"
             f"Publisher: {dataset_metadata.publisher.name}\n"
             f"Version IDs:\n"
-            f"{dataset_metadata.version_history.versions[0].version_id}\n"
-            f"{dataset_metadata.version_history.versions[1].version_id}\n",
+            f"{dataset_metadata.version_history[0].version_id}\n"
+            f"{dataset_metadata.version_history[1].version_id}\n",
         )
 
     def test_get_version_details(self):
@@ -823,3 +719,49 @@ class TestDatasetMetadataTestCase(TestCase):
             f"Created: {format_datetime(dataset_metadata.created, include_time=True)}\n"
             f"Publisher: {dataset_metadata.publisher.name}\n",
         )
+
+    @patch("dafni_cli.datasets.dataset_metadata.format_table")
+    @patch("dafni_cli.datasets.dataset_metadata.click")
+    def test_output_version_history(
+        self,
+        mock_click,
+        mock_format_table,
+    ):
+        """Tests output_version_history works correctly"""
+
+        # SETUP
+        dataset_metadata: DatasetMetadata = parse_dataset_metadata(
+            TEST_DATASET_METADATA
+        )
+
+        # CALL
+        dataset_metadata.output_version_history()
+
+        # ASSERT
+        mock_format_table.assert_called_once_with(
+            headers=[
+                TABLE_VERSION_ID_HEADER,
+                TABLE_PUBLICATION_DATE_HEADER,
+                TABLE_VERSION_TAGS_HEADER,
+                TABLE_VERSION_MESSAGE_HEADER,
+            ],
+            rows=[
+                [
+                    "0a0a0a0a-0a00-0a00-a000-0a0a0000000b",
+                    format_datetime(
+                        datetime(2021, 3, 17, 9, 27, 21), include_time=True
+                    ),
+                    "latest",
+                    "Second Dataset version",
+                ],
+                [
+                    "0a0a0a0a-0a00-0a00-a000-0a0a0000000c",
+                    format_datetime(
+                        datetime(2021, 3, 16, 9, 27, 21), include_time=True
+                    ),
+                    "",
+                    "Initial Dataset version",
+                ],
+            ],
+        )
+        mock_click.echo.assert_called_once_with(mock_format_table.return_value)
