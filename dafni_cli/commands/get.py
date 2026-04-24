@@ -289,15 +289,15 @@ def dataset(
         if json:
             print_json(metadata)
         else:
-            metadata_inst = parse_dataset_metadata(metadata)
-            metadata_inst.output_details(long)
+            dataset_inst = parse_dataset_metadata(metadata)
+            dataset_inst.output_details(long)
     else:
         if json:
             print_json(metadata["version_history"])
         else:
-            metadata_inst = parse_dataset_metadata(metadata)
-            click.echo(f"{metadata_inst.title}\n")
-            metadata_inst.version_history.output_version_history()
+            dataset_inst = parse_dataset_metadata(metadata)
+            click.echo(f"{dataset_inst.title}\n")
+            dataset_inst.output_version_history()
 
 
 ###############################################################################
