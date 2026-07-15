@@ -961,7 +961,7 @@ class TestReferenceDatasetUpload(TestCase):
 
         self.addCleanup(patch.stopall)
 
-    def _test_commit_metadata(self, json: bool):
+    def _test_commit_reference_metadata(self, json: bool):
         """Tests that _commit_reference_metadata works as expected without a dataset_id
         and a given value of json"""
         # SETUP
@@ -981,14 +981,14 @@ class TestReferenceDatasetUpload(TestCase):
         self.mock_optional_echo.assert_called_once_with("Uploading metadata file", json)
         self.assertEqual(result, self.mock_upload_dataset_metadata.return_value)
 
-    def test_commit_metadata(self):
+    def test_commit_reference_metadata(self):
         """
         GIVEN json kwarg set to False
         WHEN _commit_reference_metadata called
         THEN upload function called correctly
         AND optional echo called with False (will print)
         """
-        self._test_commit_metadata(False)
+        self._test_commit_reference_metadata(False)
 
     def test_commit_metadata_json(self):
         """
@@ -997,9 +997,9 @@ class TestReferenceDatasetUpload(TestCase):
         THEN upload function called correctly
         AND optional echo called with True (won't print)
         """
-        self._test_commit_metadata(True)
+        self._test_commit_reference_metadata(True)
 
-    def _test_commit_metadata_with_dataset_id(self, json: bool):
+    def _test_commit_reference_metadata_with_dataset_id(self, json: bool):
         """Tests that _commit_reference_metadata works as expected with a dataset_id and
         a given value of json"""
         # SETUP
@@ -1023,25 +1023,25 @@ class TestReferenceDatasetUpload(TestCase):
         self.mock_optional_echo.assert_called_once_with("Uploading metadata file", json)
         self.assertEqual(result, self.mock_upload_dataset_metadata.return_value)
 
-    def test_commit_metadata_with_dataset_id(self):
+    def test_commit_reference_metadata_with_dataset_id(self):
         """
         GIVEN json kwarg set to False
         WHEN _commit_reference_metadata called with a version id
         THEN upload function called correctly
         AND optional echo called with False (will print)
         """
-        self._test_commit_metadata_with_dataset_id(False)
+        self._test_commit_reference_metadata_with_dataset_id(False)
 
-    def test_commit_metadata_with_dataset_id_json(self):
+    def test_commit_reference_metadata_with_dataset_id_json(self):
         """
         GIVEN json kwarg set to True
         WHEN _commit_reference_metadata called with a version id
         THEN upload function called correctly
         AND optional echo called with True (won't print)
         """
-        self._test_commit_metadata_with_dataset_id(True)
+        self._test_commit_reference_metadata_with_dataset_id(True)
 
-    def _test_commit_metadata_exits_on_error(self, json: bool):
+    def _test_commit_reference_metadata_exits_on_error(self, json: bool):
         """Tests that _commit_reference_metadata calls SystemExit(1) when an error occurs
         and using a given value of json"""
         # SETUP
@@ -1063,7 +1063,7 @@ class TestReferenceDatasetUpload(TestCase):
             f"\nMetadata upload failed: {error}"
         )
 
-    def test_commit_metadata_exits_on_error(self):
+    def test_commit_reference_metadata_exits_on_error(self):
         """
         GIVEN json kwarg set to False
         AND upload function will raise a DAFNIError
@@ -1071,9 +1071,9 @@ class TestReferenceDatasetUpload(TestCase):
         THEN SystemExit(1) called
         AND error is correctly echoed
         """
-        self._test_commit_metadata_exits_on_error(False)
+        self._test_commit_reference_metadata_exits_on_error(False)
 
-    def test_commit_metadata_exits_on_error_json(self):
+    def test_commit_reference_metadata_exits_on_error_json(self):
         """
         GIVEN json kwarg set to True
         AND upload function will raise a DAFNIError
@@ -1081,10 +1081,10 @@ class TestReferenceDatasetUpload(TestCase):
         THEN SystemExit(1) called
         AND error is correctly echoed
         """
-        self._test_commit_metadata_exits_on_error(True)
+        self._test_commit_reference_metadata_exits_on_error(True)
 
-    def _test_upload_dataset(self, json: bool):
-        """Tests that upload_dataset works as expected with the given value
+    def _test_upload_reference_dataset(self, json: bool):
+        """Tests that upload_reference_dataset works as expected with the given value
         of json"""
 
         # Additionally patch these functions in the same file
@@ -1137,7 +1137,7 @@ class TestReferenceDatasetUpload(TestCase):
                     ]
                 )
 
-    def test_upload_dataset_validation_error(self):
+    def test_upload_reference_dataset_validation_error(self):
         """
         GIVEN metadata validation will raise a ValidationError
         WHEN upload_reference_dataset called
@@ -1165,7 +1165,7 @@ class TestReferenceDatasetUpload(TestCase):
         AND results of that called are echoed
         AND print_json not called
         """
-        self._test_upload_dataset(False)
+        self._test_upload_reference_dataset(False)
 
     def test_upload_reference_dataset_json(self):
         """
@@ -1175,4 +1175,4 @@ class TestReferenceDatasetUpload(TestCase):
         AND results of that called are not echoed
         AND instead print_json is called with the results
         """
-        self._test_upload_dataset(True)
+        self._test_upload_reference_dataset(True)
