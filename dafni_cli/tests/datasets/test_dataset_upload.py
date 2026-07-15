@@ -935,3 +935,244 @@ class TestDatasetUpload(TestCase):
         """Tests that upload_dataset_metadata_version works as expected when
         json = True"""
         self._test_upload_dataset_metadata_version(True)
+
+
+class TestReferenceDatasetUpload(TestCase):
+    """
+    Test class to test the functions concerning reference datasets
+    in dataset_upload.py
+    """
+
+    def setUp(self) -> None:
+        super().setUp()
+
+        self.reference_url = "https://example.com"
+
+        self.mock_upload_ref_dataset_metadata = patch(
+            "dafni_cli.api.datasets_api.upload_reference_dataset_metadata"
+        ).start()
+        self.mock_print_json = patch(
+            "dafni_cli.datasets.dataset_upload.print_json"
+        ).start()
+        self.mock_optional_echo = patch(
+            "dafni_cli.datasets.dataset_upload.optional_echo"
+        ).start()
+        self.mock_click = patch("dafni_cli.datasets.dataset_upload.click").start()
+
+        self.addCleanup(patch.stopall)
+
+    def _test_commit_metadata(self, json: bool):
+        """Tests that _commit_reference_metadata works as expected without a dataset_id
+        and a given value of json"""
+        # SETUP
+        session = MagicMock()
+        metadata = MOCK_DEFINITION_DATA
+
+        # CALL
+        result = dataset_upload._commit_reference_metadata(
+            session, metadata, self.reference_url, json=json
+        )
+
+        # ASSERT
+        self.mock_upload_ref_dataset_metadata.assert_called_with(
+            session, self.reference_url, metadata, dataset_id=None
+        )
+
+        self.mock_optional_echo.assert_called_once_with("Uploading metadata file", json)
+        self.assertEqual(result, self.mock_upload_dataset_metadata.return_value)
+
+    def test_commit_metadata(self):
+        """
+        GIVEN json kwarg set to False
+        WHEN _commit_reference_metadata called
+        THEN upload function called correctly
+        AND optional echo called with False (will print)
+        """
+        self._test_commit_metadata(False)
+
+    def test_commit_metadata_json(self):
+        """
+        GIVEN json kwarg set to True
+        WHEN _commit_reference_metadata called
+        THEN upload function called correctly
+        AND optional echo called with True (won't print)
+        """
+        self._test_commit_metadata(True)
+
+    def _test_commit_metadata_with_dataset_id(self, json: bool):
+        """Tests that _commit_reference_metadata works as expected with a dataset_id and
+        a given value of json"""
+        # SETUP
+        session = MagicMock()
+        metadata = MOCK_DEFINITION_DATA
+        dataset_id = "some-dataset-id"
+
+        # CALL
+        result = dataset_upload._commit_reference_metadata(
+            session, metadata, self.reference_url, dataset_id=dataset_id, json=json
+        )
+
+        # ASSERT
+        self.mock_upload_ref_dataset_metadata.assert_called_with(
+            session,
+            self.reference_url,
+            metadata,
+            dataset_id=dataset_id,
+        )
+
+        self.mock_optional_echo.assert_called_once_with("Uploading metadata file", json)
+        self.assertEqual(result, self.mock_upload_dataset_metadata.return_value)
+
+    def test_commit_metadata_with_dataset_id(self):
+        """
+        GIVEN json kwarg set to False
+        WHEN _commit_reference_metadata called with a version id
+        THEN upload function called correctly
+        AND optional echo called with False (will print)
+        """
+        self._test_commit_metadata_with_dataset_id(False)
+
+    def test_commit_metadata_with_dataset_id_json(self):
+        """
+        GIVEN json kwarg set to True
+        WHEN _commit_reference_metadata called with a version id
+        THEN upload function called correctly
+        AND optional echo called with True (won't print)
+        """
+        self._test_commit_metadata_with_dataset_id(True)
+
+    def _test_commit_metadata_exits_on_error(self, json: bool):
+        """Tests that _commit_reference_metadata calls SystemExit(1) when an error occurs
+        and using a given value of json"""
+        # SETUP
+        session = MagicMock()
+        metadata = MOCK_DEFINITION_DATA
+
+        error = DAFNIError("Some error message")
+        self.mock_upload_ref_dataset_metadata.side_effect = error
+
+        # CALL
+        with self.assertRaises(SystemExit):
+            dataset_upload._commit_reference_metadata(
+                session, metadata, self.reference_url, json=json
+            )
+
+        # ASSERT
+        self.mock_optional_echo.assert_called_once_with("Uploading metadata file", json)
+        self.mock_click.echo.assert_called_once_with(
+            f"\nMetadata upload failed: {error}"
+        )
+
+    def test_commit_metadata_exits_on_error(self):
+        """
+        GIVEN json kwarg set to False
+        AND upload function will raise a DAFNIError
+        WHEN _commit_reference_metadata called
+        THEN SystemExit(1) called
+        AND error is correctly echoed
+        """
+        self._test_commit_metadata_exits_on_error(False)
+
+    def test_commit_metadata_exits_on_error_json(self):
+        """
+        GIVEN json kwarg set to True
+        AND upload function will raise a DAFNIError
+        WHEN _commit_reference_metadata called
+        THEN SystemExit(1) called
+        AND error is correctly echoed
+        """
+        self._test_commit_metadata_exits_on_error(True)
+
+    def _test_upload_dataset(self, json: bool):
+        """Tests that upload_dataset works as expected with the given value
+        of json"""
+
+        # Additionally patch these functions in the same file
+        with (
+            patch(
+                "dafni_cli.datasets.dataset_upload._commit_reference_metadata"
+            ) as mock_commit_reference_metadata,
+        ):
+            # SETUP
+            session = MagicMock()
+            metadata = MagicMock()
+            dataset_id = MagicMock()
+            reference_id = MagicMock()
+            details = {
+                "datasetId": "dataset-id",
+                "versionId": "version-id",
+                "metadataId": "metadata-id",
+                "referenceId": "reference-id",
+            }
+
+            # CALL
+            dataset_upload.upload_reference_dataset(
+                session, metadata, self.reference_url, dataset_id, json=json
+            )
+
+            # ASSERT
+            mock_commit_reference_metadata.assert_called_once_with(
+                session, metadata, self.reference_url, dataset_id=dataset_id, json=json
+            )
+
+            self.mock_optional_echo.assert_has_calls(
+                [
+                    call("Validating metadata", json),
+                    call("Metadata validation successful", json),
+                ]
+            )
+
+            if json:
+                self.mock_print_json.assert_called_once_with(details)
+                self.mock_click.echo.assert_not_called()
+            else:
+                self.mock_print_json.assert_not_called()
+                self.mock_click.echo.assert_has_calls(
+                    [
+                        call("\nUpload successful"),
+                        call(f"Dataset ID: {details['datasetId']}"),
+                        call(f"Version ID: {details['versionId']}"),
+                        call(f"Metadata ID: {details['metadataId']}"),
+                        call(f"Reference ID: {details["referenceId"]}"),
+                    ]
+                )
+
+    def test_upload_dataset_validation_error(self):
+        """
+        GIVEN metadata validation will raise a ValidationError
+        WHEN upload_reference_dataset called
+        THEN SystemExit is raised
+        """
+        with patch(
+            "dafni_cli.api.datasets_api.validate_metadata"
+        ) as mock_validate_metadata:
+            # SETUP
+            session = MagicMock()
+            metadata = MagicMock()
+            mock_validate_metadata.side_effect = ValidationError
+
+            # CALL
+            with self.assertRaises(SystemExit):
+                dataset_upload.upload_reference_dataset(
+                    session, metadata, self.reference_url
+                )
+
+    def test_upload_reference_dataset(self):
+        """
+        GIVEN valid set of arguments
+        WHEN upload_rederence_dataset called with json=False
+        THEN commit_reference_metadata called correctly
+        AND results of that called are echoed
+        AND print_json not called
+        """
+        self._test_upload_dataset(False)
+
+    def test_upload_reference_dataset_json(self):
+        """
+        GIVEN valid set of arguments
+        WHEN upload_rederence_dataset called with json=True
+        THEN commit_reference_metadata called correctly
+        AND results of that called are not echoed
+        AND instead print_json is called with the results
+        """
+        self._test_upload_dataset(True)
