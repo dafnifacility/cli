@@ -411,6 +411,42 @@ def _commit_metadata(
     return response
 
 
+def _commit_reference_metadata(
+    session: DAFNISession,
+    metadata: dict,
+    reference_url: str,
+    dataset_id: Optional[str] = None,
+    json: bool = False,
+) -> dict:
+    """Function to upload the metadata to the NID API and
+    commit the dataset
+
+    Deletes the temporary upload bucket if unsuccessful to avoid
+    any unnecessary build up
+
+    Args:
+        session ([type]): User session
+        metadata (dict): The metadata to upload
+        reference_url (str): URL that the dataset will point to
+        dataset_id (str): ID of an existing dataset to upload the metadata to
+        json (bool): Whether to print the raw json returned by the DAFNI API
+
+    Returns:
+        dict: Upload response in json format
+    """
+    optional_echo("Uploading metadata file", json)
+    try:
+        response = datasets_api.upload_reference_dataset_metadata(
+            session, reference_url, metadata, dataset_id=dataset_id
+        )
+    except (EndpointNotFoundError, DAFNIError, HTTPError) as err:
+        click.echo(f"\nMetadata upload failed: {err}")
+
+        raise SystemExit(1) from err
+
+    return response
+
+
 def upload_dataset(
     session: DAFNISession,
     metadata: dict,
@@ -464,6 +500,50 @@ def upload_dataset(
         click.echo(f"Dataset ID: {details['datasetId']}")
         click.echo(f"Version ID: {details['versionId']}")
         click.echo(f"Metadata ID: {details['metadataId']}")
+
+
+def upload_reference_dataset(
+    session: DAFNISession,
+    metadata: dict,
+    reference_url: str,
+    dataset_id: Optional[str] = None,
+    json: bool = False,
+) -> None:
+    """Function to upload a Dataset
+
+    If any of the paths are folders they will be expanded according to
+    parse_file_names_from_paths such that their new file names will include
+    the directory structure as well
+
+    Args:
+        session (DAFNISession): User session
+        metadata (dict): Metadata to upload
+        reference_url (str): URL that the dataset will point to
+        dataset_id (Optional[str]): ID of an existing dataset to add a version
+                                    to. Creates a new dataset if None.
+        json (bool): Whether to print the raw json returned by the DAFNI API
+    """
+    optional_echo("Validating metadata", json)
+    try:
+        datasets_api.validate_metadata(session, metadata)
+    except ValidationError as err:
+        click.echo(err)
+        raise SystemExit(1) from err
+    optional_echo("Metadata validation successful", json)
+
+    details = _commit_reference_metadata(
+        session, metadata, reference_url, dataset_id=dataset_id, json=json
+    )
+
+    # Output details
+    if json:
+        print_json(details)
+    else:
+        click.echo("\nUpload successful")
+        click.echo(f"Dataset ID: {details['datasetId']}")
+        click.echo(f"Version ID: {details['versionId']}")
+        click.echo(f"Metadata ID: {details['metadataId']}")
+        click.echo(f"Reference ID: {details['referenceId']}")
 
 
 def upload_dataset_metadata_version(

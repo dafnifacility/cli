@@ -18,6 +18,7 @@ from dafni_cli.datasets.dataset_upload import (
     modify_dataset_metadata_for_upload,
     parse_file_names_from_paths,
     upload_dataset,
+    upload_reference_dataset,
     upload_dataset_metadata_version,
 )
 from dafni_cli.models.upload import upload_model
@@ -316,6 +317,197 @@ def dataset_version(
             dataset_id=dataset_metadata_obj.dataset_id,
             metadata=dataset_metadata_dict,
             paths=paths,
+            json=json,
+        )
+
+
+###############################################################################
+# COMMAND: Upload a new REFERENCE DATASET to DAFNI
+###############################################################################
+
+
+@upload.command(help=f"Upload a new reference dataset to DAFNI.")
+@click.argument(
+    "metadata_path",
+    nargs=1,
+    required=True,
+    type=click.Path(exists=True, path_type=Path),
+)
+@click.argument(
+    "url",
+    nargs=-1,
+    required=True,
+    type=str,
+)
+@confirmation_skip_option
+@json_option
+@click.pass_context
+def reference_dataset(
+    ctx: Context,
+    metadata_path: Path,
+    url: str,
+    yes: bool,
+    json: bool,
+):
+    """Uploads a new Dataset to DAFNI from a url and a metadata file.
+
+    Args:
+        ctx (Context): contains user session for authentication
+        metadata_path (Path): Dataset metadata file path
+        url (List[Path]): URL that the dataset will point to
+        yes (bool): Used to skip confirmations before they are displayed
+        json (bool): Whether to print the raw json returned by the DAFNI API
+    """
+    # Confirm upload details
+    arguments = [("Dataset metadata file path", metadata_path), ("Dataset URL", url)]
+    confirmation_message = "Confirm dataset upload?"
+    argument_confirmation(arguments, confirmation_message, skip=yes or json)
+
+    # Obtain the metadata
+    with open(metadata_path, "r", encoding="utf-8") as metadata_file:
+        metadata = json_lib.load(metadata_file)
+
+    # Upload the dataset
+    upload_reference_dataset(ctx.obj["session"], metadata, url, json=json)
+
+
+###############################################################################
+# COMMAND: Upload a new version of a REFERENCE DATASET to DAFNI
+###############################################################################
+@upload.command(help=f"Upload a new reference version of a dataset to DAFNI.")
+@click.argument("existing_version_id", required=True, type=str)
+@click.argument(
+    "url",
+    nargs=-1,
+    required=True,
+    type=str,
+)
+@click.option(
+    "--metadata",
+    type=click.Path(exists=True, path_type=Path),
+    help="Path to a dataset metadata file to upload.",
+)
+@click.option(
+    "--save",
+    type=click.Path(exists=False, path_type=Path),
+    default=None,
+    help="When given will only save the existing metadata to the specified file allowing it to be modified.",
+)
+@dataset_metadata_common_options(all_optional=True)
+@confirmation_skip_option
+@json_option
+@click.pass_context
+def dataset_version(
+    ctx: Context,
+    existing_version_id: str,
+    url: str,
+    metadata: Optional[Path],
+    save: Optional[Path],
+    title: Optional[str],
+    description: Optional[str],
+    identifier: Optional[Tuple[str]],
+    subject: Optional[str],
+    theme: Optional[Tuple[str]],
+    language: Optional[str],
+    keyword: Optional[Tuple[str]],
+    standard: Optional[Tuple[str, str]],
+    start_date: Optional[datetime],
+    end_date: Optional[datetime],
+    organisation: Optional[Tuple[str, str]],
+    person: Optional[Tuple[Tuple[str, str]]],
+    created_date: Optional[datetime],
+    update_frequency: Optional[str],
+    publisher: Optional[Tuple[str, str]],
+    contact: Optional[Tuple[str, str]],
+    license: Optional[str],
+    rights: Optional[str],
+    dataset_source: Optional[str],
+    embargo_end_date: Optional[datetime],
+    funding: Optional[str],
+    project: Optional[Tuple[str, str]],
+    version_message: Optional[str],
+    yes: bool,
+    json: bool,
+):
+    """Uploads a new reference version of a Dataset to DAFNI with a given url
+
+    Args:
+        ctx (Context): contains user session for authentication
+        existing_version_id (str): Existing version id of the dataset to add a
+                                   new version to
+        url (str): URL the dataset will point to
+        metadata (Optional[Path]): Dataset metadata file
+        save (Optional[Path]): Path to save existing metadata in for editing
+        yes (bool): Used to skip confirmations before they are displayed
+        json (bool): Whether to print the raw json returned by the DAFNI API
+
+        For the rest see dataset_metadata_common_options in options.py
+    """
+
+    # We need the version id to get the existing metadata, but the
+    # dataset id for the actual upload - instead of requiring both, we look up
+    # dataset with the version_id here and obtain both the id and existing
+    # metadata once
+    dataset_metadata_dict = cli_get_latest_dataset_metadata(
+        ctx.obj["session"], existing_version_id
+    )
+    dataset_metadata_obj = parse_dataset_metadata(dataset_metadata_dict)
+
+    # Load/modify the existing metadata according to the user input
+    dataset_metadata_dict = modify_dataset_metadata_for_upload(
+        existing_metadata=dataset_metadata_dict,
+        metadata_path=metadata,
+        title=title,
+        description=description,
+        subject=subject,
+        identifiers=identifier,
+        themes=theme,
+        language=language,
+        keywords=keyword,
+        standard=standard,
+        start_date=start_date,
+        end_date=end_date,
+        organisation=organisation,
+        people=person,
+        created_date=created_date,
+        update_frequency=update_frequency,
+        publisher=publisher,
+        contact=contact,
+        license=license,
+        rights=rights,
+        dataset_source=dataset_source,
+        embargo_end_date=embargo_end_date,
+        funding=funding,
+        project=project,
+        version_message=version_message,
+    )
+
+    if save:
+        with open(save, "w", encoding="utf-8") as file:
+            file.write(json_lib.dumps(dataset_metadata_dict, indent=4, sort_keys=True))
+
+        click.echo(f"Saved existing dataset metadata to {save}")
+    else:
+        # Confirm upload details
+        arguments = [
+            ("Dataset Title", dataset_metadata_obj.title),
+            ("Dataset ID", dataset_metadata_obj.dataset_id),
+            ("Dataset Version ID", dataset_metadata_obj.version_id),
+            ("Dataset url", url),
+        ]
+
+        if metadata:
+            arguments.append(("Dataset metadata file path", metadata))
+
+        confirmation_message = "Confirm dataset upload?"
+        argument_confirmation(arguments, confirmation_message, skip=yes or json)
+
+        # Upload all files
+        upload_reference_dataset(
+            ctx.obj["session"],
+            dataset_id=dataset_metadata_obj.dataset_id,
+            metadata=dataset_metadata_dict,
+            reference_url=url,
             json=json,
         )
 
