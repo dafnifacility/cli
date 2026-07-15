@@ -239,6 +239,61 @@ class TestDatasetsAPI(TestCase):
         )
         self.assertEqual(result, session.post_request.return_value)
 
+    @patch("dafni_cli.api.datasets_api._upload_dataset_metadata_error_message_func")
+    def test_upload_reference_dataset_metadata(self, mock_error_message_func):
+        """
+        GIVEN default values
+        WHEN upload_reference_dataset_metadata called
+        THEN correct POST request made
+        """
+
+        # SETUP
+        session = MagicMock()
+        metadata = {"test": "dictionary"}
+        reference_url = "https://example.com"
+
+        # CALL
+        result = datasets_api.upload_dataset_metadata(session, reference_url, metadata)
+
+        # ASSERT
+        mock_error_message_func.assert_called_once_with(session)
+        session.post_request.assert_called_once_with(
+            url=f"{NID_API_URL}/nid/dataset/",
+            json={"reference": reference_url, "metadata": metadata},
+            error_message_func=mock_error_message_func.return_value,
+        )
+        self.assertEqual(result, session.post_request.return_value)
+
+    @patch("dafni_cli.api.datasets_api._upload_dataset_metadata_error_message_func")
+    def test_upload_reference_dataset_metadata_with_dataset_id(
+        self, mock_error_message_func
+    ):
+        """
+        GIVEN default values
+        WHEN upload_reference_dataset_metadata called with a dataset id
+        THEN correct POST request made
+        """
+
+        # SETUP
+        session = MagicMock()
+        reference_url = "https://example.com"
+        metadata = {"test": "dictionary"}
+        dataset_id = "some-dataset-id"
+
+        # CALL
+        result = datasets_api.upload_dataset_metadata(
+            session, reference_url, metadata, dataset_id=dataset_id
+        )
+
+        # ASSERT
+        mock_error_message_func.assert_called_once_with(session)
+        session.post_request.assert_called_once_with(
+            url=f"{NID_API_URL}/nid/dataset/{dataset_id}",
+            json={"reference": reference_url, "metadata": metadata},
+            error_message_func=mock_error_message_func.return_value,
+        )
+        self.assertEqual(result, session.post_request.return_value)
+
     def test_delete_dataset(self):
         """Tests that delete_dataset works as expected"""
 
