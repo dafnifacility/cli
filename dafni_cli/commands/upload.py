@@ -335,7 +335,7 @@ def dataset_version(
 )
 @click.argument(
     "url",
-    nargs=-1,
+    nargs=1,
     required=True,
     type=str,
 )
@@ -354,12 +354,15 @@ def reference_dataset(
     Args:
         ctx (Context): contains user session for authentication
         metadata_path (Path): Dataset metadata file path
-        url (List[Path]): URL that the dataset will point to
+        url (str): URL that the dataset will point to
         yes (bool): Used to skip confirmations before they are displayed
         json (bool): Whether to print the raw json returned by the DAFNI API
     """
     # Confirm upload details
-    arguments = [("Dataset metadata file path", metadata_path), ("Dataset URL", url)]
+    arguments = [
+        ("Dataset metadata file path", metadata_path),
+        ("Dataset URL", url),
+    ]
     confirmation_message = "Confirm dataset upload?"
     argument_confirmation(arguments, confirmation_message, skip=yes or json)
 
@@ -378,7 +381,7 @@ def reference_dataset(
 @click.argument("existing_version_id", required=True, type=str)
 @click.argument(
     "url",
-    nargs=-1,
+    nargs=1,
     required=True,
     type=str,
 )
@@ -397,7 +400,7 @@ def reference_dataset(
 @confirmation_skip_option
 @json_option
 @click.pass_context
-def dataset_version(
+def reference_dataset_version(
     ctx: Context,
     existing_version_id: str,
     url: str,
@@ -443,7 +446,6 @@ def dataset_version(
 
         For the rest see dataset_metadata_common_options in options.py
     """
-
     # We need the version id to get the existing metadata, but the
     # dataset id for the actual upload - instead of requiring both, we look up
     # dataset with the version_id here and obtain both the id and existing
@@ -481,7 +483,6 @@ def dataset_version(
         project=project,
         version_message=version_message,
     )
-
     if save:
         with open(save, "w", encoding="utf-8") as file:
             file.write(json_lib.dumps(dataset_metadata_dict, indent=4, sort_keys=True))
@@ -493,7 +494,7 @@ def dataset_version(
             ("Dataset Title", dataset_metadata_obj.title),
             ("Dataset ID", dataset_metadata_obj.dataset_id),
             ("Dataset Version ID", dataset_metadata_obj.version_id),
-            ("Dataset url", url),
+            ("Dataset URL", url),
         ]
 
         if metadata:

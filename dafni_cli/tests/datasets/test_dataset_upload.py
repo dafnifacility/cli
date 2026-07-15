@@ -979,7 +979,7 @@ class TestReferenceDatasetUpload(TestCase):
         )
 
         self.mock_optional_echo.assert_called_once_with("Uploading metadata file", json)
-        self.assertEqual(result, self.mock_upload_dataset_metadata.return_value)
+        self.assertEqual(result, self.mock_upload_ref_dataset_metadata.return_value)
 
     def test_commit_reference_metadata(self):
         """
@@ -1021,7 +1021,7 @@ class TestReferenceDatasetUpload(TestCase):
         )
 
         self.mock_optional_echo.assert_called_once_with("Uploading metadata file", json)
-        self.assertEqual(result, self.mock_upload_dataset_metadata.return_value)
+        self.assertEqual(result, self.mock_upload_ref_dataset_metadata.return_value)
 
     def test_commit_reference_metadata_with_dataset_id(self):
         """
@@ -1104,6 +1104,7 @@ class TestReferenceDatasetUpload(TestCase):
                 "metadataId": "metadata-id",
                 "referenceId": "reference-id",
             }
+            mock_commit_reference_metadata.return_value = details
 
             # CALL
             dataset_upload.upload_reference_dataset(

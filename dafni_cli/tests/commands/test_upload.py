@@ -467,8 +467,8 @@ class TestUploadReferenceDataset(TestCase):
                 [
                     "reference-dataset",
                     self.metadata_path,
+                    self.reference_url,
                 ]
-                + self.reference_url
                 + additional_args,
                 input=input,
             )
@@ -490,7 +490,7 @@ class TestUploadReferenceDataset(TestCase):
         # ASSERT
         self.mock_DAFNISession.assert_called_once()
         self.mock_upload_ref_dataset.assert_called_once_with(
-            self.mock_session, {}, (self.reference_url,), json=False
+            self.mock_session, {}, self.reference_url, json=False
         )
 
         self.assertEqual(
@@ -517,7 +517,7 @@ class TestUploadReferenceDataset(TestCase):
         # ASSERT
         self.mock_DAFNISession.assert_called_once()
         self.mock_upload_ref_dataset.assert_called_once_with(
-            self.mock_session, {}, (self.reference_url,), json=False
+            self.mock_session, {}, self.reference_url, json=False
         )
 
         self.assertEqual(result.output, "")
@@ -539,7 +539,7 @@ class TestUploadReferenceDataset(TestCase):
         # ASSERT
         self.mock_DAFNISession.assert_called_once()
         self.mock_upload_ref_dataset.assert_called_once_with(
-            self.mock_session, {}, (self.reference_url,), json=True
+            self.mock_session, {}, self.reference_url, json=True
         )
 
         self.assertEqual(result.output, "")
@@ -561,12 +561,12 @@ class TestUploadReferenceDataset(TestCase):
 
         # ASSERT
         self.mock_DAFNISession.assert_called_once()
-        self.mock_upload_dataset.assert_not_called()
+        self.mock_upload_ref_dataset.assert_not_called()
 
         self.assertEqual(
             result.output,
             f"Dataset metadata file path: {self.metadata_path}\n"
-            f"Dataset file name: {dataset_file_path}\n"
+            f"Dataset URL: {self.reference_url}\n"
             "Confirm dataset upload? [y/N]: n\n"
             "Aborted!\n",
         )
@@ -1142,6 +1142,7 @@ class TestUploadReferenceDatasetVersion(TestCase):
         additional_args: List[str],
         input: Optional[str] = None,
         file_paths_to_read: Optional[List[str]] = None,
+        metadata_path: Optional[Path] = None,
     ) -> Tuple[Result, List[str]]:
         """Invokes the upload dataset-version  command with most required arguments
         provided
@@ -1151,16 +1152,20 @@ class TestUploadReferenceDatasetVersion(TestCase):
             input (Optional[str]): 'input' to pass to CliRunner's invoke function
             file_paths_to_read (Optional[List[str]]): Paths to files to read (will
                                                     return the contents in a list)
+            metadata_path (Optional[Path]): Path to metadata file
         """
         runner = CliRunner()
 
         saved_file_data = []
 
         with runner.isolated_filesystem():
+            if metadata_path:
+                with open(metadata_path, "w", encoding="utf-8") as file:
+                    file.write("{}")
             result = runner.invoke(
                 upload.upload,
                 [
-                    "dataset-version",
+                    "reference-dataset-version",
                     self.dataset_version_id,
                 ]
                 + additional_args,
@@ -1175,7 +1180,7 @@ class TestUploadReferenceDatasetVersion(TestCase):
 
         return result, saved_file_data
 
-    def test_upload_dataset_version(
+    def test_upload_reference_dataset_version(
         self,
     ):
         """
@@ -1232,7 +1237,7 @@ class TestUploadReferenceDatasetVersion(TestCase):
             self.mock_session,
             dataset_id=metadata.dataset_id,
             metadata=self.mock_modify_dataset_metadata_for_upload.return_value,
-            url=self.reference_url,
+            reference_url=self.reference_url,
             json=False,
         )
 
@@ -1246,7 +1251,7 @@ class TestUploadReferenceDatasetVersion(TestCase):
         )
         self.assertEqual(result.exit_code, 0)
 
-    def test_upload_dataset_version_saving_existing_metadata(
+    def test_upload_reference_dataset_version_saving_existing_metadata(
         self,
     ):
         """
@@ -1316,7 +1321,7 @@ class TestUploadReferenceDatasetVersion(TestCase):
         )
         self.assertEqual(result.exit_code, 0)
 
-    def test_upload_dataset_version_skipping_confirmation(
+    def test_upload_reference_dataset_version_skipping_confirmation(
         self,
     ):
         """
@@ -1371,14 +1376,14 @@ class TestUploadReferenceDatasetVersion(TestCase):
             self.mock_session,
             dataset_id=metadata.dataset_id,
             metadata=self.mock_modify_dataset_metadata_for_upload.return_value,
-            url=self.reference_url,
+            reference_url=self.reference_url,
             json=False,
         )
 
         self.assertEqual(result.output, "")
         self.assertEqual(result.exit_code, 0)
 
-    def test_upload_dataset_version_json(
+    def test_upload_reference_dataset_version_json(
         self,
     ):
         """
@@ -1429,18 +1434,18 @@ class TestUploadReferenceDatasetVersion(TestCase):
             project=None,
             version_message=None,
         )
-        self.mock_upload_dataset.assert_called_once_with(
+        self.mock_upload_ref_dataset.assert_called_once_with(
             self.mock_session,
             dataset_id=metadata.dataset_id,
             metadata=self.mock_modify_dataset_metadata_for_upload.return_value,
-            url=self.reference_url,
+            reference_url=self.reference_url,
             json=True,
         )
 
         self.assertEqual(result.output, "")
         self.assertEqual(result.exit_code, 0)
 
-    def test_upload_dataset_version_cancel(
+    def test_upload_reference_dataset_version_cancel(
         self,
     ):
         """
@@ -1507,7 +1512,7 @@ class TestUploadReferenceDatasetVersion(TestCase):
         )
         self.assertEqual(result.exit_code, 1)
 
-    def test_upload_dataset_version_with_metadata_and_all_optional_modifications(
+    def test_upload_reference_dataset_version_with_metadata_and_all_optional_modifications(
         self,
     ):
         """
@@ -1567,9 +1572,9 @@ class TestUploadReferenceDatasetVersion(TestCase):
 
         # CALL
         result, _ = self.invoke_command(
-            file_paths=[metadata_path],
             additional_args=additional_args,
             input="y",
+            metadata_path=metadata_path,
         )
 
         # ASSERT
@@ -1586,7 +1591,7 @@ class TestUploadReferenceDatasetVersion(TestCase):
             self.mock_session,
             dataset_id=metadata.dataset_id,
             metadata=self.mock_modify_dataset_metadata_for_upload.return_value,
-            url=self.reference_url,
+            reference_url=self.reference_url,
             json=False,
         )
 
