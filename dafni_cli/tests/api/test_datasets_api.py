@@ -253,12 +253,14 @@ class TestDatasetsAPI(TestCase):
         reference_url = "https://example.com"
 
         # CALL
-        result = datasets_api.upload_dataset_metadata(session, reference_url, metadata)
+        result = datasets_api.upload_reference_dataset_metadata(
+            session, reference_url, metadata
+        )
 
         # ASSERT
         mock_error_message_func.assert_called_once_with(session)
         session.post_request.assert_called_once_with(
-            url=f"{NID_API_URL}/nid/dataset/",
+            url=f"{NID_API_URL}/nid/dataset-reference/",
             json={"reference": reference_url, "metadata": metadata},
             error_message_func=mock_error_message_func.return_value,
         )
@@ -281,14 +283,14 @@ class TestDatasetsAPI(TestCase):
         dataset_id = "some-dataset-id"
 
         # CALL
-        result = datasets_api.upload_dataset_metadata(
+        result = datasets_api.upload_reference_dataset_metadata(
             session, reference_url, metadata, dataset_id=dataset_id
         )
 
         # ASSERT
         mock_error_message_func.assert_called_once_with(session)
         session.post_request.assert_called_once_with(
-            url=f"{NID_API_URL}/nid/dataset/{dataset_id}",
+            url=f"{NID_API_URL}/nid/dataset-reference/{dataset_id}",
             json={"reference": reference_url, "metadata": metadata},
             error_message_func=mock_error_message_func.return_value,
         )
