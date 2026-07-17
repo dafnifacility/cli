@@ -1134,7 +1134,7 @@ class TestReferenceDatasetUpload(TestCase):
                         call(f"Dataset ID: {details['datasetId']}"),
                         call(f"Version ID: {details['versionId']}"),
                         call(f"Metadata ID: {details['metadataId']}"),
-                        call(f"Reference ID: {details["referenceId"]}"),
+                        call(f"Reference ID: {details['referenceId']}"),
                     ]
                 )
 
