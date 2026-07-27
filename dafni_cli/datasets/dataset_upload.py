@@ -421,9 +421,6 @@ def _commit_reference_metadata(
     """Function to upload the metadata to the NID API and
     commit the dataset
 
-    Deletes the temporary upload bucket if unsuccessful to avoid
-    any unnecessary build up
-
     Args:
         session ([type]): User session
         metadata (dict): The metadata to upload
@@ -511,10 +508,6 @@ def upload_reference_dataset(
 ) -> None:
     """Function to upload a Dataset
 
-    If any of the paths are folders they will be expanded according to
-    parse_file_names_from_paths such that their new file names will include
-    the directory structure as well
-
     Args:
         session (DAFNISession): User session
         metadata (dict): Metadata to upload
@@ -543,7 +536,6 @@ def upload_reference_dataset(
         click.echo(f"Dataset ID: {details['datasetId']}")
         click.echo(f"Version ID: {details['versionId']}")
         click.echo(f"Metadata ID: {details['metadataId']}")
-        click.echo(f"Reference ID: {details['referenceId']}")
 
 
 def upload_dataset_metadata_version(
