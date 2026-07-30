@@ -151,6 +151,46 @@ def upload_dataset_metadata(
     )
 
 
+def upload_reference_dataset_metadata(
+    session: DAFNISession,
+    reference_url: str,
+    metadata: dict,
+    dataset_id: Optional[str] = None,
+) -> requests.Response:
+    """Uploads reference dataset metadata to the NID
+
+    This will commit the reference dataset.
+
+    Args:
+        session (DAFNISession): User session
+        reference_url (str): URL that the dataset will point to
+        metadata (dict): Dataset metadata
+        dataset_id (Optional[str]): Dataset ID if uploading a new version of
+                                    an existing dataset (Default: None)
+
+    Raises:
+        EndpointNotFoundError: If the post request returns a 404 status
+                               code
+        DAFNIError: If an error occurs with an error message from DAFNI
+        HTTPError: If any other error occurs without an error message from
+                   DAFNI
+
+    Returns:
+        Response: Upload Response
+    """
+
+    if dataset_id:
+        url = f"{NID_API_URL}/nid/dataset-reference/{dataset_id}"
+    else:
+        url = f"{NID_API_URL}/nid/dataset-reference/"
+    data = {"reference": reference_url, "metadata": metadata}
+    return session.post_request(
+        url=url,
+        json=data,
+        error_message_func=_upload_dataset_metadata_error_message_func(session),
+    )
+
+
 def upload_dataset_metadata_version(
     session: DAFNISession,
     dataset_id: str,

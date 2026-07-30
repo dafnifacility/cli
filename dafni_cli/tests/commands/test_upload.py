@@ -423,6 +423,156 @@ class TestUploadDataset(TestCase):
         self.assertEqual(result.exit_code, 1)
 
 
+class TestUploadReferenceDataset(TestCase):
+    """Test class to test the upload reference dataset commands"""
+
+    def setUp(self) -> None:
+        super().setUp()
+
+        self.metadata_path = "test_metadata.json"
+        self.reference_url = "https://example.com/"
+
+        self.mock_DAFNISession = patch("dafni_cli.commands.upload.DAFNISession").start()
+        self.mock_session = MagicMock()
+        self.mock_DAFNISession.return_value = self.mock_session
+
+        self.mock_upload_ref_dataset = patch(
+            "dafni_cli.commands.upload.upload_reference_dataset"
+        ).start()
+
+        self.addCleanup(patch.stopall)
+
+    def invoke_command(
+        self,
+        additional_args: Optional[List[str]] = None,
+        input: Optional[str] = None,
+    ) -> Result:
+        """Invokes the upload dataset command with most required arguments provided
+
+        Args:
+            additional_args (Optional[List[str]]): Any additional parameters to
+                                                   add
+            input (Optional[str]): 'input' to pass to CliRunner's invoke function
+        """
+        if additional_args is None:
+            additional_args = []
+
+        runner = CliRunner()
+
+        with runner.isolated_filesystem():
+            with open(self.metadata_path, "w", encoding="utf-8") as file:
+                file.write("{}")
+            result = runner.invoke(
+                upload.upload,
+                [
+                    "reference-dataset",
+                    self.metadata_path,
+                    self.reference_url,
+                ]
+                + additional_args,
+                input=input,
+            )
+        return result
+
+    def test_upload_reference_dataset(
+        self,
+    ):
+        """
+        GIVEN valid arguments
+        WHEN the command is run to upload a reference dataset
+        THEN upload function is called correctly
+        AND correct confirmation output is returned
+        """
+
+        # CALL
+        result = self.invoke_command(input="y")
+
+        # ASSERT
+        self.mock_DAFNISession.assert_called_once()
+        self.mock_upload_ref_dataset.assert_called_once_with(
+            self.mock_session, {}, self.reference_url, json=False
+        )
+
+        self.assertEqual(
+            result.output,
+            f"Dataset metadata file path: {self.metadata_path}\n"
+            f"Dataset URL: {self.reference_url}\n"
+            "Confirm dataset upload? [y/N]: y\n",
+        )
+        self.assertEqual(result.exit_code, 0)
+
+    def test_upload_dataset_skipping_confirmation(
+        self,
+    ):
+        """
+        GIVEN -y flag provided to skip confirmation
+        WHEN the command is run to upload a reference dataset
+        THEN upload function is called correctly
+        AND no confirmation output is returned
+        """
+
+        # CALL
+        result = self.invoke_command(additional_args=["-y"], input="y")
+
+        # ASSERT
+        self.mock_DAFNISession.assert_called_once()
+        self.mock_upload_ref_dataset.assert_called_once_with(
+            self.mock_session, {}, self.reference_url, json=False
+        )
+
+        self.assertEqual(result.output, "")
+        self.assertEqual(result.exit_code, 0)
+
+    def test_upload_dataset_json(
+        self,
+    ):
+        """
+        GIVEN --json flag provided to skip confirmation and display raw json response
+        WHEN the command is run to upload a reference dataset
+        THEN upload function is called correctly with json kwarg True
+        AND no confirmation output is returned
+        """
+
+        # CALL
+        result = self.invoke_command(additional_args=["--json"])
+
+        # ASSERT
+        self.mock_DAFNISession.assert_called_once()
+        self.mock_upload_ref_dataset.assert_called_once_with(
+            self.mock_session, {}, self.reference_url, json=True
+        )
+
+        self.assertEqual(result.output, "")
+        self.assertEqual(result.exit_code, 0)
+
+    def test_upload_dataset_cancel(
+        self,
+    ):
+        """
+        GIVEN valid arguments
+        WHEN the command is run to upload a reference dataset
+        AND user inputs n when asked to confirm
+        THEN upload function is not called
+        AND correct output is returned
+        """
+
+        # CALL
+        result = self.invoke_command(input="n")
+
+        # ASSERT
+        self.mock_DAFNISession.assert_called_once()
+        self.mock_upload_ref_dataset.assert_not_called()
+
+        self.assertEqual(
+            result.output,
+            f"Dataset metadata file path: {self.metadata_path}\n"
+            f"Dataset URL: {self.reference_url}\n"
+            "Confirm dataset upload? [y/N]: n\n"
+            "Aborted!\n",
+        )
+        self.assertEqual(result.exit_code, 1)
+
+
 class TestUploadDatasetVersion(TestCase):
     """Test class to test the upload dataset-version commands"""
 
@@ -956,6 +1106,501 @@ class TestUploadDatasetVersion(TestCase):
             f"Dataset ID: {metadata.dataset_id}\n"
             f"Dataset Version ID: {metadata.version_id}\n"
             f"Dataset file name: {dataset_file_path}\n"
+            f"Dataset metadata file path: {metadata_path}\n"
+            "Confirm dataset upload? [y/N]: y\n",
+        )
+        self.assertEqual(result.exit_code, 0)
+
+
+class TestUploadReferenceDatasetVersion(TestCase):
+    """Test class to test the upload dataset-version commands"""
+
+    def setUp(self) -> None:
+        super().setUp()
+
+        self.dataset_version_id = "some-existing-version-id"
+        self.reference_url = "https://example.com/"
+
+        self.mock_DAFNISession = patch("dafni_cli.commands.upload.DAFNISession").start()
+        self.mock_session = MagicMock()
+        self.mock_DAFNISession.return_value = self.mock_session
+
+        self.mock_cli_get_latest_dataset_metadata = patch(
+            "dafni_cli.commands.upload.cli_get_latest_dataset_metadata"
+        ).start()
+        self.mock_modify_dataset_metadata_for_upload = patch(
+            "dafni_cli.commands.upload.modify_dataset_metadata_for_upload"
+        ).start()
+        self.mock_upload_ref_dataset = patch(
+            "dafni_cli.commands.upload.upload_reference_dataset"
+        ).start()
+
+        self.addCleanup(patch.stopall)
+
+    def invoke_command(
+        self,
+        additional_args: List[str],
+        input: Optional[str] = None,
+        file_paths_to_read: Optional[List[str]] = None,
+        metadata_path: Optional[Path] = None,
+    ) -> Tuple[Result, List[str]]:
+        """Invokes the upload dataset-version  command with most required arguments
+        provided
+
+        Args:
+            additional_args (List[str]): Any additional parameters to add
+            input (Optional[str]): 'input' to pass to CliRunner's invoke function
+            file_paths_to_read (Optional[List[str]]): Paths to files to read (will
+                                                    return the contents in a list)
+            metadata_path (Optional[Path]): Path to metadata file
+        """
+        runner = CliRunner()
+
+        saved_file_data = []
+
+        with runner.isolated_filesystem():
+            if metadata_path:
+                with open(metadata_path, "w", encoding="utf-8") as file:
+                    file.write("{}")
+            result = runner.invoke(
+                upload.upload,
+                [
+                    "reference-dataset-version",
+                    self.dataset_version_id,
+                ]
+                + additional_args,
+                input=input,
+            )
+            # Store the contents of any files created so they may be checked
+            # later
+            if file_paths_to_read:
+                for file_path in file_paths_to_read:
+                    with open(file_path, "r", encoding="utf-8") as file:
+                        saved_file_data.append(file.read())
+
+        return result, saved_file_data
+
+    def test_upload_reference_dataset_version(
+        self,
+    ):
+        """
+        GIVEN mocked metadata retrieval
+        WHEN the command is run to upload a reference dataset version
+        THEN metadata is retrieved and modified correctly
+        AND upload function is called correctly
+        AND correct output is returned
+        """
+
+        # SETUP
+        self.mock_cli_get_latest_dataset_metadata.return_value = TEST_DATASET_METADATA
+        metadata = parse_dataset_metadata(TEST_DATASET_METADATA)
+
+        # CALL
+        result, _ = self.invoke_command(
+            additional_args=[self.reference_url],
+            input="y",
+        )
+
+        # ASSERT
+        self.mock_DAFNISession.assert_called_once()
+        self.mock_cli_get_latest_dataset_metadata.assert_called_once_with(
+            self.mock_session, self.dataset_version_id
+        )
+        self.mock_modify_dataset_metadata_for_upload.assert_called_once_with(
+            existing_metadata=TEST_DATASET_METADATA,
+            metadata_path=None,
+            title=None,
+            description=None,
+            subject=None,
+            identifiers=None,
+            themes=None,
+            language=None,
+            keywords=None,
+            standard=None,
+            start_date=None,
+            end_date=None,
+            organisation=None,
+            people=None,
+            created_date=None,
+            update_frequency=None,
+            publisher=None,
+            contact=None,
+            license=None,
+            rights=None,
+            dataset_source=None,
+            embargo_end_date=None,
+            funding=None,
+            project=None,
+            version_message=None,
+        )
+        self.mock_upload_ref_dataset.assert_called_once_with(
+            self.mock_session,
+            dataset_id=metadata.dataset_id,
+            metadata=self.mock_modify_dataset_metadata_for_upload.return_value,
+            reference_url=self.reference_url,
+            json=False,
+        )
+
+        self.assertEqual(
+            result.output,
+            f"Dataset Title: {metadata.title}\n"
+            f"Dataset ID: {metadata.dataset_id}\n"
+            f"Dataset Version ID: {metadata.version_id}\n"
+            f"Dataset URL: {self.reference_url}\n"
+            "Confirm dataset upload? [y/N]: y\n",
+        )
+        self.assertEqual(result.exit_code, 0)
+
+    def test_upload_reference_dataset_version_saving_existing_metadata(
+        self,
+    ):
+        """
+        GIVEN mocked metadata retrieval
+        WHEN the command is run to upload a reference dataset version
+        AND --save arg is used
+        THEN metadata is retrieved and modified correctly
+        AND metadata is saved to a file
+        AND upload function is not called
+        AND correct output is returned
+        """
+
+        # SETUP
+        self.mock_cli_get_latest_dataset_metadata.return_value = TEST_DATASET_METADATA
+        self.mock_modify_dataset_metadata_for_upload.return_value = (
+            TEST_DATASET_METADATA
+        )
+        metadata_save_path = "metadata_save_file.json"
+
+        # CALL
+        result, saved_file_data = self.invoke_command(
+            additional_args=[self.reference_url, "--save", metadata_save_path],
+            input="y",
+            file_paths_to_read=[metadata_save_path],
+        )
+
+        # ASSERT
+        self.mock_DAFNISession.assert_called_once()
+        self.mock_cli_get_latest_dataset_metadata.assert_called_once_with(
+            self.mock_session, self.dataset_version_id
+        )
+        self.mock_modify_dataset_metadata_for_upload.assert_called_once_with(
+            existing_metadata=TEST_DATASET_METADATA,
+            metadata_path=None,
+            title=None,
+            description=None,
+            subject=None,
+            identifiers=None,
+            themes=None,
+            language=None,
+            keywords=None,
+            standard=None,
+            start_date=None,
+            end_date=None,
+            organisation=None,
+            people=None,
+            created_date=None,
+            update_frequency=None,
+            publisher=None,
+            contact=None,
+            license=None,
+            rights=None,
+            dataset_source=None,
+            embargo_end_date=None,
+            funding=None,
+            project=None,
+            version_message=None,
+        )
+        self.assertEqual(
+            saved_file_data[0],
+            json.dumps(TEST_DATASET_METADATA, indent=4, sort_keys=True),
+        )
+        self.mock_upload_ref_dataset.assert_not_called()
+
+        self.assertEqual(
+            result.output, f"Saved existing dataset metadata to {metadata_save_path}\n"
+        )
+        self.assertEqual(result.exit_code, 0)
+
+    def test_upload_reference_dataset_version_skipping_confirmation(
+        self,
+    ):
+        """
+        GIVEN mocked metadata retrieval
+        WHEN the command is run to upload a reference dataset version
+        AND -y flag is used to skip confirmation
+        THEN metadata is retrieved and modified correctly
+        AND upload function is called correctly
+        AND no confirmation output is returned
+        """
+
+        # SETUP
+        self.mock_cli_get_latest_dataset_metadata.return_value = TEST_DATASET_METADATA
+        metadata = parse_dataset_metadata(TEST_DATASET_METADATA)
+
+        # CALL
+        result, _ = self.invoke_command(additional_args=[self.reference_url, "-y"])
+
+        # ASSERT
+        self.mock_DAFNISession.assert_called_once()
+        self.mock_cli_get_latest_dataset_metadata.assert_called_once_with(
+            self.mock_session, self.dataset_version_id
+        )
+        self.mock_modify_dataset_metadata_for_upload.assert_called_once_with(
+            existing_metadata=TEST_DATASET_METADATA,
+            metadata_path=None,
+            title=None,
+            description=None,
+            subject=None,
+            identifiers=None,
+            themes=None,
+            language=None,
+            keywords=None,
+            standard=None,
+            start_date=None,
+            end_date=None,
+            organisation=None,
+            people=None,
+            created_date=None,
+            update_frequency=None,
+            publisher=None,
+            contact=None,
+            license=None,
+            rights=None,
+            dataset_source=None,
+            embargo_end_date=None,
+            funding=None,
+            project=None,
+            version_message=None,
+        )
+        self.mock_upload_ref_dataset.assert_called_once_with(
+            self.mock_session,
+            dataset_id=metadata.dataset_id,
+            metadata=self.mock_modify_dataset_metadata_for_upload.return_value,
+            reference_url=self.reference_url,
+            json=False,
+        )
+
+        self.assertEqual(result.output, "")
+        self.assertEqual(result.exit_code, 0)
+
+    def test_upload_reference_dataset_version_json(
+        self,
+    ):
+        """
+        GIVEN mocked metadata retrieval
+        WHEN the command is run to upload a reference dataset version
+        AND --json flag is used to skip confirmation
+        THEN metadata is retrieved and modified correctly
+        AND upload function is called correctly with json True
+        AND no confirmation output is returned
+        """
+
+        # SETUP
+        self.mock_cli_get_latest_dataset_metadata.return_value = TEST_DATASET_METADATA
+        metadata = parse_dataset_metadata(TEST_DATASET_METADATA)
+
+        # CALL
+        result, _ = self.invoke_command(additional_args=[self.reference_url, "--json"])
+
+        # ASSERT
+        self.mock_DAFNISession.assert_called_once()
+        self.mock_cli_get_latest_dataset_metadata.assert_called_once_with(
+            self.mock_session, self.dataset_version_id
+        )
+        self.mock_modify_dataset_metadata_for_upload.assert_called_once_with(
+            existing_metadata=TEST_DATASET_METADATA,
+            metadata_path=None,
+            title=None,
+            description=None,
+            subject=None,
+            identifiers=None,
+            themes=None,
+            language=None,
+            keywords=None,
+            standard=None,
+            start_date=None,
+            end_date=None,
+            organisation=None,
+            people=None,
+            created_date=None,
+            update_frequency=None,
+            publisher=None,
+            contact=None,
+            license=None,
+            rights=None,
+            dataset_source=None,
+            embargo_end_date=None,
+            funding=None,
+            project=None,
+            version_message=None,
+        )
+        self.mock_upload_ref_dataset.assert_called_once_with(
+            self.mock_session,
+            dataset_id=metadata.dataset_id,
+            metadata=self.mock_modify_dataset_metadata_for_upload.return_value,
+            reference_url=self.reference_url,
+            json=True,
+        )
+
+        self.assertEqual(result.output, "")
+        self.assertEqual(result.exit_code, 0)
+
+    def test_upload_reference_dataset_version_cancel(
+        self,
+    ):
+        """
+        GIVEN mocked metadata retrieval
+        WHEN the command is run to upload a reference dataset version
+        AND user inputs n to cancel the command
+        THEN metadata is retrieved and modified correctly
+        AND upload function is not called called
+        AND correct output is returned
+        """
+
+        # SETUP
+        self.mock_cli_get_latest_dataset_metadata.return_value = TEST_DATASET_METADATA
+        metadata = parse_dataset_metadata(TEST_DATASET_METADATA)
+
+        # CALL
+        result, _ = self.invoke_command(
+            additional_args=[self.reference_url],
+            input="n",
+        )
+
+        # ASSERT
+        self.mock_DAFNISession.assert_called_once()
+        self.mock_cli_get_latest_dataset_metadata.assert_called_once_with(
+            self.mock_session, self.dataset_version_id
+        )
+        self.mock_modify_dataset_metadata_for_upload.assert_called_once_with(
+            existing_metadata=TEST_DATASET_METADATA,
+            metadata_path=None,
+            title=None,
+            description=None,
+            subject=None,
+            identifiers=None,
+            themes=None,
+            language=None,
+            keywords=None,
+            standard=None,
+            start_date=None,
+            end_date=None,
+            organisation=None,
+            people=None,
+            created_date=None,
+            update_frequency=None,
+            publisher=None,
+            contact=None,
+            license=None,
+            rights=None,
+            dataset_source=None,
+            embargo_end_date=None,
+            funding=None,
+            project=None,
+            version_message=None,
+        )
+        self.mock_upload_ref_dataset.assert_not_called()
+
+        self.assertEqual(
+            result.output,
+            f"Dataset Title: {metadata.title}\n"
+            f"Dataset ID: {metadata.dataset_id}\n"
+            f"Dataset Version ID: {metadata.version_id}\n"
+            f"Dataset URL: {self.reference_url}\n"
+            "Confirm dataset upload? [y/N]: n\n"
+            "Aborted!\n",
+        )
+        self.assertEqual(result.exit_code, 1)
+
+    def test_upload_reference_dataset_version_with_metadata_and_all_optional_modifications(
+        self,
+    ):
+        """
+        GIVEN mocked metadata retrieval
+        WHEN the command is run to upload a reference dataset version
+        AND a version mesage is given
+        AND a value is given for every metadata field
+        THEN metadata is retrieved and modified correctly
+        AND upload function is called correctly
+        AND correct output is returned
+        """
+
+        # SETUP
+        metadata_path = "definition.json"
+        self.mock_cli_get_latest_dataset_metadata.return_value = TEST_DATASET_METADATA
+        metadata = parse_dataset_metadata(TEST_DATASET_METADATA)
+
+        options = {
+            "title": "Dataset title",
+            "description": "Dataset description",
+            "identifiers": ("test", "identifiers"),
+            "subject": "Farming",
+            "themes": ("Buildings", "Hydrology"),
+            "language": "en",
+            "keywords": ("test", "another_test"),
+            "standard": ("standard_name", "https://www.standard-url.com/"),
+            "start_date": datetime(2022, 6, 28),
+            "end_date": datetime(2022, 8, 10),
+            "organisation": ("organisation_name", "https://www.organisaton-url.com/"),
+            "people": (
+                ("person-1-name", "http://www.person-1.com/"),
+                ("person-2-name", "http://www.person-2.com/"),
+            ),
+            "created_date": datetime(2023, 6, 14),
+            "update_frequency": "Annual",
+            "publisher": ("publisher_name", "https://www.publisher-url.com/"),
+            "contact": ("contact_point_name", "test@example.com"),
+            "license": "http://www.license-url.com/",
+            "rights": "Some rights",
+            "dataset_source": "Dataset source",
+            "embargo_end_date": datetime(2026, 3, 9),
+            "funding": "A funding source",
+            "project": ("Project name", "https://www.project.ac.uk"),
+            "version_message": "Some version message",
+        }
+
+        additional_args = add_dataset_metadata_common_options(
+            args=[
+                self.reference_url,
+                "--metadata",
+                metadata_path,
+            ],
+            all_optional=True,
+            dictionary=options,
+            **options,
+        )
+
+        # CALL
+        result, _ = self.invoke_command(
+            additional_args=additional_args,
+            input="y",
+            metadata_path=metadata_path,
+        )
+
+        # ASSERT
+        self.mock_DAFNISession.assert_called_once()
+        self.mock_cli_get_latest_dataset_metadata.assert_called_once_with(
+            self.mock_session, self.dataset_version_id
+        )
+        self.mock_modify_dataset_metadata_for_upload.assert_called_once_with(
+            existing_metadata=TEST_DATASET_METADATA,
+            metadata_path=Path(metadata_path),
+            **options,
+        )
+        self.mock_upload_ref_dataset.assert_called_once_with(
+            self.mock_session,
+            dataset_id=metadata.dataset_id,
+            metadata=self.mock_modify_dataset_metadata_for_upload.return_value,
+            reference_url=self.reference_url,
+            json=False,
+        )
+
+        self.assertEqual(
+            result.output,
+            f"Dataset Title: {metadata.title}\n"
+            f"Dataset ID: {metadata.dataset_id}\n"
+            f"Dataset Version ID: {metadata.version_id}\n"
+            f"Dataset URL: {self.reference_url}\n"
             f"Dataset metadata file path: {metadata_path}\n"
             "Confirm dataset upload? [y/N]: y\n",
         )
