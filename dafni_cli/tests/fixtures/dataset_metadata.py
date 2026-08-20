@@ -69,6 +69,13 @@ TEST_DATASET_METADATA_STANDARD: dict = {
 
 TEST_DATASET_METADATA_STANDARD_DEFAULT: dict = {}
 
+TEST_DATASET_METADATA_PROJECT: dict = {
+    "name": "project name",
+    "url": "https://project.url.com/",
+}
+
+TEST_DATASET_METADATA_PROJECT_DEFAULT: dict = {}
+
 TEST_DATASET_METADATA_VERSION_HISTORY: list = [
     {
         "id": "0a0a0a0a-0a00-0a00-a000-0a0a0000000b",
@@ -122,12 +129,9 @@ TEST_DATASET_METADATA: dict = {
         },
         "dct:rights": "Open Government Licence.",
         "dataset_source": "Dataset source",
-        "embargo_end_date": "2026-03-09",
+        "embargoEndDate": "2026-03-09",
         "funding": "A funding source",
-        "project": {
-            "name": "Project name",
-            "url": "https://www.project.ac.uk",
-        },
+        "project": TEST_DATASET_METADATA_PROJECT,
         "dafni_version_note": "Initial Dataset version",
         "@id": "0a0a0a0a-0a00-0a00-a000-0a0a0000000a:0a0a0a0a-0a00-0a00-a000-0a0a0000000b:0a0a0a0a-0a00-0a00-a000-0a0a0000000c",
         "dct:modified": "2021-03-16T09:27:21+00:00",
@@ -138,6 +142,8 @@ TEST_DATASET_METADATA: dict = {
     },
     "status": "ingested",
     "version_history": TEST_DATASET_METADATA_VERSION_HISTORY,
+    "type": "internal",
+    "reference_url": "https://example.com/ref_url/",
     "auth": {
         "asset_id": "0a0a0a0a-0a00-0a00-a000-0a0a0000000a",
         "reason": "Accessed as part of the Public group",
@@ -180,6 +186,8 @@ TEST_DATASET_METADATA_DEFAULT: dict = {
     },
     "status": "ingested",
     "version_history": TEST_DATASET_METADATA_VERSION_HISTORY,
+    "type": "internal",
+    "reference_url": None,
     "auth": {
         "asset_id": "0a0a0a0a-0a00-0a00-a000-0a0a0000000a",
         "reason": "Accessed as part of the Public group",

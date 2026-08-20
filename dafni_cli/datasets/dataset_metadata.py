@@ -451,7 +451,35 @@ class Standard(ParserBaseObject):
         if self.label is None:
             return "N/A"
         else:
-            return f"{self.label}"
+            return f"{self.label}" @ dataclass
+
+
+class Project(ParserBaseObject):
+    """Dataclass representing the project listed in a dataset's metadata
+
+    Attributes:
+        name (Optional[str]): Project Name
+        url (Optional[str]): Project url
+    """
+
+    name: Optional[str] = None
+    url: Optional[str] = None
+
+    _parser_params: ClassVar[List[ParserParam]] = [
+        ParserParam("name", "name", str),
+        ParserParam("url", "url", str),
+    ]
+
+    def __str__(self) -> str:
+        """Nicer string representation for printing"""
+        if self.name and self.url:
+            return f"{self.name}, {self.url}"
+        elif self.name:
+            return self.name
+        elif self.url:
+            return self.url
+        else:
+            return "N/A"
 
 
 @dataclass
