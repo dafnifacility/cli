@@ -445,17 +445,18 @@ class TestDatasetMetadataTestCase(TestCase):
 
         self.assertEqual(metadata.funding, TEST_DATASET_METADATA["metadata"]["funding"])
         self.assertEqual(
-            metadata.source, TEST_DATASET_METADATA["metadata"]["dataset_source"]
+            metadata.source, TEST_DATASET_METADATA["metadata"]["datasetSource"]
         )
         self.assertEqual(
             metadata.embargo_end_date,
-            datetime(2026, 3, 9, 0, 0, tzinfo=tzutc()),
+            datetime(2026, 3, 9, 0, 0),
         )
-        self.assertEqual(metadata.geojson, {})
+        self.assertEqual(metadata.geojson, "{}")
         self.assertEqual(
-            metadata.license, TEST_DATASET_METADATA["metadata"]["dct:license"]["@id"]
+            metadata.license_url,
+            TEST_DATASET_METADATA["metadata"]["dct:license"]["@id"],
         )
-        self.assertEqual(metadata.type, "internal")
+        self.assertEqual(metadata.dataset_type, "internal")
         self.assertEqual(metadata.reference_url, TEST_DATASET_METADATA["reference_url"])
 
     def test_parse_dataset_metadata_no_optional_values(self):
@@ -726,7 +727,7 @@ class TestDatasetMetadataTestCase(TestCase):
                         dataset_metadata.embargo_end_date, include_time=False
                     ),
                 ],
-                ["License:", dataset_metadata.license],
+                ["License:", dataset_metadata.license_url],
             ],
             tablefmt="plain",
         )
@@ -740,12 +741,8 @@ class TestDatasetMetadataTestCase(TestCase):
         all optional values are None"""
         # SETUP
         dataset_metadata: DatasetMetadata = parse_dataset_metadata(
-            TEST_DATASET_METADATA
+            TEST_DATASET_METADATA_DEFAULT
         )
-        dataset_metadata.publisher.name = None
-        dataset_metadata.rights = None
-        dataset_metadata.standard = None
-        dataset_metadata.update_frequency = None
 
         # CALL
         dataset_metadata.output_additional_metadata()
@@ -771,7 +768,7 @@ class TestDatasetMetadataTestCase(TestCase):
                 ["Funding:", "N/A"],
                 ["Source:", "N/A"],
                 ["Embargo end date:", "N/A"],
-                ["License:", dataset_metadata.license],
+                ["License:", dataset_metadata.license_url],
             ],
             tablefmt="plain",
         )
@@ -797,7 +794,7 @@ class TestDatasetMetadataTestCase(TestCase):
         dataset_metadata: DatasetMetadata = parse_dataset_metadata(
             TEST_DATASET_METADATA
         )
-        dataset_metadata.type = "reference"
+        dataset_metadata.dataset_type = "reference"
 
         # CAll
         dataset_metadata.output_details()
@@ -811,6 +808,7 @@ class TestDatasetMetadataTestCase(TestCase):
                 call(f"Version ID: {dataset_metadata.version_id}"),
                 call(""),
                 call(f"Reference URL: {dataset_metadata.reference_url}"),
+                call(""),
                 call(
                     f"Created: {format_datetime(dataset_metadata.created, include_time=True)}"
                 ),

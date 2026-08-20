@@ -451,9 +451,10 @@ class Standard(ParserBaseObject):
         if self.label is None:
             return "N/A"
         else:
-            return f"{self.label}" @ dataclass
+            return f"{self.label}"
 
 
+@dataclass
 class Project(ParserBaseObject):
     """Dataclass representing the project listed in a dataset's metadata
 
@@ -565,6 +566,7 @@ class DatasetMetadata(ParserBaseObject):
     files: List[DataFile]
     status: str
     version_history: List[DatasetVersion]
+    license_url: str
     version_message: Optional[str] = None
     identifiers: List[str] = field(default_factory=list)
     themes: List[str] = field(default_factory=list)
@@ -574,6 +576,14 @@ class DatasetMetadata(ParserBaseObject):
     update_frequency: Optional[str] = None
     start_date: Optional[datetime] = None
     end_date: Optional[datetime] = None
+    project: Optional[Project] = None
+    funding: Optional[str] = None
+    source: Optional[str] = None
+    embargo_end_date: Optional[datetime] = None
+    # geojson is currently unused, we can unpack it if we need to in future
+    geojson: Optional[str] = None
+    dataset_type: str = "internal"
+    reference_url: Optional[str] = None
 
     _parser_params: ClassVar[List[ParserParam]] = [
         ParserParam("title", ["metadata", "dct:title"], str),
@@ -609,6 +619,15 @@ class DatasetMetadata(ParserBaseObject):
             ["metadata", "dct:PeriodOfTime", "time:hasBeginning"],
             parse_datetime,
         ),
+        ParserParam("project", ["metadata", "project"], Project),
+        ParserParam("funding", ["metadata", "funding"], str),
+        ParserParam("source", ["metadata", "datasetSource"], str),
+        ParserParam("rights", ["metadata", "dct:rights"], str),
+        ParserParam("embargo_end_date", ["metadata", "embargoEndDate"], parse_datetime),
+        ParserParam("geojson", ["metadata", "geojson"], str),
+        ParserParam("license_url", ["metadata", "dct:license", "@id"], str),
+        ParserParam("dataset_type", "type", str),
+        ParserParam("reference_url", "reference_url", str),
     ]
 
     def output_details(self, long: bool = False):
@@ -625,6 +644,9 @@ class DatasetMetadata(ParserBaseObject):
         click.echo(f"Subject: {self.subject}")
         click.echo(f"Version ID: {self.version_id}")
         click.echo("")
+        if self.dataset_type == "reference":
+            click.echo(f"Reference URL: {self.reference_url}")
+            click.echo("")
         click.echo(f"Created: {format_datetime(self.created, include_time=True)}")
         click.echo(f"Creator: {self.creators[0].name}")
         click.echo(f"Contact: {self.contact}")
@@ -643,7 +665,8 @@ class DatasetMetadata(ParserBaseObject):
         click.echo(f"End date: {format_datetime(self.end_date, include_time=False)}")
 
         # DataFiles table
-        self.output_datafiles_table()
+        if self.dataset_type != "reference":
+            self.output_datafiles_table()
 
         if long:
             click.echo("")
@@ -684,7 +707,7 @@ class DatasetMetadata(ParserBaseObject):
             tabulate(
                 [
                     ["Theme(s):", ", ".join(self.themes)],
-                    ["Publisher:", str(self.publisher)],
+                    ["Publisher:", str(self.publisher) if self.publisher else "N/A"],
                     [
                         "Last updated:",
                         format_datetime(self.modified, include_time=False),
@@ -693,6 +716,14 @@ class DatasetMetadata(ParserBaseObject):
                     ["Language:", self.language],
                     ["Standard:", str(self.standard) if self.standard else "N/A"],
                     ["Update frequency:", self.update_frequency or "N/A"],
+                    ["Project:", str(self.project) if self.project else "N/A"],
+                    ["Funding:", self.funding or "N/A"],
+                    ["Source:", self.source or "N/A"],
+                    [
+                        "Embargo end date:",
+                        format_datetime(self.embargo_end_date, include_time=False),
+                    ],
+                    ["License:", self.license_url],
                 ],
                 tablefmt="plain",
             )

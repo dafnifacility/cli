@@ -128,7 +128,7 @@ TEST_DATASET_METADATA: dict = {
             "rdfs:label": None,
         },
         "dct:rights": "Open Government Licence.",
-        "dataset_source": "Dataset source",
+        "datasetSource": "Dataset source",
         "embargoEndDate": "2026-03-09",
         "funding": "A funding source",
         "project": TEST_DATASET_METADATA_PROJECT,
