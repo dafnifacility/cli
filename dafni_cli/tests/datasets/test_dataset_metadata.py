@@ -22,6 +22,7 @@ from dafni_cli.datasets.dataset_metadata import (
     Location,
     Publisher,
     Standard,
+    Project,
     parse_dataset_metadata,
 )
 from dafni_cli.tests.fixtures.dataset_metadata import (
@@ -39,6 +40,8 @@ from dafni_cli.tests.fixtures.dataset_metadata import (
     TEST_DATASET_METADATA_PUBLISHER_DEFAULT,
     TEST_DATASET_METADATA_STANDARD,
     TEST_DATASET_METADATA_STANDARD_DEFAULT,
+    TEST_DATASET_METADATA_PROJECT,
+    TEST_DATASET_METADATA_PROJECT_DEFAULT,
     TEST_DATASET_METADATA_VERSION_HISTORY,
 )
 from dafni_cli.utils import format_data_format, format_datetime, format_file_size
@@ -260,6 +263,62 @@ class TestStandard(TestCase):
         self.assertEqual(str(standard), "Some label")
 
 
+class TestProject(TestCase):
+    """Tests the Project dataclass"""
+
+    def test_parse(self):
+        """
+        GIVEN all fields filled
+        WHEN project parsed
+        THEN Project dataclass correctly created
+        """
+
+        project: Project = ParserBaseObject.parse_from_dict(
+            Project, TEST_DATASET_METADATA_PROJECT
+        )
+        self.assertEqual(project.name, TEST_DATASET_METADATA_PROJECT["name"])
+        self.assertEqual(project.url, TEST_DATASET_METADATA_PROJECT["url"])
+
+    def test_parse_when_no_optional_values(self):
+        """
+        GIVEN all optional fields ignored
+        WHEN project parsed
+        THEN all datacalss fields are None
+        """
+
+        project: Project = ParserBaseObject.parse_from_dict(
+            Project, TEST_DATASET_METADATA_PROJECT_DEFAULT
+        )
+        self.assertEqual(project.name, None)
+        self.assertEqual(project.url, None)
+
+    def test_string_conversion(self):
+        """
+        GIVEN any permutation of filled/unfilled optional fields
+        WHEN Project dataclass converted to string
+        THEN string is constructed  correctly
+        """
+        project: Project = ParserBaseObject.parse_from_dict(
+            Project, TEST_DATASET_METADATA_PROJECT_DEFAULT
+        )
+
+        # No project info
+        self.assertEqual(str(project), "N/A")
+
+        # With a url - shouldn't happen but left in in case it changes
+        project.url = "https://example.com/"
+        self.assertEqual(str(project), "https://example.com/")
+
+        # With a name - shouldn't happen but left in in case it changes
+        project.url = None
+        project.name = "test name"
+        self.assertEqual(str(project), "test name")
+
+        # With both
+        project.url = "https://example.com/"
+        self.assertEqual(str(project), "test name, https://example.com/")
+
+
 class TestDatasetVersion(TestCase):
     """Tests the DatasetVersion dataclass"""
 
@@ -381,6 +440,25 @@ class TestDatasetMetadataTestCase(TestCase):
         )
         self.assertEqual(metadata.end_date, datetime(2021, 3, 27, 0, 0, tzinfo=tzutc()))
 
+        # Project (Contents tested in TestProject)
+        self.assertEqual(type(metadata.project), Project)
+
+        self.assertEqual(metadata.funding, TEST_DATASET_METADATA["metadata"]["funding"])
+        self.assertEqual(
+            metadata.source, TEST_DATASET_METADATA["metadata"]["datasetSource"]
+        )
+        self.assertEqual(
+            metadata.embargo_end_date,
+            datetime(2026, 3, 9, 0, 0),
+        )
+        self.assertEqual(metadata.geojson, "{}")
+        self.assertEqual(
+            metadata.license_url,
+            TEST_DATASET_METADATA["metadata"]["dct:license"]["@id"],
+        )
+        self.assertEqual(metadata.dataset_type, "internal")
+        self.assertEqual(metadata.reference_url, TEST_DATASET_METADATA["reference_url"])
+
     def test_parse_dataset_metadata_no_optional_values(self):
         """Tests parsing of a dataset's metadata while all values that can
         be missing are"""
@@ -398,6 +476,11 @@ class TestDatasetMetadataTestCase(TestCase):
         self.assertEqual(metadata.update_frequency, None)
         self.assertEqual(metadata.start_date, None)
         self.assertEqual(metadata.end_date, None)
+        self.assertEqual(metadata.project, None)
+        self.assertEqual(metadata.source, None)
+        self.assertEqual(metadata.embargo_end_date, None)
+        self.assertEqual(metadata.funding, None)
+        self.assertEqual(metadata.reference_url, None)
 
     @patch.object(DatasetMetadata, "output_additional_metadata")
     @patch.object(DatasetMetadata, "output_datafiles_table")
@@ -635,6 +718,16 @@ class TestDatasetMetadataTestCase(TestCase):
                 ["Language:", dataset_metadata.language],
                 ["Standard:", str(dataset_metadata.standard)],
                 ["Update frequency:", dataset_metadata.update_frequency],
+                ["Project:", str(dataset_metadata.project)],
+                ["Funding:", dataset_metadata.funding],
+                ["Source:", dataset_metadata.source],
+                [
+                    "Embargo end date:",
+                    format_datetime(
+                        dataset_metadata.embargo_end_date, include_time=False
+                    ),
+                ],
+                ["License:", dataset_metadata.license_url],
             ],
             tablefmt="plain",
         )
@@ -648,12 +741,8 @@ class TestDatasetMetadataTestCase(TestCase):
         all optional values are None"""
         # SETUP
         dataset_metadata: DatasetMetadata = parse_dataset_metadata(
-            TEST_DATASET_METADATA
+            TEST_DATASET_METADATA_DEFAULT
         )
-        dataset_metadata.publisher.name = None
-        dataset_metadata.rights = None
-        dataset_metadata.standard = None
-        dataset_metadata.update_frequency = None
 
         # CALL
         dataset_metadata.output_additional_metadata()
@@ -675,9 +764,81 @@ class TestDatasetMetadataTestCase(TestCase):
                 ["Language:", dataset_metadata.language],
                 ["Standard:", "N/A"],
                 ["Update frequency:", "N/A"],
+                ["Project:", "N/A"],
+                ["Funding:", "N/A"],
+                ["Source:", "N/A"],
+                ["Embargo end date:", "N/A"],
+                ["License:", dataset_metadata.license_url],
             ],
             tablefmt="plain",
         )
+
+    @patch.object(DatasetMetadata, "output_additional_metadata")
+    @patch.object(DatasetMetadata, "output_datafiles_table")
+    @patch("dafni_cli.datasets.dataset_metadata.prose_print")
+    @patch("dafni_cli.datasets.dataset_metadata.click")
+    def test_output_for_reference_datasets(
+        self,
+        mock_click,
+        mock_prose,
+        mock_output_datafiles_table,
+        mock_output_additional_metadata,
+    ):
+        """
+        GIVEN dataset type is reference
+        WHEN output details called
+        THEN reference URL is added to output info
+        AND no datafiles are added
+        """
+        # SETUP
+        dataset_metadata: DatasetMetadata = parse_dataset_metadata(
+            TEST_DATASET_METADATA
+        )
+        dataset_metadata.dataset_type = "reference"
+
+        # CAll
+        dataset_metadata.output_details()
+
+        # ASSERT
+        self.assertEqual(
+            mock_click.echo.mock_calls,
+            [
+                call(dataset_metadata.title),
+                call(f"Subject: {dataset_metadata.subject}"),
+                call(f"Version ID: {dataset_metadata.version_id}"),
+                call(""),
+                call(f"Reference URL: {dataset_metadata.reference_url}"),
+                call(""),
+                call(
+                    f"Created: {format_datetime(dataset_metadata.created, include_time=True)}"
+                ),
+                call(f"Creator: {dataset_metadata.creators[0].name}"),
+                call(f"Contact: {dataset_metadata.contact}"),
+                call(""),
+                call("Description:"),
+                call(""),
+                call("Identifier(s):"),
+                call(f"Location: {dataset_metadata.location.label}"),
+                call(
+                    f"Start date: {format_datetime(dataset_metadata.start_date, include_time=False)}"
+                ),
+                call(
+                    f"End date: {format_datetime(dataset_metadata.end_date, include_time=False)}"
+                ),
+                call(""),
+                call("Keywords:"),
+                call(", ".join(dataset_metadata.keywords)),
+            ],
+        )
+        mock_prose.assert_has_calls(
+            [
+                call(dataset_metadata.description, CONSOLE_WIDTH),
+                call(" ".join(dataset_metadata.identifiers), CONSOLE_WIDTH),
+            ]
+        )
+
+        mock_output_datafiles_table.assert_not_called()
+        mock_output_additional_metadata.assert_not_called()
 
     def test_get_details(self):
         """Tests get_details functions as expected"""
